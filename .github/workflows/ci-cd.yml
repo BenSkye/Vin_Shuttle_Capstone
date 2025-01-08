@@ -61,15 +61,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          npm install
+      # - name: Install dependencies
+      #   run: |
+      #     cd backend
+      #     npm install
 
-      - name: Deploy backend
-        run: |
-          cd backend
-          npm run deploy
+      # - name: Deploy backend
+      #   run: |
+      #     cd backend
+      #     npm run deploy
 
       - name: Deploy frontend-customer
         run: |
