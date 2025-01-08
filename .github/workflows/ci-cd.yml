@@ -61,6 +61,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Deploy frontend-customer
+        run: |
+          cd frontend-customer
+          npm run deploy
+
+          
       # - name: Install dependencies
       #   run: |
       #     cd backend
@@ -71,11 +77,7 @@ jobs:
       #     cd backend
       #     npm run deploy
 
-      - name: Deploy frontend-customer
-        run: |
-          cd frontend-customer
-          npm run deploy
-
+      
       # - name: Deploy frontend-admin
       #   run: |
       #     cd frontend-admin
