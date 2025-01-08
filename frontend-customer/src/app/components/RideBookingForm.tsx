@@ -9,9 +9,9 @@ const RideBookingForm = () => {
     const [form] = Form.useForm()
     const [serviceType, setServiceType] = useState('privateRental')
 
-    const onFinish = (values: any) => {
+    const onFinish = (values: unknown) => {
         console.log('Success:', values)
-        // Here you would typically send this data to your backend
+
     }
 
     return (
