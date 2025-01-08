@@ -1,0 +1,79 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        directory: [frontend-customer, frontend-admin, backend]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd ${{ matrix.directory }}
+          npm install
+
+      - name: Add structuredClone polyfill
+        run: |
+          echo "if (typeof global.structuredClone === 'undefined') { global.structuredClone = (obj) => JSON.parse(JSON.stringify(obj)); }" > polyfill.js
+          echo "require('./polyfill');" >> node_modules/vite/dist/node/chunks/dep-yUJfKD1i.js || true
+
+      - name: Run build
+        run: |
+          cd ${{ matrix.directory }}
+          npm run build
+
+    #   - name: Run tests
+    #     run: |
+    #       cd ${{ matrix.directory }}
+    #       npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Deploy backend
+        run: |
+          cd backend
+          npm run deploy
+
+      - name: Deploy frontend-customer
+        run: |
+          cd frontend-customer
+          npm run deploy
+
+      - name: Deploy frontend-admin
+        run: |
+          cd frontend-admin
+          npm run deploy

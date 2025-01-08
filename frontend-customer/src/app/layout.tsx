@@ -34,7 +34,6 @@ export default function RootLayout({
             <Layout className="min-h-screen">
               <Header />
               <main className="pt-16 flex-grow">
-                {/* pt-16 để tránh content bị che bởi fixed header */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                   {children}
                 </div>
