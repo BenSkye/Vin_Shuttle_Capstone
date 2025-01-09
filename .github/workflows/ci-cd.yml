@@ -16,7 +16,7 @@ jobs:
       matrix:
         directory: [frontend-customer,
         #   frontend-admin
-        #  , backend
+         backend
          ]
 
     steps:
@@ -67,15 +67,15 @@ jobs:
           npm run deploy
 
           
-      # - name: Install dependencies
-      #   run: |
-      #     cd backend
-      #     npm install
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm install
 
-      # - name: Deploy backend
-      #   run: |
-      #     cd backend
-      #     npm run deploy
+      - name: Deploy backend
+        run: |
+          cd backend
+          npm run deploy
 
       
       # - name: Deploy frontend-admin
