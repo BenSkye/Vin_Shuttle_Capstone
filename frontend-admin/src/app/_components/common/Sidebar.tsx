@@ -1,5 +1,5 @@
 import { Layout, Menu } from 'antd';
-import { UserOutlined, CarOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 
 const { Sider } = Layout;
@@ -24,6 +24,11 @@ export default function Sidebar() {
       icon: <UserSwitchOutlined />,
       label: 'Trang cá nhân',
     },
+    {
+      key: '/router',
+      icon: <CompassOutlined />,
+      label: 'Quản lý tuyến đường',
+    }
   ];
 
   return (
