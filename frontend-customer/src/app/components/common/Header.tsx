@@ -3,20 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Button, Layout, Menu } from 'antd'
-import {
-    MenuUnfoldOutlined,
-    CloseOutlined,
-    HomeOutlined,
-    CarOutlined,
-    EnvironmentOutlined,
-    PhoneOutlined,
-    LoginOutlined,
-    UserAddOutlined
-} from '@ant-design/icons'
-import type { MenuProps } from 'antd'
-
-const { Header: AntHeader } = Layout
+import { Button } from '@/components/ui/button' // Import Button Component
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -41,61 +28,54 @@ export default function Header() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const menuItems: MenuProps['items'] = [
+    const menuItems = [
         {
             key: 'home',
-            icon: <HomeOutlined />,
+            icon: '🏠',
             label: <Link href="/">Trang chủ</Link>
         },
         {
             key: 'booking',
-            icon: <CarOutlined />,
+            icon: '🚗',
             label: <Link href="/booking">Đặt xe</Link>
         },
         {
             key: 'routes',
-            icon: <EnvironmentOutlined />,
+            icon: '🛣️',
             label: <Link href="/routes">Tuyến đường</Link>
         },
         {
             key: 'contact',
-            icon: <PhoneOutlined />,
+            icon: '📞',
             label: <Link href="/contact">Liên hệ</Link>
         },
     ]
 
-    const authButtons = (isMobile = false) => (
+    const authButtons = (isMobile: boolean) => (
         <div className={`flex ${isMobile ? 'flex-col' : ''} gap-2`}>
             <Button
-                type={isMobile ? "primary" : "default"}
-                icon={<LoginOutlined />}
-                className={
-                    isMobile
-                        ? "bg-blue-500 hover:bg-blue-600 w-full"
-                        : "text-white border-white hover:text-blue-500 hover:bg-white"
-                }
+                variant={isMobile ? 'blue' : 'outline'}
+                fullWidth={isMobile}
+                className={isMobile ? 'text-white' : 'text-blue-500'}
             >
-                <Link href="/login">Đăng nhập</Link>
+                <Link href="/login">
+                    🔑 Đăng nhập
+                </Link>
             </Button>
             <Button
-                type={isMobile ? "default" : "primary"}
-                icon={<UserAddOutlined />}
-                className={
-                    isMobile
-                        ? "w-full"
-                        : "bg-white text-blue-500 hover:bg-gray-100"
-                }
+                variant={isMobile ? 'default' : 'blue'}
+                fullWidth={isMobile}
+                className={isMobile ? 'text-blue-500' : 'text-white'}
             >
-                <Link href="/signup">Đăng ký</Link>
+                <Link href="/signup">
+                    ✍️ Đăng ký
+                </Link>
             </Button>
         </div>
     )
 
     return (
-        <AntHeader
-            className="bg-gradient-to-r from-blue-500 to-green-500 px-6 py-4 fixed w-full z-50 shadow-md flex items-center justify-between"
-            style={{ height: 'auto' }}
-        >
+        <header className="flex items-center justify-between bg-gradient-to-r from-indigo-500 to-pink-500 px-6 py-4 fixed w-full z-50 shadow-lg rounded-b-2xl">
             {/* Left: Logo */}
             <Link href="/" className="flex items-center">
                 <Image
@@ -113,28 +93,38 @@ export default function Header() {
             {/* Center: Menu (only on desktop) */}
             {!isMobile && (
                 <div className="flex-1 flex justify-center">
-                    <Menu
-                        mode="horizontal"
-                        defaultSelectedKeys={['home']}
-                        items={menuItems}
-                        className="!flex-nowrap bg-transparent text-white border-none"
-                        style={{
-                            color: 'white',
-                        }}
-                    />
+                    <nav className="flex space-x-6">
+                        {menuItems.map((item) => (
+                            <Link
+                                key={item.key}
+                                href={item.label.props.href}
+                                className="text-white hover:text-blue-500"
+                            >
+                                <Button className="bg-white text-black hover:bg-gray-100 hover:text-blue-500">
+                                    <span className="text-2xl">{item.icon}</span>
+                                    {item.label}
+                                </Button>
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
             )}
 
             {/* Right: Auth Buttons */}
             <div className="flex items-center ml-auto">
-                {!isMobile && authButtons()}
+                {!isMobile && authButtons(false)}
                 {isMobile && (
-                    <Button
-                        type="text"
-                        icon={mobileMenuOpen ? <CloseOutlined className="text-xl text-white" /> : <MenuUnfoldOutlined className="text-xl bg-white p-2 rounded-md" />}
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    <button
+                        type="button"
                         className="text-white"
-                    />
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? (
+                            <span className="text-xl text-white">✖️</span>
+                        ) : (
+                            <span className="text-xl bg-white p-2 rounded-md">☰</span>
+                        )}
+                    </button>
                 )}
             </div>
 
@@ -146,27 +136,36 @@ export default function Header() {
                 >
                     <div
                         className="fixed right-0 top-0 h-full w-[80%] max-w-[400px] bg-white shadow-xl transition-transform duration-300 ease-in-out"
-                        onClick={e => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
                         style={{
-                            transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)'
+                            transform: mobileMenuOpen
+                                ? 'translateX(0)'
+                                : 'translateX(100%)',
                         }}
                     >
                         {/* Mobile Menu Items */}
-                        <Menu
-                            mode="inline"
-                            defaultSelectedKeys={['home']}
-                            items={menuItems}
-                            className="border-none mt-4"
-                            onClick={() => setMobileMenuOpen(false)}
-                        />
+                        <div className="flex flex-col mt-4">
+                            {menuItems.map((item) => (
+                                <Link
+                                    key={item.key}
+                                    href={item.label.props.href}
+                                    className="p-4 text-black hover:bg-gray-100"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <span className="text-2xl">{item.icon}</span>
+                                    {item.label}
+                                </Link>
+                            ))}
+                        </div>
 
                         {/* Close Button Inside Mobile Menu */}
                         <div className="absolute top-2 right-2">
-                            <Button
-                                type="text"
-                                icon={<CloseOutlined className="text-2xl text-red-600" />}
+                            <button
+                                className="text-red-600 text-2xl"
                                 onClick={() => setMobileMenuOpen(false)}
-                            />
+                            >
+                                ✖️
+                            </button>
                         </div>
 
                         {/* Mobile Auth Buttons */}
@@ -176,6 +175,6 @@ export default function Header() {
                     </div>
                 </div>
             )}
-        </AntHeader>
+        </header>
     )
 }
