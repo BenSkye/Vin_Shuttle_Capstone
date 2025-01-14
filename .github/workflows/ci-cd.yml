@@ -16,7 +16,6 @@ jobs:
       matrix:
         directory: [frontend-customer,
           frontend-admin,
-          frontend-driver,
          backend
          ]
 
