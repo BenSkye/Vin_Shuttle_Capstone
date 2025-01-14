@@ -15,7 +15,8 @@ jobs:
     strategy:
       matrix:
         directory: [frontend-customer,
-        #   frontend-admin
+          frontend-admin,
+          frontend-driver,
          backend
          ]
 
@@ -78,7 +79,7 @@ jobs:
           npm run deploy
 
       
-      # - name: Deploy frontend-admin
-      #   run: |
-      #     cd frontend-admin
-      #     npm run deploy
+      - name: Deploy frontend-admin
+        run: |
+          cd frontend-admin
+          npm run deploy
