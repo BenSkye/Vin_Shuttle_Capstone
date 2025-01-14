@@ -6,9 +6,18 @@ import Sidebar from '../app/_components/common/Sidebar';
 
 const { Header, Content } = Layout;
 
+// Định nghĩa interface cho user data
+interface UserData {
+  key: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+}
+
 export default function Home() {
-  // Mock data cho ví dụ
-  const dataSource = [
+  // Mock data với kiểu đã định nghĩa
+  const dataSource: UserData[] = [
     {
       key: '1',
       name: 'Nguyễn Văn A',
@@ -16,7 +25,6 @@ export default function Home() {
       phone: '0123456789',
       role: 'User',
     },
-    // Thêm data mẫu khác ở đây
   ];
 
   const columns = [
@@ -43,14 +51,22 @@ export default function Home() {
     {
       title: 'Hành động',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: (record: UserData) => (
         <Space size="middle">
-          <Button type="link">Sửa</Button>
-          <Button type="link" danger>Xóa</Button>
+          <Button type="link" onClick={() => handleEdit(record)}>Sửa</Button>
+          <Button type="link" danger onClick={() => handleDelete(record)}>Xóa</Button>
         </Space>
       ),
     },
   ];
+
+  const handleEdit = (record: UserData) => {
+    console.log('Edit user:', record);
+  };
+
+  const handleDelete = (record: UserData) => {
+    console.log('Delete user:', record);
+  };
 
   return (
     <Layout>

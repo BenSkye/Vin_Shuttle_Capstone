@@ -6,9 +6,19 @@ import Sidebar from '../../_components/common/Sidebar';
 
 const { Header, Content } = Layout;
 
+// Định nghĩa interface cho dữ liệu tuyến đường
+interface RouteData {
+  key: string;
+  routeName: string;
+  startPoint: string;
+  endPoint: string;
+  distance: string;
+  status: string;
+}
+
 export default function RouteManagement() {
   // Mock data mẫu cho tuyến đường
-  const dataSource = [
+  const dataSource: RouteData[] = [
     {
       key: '1',
       routeName: 'Tuyến số 1',
@@ -48,7 +58,7 @@ export default function RouteManagement() {
     {
       title: 'Hành động',
       key: 'action',
-      render: (_: any, record: any) => (
+      render: () => (
         <Space size="middle">
           <Button type="link">Chi tiết</Button>
           <Button type="link">Sửa</Button>
