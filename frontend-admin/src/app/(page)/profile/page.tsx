@@ -5,16 +5,34 @@ import Sidebar from '../../_components/common/Sidebar';
 
 const { Header, Content } = Layout;
 
+// Định nghĩa interface cho profile data
+interface ProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string | null;
+}
+
+// Định nghĩa interface cho form values
+interface FormValues {
+  name: string;
+  email: string;
+  phone: string;
+  currentPassword: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 export default function Profile() {
-  // Mock data cho profile
-  const profileData = {
+  // Mock data với kiểu đã định nghĩa
+  const profileData: ProfileData = {
     name: 'Admin Name',
     email: 'admin@example.com',
     phone: '0123456789',
-    avatar: null // URL hình ảnh avatar nếu có
+    avatar: null
   };
 
-  const onFinish = (values: any) => {
+  const onFinish = (values: FormValues) => {
     console.log('Success:', values);
     // Xử lý cập nhật thông tin profile
   };
@@ -57,7 +75,7 @@ export default function Profile() {
 
             {/* Form chỉnh sửa thông tin */}
             <Card title="Chỉnh sửa thông tin">
-              <Form
+              <Form<FormValues>
                 layout="vertical"
                 onFinish={onFinish}
                 initialValues={profileData}
