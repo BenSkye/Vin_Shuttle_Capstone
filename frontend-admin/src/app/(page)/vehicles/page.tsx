@@ -1,5 +1,5 @@
 'use client'
-import { Layout, Table, Button, Input, Space } from 'antd';
+import { Layout, Button, Input, Space } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import Sidebar from '../../_components/common/Sidebar';
 
