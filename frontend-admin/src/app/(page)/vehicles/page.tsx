@@ -11,7 +11,7 @@ export default function Vehicles() {
             <Sidebar />
             <Layout>
                 <Header className="bg-white p-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Quản lý phương tiện</h2>
+                    <h2 className="text-xl font-semibold ml-7">Quản lý phương tiện</h2>
                     <Space>
                         <Input
                             placeholder="Tìm kiếm phương tiện"
