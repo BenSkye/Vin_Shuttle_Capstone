@@ -1,0 +1,2 @@
+export const VEHICLE_REPOSITORY = Symbol('VEHICLE_REPOSITORY')
+export const VEHICLE_SERVICE = Symbol('VEHICLE_SERVICE')
