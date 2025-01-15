@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "echo 'Deploy frontend-admin'"
   },
   "dependencies": {
     "antd": "^5.23.0",
