@@ -1,5 +1,6 @@
-import { Types } from "mongoose";
 import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
+
+export const vehicleStatus = ['available', 'in-use', 'maintenance'] as const;
 
 
 export interface IVehiclesRepository {

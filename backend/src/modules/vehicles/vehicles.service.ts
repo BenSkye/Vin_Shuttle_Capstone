@@ -23,16 +23,23 @@ export class VehiclesService {
         return vehicle
     }
     async insert(data: ICreateVehicle): Promise<VehicleDocument> {
-        const categoryId = data.categoryId.toString()
-        const isExistCategory = await this.vehicleCategoryRepository.getById(categoryId);
-        if (!isExistCategory) {
+        try {
+            const categoryId = data.categoryId.toString()
+            const isExistCategory = await this.vehicleCategoryRepository.getById(categoryId);
+            if (!isExistCategory) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Invalid Vehicle Category ID '
+                }, HttpStatus.BAD_REQUEST);
+            }
+            const newVehicle = await this.vehicleRepository.insert(data)
+            return newVehicle
+        } catch (error) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Invalid Vehicle Category ID '
+                message: error.message
             }, HttpStatus.BAD_REQUEST);
         }
-        const newVehicle = await this.vehicleRepository.insert(data)
-        return newVehicle
     }
     async update(id: string, data: IUpdateVehicle): Promise<VehicleDocument> {
         if (data.categoryId) {

@@ -5,6 +5,8 @@ import {
     IUpdateVehicleCategoryDto,
     IVehicleCategoryService
 } from "./vehicle-category.port";
+import { JoiValidationPipe } from "src/common/pipes/joi.validation.pipe";
+import { VehicleCategoryValidation } from "src/modules/vehicle-categories/validations/vehicle-category.validation";
 
 @Controller('vehicle-categories')
 export class VehicleCategoryController {
@@ -28,7 +30,7 @@ export class VehicleCategoryController {
     @Post()
     @HttpCode(201)
     async createVehicleCategory(
-        @Body() createDto: ICreateVehicleCategoryDto
+        @Body(new JoiValidationPipe(VehicleCategoryValidation.create)) createDto: ICreateVehicleCategoryDto
     ) {
         return await this.vehicleCategoryService.insert(createDto);
     }
@@ -37,7 +39,7 @@ export class VehicleCategoryController {
     @HttpCode(200)
     async updateVehicleCategory(
         @Param('id') id: string,
-        @Body() updateDto: IUpdateVehicleCategoryDto
+        @Body(new JoiValidationPipe(VehicleCategoryValidation.update)) updateDto: IUpdateVehicleCategoryDto
     ) {
         return await this.vehicleCategoryService.update(id, updateDto);
     }
