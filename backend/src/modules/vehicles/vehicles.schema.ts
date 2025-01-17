@@ -5,13 +5,13 @@ export type VehicleDocument = HydratedDocument<Vehicle>;
 
 @Schema({ collection: 'Vehicles', timestamps: true })
 export class Vehicle {
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     name: string;
 
     @Prop({ type: Types.ObjectId, ref: 'VehicleCategory', required: true })
     categoryId: Types.ObjectId;
 
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     licensePlate: string;  // Biển số xe
 
     @Prop({ default: true })

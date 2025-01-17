@@ -1,10 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { VEHICLE_CATEGORY_REPOSITORY } from "src/modules/vehicle-categories/vehicle-category.di-token";
-import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehicle-category.port";
-import { VehicleCategory } from "src/modules/vehicle-categories/vehicle-category.schema";
-import { ICreateVehicle, IUpdateVehicle, IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
+import { ICreateVehicle, IUpdateVehicle } from "src/modules/vehicles/vehicle.dto";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 
 @Injectable()

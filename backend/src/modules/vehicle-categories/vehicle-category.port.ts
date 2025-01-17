@@ -16,15 +16,3 @@ export interface IVehicleCategoryService {
     update(id: string, dto: object): Promise<VehicleCategoryDocument>;
 }
 
-
-export interface ICreateVehicleCategoryDto {
-    name: string,
-    description: string,
-    numberOfSeat: number
-}
-
-export interface IUpdateVehicleCategoryDto {
-    name?: string,
-    description?: string,
-    numberOfSeat?: number
-}
