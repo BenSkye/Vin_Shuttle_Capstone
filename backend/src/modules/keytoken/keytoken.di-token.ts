@@ -1,0 +1,1 @@
+export const KEYTOKEN_SERVICE = Symbol('KEYTOKEN_SERVICE');
