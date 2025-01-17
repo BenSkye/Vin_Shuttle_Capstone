@@ -17,18 +17,3 @@ export interface IVehiclesService {
     update(id: string, dto: object): Promise<VehicleDocument>;
 }
 
-export interface ICreateVehicle {
-    name: string,
-    categoryId: string,
-    licensePlate: string,
-    isActive?: string,
-    status?: string
-}
-
-export interface IUpdateVehicle {
-    name?: string,
-    categoryId?: string,
-    licensePlate?: string,
-    isActive?: string,
-    status?: string
-}

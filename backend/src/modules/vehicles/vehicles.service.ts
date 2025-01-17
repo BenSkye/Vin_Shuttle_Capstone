@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
+import { ICreateVehicle, IUpdateVehicle } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
-import { ICreateVehicle, IUpdateVehicle, IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
+import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 
 @Injectable()
