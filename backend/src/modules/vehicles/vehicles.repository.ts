@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { ICreateVehicle, IUpdateVehicle } from "src/modules/vehicles/vehicles.port";
+import { ICreateVehicle, IUpdateVehicle } from "src/modules/vehicles/vehicle.dto";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 
 @Injectable()
