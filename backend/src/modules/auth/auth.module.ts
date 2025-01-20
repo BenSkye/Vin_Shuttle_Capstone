@@ -1,11 +1,16 @@
 import { Module, Provider } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AUTH_GUARD } from 'src/modules/auth/auth.di-token';
+import { AuthController } from 'src/modules/auth/auth.controller';
+import { AUTH_GUARD, AUTH_SERVICE } from 'src/modules/auth/auth.di-token';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { AuthService } from 'src/modules/auth/auth.service';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { KeyTokenService } from 'src/modules/keytoken/keytoken.service';
+import { OtpModule } from 'src/modules/OTP/otp.module';
+import { UsersModule } from 'src/modules/users/users.module';
+import { ShareModule } from 'src/share/share.module';
 
 
 const dependencies: Provider[] = [
@@ -14,6 +19,9 @@ const dependencies: Provider[] = [
     },
     {
         provide: AUTH_GUARD, useClass: AuthGuard,
+    },
+    {
+        provide: AUTH_SERVICE, useClass: AuthService,
     },
 ]
 
@@ -26,9 +34,12 @@ const dependencies: Provider[] = [
             signOptions: { expiresIn: '10m' },
         }),
         KeytokenModule,
+        ShareModule,
+        OtpModule,
+        UsersModule
     ],
-    controllers: [],
+    controllers: [AuthController],
     providers: [...dependencies],
-    exports: [AUTH_GUARD],
+    exports: [AUTH_GUARD, AUTH_SERVICE],
 })
 export class AuthModule { }

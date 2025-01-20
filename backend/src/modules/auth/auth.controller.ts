@@ -1,8 +1,10 @@
 import { Body, Controller, HttpCode, Inject, Post } from "@nestjs/common";
+import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AUTH_SERVICE } from "src/modules/auth/auth.di-token";
+import { customerLoginDto } from "src/modules/auth/auth.dto";
 import { IAuthService } from "src/modules/auth/auth.port";
-import { ICreateUserDto } from "src/modules/users/users.dto";
-
+import { CreateUserDto, ICreateUserDto } from "src/modules/users/users.dto";
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -11,13 +13,41 @@ export class AuthController {
 
     @Post('register')
     @HttpCode(201)
+    @ApiOperation({ summary: 'Register account' })
+    @ApiBody({
+        type: CreateUserDto,
+        description: 'Register account',
+        examples: {
+            'Register account': {
+                value: {
+                    name: 'khanhHg',
+                    phone: '0838683868',
+                    email: 'khanhhg@gmail.com',
+                    password: 'khanhadmindepzai',
+                    role: 'admin'
+                }
+            }
+        }
+    })
     async registerCustomer(@Body() data: ICreateUserDto) {
         return this.authService.registerCustomer(data);
     }
 
-    @Post('login')
+    @Post('login-customer')
     @HttpCode(200)
-    async loginCustomer(@Body() phone: string) {
-        return this.authService.loginCustomer(phone);
+    @ApiOperation({ summary: 'Customer login by phone number' })
+    @ApiBody({
+        type: customerLoginDto,
+        description: 'Customer login by phone number',
+        examples: {
+            'Customer Login': {
+                value: {
+                    phone: '0838683868'
+                }
+            }
+        }
+    })
+    async loginCustomer(@Body() data: { phone: string }) {
+        return this.authService.loginCustomer(data.phone);
     }
 }

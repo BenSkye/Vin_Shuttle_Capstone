@@ -41,7 +41,8 @@
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.4.17",
     "nyc": "^15.0.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "TAXI-APP-API": "file:"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",

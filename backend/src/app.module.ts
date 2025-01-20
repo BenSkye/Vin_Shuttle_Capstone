@@ -8,6 +8,9 @@ import mongodbConfig from 'src/config/mongodb.config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from 'src/modules/auth/auth.module';
+import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
+import { OtpModule } from 'src/modules/OTP/otp.module';
 
 @Module({
   imports: [
@@ -25,7 +28,10 @@ import { UsersModule } from './modules/users/users.module';
     DraftingModule,
     VehicleCategoryModule,
     VehiclesModule,
-    UsersModule
+    UsersModule,
+    AuthModule,
+    KeytokenModule,
+    OtpModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,6 +8,7 @@ export const swaggerConfig = new DocumentBuilder()
     .addTag('users', 'User management')
     .addTag('vehicles', 'Vehicle management')
     .addTag('vehicle-categories', 'Vehicle category management')
+    .addTag('otp', 'OTP Check')
     .addBearerAuth(
         {
             type: 'http',

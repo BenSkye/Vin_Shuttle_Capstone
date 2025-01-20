@@ -3,6 +3,7 @@ import { IAuthService } from "src/modules/auth/auth.port";
 import { OTP_SERVICE } from "src/modules/OTP/otp.di-token";
 import { IOTPService } from "src/modules/OTP/otp.port";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
+import * as bcrypt from 'bcrypt';
 
 import { ICreateUserDto } from "src/modules/users/users.dto";
 import { IUserRepository } from "src/modules/users/users.port";
@@ -23,6 +24,10 @@ export class AuthService implements IAuthService {
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'Phone number already exist'
             }, HttpStatus.BAD_REQUEST);
+        }
+        if (data.password) {
+            const passwordHash = await bcrypt.hash(data.password, 10);
+            data.password = passwordHash
         }
         const newUser = await this.userRepository.createUser(data);
         if (!newUser) {

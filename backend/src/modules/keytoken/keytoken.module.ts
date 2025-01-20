@@ -14,6 +14,6 @@ const dependencies: Provider[] = [
         MongooseModule.forFeature([{ name: 'KeyToken', schema: KeyTokenSchema }]),
     ],
     providers: [...dependencies],
-    exports: [...dependencies, MongooseModule]
+    exports: [...dependencies, MongooseModule, KEYTOKEN_SERVICE]
 })
 export class KeytokenModule { }
