@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { ICreateUserDto, IUpdateUserDto } from "src/modules/users/users.dto";
 import { IUserRepository } from "src/modules/users/users.port";
 import { User, UserDocument } from "src/modules/users/users.schema";
+import { getSelectData } from "src/share/utils";
 
 
 @Injectable()
@@ -18,8 +19,8 @@ export class UsersRepository implements IUserRepository {
         const result = await this.userModel.find().exec()
         return result
     }
-    async getUserById(id: string): Promise<UserDocument> {
-        const result = await this.userModel.findById(id).exec()
+    async getUserById(id: string, select: string[]): Promise<UserDocument> {
+        const result = await this.userModel.findById(id).select(getSelectData(select)).exec()
         return result
     }
     async createUser(user: ICreateUserDto): Promise<UserDocument> {

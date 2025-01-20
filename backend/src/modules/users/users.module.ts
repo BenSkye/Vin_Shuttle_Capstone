@@ -6,6 +6,7 @@ import { UsersRepository } from 'src/modules/users/users.repo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/modules/users/users.schema';
 import { ShareModule } from 'src/share/share.module';
+import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 
 const dependencies = [
   { provide: USER_SERVICE, useClass: UsersService },
@@ -15,7 +16,8 @@ const dependencies = [
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-    ShareModule
+    ShareModule,
+    KeytokenModule
   ],
   controllers: [UsersController],
   providers: [...dependencies],

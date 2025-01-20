@@ -14,6 +14,7 @@ export interface TokenPayload {
 export interface ITokenProvider {
     generateTokenPair(payload: TokenPayload, publicKey: string, privateKey: string): Promise<tokenDTO>;
     verifyToken(token: string, key: string): Promise<TokenPayload | null>;
+    decodeToken(token: string): Promise<any>
 }
 
 export const HEADER = {
