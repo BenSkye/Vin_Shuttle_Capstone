@@ -2,6 +2,7 @@ import { Controller, Get, Inject, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/modules/auth/role.guard';
 import { USER_SERVICE } from 'src/modules/users/users.di-token';
 import { IUserService } from 'src/modules/users/users.port';
 
@@ -12,7 +13,10 @@ export class UsersController {
 
 
     @Get()
+    @UseGuards(AuthGuard, RolesGuard)
     @Roles('admin')
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'View  profile user' })
     async getAllUsers() {
         return await this.service.listUsers();
     }

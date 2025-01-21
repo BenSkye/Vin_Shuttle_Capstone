@@ -2,9 +2,10 @@ import { Module, Provider } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/modules/auth/auth.controller';
-import { AUTH_GUARD, AUTH_SERVICE } from 'src/modules/auth/auth.di-token';
+import { AUTH_GUARD, AUTH_SERVICE, ROLE_GUARD } from 'src/modules/auth/auth.di-token';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthService } from 'src/modules/auth/auth.service';
+import { RolesGuard } from 'src/modules/auth/role.guard';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { KeyTokenService } from 'src/modules/keytoken/keytoken.service';
@@ -22,6 +23,9 @@ const dependencies: Provider[] = [
     },
     {
         provide: AUTH_SERVICE, useClass: AuthService,
+    },
+    {
+        provide: ROLE_GUARD, useClass: RolesGuard,
     },
 ]
 

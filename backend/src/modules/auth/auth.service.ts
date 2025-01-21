@@ -7,13 +7,18 @@ import * as bcrypt from 'bcrypt';
 
 import { ICreateUserDto } from "src/modules/users/users.dto";
 import { IUserRepository } from "src/modules/users/users.port";
+import { convertObjectId } from "src/share/utils";
+import { KEYTOKEN_SERVICE } from "src/modules/keytoken/keytoken.di-token";
+import { IKeyTokenService } from "src/modules/keytoken/keytoken.port";
 
 
 @Injectable()
 export class AuthService implements IAuthService {
     constructor(
         @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
-        @Inject(OTP_SERVICE) private readonly otpService: IOTPService
+        @Inject(OTP_SERVICE) private readonly otpService: IOTPService,
+        @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService
+
     ) { }
 
     async registerCustomer(data: ICreateUserDto): Promise<object> {
@@ -52,6 +57,25 @@ export class AuthService implements IAuthService {
         console.log('userExist', userExist);
         const otp = await this.otpService.create({ phone, role: userExist.role, name: userExist.name, _id: userExist._id.toString() });
         return otp;
+    }
+
+    async loginByPassword(email: string, password: string): Promise<object> {
+        const userExist = await this.userRepository.findUser({ email });
+        if (!userExist) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'email not exist'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const match = await bcrypt.compare(password, userExist.password);
+        if (!match) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Password not true'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const token = await this.keyTokenService.createKeyToken({ userId: convertObjectId(userExist._id.toString()), role: userExist.role, name: userExist.name, phone: userExist.phone });
+        return { isValid: true, token: token, userId: userExist._id };
     }
 
 }

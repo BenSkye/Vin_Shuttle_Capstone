@@ -3,7 +3,6 @@ import { OTP_REPOSITORY } from "src/modules/OTP/otp.di-token";
 import { IOTPRepository, IOTPService, OTPPayload, OTPVerifyDTO } from "src/modules/OTP/otp.port";
 import * as otpGenerator from 'otp-generator';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { ITokenProvider } from "src/share/interface";
 
 import { KEYTOKEN_SERVICE } from "src/modules/keytoken/keytoken.di-token";
@@ -31,12 +30,7 @@ export class OTPService implements IOTPService {
         console.log('code', code);
         const salt = await bcrypt.genSalt(10);
         const hashcode = await bcrypt.hash(code, salt);
-        const payload = { _id: _id, role: role, name: name, phone: phone };
-        const privateKey = crypto.randomBytes(64).toString('hex');
-        const publicKey = crypto.randomBytes(64).toString('hex');
-        console.log('publicKey', publicKey.toString());
-        const token = await this.tokenProvider.generateTokenPair(payload, publicKey.toString(), privateKey.toString());
-        await this.keyTokenService.createKeyToken({ userId: convertObjectId(_id), publicKey: publicKey.toString(), privateKey: privateKey.toString(), refreshToken: token.refreshToken });
+        const token = await this.keyTokenService.createKeyToken({ userId: convertObjectId(_id), role: role, name: name, phone: phone });
         const newOtp = await this.OTPRepository.insert({ user: convertObjectId(_id), phone: phone, code: hashcode, token: token });
         if (!newOtp) {
             throw new Error('Failed to create OTP');

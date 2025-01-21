@@ -50,4 +50,25 @@ export class AuthController {
     async loginCustomer(@Body() data: { phone: string }) {
         return this.authService.loginCustomer(data.phone);
     }
+
+    @Post('login-by-password')
+    @HttpCode(200)
+    @ApiOperation({ summary: 'Login by email and password' })
+    @ApiBody({
+        type: customerLoginDto,
+        description: 'Login by email and password',
+        examples: {
+            'Login': {
+                value: {
+                    email: 'khanhHg@gmail.com',
+                    password: '123'
+                }
+            }
+        }
+    })
+    async loginByPassword(@Body() data: { email: string, password: string }) {
+        return this.authService.loginByPassword(data.email, data.password)
+    }
+
+
 }

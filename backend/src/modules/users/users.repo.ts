@@ -15,8 +15,8 @@ export class UsersRepository implements IUserRepository {
     ) {
     }
 
-    async listUsers(): Promise<UserDocument[]> {
-        const result = await this.userModel.find().exec()
+    async listUsers(select: string[]): Promise<UserDocument[]> {
+        const result = await this.userModel.find().select(getSelectData(select)).exec()
         return result
     }
     async getUserById(id: string, select: string[]): Promise<UserDocument> {

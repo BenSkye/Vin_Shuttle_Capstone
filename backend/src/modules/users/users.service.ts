@@ -10,7 +10,8 @@ export class UsersService implements IUserService {
     ) { }
 
     async listUsers(): Promise<UserDocument[]> {
-        const listUsers = await this.userRepository.listUsers();
+        const select = ['name', 'phone', 'email', 'role']
+        const listUsers = await this.userRepository.listUsers(select);
         return listUsers
     }
     async viewProfile(id: string): Promise<object> {
