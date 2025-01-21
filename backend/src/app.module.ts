@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import mongodbConfig from 'src/config/mongodb.config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -23,7 +24,9 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     }),
     DraftingModule,
     VehicleCategoryModule,
-    VehiclesModule],
+    VehiclesModule,
+    UsersModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

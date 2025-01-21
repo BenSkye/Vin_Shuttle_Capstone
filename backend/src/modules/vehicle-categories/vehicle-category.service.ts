@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { isValidObjectId } from "mongoose";
 import { VEHICLE_CATEGORY_REPOSITORY } from "src/modules/vehicle-categories/vehicle-category.di-token";
-import { ICreateVehicleCategoryDto, IUpdateVehicleCategoryDto, IVehicleCategoryRepository, IVehicleCategoryService } from "src/modules/vehicle-categories/vehicle-category.port";
+import { ICreateVehicleCategoryDto, IUpdateVehicleCategoryDto } from "src/modules/vehicle-categories/vehicle-category.dto";
+import { IVehicleCategoryRepository, IVehicleCategoryService } from "src/modules/vehicle-categories/vehicle-category.port";
 import { VehicleCategoryDocument } from "src/modules/vehicle-categories/vehicle-category.schema";
 
 
