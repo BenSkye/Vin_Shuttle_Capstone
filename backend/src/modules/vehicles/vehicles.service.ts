@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
+import { ICreateVehicle, IUpdateVehicle } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
-import { ICreateVehicle, IUpdateVehicle, IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
+import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 
 @Injectable()
@@ -23,16 +24,23 @@ export class VehiclesService {
         return vehicle
     }
     async insert(data: ICreateVehicle): Promise<VehicleDocument> {
-        const categoryId = data.categoryId.toString()
-        const isExistCategory = await this.vehicleCategoryRepository.getById(categoryId);
-        if (!isExistCategory) {
+        try {
+            const categoryId = data.categoryId.toString()
+            const isExistCategory = await this.vehicleCategoryRepository.getById(categoryId);
+            if (!isExistCategory) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Invalid Vehicle Category ID '
+                }, HttpStatus.BAD_REQUEST);
+            }
+            const newVehicle = await this.vehicleRepository.insert(data)
+            return newVehicle
+        } catch (error) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Invalid Vehicle Category ID '
+                message: error.message
             }, HttpStatus.BAD_REQUEST);
         }
-        const newVehicle = await this.vehicleRepository.insert(data)
-        return newVehicle
     }
     async update(id: string, data: IUpdateVehicle): Promise<VehicleDocument> {
         if (data.categoryId) {

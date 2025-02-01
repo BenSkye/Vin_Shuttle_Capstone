@@ -10,7 +10,9 @@
     "deploy": "echo 'Deploy frontend-admin'"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "antd": "^5.23.0",
+    "font-awesome": "^4.7.0",
     "frontend-admin": "file:",
     "next": "15.1.4",
     "react": "^19.0.0",
