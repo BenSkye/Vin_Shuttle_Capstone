@@ -33,8 +33,8 @@ export default function RootLayout({
           >
             <Layout className="min-h-screen">
               <Header />
-              <main className="pt-16 flex-grow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <main className="">
+                <div className="">
                   {children}
                 </div>
               </main>

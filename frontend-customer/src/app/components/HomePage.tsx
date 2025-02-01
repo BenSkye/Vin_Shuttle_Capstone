@@ -1,125 +1,140 @@
 'use client'
 
-import { useState } from 'react'
-import { Search } from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+    Box,
+    Typography,
+    Button,
+    Container,
+    Grid,
+    Card,
+    CardContent,
+    CardMedia,
+    IconButton,
+    useTheme,
+    useMediaQuery,
+    Paper,
+} from "@mui/material";
+import { styled } from "@mui/system";
+import { FaCar, FaShieldAlt, FaClock, FaUserFriends } from "react-icons/fa";
 
-interface Route {
-    id: string
-    name: string
-    from: string
-    to: string
-    hours: string
-    price: string
-}
-
-const routes: Route[] = [
-    {
-        id: 'metro-1',
-        name: 'Tuyến số Metro 1',
-        from: 'Bến Thành',
-        to: 'Suối Tiên',
-        hours: '05:00 - 22:00',
-        price: '20.000 VND'
+const HeroSection = styled(Box)(({ theme }) => ({
+    position: "relative",
+    height: "80vh",
+    display: "flex",
+    alignItems: "center",
+    backgroundImage: `url(https://camnangvinhomes.com/uploads/post/659e4968c5550.jpg)`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    "&::before": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
-    {
-        id: 'd4',
-        name: 'Tuyến số D4',
-        from: 'Vinhomes Grand Park',
-        to: 'Bến xe buýt Sài Gòn',
-        hours: '05:00 - 22:00',
-        price: '7.000 VND'
-    },
-    {
-        id: '01',
-        name: 'Tuyến số 01',
-        from: 'Bến Thành',
-        to: 'Bến Xe buýt Chợ Lớn',
-        hours: '05:00 - 20:15',
-        price: '5.000 VND'
-    },
-    {
-        id: '03',
-        name: 'Tuyến số 03',
-        from: 'Bến Thành',
-        to: 'Thanh Xuân',
-        hours: '04:00 - 20:45',
-        price: '6.000 VND'
-    }
-]
+}));
 
-export default function BusRouteMap() {
-    const [searchQuery, setSearchQuery] = useState('')
+const Feature = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(3),
+    textAlign: "center",
+    height: "100%",
+    transition: "transform 0.3s ease-in-out",
+    "&:hover": {
+        transform: "translateY(-10px)",
+    },
+}));
 
-    const filteredRoutes = routes.filter(route =>
-        route.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        route.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        route.to.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+const HomePage = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+    const features = [
+        {
+            icon: <FaCar size={40} />,
+            title: "Premium Vehicles",
+            description: "Choose from our wide range of luxury and comfort vehicles"
+        },
+        {
+            icon: <FaShieldAlt size={40} />,
+            title: "Safe & Secure",
+            description: "All vehicles thoroughly sanitized and safety-checked"
+        },
+        {
+            icon: <FaClock size={40} />,
+            title: "24/7 Service",
+            description: "Round-the-clock support and booking assistance"
+        },
+        {
+            icon: <FaUserFriends size={40} />,
+            title: "Expert Drivers",
+            description: "Professional, experienced and vetted chauffeurs"
+        }
+    ];
 
     return (
-        <div className="h-screen flex flex-col">
-            {/* Header */}
-            <header className="bg-emerald-500 text-white p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold">BusMap</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" className="text-white hover:text-white hover:bg-emerald-600">
-                        Đăng nhập
-                    </Button>
-                    <Button variant="ghost" className="text-white hover:text-white hover:bg-emerald-600">
-                        EN
-                    </Button>
-                </div>
-            </header>
+        <Box sx={{ width: '100%' }}>
+            <HeroSection>
+                <Container >
+                    <Box position="relative" color="white" textAlign={isMobile ? "center" : "left"}>
+                        <Typography variant="h1" sx={{ fontSize: { xs: "2.5rem", md: "4rem" }, fontWeight: "bold", mb: 2 }}>
+                            VinShuttle
+                        </Typography>
+                        <Typography variant="h5" sx={{ mb: 4, maxWidth: "600px" }}>
+                            VinShuttle cung cấp dịch vụ đặt xe tiện lợi trong khu đô thị Vinhomes, giúp cư dân di chuyển nhanh chóng, an toàn và tiết kiệm thời gian
 
-            <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar */}
-                <div className="w-80 border-r bg-background flex flex-col">
-                    <div className="p-4 border-b">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="TRA CỨU"
-                                className="pl-9"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                    <ScrollArea className="flex-1">
-                        <div className="p-4 space-y-4">
-                            {filteredRoutes.map(route => (
-                                <Card key={route.id} className="p-4 cursor-pointer hover:bg-accent">
-                                    <div className="space-y-2">
-                                        <div className="font-medium">{route.name}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {route.from} - {route.to}
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span>{route.hours}</span>
-                                            <span>{route.price}</span>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </div>
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            sx={{
+                                backgroundColor: "#1976d2",
+                                color: "white",
+                                padding: "12px 32px",
+                                fontSize: "1.2rem",
+                                "&:hover": {
+                                    backgroundColor: "#1565c0"
+                                }
+                            }}
+                        >
+                            Book Now
+                        </Button>
+                    </Box>
+                </Container>
+            </HeroSection>
 
-                {/* Map Area */}
-                <div className="flex-1 bg-muted p-4">
-                    <div className="h-full rounded-lg bg-background border flex items-center justify-center text-muted-foreground">
-                        Map View
-                        {/* In a real implementation, you would integrate a mapping library here */}
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
+            <Container sx={{ my: 8 }}>
+                <Typography variant="h2" textAlign="center" sx={{ mb: 6, fontSize: { xs: "2rem", md: "3rem" } }}>
+                    Why Choose Us?
+                </Typography>
+                <Grid container spacing={4}>
+                    {features.map((feature, index) => (
+                        <Grid item xs={12} sm={6} md={3} key={index}>
+                            <Feature elevation={3}>
+                                <IconButton
+                                    sx={{
+                                        backgroundColor: "#1976d2",
+                                        color: "white",
+                                        mb: 2,
+                                        "&:hover": { backgroundColor: "#1976d2" }
+                                    }}
+                                >
+                                    {feature.icon}
+                                </IconButton>
+                                <Typography variant="h6" sx={{ mb: 1 }}>
+                                    {feature.title}
+                                </Typography>
+                                <Typography color="text.secondary">
+                                    {feature.description}
+                                </Typography>
+                            </Feature>
+                        </Grid>
+                    ))}
+                </Grid>
+            </Container>
+        </Box>
+    );
+};
 
+export default HomePage;

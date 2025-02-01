@@ -1,180 +1,95 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button' // Import Button Component
+import Image from "next/image"
+import Link from "next/link"
+import { useState } from "react"
+import { FiMenu, FiX } from "react-icons/fi"
 
-export default function Header() {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [isMobile, setIsMobile] = useState(false)
+export default function Navbar() {
+    const [language, setLanguage] = useState<"VI" | "EN">("VI")
+    const [isOpen, setIsOpen] = useState(false)
 
-    // Handle responsive detection
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 1024) // 1024px is the 'lg' breakpoint
-            if (window.innerWidth >= 1024) {
-                setMobileMenuOpen(false) // Close mobile menu on larger screens
-            }
-        }
+    const toggleLanguage = () => {
+        setLanguage((prev) => (prev === "VI" ? "EN" : "VI"))
+    }
 
-        // Initial check
-        handleResize()
+    const toggleMenu = () => {
+        setIsOpen(!isOpen)
+    }
 
-        // Add event listener
-        window.addEventListener('resize', handleResize)
-
-        // Cleanup
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    const menuItems = [
-        {
-            key: 'home',
-            icon: '🏠',
-            label: <Link href="/">Trang chủ</Link>
-        },
-        {
-            key: 'booking',
-            icon: '🚗',
-            label: <Link href="/booking">Đặt xe</Link>
-        },
-        {
-            key: 'routes',
-            icon: '🛣️',
-            label: <Link href="/routes">Tuyến đường</Link>
-        },
-        {
-            key: 'contact',
-            icon: '📞',
-            label: <Link href="/contact">Liên hệ</Link>
-        },
+    const navItems = [
+        { label: "Trang Chủ", href: "/" },
+        { label: "Đặt xe", href: "/booking" },
+        { label: "Hướng dẫn", href: "/guide" },
+        { label: "Liên Hệ", href: "/contact" },
+        { label: "Tính năng", href: "/features" },
+        { label: "Blog", href: "/blog" },
+        { label: "Fanpage", href: "/page" },
     ]
 
-    const authButtons = (isMobile: boolean) => (
-        <div className={`flex ${isMobile ? 'flex-col' : ''} gap-2`}>
-            <Button
-                variant={isMobile ? 'blue' : 'outline'}
-                fullWidth={isMobile}
-                className={isMobile ? 'text-white' : 'text-blue-500'}
-            >
-                <Link href="/login">
-                    🔑 Đăng nhập
-                </Link>
-            </Button>
-            <Button
-                variant={isMobile ? 'default' : 'blue'}
-                fullWidth={isMobile}
-                className={isMobile ? 'text-blue-500' : 'text-white'}
-            >
-                <Link href="/signup">
-                    ✍️ Đăng ký
-                </Link>
-            </Button>
-        </div>
-    )
-
     return (
-        <header className="flex items-center justify-between bg-gradient-to-r from-indigo-500 to-pink-500 px-6 py-4 fixed w-full z-50 shadow-lg rounded-b-2xl">
-            {/* Left: Logo */}
+        <nav className="flex items-center justify-between px-4 py-4 bg-white shadow-sm">
+            {/* Logo */}
             <Link href="/" className="flex items-center">
-                <Image
-                    src="/favicon.svg"
-                    alt="VinShuttle"
-                    width={40}
-                    height={40}
-                    className="object-contain"
-                />
-                <span className="ml-3 text-white text-xl font-bold">
-                    VinShuttle
-                </span>
+                <Image src="/favicon.svg" alt="VinShuttle" width={40} height={40} className="object-contain" />
+                <span className="ml-3 text-black text-2xl font-bold">VinShuttle</span>
             </Link>
 
-            {/* Center: Menu (only on desktop) */}
-            {!isMobile && (
-                <div className="flex-1 flex justify-center">
-                    <nav className="flex space-x-6">
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.key}
-                                href={item.label.props.href}
-                                className="text-white hover:text-blue-500"
-                            >
-                                <Button className="bg-white text-black hover:bg-gray-100 hover:text-blue-500">
-                                    <span className="text-2xl">{item.icon}</span>
-                                    {item.label}
-                                </Button>
-                            </Link>
-                        ))}
-                    </nav>
-                </div>
-            )}
-
-            {/* Right: Auth Buttons */}
-            <div className="flex items-center ml-auto">
-                {!isMobile && authButtons(false)}
-                {isMobile && (
-                    <button
-                        type="button"
-                        className="text-white"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            {/* Desktop Navigation - Dịch sang trái xa hơn */}
+            <div className="hidden md:flex justify-center items-center space-x-12 ml-24 mr-auto pl-72">
+                {navItems.map((item) => (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
                     >
-                        {mobileMenuOpen ? (
-                            <span className="text-xl text-white">✖️</span>
-                        ) : (
-                            <span className="text-xl bg-white p-2 rounded-md">☰</span>
-                        )}
-                    </button>
-                )}
+                        {item.label}
+                    </Link>
+                ))}
             </div>
 
-            {/* Mobile Menu */}
-            {isMobile && mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-50"
-                    onClick={() => setMobileMenuOpen(false)}
-                >
-                    <div
-                        className="fixed right-0 top-0 h-full w-[80%] max-w-[400px] bg-white shadow-xl transition-transform duration-300 ease-in-out"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            transform: mobileMenuOpen
-                                ? 'translateX(0)'
-                                : 'translateX(100%)',
-                        }}
+            {/* Language Button */}
+            <button
+                onClick={toggleLanguage}
+                className="hidden md:block text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
+            >
+                {language === "VI" ? "VI | EN" : "EN | VI"}
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button onClick={toggleMenu} className="md:hidden text-gray-600 text-2xl">
+                {isOpen ? <FiX /> : <FiMenu />}
+            </button>
+
+            {/* Mobile Navigation */}
+            {isOpen && (
+                <div className="fixed top-0 left-0 w-full h-[60%] bg-white shadow-md flex flex-col items-center py-6 space-y-4 z-50 rounded-b-lg transition-all duration-300">
+                    {/* Nút đóng menu */}
+                    <button onClick={toggleMenu} className="absolute top-4 right-6 text-2xl text-gray-600">
+                        <FiX />
+                    </button>
+
+                    {/* Danh sách menu */}
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
+                            onClick={() => setIsOpen(false)} // Đóng menu khi chọn
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+
+                    {/* Nút chuyển ngôn ngữ */}
+                    <button
+                        onClick={toggleLanguage}
+                        className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
                     >
-                        {/* Mobile Menu Items */}
-                        <div className="flex flex-col mt-4">
-                            {menuItems.map((item) => (
-                                <Link
-                                    key={item.key}
-                                    href={item.label.props.href}
-                                    className="p-4 text-black hover:bg-gray-100"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <span className="text-2xl">{item.icon}</span>
-                                    {item.label}
-                                </Link>
-                            ))}
-                        </div>
-
-                        {/* Close Button Inside Mobile Menu */}
-                        <div className="absolute top-2 right-2">
-                            <button
-                                className="text-red-600 text-2xl"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                ✖️
-                            </button>
-                        </div>
-
-                        {/* Mobile Auth Buttons */}
-                        <div className="p-4 border-t mt-4">
-                            {authButtons(true)}
-                        </div>
-                    </div>
+                        {language === "VI" ? "VI | EN" : "EN | VI"}
+                    </button>
                 </div>
             )}
-        </header>
+        </nav>
     )
 }
