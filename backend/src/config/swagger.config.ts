@@ -1,4 +1,5 @@
 import { DocumentBuilder } from '@nestjs/swagger';
+import { HEADER } from 'src/share/interface';
 
 export const swaggerConfig = new DocumentBuilder()
     .setTitle('VinShuttle API')
@@ -8,15 +9,9 @@ export const swaggerConfig = new DocumentBuilder()
     .addTag('users', 'User management')
     .addTag('vehicles', 'Vehicle management')
     .addTag('vehicle-categories', 'Vehicle category management')
+    .addTag('otp', 'OTP Check')
     .addBearerAuth(
-        {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            name: 'JWT',
-            description: 'Enter JWT token',
-            in: 'header',
-        },
-        'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        HEADER.AUTHORIZATION // Authorization header
     )
     .build();

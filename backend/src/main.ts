@@ -6,7 +6,7 @@ import { swaggerConfig } from 'src/config/swagger.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'http://localhost:2025',
+    origin: 'http://localhost:2028',
     methods: ['GET', 'POST'],
     credentials: true,
   });
@@ -18,7 +18,7 @@ async function bootstrap() {
     customSiteTitle: 'VinShuttle API Docs'
   });
   //log link to swagger
-  console.log(`Swagger UI is running on http://localhost:${process.env.PORT ?? 2025}/api-docs`);
-  await app.listen(process.env.PORT ?? 2025);
+  console.log(`Swagger UI is running on http://localhost:${process.env.PORT ?? 2028}/api-docs`);
+  await app.listen(process.env.PORT ?? 2028);
 }
 bootstrap();
