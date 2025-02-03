@@ -4,7 +4,7 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { swaggerConfig } from 'src/config/swagger.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   app.enableCors({
     origin: 'http://localhost:2028',
     methods: ['GET', 'POST'],
