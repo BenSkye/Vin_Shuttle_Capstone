@@ -1,5 +1,5 @@
 import { Layout, Menu } from 'antd';
-import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined } from '@ant-design/icons';
+import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined,LoginOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 
 const { Sider } = Layout;
@@ -33,6 +33,16 @@ export default function Sidebar() {
       key: '/money',
       icon: <DollarOutlined />,
       label: 'Quản lý tiền',
+    },
+    {
+      key: '/login',
+      icon: <LoginOutlined/>,
+      label: 'Đăng nhập'
+    },
+    {
+      key: '/logout',
+      icon: <LogoutOutlined />,
+      label: 'Đăng xuất'
     }
   ];
 
