@@ -10,6 +10,7 @@
     "deploy": "echo 'Deploy frontend-admin'"
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "antd": "^5.23.0",
     "axios": "^1.7.9",
