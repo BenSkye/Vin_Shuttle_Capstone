@@ -8,8 +8,12 @@ interface LoginCredentials {
 }
 
 interface LoginResponse {
-  accessToken: string;
-  // Thêm các trường khác nếu API trả về
+  isValid: boolean;
+  token: {
+    accessToken: string;
+    refreshToken: string;
+  };
+  userId: string;
 }
 
 export const authService = {
