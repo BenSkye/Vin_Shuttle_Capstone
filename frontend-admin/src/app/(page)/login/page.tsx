@@ -5,10 +5,16 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../services/authServices';
+import axios, { AxiosError } from 'axios';
 
 interface LoginFormValues {
   email: string;
   password: string;
+}
+
+interface ErrorResponse {
+  message: string;
+  statusCode: number;
 }
 
 export default function Login() {
@@ -25,8 +31,13 @@ export default function Login() {
       
       message.success('Đăng nhập thành công');
       router.push('/'); // Chuyển hướng về trang chủ
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Đăng nhập thất bại');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        message.error(axiosError.response?.data?.message || 'Đăng nhập thất bại');
+      } else {
+        message.error('Đăng nhập thất bại');
+      }
     } finally {
       setLoading(false);
     }
