@@ -4,12 +4,12 @@ import { KeyToken } from "src/modules/keytoken/keytoken.schema";
 
 export interface KeyTokenCreateDTO {
     userId: Types.ObjectId,
-    publicKey: string,
-    privateKey: string,
-    refreshToken: string
+    role: string,
+    name: string,
+    phone: string
 }
 
 export interface IKeyTokenService {
-    createKeyToken(data: KeyTokenCreateDTO): Promise<string>
+    createKeyToken(data: KeyTokenCreateDTO): Promise<object>
     findByUserId(userId: string): Promise<KeyToken>
 }

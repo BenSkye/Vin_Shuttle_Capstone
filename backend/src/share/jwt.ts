@@ -36,12 +36,24 @@ export class JwtTokenService implements ITokenProvider {
 
     async verifyToken(token: string, key: string): Promise<any> {
         try {
-            console.log('key', key);
-            const decode = jwt.verify(token, key) as TokenPayload;
+            const decode = await jwt.verify(token, key) as TokenPayload;
             return decode;
         } catch (error) {
             console.log(error);
             return null;
         }
     }
+
+    async decodeToken(token: string): Promise<any> {
+        try {
+            console.log('token', token)
+            const decode = await jwt.decode(token)
+            console.log('decode', decode)
+            return decode;
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+
 }
