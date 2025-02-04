@@ -3,18 +3,35 @@
 const AboutUs = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-12">
+            {/* Header */}
             <header className="text-center mb-12">
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">VinShuttle</h1>
                 <p className="text-xl text-gray-600">Dịch vụ xe điện nội khu VinHomes Grand Park</p>
             </header>
 
+            {/* Giới thiệu chung */}
             <section className="mb-12">
-                <p className="text-gray-700 leading-relaxed mb-6">
-                    Chào mừng bạn đến với VinShuttle - dịch vụ xe điện hiện đại phục vụ cư dân VinHomes Grand Park.
-                    Chúng tôi cung cấp giải pháp di chuyển tiện lợi, an toàn và thân thiện với môi trường trong khuôn viên khu đô thị.
-                </p>
+                <div className="flex flex-col md:flex-row items-center md:items-start">
+                    <p className="text-gray-700 leading-relaxed mb-6 md:mb-0 md:w-1/2">
+                        Chào mừng bạn đến với VinShuttle - dịch vụ xe điện hiện đại phục vụ cư dân VinHomes Grand Park.
+                        Chúng tôi cung cấp giải pháp di chuyển tiện lợi, an toàn và thân thiện với môi trường trong khuôn viên khu đô thị.
+                    </p>
+                    <div className="md:w-1/2 grid grid-cols-1 gap-8 md:grid-cols-2">
+                        <img
+                            src="https://via.placeholder.com/600x400"
+                            alt="VinShuttle Xe Điện"
+                            className="rounded-lg shadow-md"
+                        />
+                        <img
+                            src="https://via.placeholder.com/600x400"
+                            alt="VinShuttle Dịch Vụ"
+                            className="rounded-lg shadow-md"
+                        />
+                    </div>
+                </div>
             </section>
 
+            {/* Lý do chọn VinShuttle */}
             <section className="mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900 mb-6">Tại sao chọn VinShuttle?</h2>
                 <div className="grid md:grid-cols-2 gap-8">
@@ -46,14 +63,30 @@ const AboutUs = () => {
                 </div>
             </section>
 
+            {/* Di chuyển thuận tiện */}
             <section className="mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900 mb-6">Di chuyển thuận tiện</h2>
-                <p className="text-gray-700 leading-relaxed mb-6">
-                    VinShuttle kết nối mọi điểm đến trong khu đô thị VinHomes Grand Park, từ các tòa nhà
-                    chung cư đến trung tâm thương mại, công viên và các tiện ích công cộng khác.
-                </p>
+                <div className="flex flex-col md:flex-row items-center md:items-start">
+                    <p className="text-gray-700 leading-relaxed mb-6 md:mb-0 md:w-1/2">
+                        VinShuttle kết nối mọi điểm đến trong khu đô thị VinHomes Grand Park, từ các tòa nhà
+                        chung cư đến trung tâm thương mại, công viên và các tiện ích công cộng khác.
+                    </p>
+                    <div className="md:w-1/2 grid grid-cols-1 gap-8 md:grid-cols-2">
+                        <img
+                            src="https://via.placeholder.com/600x400"
+                            alt="VinShuttle Kết Nối"
+                            className="rounded-lg shadow-md"
+                        />
+                        <img
+                            src="https://via.placeholder.com/600x400"
+                            alt="VinShuttle Tiện Ích"
+                            className="rounded-lg shadow-md"
+                        />
+                    </div>
+                </div>
             </section>
 
+            {/* Đặt xe ngay */}
             <section className="text-center">
                 <h2 className="text-3xl font-semibold text-gray-900 mb-6">Đặt xe ngay</h2>
                 <p className="text-gray-700 mb-6">
@@ -70,11 +103,12 @@ const AboutUs = () => {
                 </div>
             </section>
 
+            {/* Footer */}
             <footer className="mt-12 text-center text-gray-600">
                 <p>&copy; {new Date().getFullYear()} VinShuttle. Bản quyền thuộc về VinHomes.</p>
             </footer>
         </div>
-    )
-}
+    );
+};
 
-export default AboutUs
+export default AboutUs;
