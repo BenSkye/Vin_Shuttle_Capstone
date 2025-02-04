@@ -6,12 +6,7 @@ import { useState } from "react"
 import { FiMenu, FiX } from "react-icons/fi"
 
 export default function Navbar() {
-    const [language, setLanguage] = useState<"VI" | "EN">("VI")
     const [isOpen, setIsOpen] = useState(false)
-
-    const toggleLanguage = () => {
-        setLanguage((prev) => (prev === "VI" ? "EN" : "VI"))
-    }
 
     const toggleMenu = () => {
         setIsOpen(!isOpen)
@@ -20,7 +15,7 @@ export default function Navbar() {
     const navItems = [
         { label: "Trang Chủ", href: "/" },
         { label: "Đặt xe", href: "/booking" },
-        { label: "Hướng dẫn", href: "/guide" },
+        { label: "Về chúng tôi", href: "/aboutus" },
         { label: "Liên Hệ", href: "/contact" },
         { label: "Tính năng", href: "/features" },
         { label: "Blog", href: "/blog" },
@@ -48,13 +43,21 @@ export default function Navbar() {
                 ))}
             </div>
 
-            {/* Language Button */}
-            <button
-                onClick={toggleLanguage}
-                className="hidden md:block text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
-            >
-                {language === "VI" ? "VI | EN" : "EN | VI"}
-            </button>
+            {/* Auth Buttons - Replace Language Button */}
+            <div className="hidden md:flex items-center space-x-4">
+                <Link
+                    href="/login"
+                    className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
+                >
+                    Đăng nhập
+                </Link>
+                <Link
+                    href="/register"
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-lg font-medium"
+                >
+                    Đăng ký
+                </Link>
+            </div>
 
             {/* Mobile Menu Button */}
             <button onClick={toggleMenu} className="md:hidden text-gray-600 text-2xl">
@@ -81,13 +84,23 @@ export default function Navbar() {
                         </Link>
                     ))}
 
-                    {/* Nút chuyển ngôn ngữ */}
-                    <button
-                        onClick={toggleLanguage}
-                        className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
-                    >
-                        {language === "VI" ? "VI | EN" : "EN | VI"}
-                    </button>
+                    {/* Auth Buttons - Replace Language Button */}
+                    <div className="flex flex-col space-y-2">
+                        <Link
+                            href="/login"
+                            className="text-gray-600 hover:text-green-500 transition-colors text-lg font-medium"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Đăng nhập
+                        </Link>
+                        <Link
+                            href="/register"
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-lg font-medium"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Đăng ký
+                        </Link>
+                    </div>
                 </div>
             )}
         </nav>
