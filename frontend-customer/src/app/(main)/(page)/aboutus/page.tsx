@@ -1,64 +1,80 @@
-'u'
+'use client'
 
-const CarRentalIntro = () => {
+const AboutUs = () => {
     return (
-        <div className="car-rental-intro">
-            <header>
-                <h1>[Your Car Rental Company Name]</h1>
-                <p>Your Premier Choice for Car Rentals in Ho Chi Minh City</p>
+        <div className="max-w-7xl mx-auto px-4 py-12">
+            <header className="text-center mb-12">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">VinShuttle</h1>
+                <p className="text-xl text-gray-600">Dịch vụ xe điện nội khu VinHomes Grand Park</p>
             </header>
 
-            <section className="overview">
-                <p>
-                    Welcome to [Your Car Rental Company Name], your gateway to exploring Ho Chi Minh City with freedom and convenience. We offer a diverse fleet of vehicles to cater to every traveler's needs, from solo adventurers to families and business travelers.  Whether you're navigating the bustling city streets or venturing out to explore the surrounding areas, we've got the perfect car for you.
-                </p>
-                {/* You could add an image carousel or a single hero image here */}
-                {/* <img src="/path/to/your/hero-image.jpg" alt="Car Rental Fleet" /> */}
-            </section>
-
-            <section className="why-choose-us">
-                <h2>Why Choose Us?</h2>
-                <ul>
-                    <li>
-                        <strong>Extensive Fleet:</strong> Choose from a wide selection of vehicles, including compact cars, sedans, SUVs, and more.  We have options to fit every budget and group size.
-                    </li>
-                    <li>
-                        <strong>Competitive Rates:</strong> We offer competitive rental rates and transparent pricing with no hidden fees.  Look out for our special offers and discounts!
-                    </li>
-                    <li>
-                        <strong>Convenient Locations:</strong> Our strategically located offices across Ho Chi Minh City make pick-up and drop-off a breeze.  [Mention specific locations if applicable, e.g., near the airport, in the city center].
-                    </li>
-                    <li>
-                        <strong>Excellent Customer Service:</strong> Our dedicated team is committed to providing exceptional customer service. We're here to assist you with all your car rental needs, from booking to roadside assistance.
-                    </li>
-                </ul>
-            </section>
-
-            <section className="explore-hcmc">
-                <h2>Explore Ho Chi Minh City with Ease</h2>
-                <p>
-                    Renting a car gives you the flexibility to discover Ho Chi Minh City at your own pace. Visit iconic landmarks like the Cu Chi Tunnels, explore the vibrant Ben Thanh Market, or take a scenic drive along the Saigon River.  With a rental car, the possibilities are endless!
-                </p>
-                {/* Add some images of popular attractions in Ho Chi Minh City */}
-            </section>
-
-            <section className="booking">
-                <h2>Book Your Car Today</h2>
-                <p>Ready to start your adventure?  Book your car rental online today through our easy-to-use booking system, or contact us directly for personalized assistance.</p>
-                <button>Book Now</button> {/* Link to your booking page */}
-                <p>
-                    <strong>Contact Us:</strong><br />
-                    [Your Phone Number]<br />
-                    [Your Email Address]<br />
-                    [Your Website]
+            <section className="mb-12">
+                <p className="text-gray-700 leading-relaxed mb-6">
+                    Chào mừng bạn đến với VinShuttle - dịch vụ xe điện hiện đại phục vụ cư dân VinHomes Grand Park.
+                    Chúng tôi cung cấp giải pháp di chuyển tiện lợi, an toàn và thân thiện với môi trường trong khuôn viên khu đô thị.
                 </p>
             </section>
 
-            <footer>
-                <p>&copy; {new Date().getFullYear()} [Your Car Rental Company Name]</p>
+            <section className="mb-12">
+                <h2 className="text-3xl font-semibold text-gray-900 mb-6">Tại sao chọn VinShuttle?</h2>
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-3">Đội xe hiện đại</h3>
+                        <p className="text-gray-700">
+                            Sở hữu đội xe điện hiện đại, thân thiện môi trường, được bảo dưỡng định kỳ
+                            đảm bảo an toàn tối đa cho hành khách.
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-3">Giá cả hợp lý</h3>
+                        <p className="text-gray-700">
+                            Mức giá phải chăng, nhiều gói dịch vụ linh hoạt phù hợp với nhu cầu của mọi cư dân.
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-3">Đặt xe dễ dàng</h3>
+                        <p className="text-gray-700">
+                            Đặt xe nhanh chóng qua ứng dụng di động hoặc website, theo dõi vị trí xe theo thời gian thực.
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-3">Dịch vụ chuyên nghiệp</h3>
+                        <p className="text-gray-700">
+                            Đội ngũ tài xế được đào tạo chuyên nghiệp, thân thiện và nhiệt tình phục vụ quý khách.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="mb-12">
+                <h2 className="text-3xl font-semibold text-gray-900 mb-6">Di chuyển thuận tiện</h2>
+                <p className="text-gray-700 leading-relaxed mb-6">
+                    VinShuttle kết nối mọi điểm đến trong khu đô thị VinHomes Grand Park, từ các tòa nhà
+                    chung cư đến trung tâm thương mại, công viên và các tiện ích công cộng khác.
+                </p>
+            </section>
+
+            <section className="text-center">
+                <h2 className="text-3xl font-semibold text-gray-900 mb-6">Đặt xe ngay</h2>
+                <p className="text-gray-700 mb-6">
+                    Trải nghiệm dịch vụ xe điện tiện lợi cùng VinShuttle ngay hôm nay!
+                </p>
+                <button className="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                    Đặt xe
+                </button>
+                <div className="mt-8 text-gray-700">
+                    <p className="font-semibold mb-2">Liên hệ với chúng tôi:</p>
+                    <p>Hotline: 1900 xxxx</p>
+                    <p>Email: support@vinshuttle.com</p>
+                    <p>Website: vinshuttle.com</p>
+                </div>
+            </section>
+
+            <footer className="mt-12 text-center text-gray-600">
+                <p>&copy; {new Date().getFullYear()} VinShuttle. Bản quyền thuộc về VinHomes.</p>
             </footer>
         </div>
-    );
-};
+    )
+}
 
-export default CarRentalIntro;
+export default AboutUs

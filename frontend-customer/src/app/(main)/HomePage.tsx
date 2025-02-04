@@ -6,9 +6,6 @@ import {
     Button,
     Container,
     Grid,
-    Card,
-    CardContent,
-    CardMedia,
     IconButton,
     useTheme,
     useMediaQuery,
@@ -17,7 +14,7 @@ import {
 import { styled } from "@mui/system";
 import { FaCar, FaShieldAlt, FaClock, FaUserFriends } from "react-icons/fa";
 
-const HeroSection = styled(Box)(({ theme }) => ({
+const HeroSection = styled(Box)({
     position: "relative",
     height: "80vh",
     display: "flex",
@@ -34,17 +31,17 @@ const HeroSection = styled(Box)(({ theme }) => ({
         bottom: 0,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
-}));
+});
 
-const Feature = styled(Paper)(({ theme }) => ({
-    padding: theme.spacing(3),
+const Feature = styled(Paper)({
+    padding: "24px",
     textAlign: "center",
     height: "100%",
     transition: "transform 0.3s ease-in-out",
     "&:hover": {
         transform: "translateY(-10px)",
     },
-}));
+});
 
 const HomePage = () => {
     const theme = useTheme();
@@ -83,7 +80,6 @@ const HomePage = () => {
                         </Typography>
                         <Typography variant="h5" sx={{ mb: 4, maxWidth: "600px" }}>
                             VinShuttle cung cấp dịch vụ đặt xe tiện lợi trong khu đô thị Vinhomes, giúp cư dân di chuyển nhanh chóng, an toàn và tiết kiệm thời gian
-
                         </Typography>
                         <Button
                             variant="contained"
