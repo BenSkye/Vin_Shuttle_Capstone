@@ -1,9 +1,7 @@
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
-import { ConfigProvider, Layout } from 'antd'
+import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
-import Header from './components/common/Header'
-import Footer from './components/common/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,19 +29,10 @@ export default function RootLayout({
               },
             }}
           >
-            <Layout className="min-h-screen">
-              <Header />
-              <main className="pt-16 flex-grow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                  {children}
-                </div>
-              </main>
-              <Footer />
-            </Layout>
+            {children}
           </ConfigProvider>
         </AntdRegistry>
       </body>
     </html>
   )
 }
-
