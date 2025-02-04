@@ -31,6 +31,7 @@
     "@nestjs/swagger": "^8.1.1",
     "@types/bcrypt": "^5.0.2",
     "backend": "file:",
+    "bcrypt": "^5.1.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.3",

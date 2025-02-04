@@ -9,18 +9,17 @@ export enum UserRole {
 
 
 export interface IUserRepository {
-    listUsers(): Promise<UserDocument[]>;
-    getUserById(id: string): Promise<UserDocument>;
+    listUsers(select: string[]): Promise<UserDocument[]>;
+    getUserById(id: string, select: string[]): Promise<UserDocument>;
     findUser(query: any): Promise<UserDocument>;
     createUser(user: ICreateUserDto): Promise<UserDocument>;
     updateUser(id: string, user: IUpdateUserDto): Promise<UserDocument>;
 }
 
 export interface IUserService {
-    listUsers(): Promise<UserDocument[]>;
-    getUserById(id: string): Promise<UserDocument>;
-    createUser(user: ICreateUserDto): Promise<UserDocument>;
-    updateUser(id: string, user: IUpdateUserDto): Promise<UserDocument>;
+    listUsers(): Promise<object>;
+    viewProfile(id: string): Promise<object>;
+
 }
 
 

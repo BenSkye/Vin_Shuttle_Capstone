@@ -6,6 +6,7 @@ import { OTP_REPOSITORY, OTP_SERVICE } from "src/modules/OTP/otp.di-token";
 import { OTPService } from "src/modules/OTP/otp.service";
 import { OTPRepository } from "src/modules/OTP/otp.repo";
 import { KeytokenModule } from "src/modules/keytoken/keytoken.module";
+import { ShareModule } from "src/share/share.module";
 
 const dependencies: Provider[] = [
     { provide: OTP_REPOSITORY, useClass: OTPRepository },
@@ -19,9 +20,11 @@ const dependencies: Provider[] = [
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: 'OTP', schema: OTPSchema }]),
-        KeytokenModule
+        KeytokenModule,
+        ShareModule
     ],
     controllers: [OTPController],
     providers: [...dependencies],
+    exports: [...dependencies]
 })
 export class OtpModule { }
