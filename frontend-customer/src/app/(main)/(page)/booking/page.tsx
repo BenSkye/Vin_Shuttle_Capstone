@@ -4,9 +4,23 @@ import { useState } from "react"
 import { Box, Card, Tab, Tabs } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { FaHotel, FaPlane, FaCar } from "react-icons/fa"
-import HourlyBooking from "../../components/booking/hourbooking"
-import RouteBooking from "../../components/booking/routebooking"
-import LineBooking from "../../components/booking/linebooking"
+import dynamic from 'next/dynamic'
+
+// Dynamic imports với ssr: false
+const HourlyBooking = dynamic(
+    () => import('../../components/booking/hourbooking'),
+    { ssr: false }
+)
+
+const RouteBooking = dynamic(
+    () => import('../../components/booking/routebooking'),
+    { ssr: false }
+)
+
+const LineBooking = dynamic(
+    () => import('../../components/booking/linebooking'),
+    { ssr: false }
+)
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
     backgroundColor: theme.palette.background.paper,
