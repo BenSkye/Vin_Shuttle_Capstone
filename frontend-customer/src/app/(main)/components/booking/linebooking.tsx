@@ -1,18 +1,18 @@
 'use client'
 
-import { Box, Typography, TextField, Select, MenuItem, Button, FormControl, InputLabel } from "@mui/material";
+import { Box, Typography, Select, MenuItem, Button, FormControl, InputLabel, SelectChangeEvent } from "@mui/material";
 import { useState } from "react";
 
 export default function LineBooking() {
     const [route, setRoute] = useState('');
     const [time, setTime] = useState('');
 
-    const handleRouteChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        setRoute(event.target.value as string);
+    const handleRouteChange = (event: SelectChangeEvent) => {
+        setRoute(event.target.value);
     };
 
-    const handleTimeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        setTime(event.target.value as string);
+    const handleTimeChange = (event: SelectChangeEvent) => {
+        setTime(event.target.value);
     };
 
     const handleSubmit = () => {

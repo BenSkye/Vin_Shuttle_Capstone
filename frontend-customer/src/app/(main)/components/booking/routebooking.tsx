@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from "react";
-import { Box, Typography } from "@mui/material"
+
 import Sidebar from "../Sidebar"
 import Map from "../Map"
 import LookUp from "../LookUp"

@@ -70,21 +70,36 @@ const vehicleTypes = [
     }
 ];
 
+interface FormErrors {
+    date?: string;
+    time?: string;
+    hours?: string;
+    vehicleType?: string;
+    pickup?: string;
+    seats?: string;
+}
+
+interface SnackbarState {
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info" | "warning";
+}
+
 const HourlyBookingPage = () => {
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedTime, setSelectedTime] = useState("");
-    const [hours, setHours] = useState("");
-    const [vehicleType, setVehicleType] = useState("");
-    const [pickup, setPickup] = useState("");
-    const [errors, setErrors] = useState({});
-    const [snackbar, setSnackbar] = useState({
+    const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
+    const [selectedTime, setSelectedTime] = useState<string>("");
+    const [hours, setHours] = useState<string>("");
+    const [vehicleType, setVehicleType] = useState<string>("");
+    const [pickup, setPickup] = useState<string>("");
+    const [errors, setErrors] = useState<FormErrors>({});
+    const [snackbar, setSnackbar] = useState<SnackbarState>({
         open: false,
         message: "",
         severity: "success"
     });
-    const [numberOfSeats, setNumberOfSeats] = useState("");
-    const [numberOfVehicles, setNumberOfVehicles] = useState(1);
-    const [totalPrice, setTotalPrice] = useState(0);
+    const [numberOfSeats, setNumberOfSeats] = useState<string>("");
+    const [numberOfVehicles, setNumberOfVehicles] = useState<number>(1);
+    const [totalPrice, setTotalPrice] = useState<number>(0);
 
     const timeSlots = Array.from({ length: 24 }, (_, i) => {
         const hour = i.toString().padStart(2, "0");
@@ -92,29 +107,30 @@ const HourlyBookingPage = () => {
     });
 
     const validateForm = () => {
-        const newErrors = {};
-        if (!selectedDate) newErrors.date = "Please select a date";
-        if (!selectedTime) newErrors.time = "Please select a time";
-        if (!hours) newErrors.hours = "Please select number of hours";
-        if (!vehicleType) newErrors.vehicleType = "Please select a vehicle type";
-        if (!pickup) newErrors.pickup = "Please enter pickup location";
+        const newErrors: FormErrors = {};
+        if (!selectedDate) newErrors.date = "Vui lòng chọn ngày";
+        if (!selectedTime) newErrors.time = "Vui lòng chọn giờ";
+        if (!hours) newErrors.hours = "Vui lòng chọn số giờ thuê";
+        if (!vehicleType) newErrors.vehicleType = "Vui lòng chọn loại xe";
+        if (!pickup) newErrors.pickup = "Vui lòng nhập địa điểm đón";
+        if (!numberOfSeats) newErrors.seats = "Vui lòng chọn số ghế";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
             setSnackbar({
                 open: true,
-                message: "Booking submitted successfully!",
+                message: "Đặt xe thành công!",
                 severity: "success"
             });
         }
     };
 
-    const isDateValid = (date) => {
-        return dayjs(date).isAfter(dayjs(), "day");
+    const isDateValid = (date: dayjs.Dayjs | null) => {
+        return date?.isAfter(dayjs(), "day") || false;
     };
 
     // Tính tổng giá khi các thông tin thay đổi

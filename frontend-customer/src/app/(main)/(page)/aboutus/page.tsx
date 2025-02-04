@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image';
+
 const AboutUs = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-12">
@@ -17,16 +19,22 @@ const AboutUs = () => {
                         Chúng tôi cung cấp giải pháp di chuyển tiện lợi, an toàn và thân thiện với môi trường trong khuôn viên khu đô thị.
                     </p>
                     <div className="md:w-1/2 grid grid-cols-1 gap-8 md:grid-cols-2">
-                        <img
-                            src="https://via.placeholder.com/600x400"
-                            alt="VinShuttle Xe Điện"
-                            className="rounded-lg shadow-md"
-                        />
-                        <img
-                            src="https://via.placeholder.com/600x400"
-                            alt="VinShuttle Dịch Vụ"
-                            className="rounded-lg shadow-md"
-                        />
+                        <div className="relative w-full h-[250px]">
+                            <Image
+                                src="https://via.placeholder.com/600x400"
+                                alt="VinShuttle Xe Điện"
+                                fill
+                                className="rounded-lg shadow-md object-cover"
+                            />
+                        </div>
+                        <div className="relative w-full h-[250px]">
+                            <Image
+                                src="https://via.placeholder.com/600x400"
+                                alt="VinShuttle Dịch Vụ"
+                                fill
+                                className="rounded-lg shadow-md object-cover"
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
@@ -72,16 +80,22 @@ const AboutUs = () => {
                         chung cư đến trung tâm thương mại, công viên và các tiện ích công cộng khác.
                     </p>
                     <div className="md:w-1/2 grid grid-cols-1 gap-8 md:grid-cols-2">
-                        <img
-                            src="https://via.placeholder.com/600x400"
-                            alt="VinShuttle Kết Nối"
-                            className="rounded-lg shadow-md"
-                        />
-                        <img
-                            src="https://via.placeholder.com/600x400"
-                            alt="VinShuttle Tiện Ích"
-                            className="rounded-lg shadow-md"
-                        />
+                        <div className="relative w-full h-[250px]">
+                            <Image
+                                src="https://via.placeholder.com/600x400"
+                                alt="VinShuttle Kết Nối"
+                                fill
+                                className="rounded-lg shadow-md object-cover"
+                            />
+                        </div>
+                        <div className="relative w-full h-[250px]">
+                            <Image
+                                src="https://via.placeholder.com/600x400"
+                                alt="VinShuttle Tiện Ích"
+                                fill
+                                className="rounded-lg shadow-md object-cover"
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
