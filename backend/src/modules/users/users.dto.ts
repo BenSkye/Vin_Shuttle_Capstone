@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { UserRole } from "src/modules/users/users.port";
+import { UserRole } from "src/share/enums";
 
 export interface ICreateUserDto {
     name?: string;

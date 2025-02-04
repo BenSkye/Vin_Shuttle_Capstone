@@ -1,11 +1,6 @@
 import { ICreateUserDto, IUpdateUserDto } from "src/modules/users/users.dto";
 import { UserDocument } from "src/modules/users/users.schema";
 
-export enum UserRole {
-    ADMIN = 'admin',
-    CUSTOMER = 'customer',
-    DRIVER = 'driver'
-}
 
 
 export interface IUserRepository {
