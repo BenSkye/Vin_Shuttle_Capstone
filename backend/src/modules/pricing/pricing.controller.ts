@@ -8,10 +8,13 @@ import {
     HttpCode,
     UseGuards,
     Inject,
+    Put,
 } from '@nestjs/common';
 import {
     ICreateServiceConfigDto,
     ICreateVehiclePricingDto,
+    IUpdateServiceConfigDto,
+    IUpdateVehiclePricingDto,
 } from './pricing.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JoiValidationPipe } from 'src/common/pipes/joi.validation.pipe';
@@ -93,6 +96,66 @@ export class PricingController {
         return config;
     }
 
+    @Get('service-configs')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Get all service configurations' })
+    async listAllServiceConfigs() {
+        return await this.pricingService.getAllServiceConfigs();
+    }
+
+    @Put('service-configs/:serviceType')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Update service configuration base unit' })
+    @ApiParam({
+        name: 'serviceType',
+        description: 'Service type',
+        example: 'booking_hour',
+        enum: ['booking_hour', 'booking_trip', 'booking_share']
+    })
+    @ApiBody({
+        type: 'IUpdateServiceConfigDto',
+        description: 'Service configuration update data',
+        examples: {
+            'Update Base Unit': {
+                value: {
+                    base_unit: 45
+                }
+            }
+        }
+    })
+    async updateServiceConfig(
+        @Param('serviceType') serviceType: string,
+        @Body(new JoiValidationPipe(PricingValidation.updateServiceConfig))
+        dto: IUpdateServiceConfigDto
+    ) {
+        try {
+            const updated = await this.pricingService.updateServiceConfig(serviceType, dto);
+            if (!updated) {
+                throw {
+                    status: HttpStatus.NOT_FOUND,
+                    message: 'Service config not found',
+                };
+            }
+            return updated;
+        } catch (error) {
+            if (error.status) throw error;
+            throw {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to update service config',
+                error: error.message,
+            };
+        }
+    }
+
+
+
+
     /* Vehicle Pricing Endpoints */
     @Post('vehicle-pricings')
     @HttpCode(HttpStatus.CREATED)
@@ -131,6 +194,52 @@ export class PricingController {
         }
     }
 
+
+    @Put('vehicle-pricings')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Update vehicle pricing tiered pricing' })
+    @ApiBody({
+        type: 'IUpdateVehiclePricingDto',
+        description: 'Vehicle pricing update data',
+        examples: {
+            'Update Tiered Pricing': {
+                value: {
+                    vehicle_category: '67873bb9cf95c847fe62ba5f',
+                    service_config: '67a1bd9be372750e3a1f4178',
+                    tiered_pricing: [
+                        { range: 0, price: 35000 },
+                        { range: 60, price: 30000 }
+                    ]
+                }
+            }
+        }
+    })
+    async updateVehiclePricing(
+        @Body(new JoiValidationPipe(PricingValidation.updateVehiclePricing))
+        dto: IUpdateVehiclePricingDto
+    ) {
+        try {
+            const updated = await this.pricingService.updateVehiclePricing(dto);
+            if (!updated) {
+                throw {
+                    status: HttpStatus.NOT_FOUND,
+                    message: 'Vehicle pricing not found',
+                };
+            }
+            return updated;
+        } catch (error) {
+            if (error.status) throw error;
+            throw {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Failed to update vehicle pricing',
+                error: error.message,
+            };
+        }
+    }
+
     @Get('vehicle-pricings/:vehicleCategoryId')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard, RolesGuard)
@@ -153,17 +262,6 @@ export class PricingController {
         return pricing;
     }
 
-    /* Listing Endpoints */
-    @Get('service-configs')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard, RolesGuard)
-    @Roles('admin')
-    @ApiBearerAuth('authorization')
-    @ApiOperation({ summary: 'Get all service configurations' })
-    async listAllServiceConfigs() {
-        return this.pricingService.getAllServiceConfigs();
-    }
-
     @Get('vehicle-pricings')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard, RolesGuard)
@@ -171,6 +269,6 @@ export class PricingController {
     @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Get all vehicle pricing configurations' })
     async listAllVehiclePricings() {
-        return this.pricingService.getAllVehiclePricings();
+        return await this.pricingService.getAllVehiclePricings();
     }
 }

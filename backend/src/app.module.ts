@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DraftingModule } from './drafting/drafting.module';
 import { VehicleCategoryModule } from './modules/vehicle-categories/vehicle-category.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import mongodbConfig from 'src/config/mongodb.config';
@@ -26,7 +25,6 @@ import { PricingModule } from './modules/pricing/pricing.module';
       }),
       inject: [ConfigService],
     }),
-    DraftingModule,
     VehicleCategoryModule,
     VehiclesModule,
     UsersModule,

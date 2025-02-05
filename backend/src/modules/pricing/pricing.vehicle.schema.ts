@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
-import { ServiceConfig } from "./pricing.config.schema";
 
 export type VehiclePricingDocument = Document & VehiclePricing;
 

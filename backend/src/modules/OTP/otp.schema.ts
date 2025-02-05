@@ -25,7 +25,7 @@ export class OTP {
 
     @Prop({
         default: () => new Date(),
-        expires: 20
+        expires: 120
     })
     expiresAt: Date;
 
