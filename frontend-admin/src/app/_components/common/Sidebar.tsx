@@ -1,6 +1,7 @@
-import { Layout, Menu, App } from 'antd';
-import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Menu, App, notification } from 'antd';
+import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined, UnorderedListOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const { Sider } = Layout;
@@ -9,16 +10,24 @@ export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { notification } = App.useApp();
+
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập khi component mount
-    const accessToken = localStorage.getItem('accessToken');
-    setIsLoggedIn(!!accessToken);
-  }, []);
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken');
+      setIsLoggedIn(!!token);
+      if (!token) {
+        router.push('/login');
+      }
+    };
+
+    checkAuth();
+    // Thêm event listener để kiểm tra token khi storage thay đổi
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [router]);
 
   const handleLogout = () => {
-    // Xóa localStorage
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userId');
@@ -38,27 +47,32 @@ export default function Sidebar() {
       {
         key: '/',
         icon: <UserOutlined />,
-        label: 'Quản lý người dùng',
+        label: <Link href="/">Quản lý người dùng</Link>,
+      },
+      {
+        key: '/category',
+        icon: <UnorderedListOutlined />,
+        label: <Link href="/category">Quản lý danh mục xe</Link>,
       },
       {
         key: '/vehicles',
         icon: <CarOutlined />,
-        label: 'Quản lý phương tiện',
+        label: <Link href="/vehicles">Quản lý phương tiện</Link>,
       },
       {
         key: '/profile',
         icon: <UserSwitchOutlined />,
-        label: 'Trang cá nhân',
+        label: <Link href="/profile">Trang cá nhân</Link>,
       },
       {
         key: '/router',
         icon: <CompassOutlined />,
-        label: 'Quản lý tuyến đường',
+        label: <Link href="/router">Quản lý tuyến đường</Link>,
       },
       {
         key: '/money',
         icon: <DollarOutlined />,
-        label: 'Quản lý tiền',
+        label: <Link href="/money">Quản lý tiền</Link>,
       },
       {
         key: 'logout',
@@ -74,7 +88,13 @@ export default function Sidebar() {
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
-        className="min-h-screen"
+        className="h-screen fixed left-0"
+        style={{
+          overflow: 'auto',
+          position: 'sticky',
+          top: 0,
+          bottom: 0
+        }}
       >
         <div className="h-16 flex items-center justify-center">
           <h1 className="text-white text-xl font-bold">Admin Dashboard</h1>
@@ -84,11 +104,7 @@ export default function Sidebar() {
           mode="inline"
           selectedKeys={[pathname]}
           items={menuItems}
-          onClick={(info) => {
-            if (info.key !== 'logout') {
-              router.push(info.key);
-            }
-          }}
+          style={{ height: 'calc(100vh - 64px)' }}
         />
       </Sider>
     </App>

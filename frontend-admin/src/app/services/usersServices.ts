@@ -12,6 +12,14 @@ interface User {
   password: string
 }
 
+// Thêm interface cho profile
+interface UserProfile {
+  _id: string;
+  name: string;
+  phone: string;
+  email: string;
+}
+
 export const usersService = {
   // Lấy danh sách users
   async getUsers(): Promise<User[]> {
@@ -30,7 +38,7 @@ export const usersService = {
   // Add user
   async addUser(userData: Omit<User, '_id'>): Promise<User> {
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, userData, {
+      const response = await axios.post(`${API_URL}/users/profile`, userData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
@@ -41,4 +49,19 @@ export const usersService = {
       throw error;
     }
   },
+
+  // Get user profile
+  async getUserProfile(): Promise<UserProfile> {
+    try {
+      const response = await axios.get(`${API_URL}/users/profile`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
