@@ -34,7 +34,7 @@ interface UserFormValues {
 export default function Home() {
   const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -65,14 +65,22 @@ export default function Home() {
     }
   };
 
-  // Gọi API khi component mount
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    fetchUsers();
+    const checkAuthAndFetchData = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      
+      try {
+        await fetchUsers();
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    checkAuthAndFetchData();
   }, [router]);
 
   // Lọc dữ liệu theo searchText
