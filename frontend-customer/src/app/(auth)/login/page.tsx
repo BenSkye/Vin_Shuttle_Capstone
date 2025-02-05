@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { FiPhone } from "react-icons/fi"
-import axios from "axios"
+
 import { loginCustomer } from "../../../API/user"
 import { verifyOTP } from "../../../API/user"
 import { useRouter } from "next/navigation"
