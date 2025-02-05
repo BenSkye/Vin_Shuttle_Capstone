@@ -1,16 +1,9 @@
 'use client';
-import { Geist } from "next/font/google";
-import "./globals.css";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, Spin } from "antd";
 import 'antd/dist/reset.css';
 import '@ant-design/v5-patch-for-react-19';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useState } from 'react';
-
-const geist = Geist({
-  subsets: ["latin"],
-});
+import { useEffect, useState } from 'react';
 
 export default function ClientLayout({
   children,
@@ -19,28 +12,31 @@ export default function ClientLayout({
 }>) {
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem('accessToken');
-    if (!token && pathname !== '/login') {
-      router.push('/login');
-    }
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token && pathname !== '/login') {
+        router.push('/login');
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
   }, [pathname, router]);
 
-  // Không render nội dung cho đến khi component được mount
-  if (!mounted) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
   }
 
   return (
-    <html lang="en">
-      <body className={geist.className}>
-        <ConfigProvider>
-          {children}
-        </ConfigProvider>
-      </body>
-    </html>
+    <ConfigProvider>
+      {children}
+    </ConfigProvider>
   );
 }
