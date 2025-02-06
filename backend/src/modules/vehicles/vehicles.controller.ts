@@ -1,11 +1,12 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiTags, } from '@nestjs/swagger';
 import { JoiValidationPipe } from 'src/common/pipes/joi.validation.pipe';
 import { VehicleValidation } from 'src/modules/vehicles/validations/vehicle.validation';
 import { CreateVehicleDto, ICreateVehicle, IUpdateVehicle, UpdateVehicleDto } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_SERVICE } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesService } from 'src/modules/vehicles/vehicles.port';
 
+@ApiTags('vehicles')
 @Controller('vehicles')
 export class VehiclesController {
     constructor(
