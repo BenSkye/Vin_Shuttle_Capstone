@@ -13,14 +13,40 @@ export class VehiclePricingRepository implements IVehiclePricingRepository {
     ) { }
 
     async create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument> {
-        return this.pricingModel.create(pricing);
+        return await this.pricingModel.create(pricing);
+    }
+
+    async findVehiclePricing(query: any): Promise<VehiclePricingDocument> {
+        return await this.pricingModel.findOne(query).exec();
     }
 
     async findByVehicleCategory(vehicleId: string): Promise<VehiclePricingDocument> {
-        return this.pricingModel.findOne({ vehicle_category: vehicleId }).exec();
+        return await this.pricingModel.findOne({ vehicle_category: vehicleId }).exec();
     }
 
     async findAll(): Promise<VehiclePricingDocument[]> {
-        return this.pricingModel.find().exec();
+        return await this.pricingModel.find().exec();
+    }
+
+    async update(update: ICreateVehiclePricingDto): Promise<VehiclePricingDocument> {
+        try {
+            console.log('update', update)
+            const updated = await this.pricingModel.findOneAndUpdate({
+                vehicle_category: update.vehicle_category,
+                service_config: update.service_config
+            }, {
+                $set: {
+                    tiered_pricing: update.tiered_pricing
+                }
+            }, { new: true }).exec();
+
+            console.log('updated', updated);
+
+            return updated;
+        } catch (error) {
+            console.log('error', error);
+            return null;
+        }
+
     }
 }

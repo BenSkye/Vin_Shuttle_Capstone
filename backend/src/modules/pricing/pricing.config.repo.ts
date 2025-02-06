@@ -13,14 +13,19 @@ export class PricingConfigRepository implements IPricingConfigRepository {
     ) { }
 
     async create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument> {
-        return this.configModel.create(config);
+        return await this.configModel.create(config);
     }
 
     async findByServiceType(serviceType: string): Promise<ServiceConfigDocument> {
-        return this.configModel.findOne({ service_type: serviceType }).exec();
+        return await this.configModel.findOne({ service_type: serviceType }).exec();
     }
 
     async findAll(): Promise<ServiceConfigDocument[]> {
-        return this.configModel.find().exec();
+        return await this.configModel.find().exec();
     }
+
+    async update(serviceType: string, config: ICreateServiceConfigDto): Promise<ServiceConfigDocument> {
+        return await this.configModel.findOneAndUpdate({ service_type: serviceType }, config, { new: true }).exec();
+    }
+
 }

@@ -17,5 +17,20 @@ export const PricingValidation = {
                 price: Joi.number().min(0).required()
             })
         ).min(1).required()
+    }),
+
+    updateServiceConfig: Joi.object({
+        base_unit: Joi.number().min(1).required()
+    }),
+
+    updateVehiclePricing: Joi.object({
+        vehicle_category: Joi.string().hex().length(24).required(),
+        service_config: Joi.string().hex().length(24).required(),
+        tiered_pricing: Joi.array().items(
+            Joi.object({
+                range: Joi.number().min(0).required(),
+                price: Joi.number().min(0).required()
+            })
+        ).min(1).required()
     })
 };

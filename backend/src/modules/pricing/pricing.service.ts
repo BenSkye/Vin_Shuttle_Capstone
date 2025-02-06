@@ -10,7 +10,9 @@ import {
 } from './pricing.port';
 import {
     ICreateServiceConfigDto,
-    ICreateVehiclePricingDto
+    ICreateVehiclePricingDto,
+    IUpdateServiceConfigDto,
+    IUpdateVehiclePricingDto
 } from './pricing.dto';
 
 @Injectable()
@@ -37,6 +39,16 @@ export class PricingService implements IPricingService {
     }
 
     async createVehiclePricing(pricing: ICreateVehiclePricingDto) {
+        const vehicle_category = pricing.vehicle_category;
+        const service_config = pricing.service_config;
+        //check if vehicle pricing already exists with the same vehicle category and service config
+        const exists = await this.vehiclePricingRepo.findVehiclePricing({ vehicle_category: vehicle_category, service_config: service_config });
+        if (exists) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing already exists'
+            }, HttpStatus.NOT_FOUND);
+        }
         return this.vehiclePricingRepo.create(pricing);
     }
 
@@ -76,10 +88,32 @@ export class PricingService implements IPricingService {
     }
 
     async getAllServiceConfigs() {
-        return this.configRepo.findAll();
+        return await this.configRepo.findAll();
     }
 
     async getAllVehiclePricings() {
-        return this.vehiclePricingRepo.findAll();
+        return await this.vehiclePricingRepo.findAll();
+    }
+
+    async updateServiceConfig(serviceType: string, config: IUpdateServiceConfigDto) {
+        const exists = await this.configRepo.findByServiceType(serviceType);
+        if (!exists) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Service config not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        return await this.configRepo.update(serviceType, config);
+    }
+
+    async updateVehiclePricing(pricing: IUpdateVehiclePricingDto) {
+        const exists = await this.vehiclePricingRepo.findVehiclePricing({ vehicle_category: pricing.vehicle_category, service_config: pricing.service_config });
+        if (!exists) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        return await this.vehiclePricingRepo.update(pricing);
     }
 }

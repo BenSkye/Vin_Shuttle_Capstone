@@ -1,7 +1,9 @@
 import { ServiceConfigDocument } from "src/modules/pricing/pricing.config.schema";
 import {
     ICreateServiceConfigDto,
-    ICreateVehiclePricingDto
+    ICreateVehiclePricingDto,
+    IUpdateServiceConfigDto,
+    IUpdateVehiclePricingDto
 } from "./pricing.dto";
 import { VehiclePricingDocument } from "src/modules/pricing/pricing.vehicle.schema";
 
@@ -9,13 +11,15 @@ export interface IPricingConfigRepository {
     create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument>;
     findByServiceType(serviceType: string): Promise<ServiceConfigDocument>;
     findAll(): Promise<ServiceConfigDocument[]>;
-
+    update(serviceType: string, config: IUpdateServiceConfigDto): Promise<ServiceConfigDocument>;
 }
 
 export interface IVehiclePricingRepository {
     create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument>;
+    findVehiclePricing(query: any): Promise<VehiclePricingDocument>;
     findByVehicleCategory(vehicleId: string): Promise<VehiclePricingDocument>;
     findAll(): Promise<VehiclePricingDocument[]>;
+    update(pricing: IUpdateVehiclePricingDto): Promise<VehiclePricingDocument>;
 }
 
 export interface IPricingService {
@@ -26,4 +30,6 @@ export interface IPricingService {
     getVehiclePricing(vehicleId: string): Promise<VehiclePricingDocument>;
     getAllServiceConfigs(): Promise<ServiceConfigDocument[]>;
     getAllVehiclePricings(): Promise<VehiclePricingDocument[]>;
+    updateServiceConfig(serviceType: string, config: IUpdateServiceConfigDto): Promise<any>;
+    updateVehiclePricing(pricing: IUpdateVehiclePricingDto): Promise<any>;
 }
