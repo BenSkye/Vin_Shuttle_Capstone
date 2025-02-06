@@ -17,8 +17,8 @@ const RouteBooking = dynamic(
     { ssr: false }
 )
 
-const LineBooking = dynamic(
-    () => import('../../components/booking/linebooking'),
+const SharedBooing = dynamic(
+    () => import('../../components/booking/sharedbooking'),
     { ssr: false }
 )
 
@@ -51,24 +51,24 @@ export default function BookingTabs() {
             component: <HourlyBooking />
         },
         {
-            label: "Book xe theo lộ trình",
+            label: "Book xe chung",
             icon: <FaPlane size={20} />,
-            component: <LineBooking />
+            component: <SharedBooing />
         },
         {
-            label: "Book xe theo tuyến",
+            label: "Book xe theo lộ trình",
             icon: <FaCar size={20} />,
-            component: <RouteBooking />
+            component: <RouteBooking onTabChange={() => { }} setPickup={() => { }} setDestination={() => { }} />
         }
     ]
 
     return (
         <Box sx={{
             width: "100%",
-            maxWidth: "100%",
+            maxWidth: "1400px",
             mx: "auto",
             mt: 4,
-            px: { xs: 1, sm: 2, md: 3 }
+            px: { xs: 1, sm: 2, md: 4 }
         }}>
             <StyledTabs
                 value={value}
@@ -96,7 +96,7 @@ export default function BookingTabs() {
                 ))}
             </StyledTabs>
 
-            <Card>
+            <Card sx={{ p: { xs: 2, md: 4 } }}>
                 {tabContent.map((tab, index) => (
                     <Box
                         key={index}
