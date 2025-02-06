@@ -11,6 +11,7 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { OtpModule } from 'src/modules/OTP/otp.module';
 import { PricingModule } from './modules/pricing/pricing.module';
+import { TripModule } from 'src/modules/trips/trip.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { PricingModule } from './modules/pricing/pricing.module';
     AuthModule,
     KeytokenModule,
     OtpModule,
-    PricingModule
+    PricingModule,
+    TripModule
   ],
   controllers: [AppController],
   providers: [AppService],

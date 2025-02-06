@@ -29,7 +29,10 @@ import { IPricingService } from 'src/modules/pricing/pricing.port';
 @ApiTags('pricing')
 @Controller('pricing')
 export class PricingController {
-    constructor(@Inject(PRICING_SERVICE) private readonly pricingService: IPricingService) { }
+    constructor(
+        @Inject(PRICING_SERVICE)
+        private readonly pricingService: IPricingService
+    ) { }
 
     /* Service Config Endpoints */
     @Post('service-configs')
