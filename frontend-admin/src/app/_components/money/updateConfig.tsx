@@ -1,11 +1,11 @@
 import { Modal, Form, InputNumber } from 'antd';
-
+import type { FormInstance } from 'antd';
 
 interface UpdateConfigProps {
   visible: boolean;
   onCancel: () => void;
   onOk: () => void;
-  form: any;
+  form: FormInstance;
 }
 
 export default function UpdateConfig({ visible, onCancel, onOk, form }: UpdateConfigProps) {

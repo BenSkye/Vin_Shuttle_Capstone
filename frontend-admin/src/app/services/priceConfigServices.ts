@@ -20,7 +20,7 @@ export const priceManagementServices = {
   async updateServiceConfig(
     serviceType: 'booking_hour' | 'booking_trip' | 'booking_share',
     data: UpdateServiceConfigRequest
-  ): Promise<any> {
+  ): Promise<UpdateServiceConfigRequest> {
     try {
       const response = await axios.put(
         `${API_URL}/pricing/service-configs/${serviceType}`,

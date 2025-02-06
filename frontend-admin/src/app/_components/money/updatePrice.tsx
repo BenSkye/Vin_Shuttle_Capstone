@@ -1,12 +1,13 @@
 import { Modal, Form, Select, InputNumber, Button, Space } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { PricingConfig } from '../../services/interface';
+import type { FormInstance } from 'antd';
 
 interface UpdatePriceProps {
   visible: boolean;
   onCancel: () => void;
   onOk: () => void;
-  form: any;
+  form: FormInstance;
   categories: { [key: string]: string };
   serviceConfigs: PricingConfig[];
   serviceTypeMap: { [key: string]: string };
@@ -86,8 +87,6 @@ export default function UpdatePrice({
                       placeholder="Giá" 
                       min={0}
                       formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                      // @ts-ignore
-                      parser={value => parseFloat(value!.replace(/\$\s?|(,*)/g, ''))}
                       style={{ width: '200px' }}
                     />
                   </Form.Item>

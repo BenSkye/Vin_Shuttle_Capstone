@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Switch, message } from 'antd';
+import { Modal, Form, Input, Select, message } from 'antd';
 import { categoryService } from '../../services/categoryServices';
 import { vehiclesService } from '../../services/vehiclesServices';
 
@@ -32,7 +32,8 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
         label: category.name
       }));
       setCategories(options);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error fetching categories:', error);
       message.error('Không thể tải danh sách danh mục xe');
     }
   };
@@ -52,8 +53,11 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
       message.success('Thêm xe mới thành công');
       form.resetFields();
       onSuccess();
-    } catch (error: any) {
-      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm xe mới');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Có lỗi xảy ra khi thêm xe mới';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import { PricingConfig, UpdatePricingRequest } from './interface';
 
@@ -18,7 +19,7 @@ export const pricingConfigServices = {
         }
     },
 
-    async updatePricing(data: UpdatePricingRequest): Promise<any> {
+    async updatePricing(data: UpdatePricingRequest): Promise<UpdatePricingRequest> {
         try {
             const response = await axios.put(`${API_URL}/pricing/vehicle-pricings`, data, {
                 headers: {

@@ -21,12 +21,6 @@ interface Vehicle {
   updatedAt: string;
 }
 
-interface VehicleCategory {
-  _id: string;
-  name: string;
-  description: string;
-  numberOfSeat: number;
-}
 
 // Map cho trạng thái xe
 const statusMap: { [key: string]: string } = {
@@ -45,7 +39,7 @@ export default function Vehicles() {
   useEffect(() => {
     fetchVehicles();
     fetchCategories();
-  }, []);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchCategories = async () => {
     try {
@@ -55,7 +49,8 @@ export default function Vehicles() {
         [category._id]: category.name
       }), {});
       setCategories(categoryMap);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error fetching categories:', error);
       message.error('Không thể tải danh sách danh mục xe');
     }
   };
@@ -64,7 +59,8 @@ export default function Vehicles() {
     try {
       const data = await vehiclesService.getVehicles();
       setVehicles(data);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error fetching vehicles:', error);
       message.error('Không thể tải danh sách phương tiện');
     } finally {
       setLoading(false);
