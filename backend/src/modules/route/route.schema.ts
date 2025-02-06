@@ -25,8 +25,18 @@ class Waypoint {
     description?: string;
 }
 
-@Schema({ _id: false })
-class Route {
+
+@Schema({ timestamps: true })
+export class Route extends Document {
+    @Prop({ required: true, type: String })
+    name: string;
+
+    @Prop({ required: true, type: String })
+    description: string;
+
+    @Prop({ required: true, type: String, enum: ['active', 'inactive'], default: 'active' })
+    status: string;
+
     @Prop({ required: true, type: [Waypoint] })
     waypoints: Waypoint[];
 
@@ -38,21 +48,6 @@ class Route {
 
     @Prop({ required: true, type: Number })
     totalDistance: number;
-}
-
-@Schema({ timestamps: true })
-export class Trip extends Document {
-    @Prop({ required: true, type: String })
-    name: string;
-
-    @Prop({ required: true, type: String })
-    description: string;
-
-    @Prop({ required: true, type: String, enum: ['active', 'inactive'], default: 'active' })
-    status: string;
-
-    @Prop({ required: true, type: Route })
-    route: Route;
 
     // @Prop({ required: true, type: [String] })
     // vehicleCategories: string[];
@@ -61,4 +56,4 @@ export class Trip extends Document {
     // tags: string[];
 }
 
-export const TripSchema = SchemaFactory.createForClass(Trip);
+export const RouteSchema = SchemaFactory.createForClass(Route);

@@ -7,7 +7,7 @@ import 'leaflet-routing-machine';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import './map.css';
-import { tripService, TripRequest, TripResponse } from '../services/tripService';
+import { routeService, RouteRequest, RouteResponse } from '../services/routeService';
 
 interface BusStop {
     id: number;
@@ -114,8 +114,8 @@ export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
     const [mapCenter] = useState<L.LatLngTuple>([10.842, 106.843]);
     const [routeCoordinates, setRouteCoordinates] = useState<L.LatLng[]>([]);
-    const [savedRoutes, setSavedRoutes] = useState<TripResponse[]>([]);
-    const [selectedRoute, setSelectedRoute] = useState<TripResponse | null>(null);
+    const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([]);
+    const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
     const [isCreatingRoute, setIsCreatingRoute] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [estimatedDuration, setEstimatedDuration] = useState(0);
@@ -125,7 +125,7 @@ export default function CreateRoute() {
         // Load saved routes from API
         const fetchRoutes = async () => {
             try {
-                const routes = await tripService.getAllTrips();
+                const routes = await routeService.getAllRoutes();
                 setSavedRoutes(routes);
             } catch (error) {
                 console.error('Failed to fetch routes:', error);
@@ -160,28 +160,26 @@ export default function CreateRoute() {
         if (routeCoordinates.length > 0 && stops.length >= 2) {
             try {
                 setIsLoading(true);
-                const tripData: TripRequest = {
+                const routeData: RouteRequest = {
                     name: `Lộ trình ${savedRoutes.length + 1}`,
                     description: `Lộ trình từ ${stops[0].name} đến ${stops[stops.length - 1].name}`,
-                    route: {
-                        waypoints: stops.map(stop => ({
-                            id: stop.id,
-                            name: stop.name,
-                            position: {
-                                lat: stop.position.lat,
-                                lng: stop.position.lng
-                            }
-                        })),
-                        routeCoordinates: routeCoordinates.map(coord => ({
-                            lat: coord.lat,
-                            lng: coord.lng
-                        })),
-                        estimatedDuration: estimatedDuration,
-                        totalDistance: totalDistance
-                    },
+                    waypoints: stops.map(stop => ({
+                        id: stop.id,
+                        name: stop.name,
+                        position: {
+                            lat: stop.position.lat,
+                            lng: stop.position.lng
+                        }
+                    })),
+                    routeCoordinates: routeCoordinates.map(coord => ({
+                        lat: coord.lat,
+                        lng: coord.lng
+                    })),
+                    estimatedDuration: estimatedDuration,
+                    totalDistance: totalDistance
                 };
 
-                const newRoute = await tripService.createTrip(tripData);
+                const newRoute = await routeService.createRoute(routeData);
                 setSavedRoutes(prev => [...prev, newRoute]);
                 setIsCreatingRoute(false);
                 setSelectedRoute(newRoute);
@@ -195,7 +193,7 @@ export default function CreateRoute() {
         }
     }, [routeCoordinates, stops, savedRoutes]);
 
-    const selectRoute = useCallback((route: TripResponse) => {
+    const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
         setIsCreatingRoute(false);
     }, []);
@@ -276,7 +274,7 @@ export default function CreateRoute() {
                                     {new Date(route.createdAt).toLocaleDateString()}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    {route.route.waypoints.length} điểm dừng
+                                    {route.waypoints.length} điểm dừng
                                 </div>
                             </div>
                         ))}
@@ -323,11 +321,11 @@ export default function CreateRoute() {
                         selectedRoute && (
                             <>
                                 <SavedRouteDisplay
-                                    coordinates={selectedRoute.route.routeCoordinates.map(coord =>
+                                    coordinates={selectedRoute.routeCoordinates.map(coord =>
                                         L.latLng(coord.lat, coord.lng)
                                     )}
                                 />
-                                {selectedRoute.route.waypoints.map((waypoint, index) => (
+                                {selectedRoute.waypoints.map((waypoint, index) => (
                                     <Marker
                                         key={waypoint.id}
                                         position={L.latLng(waypoint.position.lat, waypoint.position.lng)}

@@ -10,29 +10,27 @@ export interface Waypoint {
     description?: string;
 }
 
-export interface Route {
+export interface CreateRouteDto {
+    name: string;
+    description: string;
+    status?: 'active' | 'inactive';
     waypoints: Waypoint[];
     routeCoordinates: Position[];
     estimatedDuration: number; // in minutes
     totalDistance: number; // in kilometers
-}
-
-
-export interface CreateTripDto {
-    name: string;
-    description: string;
-    status?: 'active' | 'inactive';
-    route: Route;
     // vehicleCategories: string[];
     tags: string[];
 }
 
 
-export interface UpdateTripDto {
+export interface UpdateRouteDto {
     name?: string;
     description?: string;
     status?: 'active' | 'inactive';
-    route?: Route;
+    waypoints: Waypoint[];
+    routeCoordinates: Position[];
+    estimatedDuration: number; // in minutes
+    totalDistance: number; // in kilometers
     // vehicleCategories?: string[];
     tags?: string[];
 }
