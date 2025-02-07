@@ -122,33 +122,69 @@ export class PricingService implements IPricingService {
 
     //function to calculate price by hour or distance
     async calculatePrice(serviceType: string, vehicleId: string, totalUnits: number) {
-        // Get service configuration and vehicle pricing
-        const [config, pricing] = await Promise.all([
-            this.configRepo.findByServiceType(serviceType),
-            this.vehiclePricingRepo.findVehiclePricing({
-                vehicle_category: vehicleId,
-                service_config: (await this.configRepo.findByServiceType(serviceType))?._id
-            })
-        ]);
-
-        if (!config || !pricing) {
+        const config = await this.configRepo.findByServiceType(serviceType);
+        if (!config) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: !config ? 'Service config not found' : 'Vehicle pricing not found'
+                message: 'Service config not found'
             }, HttpStatus.NOT_FOUND);
         }
-
+        const pricing = await this.vehiclePricingRepo.findVehiclePricing({
+            vehicle_category: vehicleId,
+            service_config: config?._id.toString()
+        });
+        if (!pricing) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing not found'
+            }, HttpStatus.NOT_FOUND);
+        }
         // Calculate total price using applicable pricing tiers
-        const { base_unit, tiered_pricing } = { base_unit: config.base_unit, tiered_pricing: pricing.tiered_pricing };
-        return tiered_pricing
+        const result = await this.recipePrice(config.base_unit, pricing.tiered_pricing, totalUnits);
+        return result.totalPrice;
+    }
+
+
+    async testPrice(serviceType: string, vehicleId: string, totalUnits: number) {
+        const config = await this.configRepo.findByServiceType(serviceType);
+        if (!config) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Service config not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const pricing = await this.vehiclePricingRepo.findVehiclePricing({
+            vehicle_category: vehicleId,
+            service_config: config?._id.toString()
+        });
+        if (!pricing) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        // Calculate total price using applicable pricing tiers
+        return this.recipePrice(config.base_unit, pricing.tiered_pricing, totalUnits);
+    }
+
+
+    async recipePrice(base_unit, tiered_pricing, totalUnits) {
+        const calculateArray = new Array<string>();
+        const totalPrice = tiered_pricing
             .sort((a, b) => b.range - a.range) // Sort tiers by range in descending order
             .filter(tier => totalUnits >= tier.range) // Get applicable tiers
             .reduce((total, tier, _, tiers) => {
                 const nextTierRange = tiers[tiers.indexOf(tier) + 1]?.range ?? 0;
                 const unitsInTier = Math.min(totalUnits - nextTierRange, totalUnits - tier.range);
                 totalUnits = totalUnits - unitsInTier;
-                return total + (unitsInTier / base_unit) * tier.price;
+                calculateArray.push(`${total} + ${unitsInTier} / ${base_unit} * ${tier.price} = ${Math.floor(total + (unitsInTier / base_unit) * tier.price)}`);
+                return Math.floor(total + (unitsInTier / base_unit) * tier.price);
             }, 0);
+
+        return {
+            totalPrice,
+            calculations: calculateArray
+        };
     }
 
 }

@@ -120,6 +120,8 @@ export default function CreateRoute() {
     const [isLoading, setIsLoading] = useState(false);
     const [estimatedDuration, setEstimatedDuration] = useState(0);
     const [totalDistance, setTotalDistance] = useState(0);
+    const [routeName, setRouteName] = useState('');
+    const [routeDescription, setRouteDescription] = useState('');
 
     useEffect(() => {
         // Load saved routes from API
@@ -161,8 +163,8 @@ export default function CreateRoute() {
             try {
                 setIsLoading(true);
                 const routeData: RouteRequest = {
-                    name: `Lộ trình ${savedRoutes.length + 1}`,
-                    description: `Lộ trình từ ${stops[0].name} đến ${stops[stops.length - 1].name}`,
+                    name: routeName,
+                    description: routeDescription,
                     waypoints: stops.map(stop => ({
                         id: stop.id,
                         name: stop.name,
@@ -178,7 +180,7 @@ export default function CreateRoute() {
                     estimatedDuration: estimatedDuration,
                     totalDistance: totalDistance
                 };
-
+                console.log('Route data:', routeData);
                 const newRoute = await routeService.createRoute(routeData);
                 setSavedRoutes(prev => [...prev, newRoute]);
                 setIsCreatingRoute(false);
@@ -191,7 +193,7 @@ export default function CreateRoute() {
                 setIsLoading(false);
             }
         }
-    }, [routeCoordinates, stops, savedRoutes]);
+    }, [routeCoordinates, stops, savedRoutes, routeName, routeDescription, estimatedDuration, totalDistance]);
 
     const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
@@ -217,6 +219,37 @@ export default function CreateRoute() {
                         {isCreatingRoute ? 'Xem danh sách' : 'Tạo mới'}
                     </button>
                 </div>
+                {isCreatingRoute && (
+                    <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+                        <div className="space-y-2">
+                            <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
+                                Tên lộ trình
+                            </label>
+                            <input
+                                id="routeName"
+                                type="text"
+                                placeholder="Nhập tên lộ trình"
+                                value={routeName}
+                                onChange={(e) => setRouteName(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out text-black"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700 ">
+                                Mô tả lộ trình
+                            </label>
+                            {/* convert it to text area */}
+                            <input
+                                id="routeDescription"
+                                type="text"
+                                placeholder="Nhập mô tả lộ trình"
+                                value={routeDescription}
+                                onChange={(e) => setRouteDescription(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out  text-black"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {isCreatingRoute ? (
                     <>
