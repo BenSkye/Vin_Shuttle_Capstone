@@ -29,3 +29,13 @@ export interface IUpdateVehiclePricingDto {
         price: number;
     }>;
 }
+
+
+export interface ITestPriceDto {
+    base_unit: number;
+    tiered_pricing: Array<{
+        range: number;
+        price: number;
+    }>;
+    total_units: number;
+}

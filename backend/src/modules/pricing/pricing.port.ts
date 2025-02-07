@@ -26,7 +26,7 @@ export interface IPricingService {
     createServiceConfig(config: ICreateServiceConfigDto): Promise<any>;
     createVehiclePricing(pricing: ICreateVehiclePricingDto): Promise<any>;
     calculatePrice(serviceType: string, vehicleId: string, units: number): Promise<number>;
-    testPrice(base_unit: string, vehicleId: string, units: number): Promise<{
+    testPrice(base_unit: number, tiered_pricing: Array<any>, total_units: number): Promise<{
         totalPrice: number;
         calculations: string[];
     }>;

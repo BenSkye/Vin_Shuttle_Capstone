@@ -9,11 +9,11 @@ import {
     UseGuards,
     Inject,
     Put,
-    ParseIntPipe,
 } from '@nestjs/common';
 import {
     ICreateServiceConfigDto,
     ICreateVehiclePricingDto,
+    ITestPriceDto,
     IUpdateServiceConfigDto,
     IUpdateVehiclePricingDto,
 } from './pricing.dto';
@@ -276,34 +276,35 @@ export class PricingController {
         return await this.pricingService.getAllVehiclePricings();
     }
 
-    @Get('vehicle-pricings-test-price/:vehicleCategoryId/:serviceType/:totalUnits')
+    @Post('vehicle-pricings-test-price')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles('admin')
     @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'For admin test price when update price' })
-    @ApiParam({
-        name: 'vehicleCategoryId',
-        description: 'Vehicle category ID',
-        example: '67873bb9cf95c847fe62ba5f'
-    })
-    @ApiParam({
-        name: 'serviceType',
-        description: 'Service type',
-        example: 'booking_hour',
-        enum: ['booking_hour', 'booking_trip', 'booking_share']
-    })
-    @ApiParam({
-        name: 'totalUnits',
-        description: 'Total units',
-        example: 30
+    @ApiBody({
+        type: 'ICreateVehiclePricingDto',
+        description: 'Vehicle pricing data',
+        examples: {
+            'Test Price': {
+                value: {
+                    base_unit: 30,
+                    tiered_pricing: [
+                        { range: 0, price: 32000 },
+                        { range: 60, price: 28000 }
+                    ],
+                    total_units: 60
+                }
+            }
+        }
     })
     async testVehiclePricing(
-        @Param('serviceType') serviceType: string,
-        @Param('vehicleCategoryId') vehicleId: string,
-        @Param('totalUnits', ParseIntPipe) totalUnits: number
+        @Body(new JoiValidationPipe(PricingValidation.testPrice))
+        dto: ITestPriceDto
     ) {
-        return await this.pricingService.testPrice(serviceType, vehicleId, totalUnits);
-    }
+        return await this.pricingService.testPrice(dto.base_unit, dto.tiered_pricing, dto.total_units);
 
+    }
 }
+
+
