@@ -32,5 +32,16 @@ export const PricingValidation = {
                 price: Joi.number().min(0).required()
             })
         ).min(1).required()
-    })
+    }),
+
+    testPrice: Joi.object({
+        base_unit: Joi.number().min(1).required(),
+        tiered_pricing: Joi.array().items(
+            Joi.object({
+                range: Joi.number().min(0).required(),
+                price: Joi.number().min(0).required()
+            })
+        ).min(1).required(),
+        total_units: Joi.number().min(0).required()
+    }).unknown(true)
 };

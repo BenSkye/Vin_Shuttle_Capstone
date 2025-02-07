@@ -145,26 +145,8 @@ export class PricingService implements IPricingService {
     }
 
 
-    async testPrice(serviceType: string, vehicleId: string, totalUnits: number) {
-        const config = await this.configRepo.findByServiceType(serviceType);
-        if (!config) {
-            throw new HttpException({
-                statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config not found'
-            }, HttpStatus.NOT_FOUND);
-        }
-        const pricing = await this.vehiclePricingRepo.findVehiclePricing({
-            vehicle_category: vehicleId,
-            service_config: config?._id.toString()
-        });
-        if (!pricing) {
-            throw new HttpException({
-                statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle pricing not found'
-            }, HttpStatus.NOT_FOUND);
-        }
-        // Calculate total price using applicable pricing tiers
-        return this.recipePrice(config.base_unit, pricing.tiered_pricing, totalUnits);
+    async testPrice(base_unit: number, tiered_pricing: Array<any>, totalUnits: number) {
+        return await this.recipePrice(base_unit, tiered_pricing, totalUnits);
     }
 
 
