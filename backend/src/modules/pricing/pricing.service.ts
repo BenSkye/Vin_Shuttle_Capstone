@@ -40,7 +40,21 @@ export class PricingService implements IPricingService {
 
     async createVehiclePricing(pricing: ICreateVehiclePricingDto) {
         const vehicle_category = pricing.vehicle_category;
+        const vehicle_category_exists = await this.vehiclePricingRepo.findByVehicleCategory(vehicle_category);
+        if (!vehicle_category_exists) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle category not found'
+            }, HttpStatus.NOT_FOUND);
+        }
         const service_config = pricing.service_config;
+        const service_config_exists = await this.configRepo.findByServiceType(service_config);
+        if (!service_config_exists) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Service config not found'
+            }, HttpStatus.NOT_FOUND);
+        }
         //check if vehicle pricing already exists with the same vehicle category and service config
         const exists = await this.vehiclePricingRepo.findVehiclePricing({ vehicle_category: vehicle_category, service_config: service_config });
         if (exists) {
@@ -49,21 +63,9 @@ export class PricingService implements IPricingService {
                 message: 'Vehicle pricing already exists'
             }, HttpStatus.NOT_FOUND);
         }
+        //make sure that the tire_pricing is not empty and sorted by range
         return this.vehiclePricingRepo.create(pricing);
     }
-
-    async calculatePrice(serviceType: string, vehicleId: string) {
-        const config = await this.configRepo.findByServiceType(serviceType);
-        const pricing = await this.vehiclePricingRepo.findByVehicleCategory(vehicleId);
-
-        if (!config || !pricing) {
-            throw new HttpException('Config not found', HttpStatus.NOT_FOUND);
-        }
-
-        // Thêm logic tính toán ở đây
-        return 0; // Thay bằng logic thực tế
-    }
-
 
     async getServiceConfig(serviceType: string) {
         const config = await this.configRepo.findByServiceType(serviceType);
@@ -116,4 +118,73 @@ export class PricingService implements IPricingService {
         }
         return await this.vehiclePricingRepo.update(pricing);
     }
+
+
+    //function to calculate price by hour or distance
+    async calculatePrice(serviceType: string, vehicleId: string, totalUnits: number) {
+        const config = await this.configRepo.findByServiceType(serviceType);
+        if (!config) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Service config not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const pricing = await this.vehiclePricingRepo.findVehiclePricing({
+            vehicle_category: vehicleId,
+            service_config: config?._id.toString()
+        });
+        if (!pricing) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        // Calculate total price using applicable pricing tiers
+        const result = await this.recipePrice(config.base_unit, pricing.tiered_pricing, totalUnits);
+        return result.totalPrice;
+    }
+
+
+    async testPrice(serviceType: string, vehicleId: string, totalUnits: number) {
+        const config = await this.configRepo.findByServiceType(serviceType);
+        if (!config) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Service config not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const pricing = await this.vehiclePricingRepo.findVehiclePricing({
+            vehicle_category: vehicleId,
+            service_config: config?._id.toString()
+        });
+        if (!pricing) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Vehicle pricing not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        // Calculate total price using applicable pricing tiers
+        return this.recipePrice(config.base_unit, pricing.tiered_pricing, totalUnits);
+    }
+
+
+    async recipePrice(base_unit, tiered_pricing, totalUnits) {
+        const calculateArray = new Array<string>();
+        const totalPrice = tiered_pricing
+            .sort((a, b) => b.range - a.range) // Sort tiers by range in descending order
+            .filter(tier => totalUnits >= tier.range) // Get applicable tiers
+            .reduce((total, tier, _, tiers) => {
+                const nextTierRange = tiers[tiers.indexOf(tier) + 1]?.range ?? 0;
+                const unitsInTier = Math.min(totalUnits - nextTierRange, totalUnits - tier.range);
+                totalUnits = totalUnits - unitsInTier;
+                calculateArray.push(`${total} + ${unitsInTier} / ${base_unit} * ${tier.price} = ${Math.floor(total + (unitsInTier / base_unit) * tier.price)}`);
+                return Math.floor(total + (unitsInTier / base_unit) * tier.price);
+            }, 0);
+
+        return {
+            totalPrice,
+            calculations: calculateArray
+        };
+    }
+
 }

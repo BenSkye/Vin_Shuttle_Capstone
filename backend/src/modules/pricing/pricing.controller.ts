@@ -9,6 +9,7 @@ import {
     UseGuards,
     Inject,
     Put,
+    ParseIntPipe,
 } from '@nestjs/common';
 import {
     ICreateServiceConfigDto,
@@ -29,7 +30,10 @@ import { IPricingService } from 'src/modules/pricing/pricing.port';
 @ApiTags('pricing')
 @Controller('pricing')
 export class PricingController {
-    constructor(@Inject(PRICING_SERVICE) private readonly pricingService: IPricingService) { }
+    constructor(
+        @Inject(PRICING_SERVICE)
+        private readonly pricingService: IPricingService
+    ) { }
 
     /* Service Config Endpoints */
     @Post('service-configs')
@@ -271,4 +275,35 @@ export class PricingController {
     async listAllVehiclePricings() {
         return await this.pricingService.getAllVehiclePricings();
     }
+
+    @Get('vehicle-pricings-test-price/:vehicleCategoryId/:serviceType/:totalUnits')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'For admin test price when update price' })
+    @ApiParam({
+        name: 'vehicleCategoryId',
+        description: 'Vehicle category ID',
+        example: '67873bb9cf95c847fe62ba5f'
+    })
+    @ApiParam({
+        name: 'serviceType',
+        description: 'Service type',
+        example: 'booking_hour',
+        enum: ['booking_hour', 'booking_trip', 'booking_share']
+    })
+    @ApiParam({
+        name: 'totalUnits',
+        description: 'Total units',
+        example: 30
+    })
+    async testVehiclePricing(
+        @Param('serviceType') serviceType: string,
+        @Param('vehicleCategoryId') vehicleId: string,
+        @Param('totalUnits', ParseIntPipe) totalUnits: number
+    ) {
+        return await this.pricingService.testPrice(serviceType, vehicleId, totalUnits);
+    }
+
 }

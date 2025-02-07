@@ -7,23 +7,13 @@ import 'leaflet-routing-machine';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import './map.css';
+import { routeService, RouteRequest, RouteResponse } from '../services/routeService';
 
 interface BusStop {
     id: number;
     position: L.LatLng;
     name: string;
     color: string;
-}
-
-interface SavedRoute {
-    coordinates: L.LatLng[];
-    stops: BusStop[];
-}
-
-interface SavedRouteWithId extends SavedRoute {
-    id: string;
-    name: string;
-    createdAt: string;
 }
 
 const COLORS = [
@@ -50,7 +40,7 @@ const createCustomIcon = ({ color }: { color: string }) => {
 
 function RoutingMachine({ stops, onRouteFound }: {
     stops: BusStop[];
-    onRouteFound: (coordinates: L.LatLng[]) => void;
+    onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
 }) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
@@ -71,20 +61,22 @@ function RoutingMachine({ stops, onRouteFound }: {
             addWaypoints: false,
             fitSelectedRoutes: true,
             showAlternatives: false,
-            show: false, // Ẩn bảng chỉ đường mặc định
-            createMarker: () => null, // Không tạo marker mặc định
+            show: false,
+            createMarker: () => null,
             lineOptions: {
-                styles: [{ color: '#3498db', weight: 6, opacity: 0.9 }]
+                styles: [{ color: '#3498db', weight: 6, opacity: 0.9 }],
+                extendToWaypoints: true,
+                missingRouteTolerance: 0
             }
         }).addTo(map);
 
         routingControlRef.current.on('routesfound', (e) => {
             const routes = e.routes;
             if (routes && routes.length > 0) {
-                // Lấy tọa độ của route đầu tiên
                 const coordinates = routes[0].coordinates;
-                console.log('coordinates at routes', coordinates)
-                onRouteFound(coordinates);
+                const estimatedDuration = routes[0].summary.totalTime;
+                const totalDistance = routes[0].summary.totalDistance;
+                onRouteFound(coordinates, estimatedDuration, totalDistance);
             }
         });
 
@@ -121,30 +113,34 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
 export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
     const [mapCenter] = useState<L.LatLngTuple>([10.842, 106.843]);
-    const [savedRoute, setSavedRoute] = useState<SavedRoute | null>(null);
-    const [savedRoutes, setSavedRoutes] = useState<SavedRouteWithId[]>([]);
-    const [selectedRoute, setSelectedRoute] = useState<SavedRouteWithId | null>(null);
+    const [routeCoordinates, setRouteCoordinates] = useState<L.LatLng[]>([]);
+    const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([]);
+    const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
     const [isCreatingRoute, setIsCreatingRoute] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [estimatedDuration, setEstimatedDuration] = useState(0);
+    const [totalDistance, setTotalDistance] = useState(0);
+    const [routeName, setRouteName] = useState('');
+    const [routeDescription, setRouteDescription] = useState('');
 
     useEffect(() => {
-        const routes = localStorage.getItem('busRoutes');
-        if (routes) {
-            const parsedRoutes = JSON.parse(routes);
-            // Convert coordinates back to LatLng objects
-            const routesWithLatLng = parsedRoutes.map((route: any) => ({
-                ...route,
-                coordinates: route.coordinates.map((coord: any) => L.latLng(coord.lat, coord.lng))
-            }));
-            setSavedRoutes(routesWithLatLng);
-        }
+        // Load saved routes from API
+        const fetchRoutes = async () => {
+            try {
+                const routes = await routeService.getAllRoutes();
+                setSavedRoutes(routes);
+            } catch (error) {
+                console.error('Failed to fetch routes:', error);
+            }
+        };
+        fetchRoutes();
     }, []);
 
-    const handleRouteFound = useCallback((coordinates: L.LatLng[]) => {
-        setSavedRoute({
-            coordinates,
-            stops: [...stops]
-        });
-    }, [stops]);
+    const handleRouteFound = useCallback((coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => {
+        setRouteCoordinates(coordinates);
+        setEstimatedDuration(estimatedDuration);
+        setTotalDistance(totalDistance);
+    }, []);
 
     const handleMapClick = useCallback((latlng: L.LatLng) => {
         setStops(prevStops => {
@@ -162,33 +158,44 @@ export default function CreateRoute() {
         setStops(prevStops => prevStops.filter(stop => stop.id !== stopId));
     }, []);
 
-    const saveRoute = useCallback(() => {
-        if (savedRoute) {
-            const newRoute: SavedRouteWithId = {
-                id: Date.now().toString(),
-                name: `Lộ trình ${savedRoutes.length + 1}`,
-                createdAt: new Date().toISOString(),
-                coordinates: savedRoute.coordinates,
-                stops: savedRoute.stops
-            };
-
-            const updatedRoutes = [...savedRoutes, newRoute];
-            setSavedRoutes(updatedRoutes);
-            localStorage.setItem('busRoutes', JSON.stringify(updatedRoutes.map(route => ({
-                ...route,
-                coordinates: route.coordinates.map(coord => ({
-                    lat: coord.lat,
-                    lng: coord.lng
-                }))
-            }))));
-
-            setIsCreatingRoute(false);
-            setSelectedRoute(newRoute);
-            alert('Đã lưu lộ trình thành công!');
+    const saveRoute = useCallback(async () => {
+        if (routeCoordinates.length > 0 && stops.length >= 2) {
+            try {
+                setIsLoading(true);
+                const routeData: RouteRequest = {
+                    name: routeName,
+                    description: routeDescription,
+                    waypoints: stops.map(stop => ({
+                        id: stop.id,
+                        name: stop.name,
+                        position: {
+                            lat: stop.position.lat,
+                            lng: stop.position.lng
+                        }
+                    })),
+                    routeCoordinates: routeCoordinates.map(coord => ({
+                        lat: coord.lat,
+                        lng: coord.lng
+                    })),
+                    estimatedDuration: estimatedDuration,
+                    totalDistance: totalDistance
+                };
+                console.log('Route data:', routeData);
+                const newRoute = await routeService.createRoute(routeData);
+                setSavedRoutes(prev => [...prev, newRoute]);
+                setIsCreatingRoute(false);
+                setSelectedRoute(newRoute);
+                alert('Đã lưu lộ trình thành công!');
+            } catch (error) {
+                console.error('Failed to save route:', error);
+                alert('Không thể lưu lộ trình. Vui lòng thử lại!');
+            } finally {
+                setIsLoading(false);
+            }
         }
-    }, [savedRoute, savedRoutes]);
+    }, [routeCoordinates, stops, savedRoutes, routeName, routeDescription, estimatedDuration, totalDistance]);
 
-    const selectRoute = useCallback((route: SavedRouteWithId) => {
+    const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
         setIsCreatingRoute(false);
     }, []);
@@ -205,12 +212,44 @@ export default function CreateRoute() {
                             setIsCreatingRoute(!isCreatingRoute);
                             setSelectedRoute(null);
                             setStops([]);
+                            setRouteCoordinates([]);
                         }}
                         className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         {isCreatingRoute ? 'Xem danh sách' : 'Tạo mới'}
                     </button>
                 </div>
+                {isCreatingRoute && (
+                    <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+                        <div className="space-y-2">
+                            <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
+                                Tên lộ trình
+                            </label>
+                            <input
+                                id="routeName"
+                                type="text"
+                                placeholder="Nhập tên lộ trình"
+                                value={routeName}
+                                onChange={(e) => setRouteName(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out text-black"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700 ">
+                                Mô tả lộ trình
+                            </label>
+                            {/* convert it to text area */}
+                            <input
+                                id="routeDescription"
+                                type="text"
+                                placeholder="Nhập mô tả lộ trình"
+                                value={routeDescription}
+                                onChange={(e) => setRouteDescription(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out  text-black"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {isCreatingRoute ? (
                     <>
@@ -241,12 +280,14 @@ export default function CreateRoute() {
                                 Nhấp vào bản đồ để thêm điểm dừng
                             </p>
                         )}
-                        {stops.length >= 2 && savedRoute && (
+                        {stops.length >= 2 && routeCoordinates.length > 0 && (
                             <button
                                 onClick={saveRoute}
-                                className="w-full mt-4 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+                                disabled={isLoading}
+                                className={`w-full mt-4 bg-green-500 text-white py-2 px-4 rounded 
+                                    ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}
                             >
-                                Lưu lộ trình
+                                {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
                             </button>
                         )}
                     </>
@@ -266,7 +307,7 @@ export default function CreateRoute() {
                                     {new Date(route.createdAt).toLocaleDateString()}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    {route.stops.length} điểm dừng
+                                    {route.waypoints.length} điểm dừng
                                 </div>
                             </div>
                         ))}
@@ -312,14 +353,18 @@ export default function CreateRoute() {
                     ) : (
                         selectedRoute && (
                             <>
-                                <SavedRouteDisplay coordinates={selectedRoute.coordinates} />
-                                {selectedRoute.stops.map((stop) => (
+                                <SavedRouteDisplay
+                                    coordinates={selectedRoute.routeCoordinates.map(coord =>
+                                        L.latLng(coord.lat, coord.lng)
+                                    )}
+                                />
+                                {selectedRoute.waypoints.map((waypoint, index) => (
                                     <Marker
-                                        key={stop.id}
-                                        position={stop.position}
-                                        icon={createCustomIcon({ color: stop.color })}
+                                        key={waypoint.id}
+                                        position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                                        icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
                                     >
-                                        <Popup>{stop.name}</Popup>
+                                        <Popup>{waypoint.name}</Popup>
                                     </Marker>
                                 ))}
                             </>

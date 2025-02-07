@@ -35,6 +35,7 @@
    - [x] Token management
    - [x] Password encryption
 
+
 ## What's Left to Build
 
 ### Core Features
