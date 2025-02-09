@@ -1,13 +1,13 @@
 {
-  "name": "frontend-customer",
+  "name": "frontend-manager",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4000",
     "lint": "next lint",
-    "deploy": "echo 'Deploy frontend-customer'"
+    "deploy": "echo 'Deploy frontend-manager'"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.22.1",
@@ -30,10 +30,9 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
-    "frontend-customer": "file:",
+    "frontend-manager": "file:",
     "i18next": "^24.2.0",
     "i18next-browser-languagedetector": "^8.0.2",
-    "i18next-http-backend": "^3.0.1",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "leaflet-routing-machine": "^3.2.12",
