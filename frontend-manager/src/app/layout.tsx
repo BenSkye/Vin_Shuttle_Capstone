@@ -1,9 +1,16 @@
-import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
 
-const inter = Inter({ subsets: ['latin'] })
+import '../styles/antd-var.css'
+import '../styles/globals.css'
+
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
 
 export const metadata = {
   title: 'VinShuttle',
@@ -19,15 +26,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AntdRegistry>
           <ConfigProvider
-            theme={{
-              token: {
-                colorPrimary: '#1890ff',
-              },
-            }}
           >
             {children}
           </ConfigProvider>
