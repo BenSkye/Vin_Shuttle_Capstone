@@ -1,0 +1,24 @@
+/* LAYOUT */
+.ant-layout {
+  @apply !bg-[var(--light-blue)];
+}
+
+/* BUTTON */
+.ant-layout .ant-btn {
+  @apply h-[50px] px-6 py-3 text-lg font-bold;
+}
+
+.ant-layout .ant-btn.ant-btn-round {
+  @apply !rounded-lg;
+}
+
+/* REACT_ICON */
+.global-react-icons > path,
+.global-react-icons > polyline {
+  stroke: currentColor;
+}
+
+/* INPUT */
+.ant-input {
+  @apply h-[64px] rounded-[10px] border !border-black/10;
+}
