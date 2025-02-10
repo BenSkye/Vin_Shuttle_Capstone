@@ -1,2 +1,2 @@
-export const ROUTE_REPOSITORY = 'RouteRepository';
-export const ROUTE_SERVICE = 'RouteService';
+export const ROUTE_REPOSITORY = Symbol('RouteRepository');
+export const ROUTE_SERVICE = Symbol('RouteService');
