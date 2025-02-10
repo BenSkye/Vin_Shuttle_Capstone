@@ -12,6 +12,7 @@ import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { OtpModule } from 'src/modules/OTP/otp.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { RouteModule } from 'src/modules/route/route.module';
+import { AppGateway } from 'src/app.gateway';
 
 @Module({
   imports: [
@@ -36,6 +37,6 @@ import { RouteModule } from 'src/modules/route/route.module';
     RouteModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppGateway],
 })
 export class AppModule { }
