@@ -1,117 +1,131 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { debounce } from "lodash";
+import { MapProps, MapState } from "../../../service/interface/map.types";
 
-// Define the Material UI LocationOn Icon as an inline SVG with green color
-const pickupIconUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%234CAF50' d='M12 2C8.13 2 5 5.13 5 9c0 2.53 1.69 5.03 4.15 7.47l.85.85L12 22l2.99-4.68.85-.85C17.31 14.03 19 11.53 19 9c0-3.87-3.13-7-7-7zm0 10.2c-.98 0-1.8-.83-1.8-1.8s.82-1.8 1.8-1.8 1.8.82 1.8 1.8-.82 1.8-1.8 1.8z'/%3E%3C/svg%3E";
-const destinationIconUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23FF5722' d='M12 2C8.13 2 5 5.13 5 9c0 2.53 1.69 5.03 4.15 7.47l.85.85L12 22l2.99-4.68.85-.85C17.31 14.03 19 11.53 19 9c0-3.87-3.13-7-7-7zm0 10.2c-.98 0-1.8-.83-1.8-1.8s.82-1.8 1.8-1.8 1.8.82 1.8 1.8-.82 1.8-1.8 1.8z'/%3E%3C/svg%3E";
-
-// Create custom Leaflet icons
-const PickupIcon = L.icon({
-    iconUrl: pickupIconUrl,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
+// Custom Icons
+const PickupIcon = new L.Icon({
+    iconUrl: "https://img.icons8.com/color/48/4caf50/marker.png", // Green marker
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
 });
 
-const DestinationIcon = L.icon({
-    iconUrl: destinationIconUrl,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
+const DestinationIcon = new L.Icon({
+    iconUrl: "https://img.icons8.com/color/48/ff5722/marker.png", // Red marker
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
 });
-
-interface MapProps {
-    pickup: string;
-    destination: string;
-}
-
-interface Location {
-    lat: number;
-    lng: number;
-    name: string;
-}
 
 const Map = ({ pickup, destination }: MapProps) => {
-    const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
-    const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
+    const [state, setState] = useState<MapState>({
+        pickupLocation: null,
+        destinationLocation: null,
+        map: null,
+        error: null
+    });
 
-    const searchLocation = async (query: string): Promise<Location | null> => {
-        if (!query.trim()) return null;
+    const searchLocation = debounce(async (query: string, isPickup: boolean) => {
+        if (!query.trim()) {
+            setState(prev => ({
+                ...prev,
+                [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+            }));
+            return;
+        }
 
         try {
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn`
             );
 
-            if (!response.ok) {
-                throw new Error(`Error fetching data: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
 
             const data = await response.json();
             if (data.length === 0) {
-                console.warn("No location found.");
-                return null;
+                setState(prev => ({
+                    ...prev,
+                    error: `Không tìm thấy ${isPickup ? 'điểm đón' : 'điểm đến'}.`,
+                    [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+                }));
+                return;
             }
 
-            return {
-                lat: parseFloat(data[0].lat),
-                lng: parseFloat(data[0].lon),
-                name: query
-            };
+            const location = new L.LatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
+            setState(prev => ({
+                ...prev,
+                [isPickup ? 'pickupLocation' : 'destinationLocation']: location,
+                error: null
+            }));
+
+            // Center map on the new location
+            if (state.map) {
+                state.map.setView(location, 15);
+            }
         } catch (error) {
             console.error("Error searching location:", error);
-            return null;
+            setState(prev => ({
+                ...prev,
+                error: "Không thể lấy dữ liệu vị trí.",
+                [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+            }));
         }
-    };
+    }, 500);
 
-    // Effect for pickup location
     useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (pickup) {
-                const location = await searchLocation(pickup);
-                setPickupLocation(location);
-            }
-        }, 500);
-        return () => clearTimeout(timer);
+        if (pickup) searchLocation(pickup, true);
     }, [pickup]);
 
-    // Effect for destination location
     useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (destination) {
-                const location = await searchLocation(destination);
-                setDestinationLocation(location);
-            }
-        }, 500);
-        return () => clearTimeout(timer);
+        if (destination) searchLocation(destination, false);
     }, [destination]);
+
+    // Adjust map view to show both markers if they exist
+    useEffect(() => {
+        if (state.map && state.pickupLocation && state.destinationLocation) {
+            const bounds = L.latLngBounds([state.pickupLocation, state.destinationLocation]);
+            state.map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }, [state.map, state.pickupLocation, state.destinationLocation]);
 
     return (
         <MapContainer
-            center={[10.776, 106.700]} // HCMC center
+            center={[10.776, 106.700]} // Default center: Ho Chi Minh City
             zoom={13}
             style={{ height: "500px", width: "100%" }}
+            ref={(mapRef) => {
+                if (mapRef) {
+                    setState(prev => ({ ...prev, map: mapRef }));
+                }
+            }}
         >
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {pickupLocation && (
-                <Marker
-                    position={[pickupLocation.lat, pickupLocation.lng]}
-                    icon={PickupIcon}
-                >
-                    <Popup>{pickupLocation.name}</Popup>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+            {state.pickupLocation && (
+                <Marker position={state.pickupLocation} icon={PickupIcon}>
+                    <Popup>
+                        <strong>Điểm đón:</strong><br />
+                        {pickup}
+                    </Popup>
                 </Marker>
             )}
-            {destinationLocation && (
-                <Marker
-                    position={[destinationLocation.lat, destinationLocation.lng]}
-                    icon={DestinationIcon}
-                >
-                    <Popup>{destinationLocation.name}</Popup>
+
+            {state.destinationLocation && (
+                <Marker position={state.destinationLocation} icon={DestinationIcon}>
+                    <Popup>
+                        <strong>Điểm đến:</strong><br />
+                        {destination}
+                    </Popup>
                 </Marker>
+            )}
+
+            {state.error && (
+                <Popup position={[10.776, 106.700]} autoClose={false}>
+                    <strong>Lỗi:</strong> {state.error}
+                </Popup>
             )}
         </MapContainer>
     );
