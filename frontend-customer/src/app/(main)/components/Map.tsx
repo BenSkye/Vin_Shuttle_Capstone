@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { MapProps, MapState } from "../../../service/interface/map.types";
 
 // Custom Icons
