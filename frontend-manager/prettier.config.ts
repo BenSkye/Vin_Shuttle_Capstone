@@ -1,4 +1,6 @@
-module.exports = {
+import { type Config } from "prettier";
+
+export const config: Config = {
   semi: false,
   endOfLine: 'auto',
   trailingComma: 'es5',
