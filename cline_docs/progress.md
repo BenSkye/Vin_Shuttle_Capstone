@@ -90,7 +90,7 @@
 - Vehicle Management: 85%
 - Pricing System: 90%
 - Authentication: 95%
-- Real-time Features: 20%
+- Real-time Features: 0%
 - Booking System: 15%
 - Payment System: 0%
 - Chat System: 0%
