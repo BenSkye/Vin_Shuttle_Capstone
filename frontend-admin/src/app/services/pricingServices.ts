@@ -3,6 +3,20 @@ import { PricingConfig, UpdatePricingRequest, PriceManagement } from './interfac
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
 
+interface PriceCalculationRequest {
+  base_unit: number;
+  tiered_pricing: {
+    range: number;
+    price: number;
+  }[];
+  total_units: number;
+}
+
+interface PriceCalculationResponse {
+  totalPrice: number;
+  calculations: string[];
+}
+
 export const pricingConfigServices = {
     // Lấy danh sách các pricing
     async getServiceConfigs(): Promise<PricingConfig[]> {
@@ -35,6 +49,20 @@ export const pricingConfigServices = {
     async addPricing(data: UpdatePricingRequest): Promise<PriceManagement> {
         try {
             const response = await axios.post(`${API_URL}/pricing/vehicle-pricings`, data, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async calculatePrice(data: PriceCalculationRequest): Promise<PriceCalculationResponse> {
+        try {
+            const response = await axios.post(`${API_URL}/pricing/vehicle-pricings-test-price`, data, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                     'Content-Type': 'application/json'
