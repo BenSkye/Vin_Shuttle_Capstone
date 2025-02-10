@@ -38,6 +38,7 @@ const HourlyBookingPage = () => {
         message: "",
         severity: "success", // Default severity
     });
+    const [loading, setLoading] = useState(false);
 
     const handleNext = () => {
         if (activeStep < steps.length - 1) {
@@ -63,6 +64,50 @@ const HourlyBookingPage = () => {
         setVehicleType("");
         setNumberOfVehicles(1);
         setPickup("");
+    };
+
+    const detectUserLocation = async () => {
+        setLoading(true);
+        try {
+            if (!navigator.geolocation) {
+                setSnackbar({
+                    open: true,
+                    message: "Trình duyệt không hỗ trợ định vị",
+                    severity: "error"
+                });
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    try {
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+                        );
+                        const data = await response.json();
+                        setPickup(data.display_name);
+                    } catch (error) {
+                        console.error("Error reverse geocoding:", error);
+                        setSnackbar({
+                            open: true,
+                            message: "Không thể xác định địa chỉ hiện tại",
+                            severity: "error"
+                        });
+                    }
+                },
+                (error) => {
+                    console.error("Geolocation error:", error);
+                    setSnackbar({
+                        open: true,
+                        message: "Không thể xác định vị trí của bạn",
+                        severity: "error"
+                    });
+                }
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getStepContent = (step: number) => {
@@ -92,6 +137,8 @@ const HourlyBookingPage = () => {
                         destination={destination}
                         onPickupChange={setPickup}
                         onDestinationChange={setDestination}
+                        detectUserLocation={detectUserLocation}
+                        loading={loading}
                     />
                 );
             default:
