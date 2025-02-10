@@ -1,0 +1,17 @@
+**/node_modules/*
+**/.next/*
+**/out/*
+
+coverage
+
+dist
+
+.github/*
+
+package.json
+package-lock.json
+
+next.config.mjs
+postcss.config.mjs
+
+src/styles/*
