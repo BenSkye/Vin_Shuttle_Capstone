@@ -8,6 +8,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import './map.css';
 import { routeService, RouteRequest, RouteResponse } from '../services/routeService';
+import { io } from 'socket.io-client';
 
 interface BusStop {
     id: number;
@@ -110,6 +111,11 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
     return null;
 }
 
+const socket = io('ws://localhost:2028/app', {
+    transports: ['websocket'],
+}); // Connect to the WebSocket server
+
+
 export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
     const [mapCenter] = useState<L.LatLngTuple>([10.842, 106.843]);
@@ -133,6 +139,13 @@ export default function CreateRoute() {
                 console.error('Failed to fetch routes:', error);
             }
         };
+        socket.on('connect', () => {
+            console.log('✅ Connected to WebSocket Server');
+            console.log('Client ID:', socket.id);
+        });
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from WebSocket Server');
+        });
         fetchRoutes();
     }, []);
 
