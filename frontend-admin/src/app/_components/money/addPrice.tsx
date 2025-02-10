@@ -2,7 +2,6 @@
 import { Modal, Form, Select, InputNumber, Button, Space, message } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { PricingConfig } from '../../services/interface';
-import type { FormInstance } from 'antd';
 import { useState, useEffect } from 'react';
 import { pricingConfigServices } from '@/app/services/pricingServices';
 

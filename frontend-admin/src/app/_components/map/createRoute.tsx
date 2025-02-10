@@ -1,13 +1,13 @@
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Popup } from 'react-leaflet';
-import L from 'leaflet'
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import './map.css';
-import { routeService, RouteRequest, RouteResponse } from '../services/routeService';
+import { routeService, RouteRequest, RouteResponse } from '../../services/routeService';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
@@ -209,8 +209,8 @@ export default function CreateRoute() {
                 setIsLoading(false);
             }
         }
-    }, [routeCoordinates, stops, savedRoutes, routeName, routeDescription, estimatedDuration, totalDistance]);
-
+    }, [routeCoordinates, stops, routeName, routeDescription, estimatedDuration, totalDistance]); // ❌ Đừng để `savedRoutes` ở đây
+    
     const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
         setIsCreatingRoute(false);
