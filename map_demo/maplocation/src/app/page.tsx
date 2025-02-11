@@ -1,10 +1,13 @@
 'use client'
 
-import CreateRoute from "@/components/createRoute";
-import CustomerPage from "@/components/CustomerPage";
-import DriverScreen from "@/components/Driver";
-import Map from "@/components/Map";
+import dynamic from 'next/dynamic';
 import { useState } from "react";
+
+// Dynamic import với ssr: false
+const CreateRoute = dynamic(
+  () => import("@/components/createRoute"),
+  { ssr: false }
+);
 
 export default function Home() {
   const [isCustomer, setIsCustomer] = useState(true);
