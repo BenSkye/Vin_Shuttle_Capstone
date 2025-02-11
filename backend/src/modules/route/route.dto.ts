@@ -10,7 +10,7 @@ export interface Waypoint {
     description?: string;
 }
 
-export interface CreateRouteDto {
+export interface ICreateRouteDto {
     name: string;
     description: string;
     status?: 'active' | 'inactive';
@@ -23,7 +23,7 @@ export interface CreateRouteDto {
 }
 
 
-export interface UpdateRouteDto {
+export interface IUpdateRouteDto {
     name?: string;
     description?: string;
     status?: 'active' | 'inactive';

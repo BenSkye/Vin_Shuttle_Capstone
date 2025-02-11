@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { IDriverScheduleRepository } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverSchedule } from "src/modules/driver-schedule/driver-schedule.schema";
+import { getSelectData } from "src/share/utils";
 
 
 @Injectable()
@@ -24,8 +25,12 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
         return await this.driverScheduleModel.find();
     }
 
-    async getDriverSchedules(query: any): Promise<any> {
-        return await this.driverScheduleModel.find(query);
+    async getDriverSchedules(query: any, select: string[]): Promise<any> {
+        return await this.driverScheduleModel.find(query).select(getSelectData(select));
+    }
+
+    async findOneDriverSchedule(query: any, select: string[]): Promise<any> {
+        return await this.driverScheduleModel.findOne(query).select(getSelectData(select));
     }
 
     async updateDriverSchedule(id: string, driverSchedule: any): Promise<DriverSchedule> {

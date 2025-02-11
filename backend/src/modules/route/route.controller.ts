@@ -1,11 +1,11 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRouteService } from './route.port';
-import { CreateRouteDto, UpdateRouteDto } from './route.dto';
 import { ROUTE_SERVICE } from './route.di-token';
 import { RolesGuard } from 'src/modules/auth/role.guard';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { ICreateRouteDto, IUpdateRouteDto } from 'src/modules/route/route.dto';
 
 @ApiTags('routes')
 @Controller('routes')
@@ -55,7 +55,7 @@ export class RouteController {
         }
     })
     async createRoute(
-        @Body() createRouteDto: CreateRouteDto) {
+        @Body() createRouteDto: ICreateRouteDto) {
         return this.routeService.createRoute(createRouteDto);
     }
 
@@ -106,7 +106,7 @@ export class RouteController {
     })
     async updateRoute(
         @Param('id') id: string,
-        @Body() updateRouteDto: UpdateRouteDto
+        @Body() updateRouteDto: IUpdateRouteDto
     ) {
         return this.routeService.updateRoute(id, updateRouteDto);
     }

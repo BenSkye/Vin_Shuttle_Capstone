@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Route } from './route.schema';
-import { CreateRouteDto, UpdateRouteDto } from './route.dto';
+import { ICreateRouteDto, IUpdateRouteDto } from './route.dto';
 import { IRouteRepository } from 'src/modules/route/route.port';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class RouteRepository implements IRouteRepository {
         @InjectModel(Route.name) private readonly routeModel: Model<Route>
     ) { }
 
-    async create(route: CreateRouteDto): Promise<Route> {
+    async create(route: ICreateRouteDto): Promise<Route> {
         const newRoute = new this.routeModel(route);
         return await newRoute.save();
     }
@@ -28,7 +28,7 @@ export class RouteRepository implements IRouteRepository {
         return await this.routeModel.find();
     }
 
-    async update(id: string, route: UpdateRouteDto): Promise<Route | null> {
+    async update(id: string, route: IUpdateRouteDto): Promise<Route | null> {
         return await this.routeModel.findByIdAndUpdate(id, route, { new: true });
     }
 

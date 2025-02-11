@@ -12,6 +12,7 @@ export const swaggerConfig = new DocumentBuilder()
     .addTag('otp', 'OTP Check')
     .addTag('pricing', 'Pricing management')
     .addTag('routes', 'Trip management')
+    .addTag('driver-schedules', 'Driver schedule management')
     .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         HEADER.AUTHORIZATION // Authorization header
