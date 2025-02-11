@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ROUTE_REPOSITORY } from "src/modules/route/route.di-token";
-import { CreateRouteDto, UpdateRouteDto } from "src/modules/route/route.dto";
+import { ICreateRouteDto, IUpdateRouteDto } from "src/modules/route/route.dto";
 import { IRouteRepository, IRouteService } from "src/modules/route/route.port";
 import { Route } from "src/modules/route/route.schema";
 
@@ -12,7 +12,7 @@ export class RouteService implements IRouteService {
         private readonly routeRepository: IRouteRepository
     ) { }
 
-    async createRoute(route: CreateRouteDto): Promise<Route> {
+    async createRoute(route: ICreateRouteDto): Promise<Route> {
         const newRoute = await this.routeRepository.create(route);
         if (!newRoute) {
             throw new HttpException({
@@ -38,7 +38,7 @@ export class RouteService implements IRouteService {
         return await this.routeRepository.findAll();
     }
 
-    async updateRoute(id: string, route: UpdateRouteDto): Promise<Route> {
+    async updateRoute(id: string, route: IUpdateRouteDto): Promise<Route> {
         const updatedRoute = await this.routeRepository.update(id, route);
         if (!updatedRoute) {
             throw new HttpException({

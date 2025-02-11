@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
+import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 
 export type VehicleDocument = HydratedDocument<Vehicle>;
 
@@ -14,11 +15,11 @@ export class Vehicle {
     @Prop({ required: true, unique: true })
     licensePlate: string;  // Biển số xe
 
-    @Prop({ default: true })
-    isActive: boolean;     // Trạng thái hoạt động
+    @Prop({ type: String, enum: VehicleOperationStatus, default: VehicleOperationStatus.ACTIVE })
+    operationStatus: string;
 
-    @Prop({ default: 'available' })
-    status: string;       // Trạng thái: available, in-use, maintenance
+    @Prop({ type: String, enum: VehicleCondition, default: VehicleCondition.AVAILABLE })
+    vehicleCondition: string;
 }
 
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle); 
