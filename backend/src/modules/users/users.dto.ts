@@ -15,6 +15,7 @@ export interface IUpdateUserDto {
     email?: string;
     password?: string;
     role?: UserRole;
+    status?: string;
 }
 
 export class CreateUserDto {
