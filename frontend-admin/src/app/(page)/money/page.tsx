@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { Layout, Table, Tabs, Button, Form, message } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import Sidebar from '../../_components/common/Sidebar';
 import UpdateConfig from '../../_components/money/updateConfig';
@@ -10,6 +10,7 @@ import { pricingConfigServices } from '../../services/pricingServices';
 import { priceManagementServices } from '../../services/priceConfigServices';
 import { categoryService } from '../../services/categoryServices';
 import { PricingConfig, PriceManagement } from '../../services/interface';
+import AddPrice from '../../_components/money/addPrice';
 
 const { Header, Content } = Layout;
 
@@ -31,7 +32,7 @@ export default function Money() {
   const [editPriceModalVisible, setEditPriceModalVisible] = useState(false);
   const [, setEditingPrice] = useState<PriceManagement | null>(null);
   const [priceForm] = Form.useForm();
-
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -114,6 +115,15 @@ export default function Money() {
       const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật giá';
       message.error(errorMessage);
     }
+  };
+
+  const showAddModal = () => {
+    setIsAddModalVisible(true);
+  };
+
+  const handleAddSuccess = () => {
+    setIsAddModalVisible(false);
+    fetchData(); // Refresh danh sách
   };
 
   const configColumns: ColumnsType<PricingConfig> = [
@@ -237,12 +247,19 @@ export default function Money() {
       key: '2',
       label: 'Quản lý giá cả',
       children: (
-        <Table
-          columns={priceColumns}
-          dataSource={prices}
-          loading={loading}
-          rowKey="_id"
-        />
+        <>
+          <div className="mb-4">
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+              Thêm giá mới
+            </Button>
+          </div>
+          <Table
+            columns={priceColumns}
+            dataSource={prices}
+            loading={loading}
+            rowKey="_id"
+          />
+        </>
       ),
     },
   ];
@@ -271,6 +288,15 @@ export default function Money() {
         onCancel={() => setEditPriceModalVisible(false)}
         onOk={handleUpdatePrice}
         form={priceForm}
+        categories={categories}
+        serviceConfigs={serviceConfigs}
+        serviceTypeMap={serviceTypeMap}
+      />
+
+      <AddPrice 
+        visible={isAddModalVisible}
+        onCancel={() => setIsAddModalVisible(false)}
+        onSuccess={handleAddSuccess}
         categories={categories}
         serviceConfigs={serviceConfigs}
         serviceTypeMap={serviceTypeMap}

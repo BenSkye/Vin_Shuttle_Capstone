@@ -1,5 +1,5 @@
 import { Layout, Menu, App, notification } from 'antd';
-import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined, UnorderedListOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, CarOutlined, UserSwitchOutlined, CompassOutlined, DollarOutlined,CalculatorOutlined, UnorderedListOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -73,6 +73,11 @@ export default function Sidebar() {
         key: '/money',
         icon: <DollarOutlined />,
         label: <Link href="/money">Quản lý tiền</Link>,
+      },
+      {
+        key: '/cal',
+        icon: <CalculatorOutlined />,
+        label: <Link href="/cal">Tính tiền</Link>,
       },
       {
         key: 'logout',

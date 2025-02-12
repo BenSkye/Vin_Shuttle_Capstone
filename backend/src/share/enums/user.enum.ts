@@ -3,3 +3,9 @@ export enum UserRole {
     CUSTOMER = 'customer',
     DRIVER = 'driver'
 }
+
+
+export enum UserStatus {
+    ACTIVE = 'active',
+    INACTIVE = 'inactive',
+}
