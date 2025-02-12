@@ -1,34 +1,50 @@
-'use client'
+'use client';
 
 import React, { useState } from "react";
 import { Container, Stepper, Step, StepLabel, Paper, Grid, Typography, Button, Box, TextField, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Card, CardContent } from "@mui/material";
 import { styled } from "@mui/system";
 import { FaCreditCard, FaPaypal, FaGooglePay } from "react-icons/fa";
 
-const StyledPaper = styled(Paper)({
-    padding: "24px",
-    marginTop: "24px",
-    marginBottom: "24px"
-});
+const StyledPaper = styled(Paper)(({ }) => ({
+    padding: "40px",
+    marginTop: "40px",
+    marginBottom: "40px",
+    borderRadius: "16px",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)"
+}));
 
 const StyledButton = styled(Button)({
-    margin: "16px 8px"
+    margin: "16px 8px",
+    padding: "12px 32px",
+    fontSize: "1.1rem"
 });
 
-const steps = ["Shipping Information", "Shipping Method", "Payment Method", "Order Review"];
+const StyledRadioGroup = styled(RadioGroup)({
+    '& .MuiFormControlLabel-root': {
+        margin: '16px 0',
+        '& .MuiRadio-root': {
+            padding: '12px'
+        },
+        '& .MuiTypography-root': {
+            fontSize: '1.1rem'
+        }
+    }
+});
+
+const IconWrapper = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    '& svg': {
+        fontSize: '24px',
+        marginRight: '12px'
+    }
+});
+
+const steps = ["Payment Method", "Order Review"];
 
 const CheckoutPage = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        postalCode: "",
-        country: "",
-        shippingMethod: "standard",
         paymentMethod: "credit",
         cardNumber: "",
         cardHolder: "",
@@ -53,60 +69,93 @@ const CheckoutPage = () => {
         switch (activeStep) {
             case 0:
                 return (
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
-                            <TextField required fullWidth label="Full Name" name="fullName" value={formData.fullName} onChange={handleInputChange} />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField required fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleInputChange} />
-                        </Grid>
-                    </Grid>
-                );
-
-            case 1:
-                return (
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend">Shipping Method</FormLabel>
-                        <RadioGroup name="shippingMethod" value={formData.shippingMethod} onChange={handleInputChange}>
-                            <FormControlLabel value="standard" control={<Radio />} label="Standard Shipping ($5.99)" />
-                            <FormControlLabel value="express" control={<Radio />} label="Express Shipping ($12.99)" />
-                            <FormControlLabel value="priority" control={<Radio />} label="Priority Shipping ($19.99)" />
-                        </RadioGroup>
-                    </FormControl>
-                );
-
-            case 2:
-                return (
-                    <Box>
-                        <FormControl component="fieldset">
-                            <FormLabel component="legend">Payment Method</FormLabel>
-                            <RadioGroup name="paymentMethod" value={formData.paymentMethod} onChange={handleInputChange}>
-                                <FormControlLabel value="credit" control={<Radio />} label={<Box sx={{ display: "flex", alignItems: "center" }}><FaCreditCard style={{ marginRight: 8 }} /> Credit Card</Box>} />
-                                <FormControlLabel value="paypal" control={<Radio />} label={<Box sx={{ display: "flex", alignItems: "center" }}><FaPaypal style={{ marginRight: 8 }} /> PayPal</Box>} />
-                                <FormControlLabel value="gpay" control={<Radio />} label={<Box sx={{ display: "flex", alignItems: "center" }}><FaGooglePay style={{ marginRight: 8 }} /> Google Pay</Box>} />
-                            </RadioGroup>
+                    <Box sx={{ p: 3 }}>
+                        <FormControl component="fieldset" fullWidth>
+                            <FormLabel component="legend" sx={{ fontSize: '1.2rem', mb: 3 }}>
+                                Select Payment Method
+                            </FormLabel>
+                            <StyledRadioGroup name="paymentMethod" value={formData.paymentMethod} onChange={handleInputChange}>
+                                <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+                                    <FormControlLabel
+                                        value="credit"
+                                        control={<Radio />}
+                                        label={<IconWrapper><FaCreditCard /> Credit Card</IconWrapper>}
+                                    />
+                                </Paper>
+                                <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+                                    <FormControlLabel
+                                        value="paypal"
+                                        control={<Radio />}
+                                        label={<IconWrapper><FaPaypal /> PayPal</IconWrapper>}
+                                    />
+                                </Paper>
+                                <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+                                    <FormControlLabel
+                                        value="gpay"
+                                        control={<Radio />}
+                                        label={<IconWrapper><FaGooglePay /> Google Pay</IconWrapper>}
+                                    />
+                                </Paper>
+                            </StyledRadioGroup>
                         </FormControl>
                         {formData.paymentMethod === "credit" && (
-                            <Grid container spacing={3} sx={{ mt: 2 }}>
+                            <Grid container spacing={3} sx={{ mt: 4 }}>
                                 <Grid item xs={12}>
-                                    <TextField required fullWidth label="Card Number" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} />
+                                    <TextField
+                                        required
+                                        fullWidth
+                                        label="Card Number"
+                                        name="cardNumber"
+                                        value={formData.cardNumber}
+                                        onChange={handleInputChange}
+                                        InputProps={{
+                                            sx: { fontSize: '1.1rem', padding: '8px' }
+                                        }}
+                                    />
                                 </Grid>
                             </Grid>
                         )}
                     </Box>
                 );
 
-            case 3:
+            case 1:
                 return (
-                    <Card>
+                    <Card sx={{ p: 3 }}>
                         <CardContent>
-                            <Typography variant="h6" gutterBottom>Order Summary</Typography>
-                            <Grid container spacing={2}>
+                            <Typography variant="h5" gutterBottom sx={{ mb: 4 }}>
+                                Order Summary
+                            </Typography>
+                            <Grid container spacing={3}>
                                 <Grid item xs={12}>
-                                    <Typography>Subtotal: $99.99</Typography>
-                                    <Typography>Shipping: ${formData.shippingMethod === "standard" ? "5.99" : formData.shippingMethod === "express" ? "12.99" : "19.99"}</Typography>
-                                    <Typography>Tax: $10.00</Typography>
-                                    <Typography variant="h6" sx={{ mt: 2 }}>Total: $115.98</Typography>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '1.1rem',
+                                        mb: 2
+                                    }}>
+                                        <Typography>Subtotal:</Typography>
+                                        <Typography>$99.99</Typography>
+                                    </Box>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '1.1rem',
+                                        mb: 3
+                                    }}>
+                                        <Typography>Tax:</Typography>
+                                        <Typography>$10.00</Typography>
+                                    </Box>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        fontSize: '1.3rem',
+                                        fontWeight: 'bold',
+                                        borderTop: '2px solid #eee',
+                                        pt: 3
+                                    }}>
+                                        <Typography>Total:</Typography>
+                                        <Typography>$109.99</Typography>
+                                    </Box>
                                 </Grid>
                             </Grid>
                         </CardContent>
@@ -119,31 +168,60 @@ const CheckoutPage = () => {
     };
 
     return (
-        <Container maxWidth="md">
+        <Container maxWidth="lg">
             <StyledPaper>
-                <Typography variant="h4" align="center" gutterBottom>
+                <Typography variant="h3" align="center" gutterBottom sx={{ mb: 6 }}>
                     Checkout
                 </Typography>
-                <Stepper activeStep={activeStep} alternativeLabel>
+                <Stepper
+                    activeStep={activeStep}
+                    alternativeLabel
+                    sx={{
+                        mb: 8,
+                        '& .MuiStepLabel-label': {
+                            fontSize: '1.1rem'
+                        }
+                    }}
+                >
                     {steps.map((label) => (
                         <Step key={label}>
                             <StepLabel>{label}</StepLabel>
                         </Step>
                     ))}
                 </Stepper>
-                <Box sx={{ mt: 4 }}>
+                <Box sx={{ mt: 4, maxWidth: '800px', margin: '0 auto' }}>
                     {activeStep === steps.length ? (
-                        <Typography variant="h5" align="center">
-                            Thank you for your order!
-                        </Typography>
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                            <Typography variant="h4" gutterBottom>
+                                Thank you for your order!
+                            </Typography>
+                            <Typography variant="subtitle1" color="text.secondary">
+                                Your order has been placed successfully.
+                            </Typography>
+                        </Box>
                     ) : (
                         <>
                             {getStepContent()}
-                            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+                            <Box sx={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                mt: 4,
+                                borderTop: '1px solid #eee',
+                                pt: 4
+                            }}>
                                 {activeStep !== 0 && (
-                                    <StyledButton onClick={handleBack}>Back</StyledButton>
+                                    <StyledButton
+                                        onClick={handleBack}
+                                        size="large"
+                                    >
+                                        Back
+                                    </StyledButton>
                                 )}
-                                <StyledButton variant="contained" onClick={handleNext}>
+                                <StyledButton
+                                    variant="contained"
+                                    onClick={handleNext}
+                                    size="large"
+                                >
                                     {activeStep === steps.length - 1 ? "Place Order" : "Next"}
                                 </StyledButton>
                             </Box>
