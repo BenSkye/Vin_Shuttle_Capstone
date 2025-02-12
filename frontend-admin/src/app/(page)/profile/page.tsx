@@ -1,6 +1,6 @@
 'use client'
-import { Layout, Card, Avatar, Button, Form, Input, notification, Tabs, Spin } from 'antd';
-import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
+import { Layout, Card, Avatar, Button, Form, Input, notification, Tabs, Spin, Space } from 'antd';
+import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined, SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import Sidebar from '../../_components/common/Sidebar';
 import { useEffect, useState, useCallback } from 'react';
 import { usersService } from '../../services/usersServices';
@@ -82,8 +82,18 @@ export default function Profile() {
     <Layout hasSider>
       <Sidebar />
       <Layout>
-        <Header className="bg-white p-4">
+        <Header className="bg-white p-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold ml-7">Trang cá nhân</h2>
+          <Space>
+            <Input
+              placeholder="Tìm kiếm phương tiện"
+              prefix={<SearchOutlined />}
+              className="w-64 hidden"
+            />
+            <Button type="primary" icon={<PlusOutlined />} className='hidden'>
+              Thêm phương tiện
+            </Button>
+          </Space>
         </Header>
         <Content className="m-6">
           <Spin spinning={loading} tip="Đang tải...">
