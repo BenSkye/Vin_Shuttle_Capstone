@@ -8,7 +8,7 @@ import dynamic from "next/dynamic"
 // Dynamic imports with ssr: false
 const HourlyBooking = dynamic(() => import("../../components/booking/hourbooking"), { ssr: false })
 const RouteBooking = dynamic(() => import("../../components/booking/routebooking"), { ssr: false })
-const SharedBooking = dynamic(() => import("../../components/booking/sharedbooking"), { ssr: false })
+const DestinationBooking = dynamic(() => import("../../components/booking/destinationbooking"), { ssr: false })
 
 export default function BookingTabs() {
     const [activeKey, setActiveKey] = useState("1")
@@ -36,7 +36,7 @@ export default function BookingTabs() {
             ),
             children: (
                 <Card className="p-6">
-                    <SharedBooking />
+                    <DestinationBooking />
                 </Card>
             ),
         },
