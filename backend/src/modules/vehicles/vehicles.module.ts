@@ -30,6 +30,6 @@ const dependencies: Provider[] = [
   ],
   controllers: [VehiclesController],
   providers: [...dependencies],
-  // exports: [VehiclesRepository],
+  exports: [...dependencies],
 })
 export class VehiclesModule { }
