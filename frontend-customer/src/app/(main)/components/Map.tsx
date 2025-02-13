@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -7,14 +7,14 @@ import { MapProps, MapState } from "../../../service/interface/map.types";
 
 // Custom Icons
 const PickupIcon = new L.Icon({
-    iconUrl: "https://img.icons8.com/color/48/4caf50/marker.png", // Green marker
+    iconUrl: "https://img.icons8.com/color/48/4caf50/marker.png",
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
 });
 
 const DestinationIcon = new L.Icon({
-    iconUrl: "https://img.icons8.com/color/48/ff5722/marker.png", // Red marker
+    iconUrl: "https://img.icons8.com/color/48/ff5722/marker.png",
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
@@ -27,6 +27,7 @@ const Map = ({ pickup, destination }: MapProps) => {
         map: null,
         error: null
     });
+    const mapRef = useRef<L.Map | null>(null);
 
     const searchLocation = debounce(async (query: string, isPickup: boolean) => {
         if (!query.trim()) {
@@ -61,9 +62,8 @@ const Map = ({ pickup, destination }: MapProps) => {
                 error: null
             }));
 
-            // Center map on the new location
-            if (state.map) {
-                state.map.setView(location, 15);
+            if (mapRef.current) {
+                mapRef.current.setView(location, 15);
             }
         } catch (error) {
             console.error("Error searching location:", error);
@@ -83,24 +83,19 @@ const Map = ({ pickup, destination }: MapProps) => {
         if (destination) searchLocation(destination, false);
     }, [destination]);
 
-    // Adjust map view to show both markers if they exist
     useEffect(() => {
-        if (state.map && state.pickupLocation && state.destinationLocation) {
+        if (mapRef.current && state.pickupLocation && state.destinationLocation) {
             const bounds = L.latLngBounds([state.pickupLocation, state.destinationLocation]);
-            state.map.fitBounds(bounds, { padding: [50, 50] });
+            mapRef.current.fitBounds(bounds, { padding: [50, 50] });
         }
-    }, [state.map, state.pickupLocation, state.destinationLocation]);
+    }, [state.pickupLocation, state.destinationLocation]);
 
     return (
         <MapContainer
-            center={[10.776, 106.700]} // Default center: Ho Chi Minh City
+            center={[10.776, 106.700]}
             zoom={13}
             style={{ height: "500px", width: "100%" }}
-            ref={(mapRef) => {
-                if (mapRef) {
-                    setState(prev => ({ ...prev, map: mapRef }));
-                }
-            }}
+            ref={mapRef}
         >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
