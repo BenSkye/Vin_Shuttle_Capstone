@@ -49,7 +49,7 @@ export default function BookingTabs() {
             ),
             children: (
                 <Card className="p-6">
-                    <RouteBooking onTabChange={() => { }} setPickup={() => { }} setDestination={() => { }} />
+                    <RouteBooking />
                 </Card>
             ),
         },
