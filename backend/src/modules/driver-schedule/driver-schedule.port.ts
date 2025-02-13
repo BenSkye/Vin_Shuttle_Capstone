@@ -16,6 +16,7 @@ export interface IDriverScheduleService {
     createListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<DriverSchedule[]>;
     checkListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<boolean>;
     getDriverScheduleById(id: string): Promise<DriverSchedule>;
+    getPersonalSchedulesFromStartToEnd(driverId: string, start: Date, end: Date): Promise<DriverSchedule[]>;
     getAllDriverSchedules(): Promise<any>;
     getDriverSchedules(query: any): Promise<any>;
     getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverSchedule[]>;

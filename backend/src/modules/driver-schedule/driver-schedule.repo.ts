@@ -26,7 +26,7 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
     }
 
     async getDriverSchedules(query: any, select: string[]): Promise<any> {
-        return await this.driverScheduleModel.find(query).select(getSelectData(select));
+        return await this.driverScheduleModel.find(query).select(getSelectData(select)).populate('driver', 'name').populate('vehicle', 'name');
     }
 
     async findOneDriverSchedule(query: any, select: string[]): Promise<any> {
