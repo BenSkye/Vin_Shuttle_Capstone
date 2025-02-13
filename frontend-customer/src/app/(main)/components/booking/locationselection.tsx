@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, TextField, Grid, Paper, Button, CircularProgress } from "@mui/material";
+import { Input, Row, Col, Button, Spin, Card } from "antd";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import dynamic from "next/dynamic";
 
@@ -27,60 +27,44 @@ const LocationSelection = ({
     loading,
 }: LocationSelectionProps) => {
     return (
-        <Box sx={{ width: "100%" }}>
+        <div style={{ width: "100%" }}>
             {/* Search Fields */}
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={5}>
-                    <TextField
-                        fullWidth
-                        label="Điểm đón"
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                <Col xs={24} md={10}>
+                    <Input
+                        prefix={<FaMapMarkerAlt style={{ color: "#4CAF50" }} />}
+                        placeholder="Nhập địa điểm đón"
                         value={pickup}
                         onChange={(e) => onPickupChange(e.target.value)}
-                        InputProps={{
-                            startAdornment: <FaMapMarkerAlt style={{ marginRight: 8, color: "#4CAF50" }} />,
-                            placeholder: "Nhập địa điểm đón",
-                        }}
                     />
-                </Grid>
-                <Grid item xs={12} md={5}>
-                    <TextField
-                        fullWidth
-                        label="Điểm đến"
+                </Col>
+                <Col xs={24} md={10}>
+                    <Input
+                        prefix={<FaMapMarkerAlt style={{ color: "#FF5722" }} />}
+                        placeholder="Nhập địa điểm đến"
                         value={destination}
                         onChange={(e) => onDestinationChange(e.target.value)}
-                        InputProps={{
-                            startAdornment: <FaMapMarkerAlt style={{ marginRight: 8, color: "#FF5722" }} />,
-                            placeholder: "Nhập địa điểm đến",
-                        }}
                     />
-                </Grid>
-                <Grid item xs={12} md={2} display="flex" alignItems="center">
-                    <Button variant="contained" color="primary" fullWidth onClick={detectUserLocation}>
+                </Col>
+                <Col xs={24} md={4} style={{ display: "flex", alignItems: "center" }}>
+                    <Button type="primary" block onClick={detectUserLocation}>
                         Sử dụng vị trí của tôi
                     </Button>
-                </Grid>
-            </Grid>
+                </Col>
+            </Row>
 
             {/* Loading Indicator */}
             {loading && (
-                <Box display="flex" justifyContent="center" sx={{ my: 2 }}>
-                    <CircularProgress />
-                </Box>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                    <Spin size="large" />
+                </div>
             )}
 
             {/* Map Container */}
-            <Paper
-                elevation={2}
-                sx={{
-                    height: "500px",
-                    width: "100%",
-                    overflow: "hidden",
-                    borderRadius: 2,
-                }}
-            >
+            <Card style={{ height: "500px", borderRadius: 8, overflow: "hidden" }}>
                 <MapWithNoSSR pickup={pickup} destination={destination} />
-            </Paper>
-        </Box>
+            </Card>
+        </div>
     );
 };
 
