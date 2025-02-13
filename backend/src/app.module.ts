@@ -13,7 +13,7 @@ import { OtpModule } from 'src/modules/OTP/otp.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { RouteModule } from 'src/modules/route/route.module';
 import { AppGateway } from 'src/app.gateway';
-// import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
+import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
 
 @Module({
   imports: [
@@ -36,7 +36,7 @@ import { AppGateway } from 'src/app.gateway';
     OtpModule,
     PricingModule,
     RouteModule,
-    // DriverScheduleModule
+    DriverScheduleModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

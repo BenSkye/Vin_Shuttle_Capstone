@@ -11,6 +11,7 @@ import { routeService, RouteRequest, RouteResponse } from '../../services/routeS
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import Sidebar from '../common/Sidebar';
 
 interface BusStop {
     id: number;
@@ -110,6 +111,8 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
     const map = useMap();
 
     useEffect(() => {
+        if (!map) return;
+
         const polyline = L.polyline(coordinates, {
             color: '#3498db',
             weight: 6,
@@ -119,16 +122,29 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
         map.fitBounds(polyline.getBounds());
 
         return () => {
-            map.removeLayer(polyline);
+            if (polyline) {
+                map.removeLayer(polyline);
+            }
         };
     }, [map, coordinates]);
 
     return null;
 }
 
+const getStreetName = async (latlng: L.LatLng) => {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
+    const data = await response.json();
+    
+    // Tách tên đường dựa trên dấu phẩy và lấy 2 phần tử đầu
+    const streetParts = data.display_name ? data.display_name.split(',') : [];
+    const streetName = streetParts.slice(0, 2).join(', '); // Kết hợp lại thành chuỗi
+
+    return streetName || 'Tên đường không tìm thấy';
+};
+
 export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
-    const [mapCenter] = useState<L.LatLngTuple>([10.842, 106.843]);
+    const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424]);
     const [routeCoordinates, setRouteCoordinates] = useState<L.LatLng[]>([]);
     const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([]);
     const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
@@ -158,12 +174,13 @@ export default function CreateRoute() {
         setTotalDistance(totalDistance);
     }, []);
 
-    const handleMapClick = useCallback((latlng: L.LatLng) => {
+    const handleMapClick = useCallback(async (latlng: L.LatLng) => {
+        const streetName = await getStreetName(latlng);
         setStops(prevStops => {
             const newStop: BusStop = {
                 id: prevStops.length,
                 position: latlng,
-                name: `Điểm dừng ${prevStops.length + 1}`,
+                name: streetName,
                 color: COLORS[prevStops.length % COLORS.length]
             };
             return [...prevStops, newStop];
@@ -210,7 +227,7 @@ export default function CreateRoute() {
             }
         }
     }, [routeCoordinates, stops, routeName, routeDescription, estimatedDuration, totalDistance]); // ❌ Đừng để `savedRoutes` ở đây
-    
+
     const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
         setIsCreatingRoute(false);
@@ -218,9 +235,10 @@ export default function CreateRoute() {
 
     return (
         <div className="h-screen flex">
+            <Sidebar />
             <div className="w-80 bg-white shadow-lg p-4 overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">
+                    <h2 className="text-xl font-bold text-black">
                         {isCreatingRoute ? 'Tạo lộ trình mới' : 'Danh sách lộ trình'}
                     </h2>
                     <button
@@ -269,39 +287,38 @@ export default function CreateRoute() {
 
                 {isCreatingRoute ? (
                     <>
-                        {stops.map((stop) => (
-                            <div
-                                key={stop.id}
-                                className="flex items-center justify-between p-3 mb-2 rounded-lg"
-                                style={{ backgroundColor: `${stop.color}20` }}
-                            >
-                                <div>
-                                    <div className="font-semibold" style={{ color: stop.color }}>
-                                        {stop.name}
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                        {stop.position.lat.toFixed(6)}, {stop.position.lng.toFixed(6)}
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => removeStop(stop.id)}
-                                    className="text-red-500 hover:text-red-700"
+                        <div className="route-list">
+                            {stops.map((stop, index) => (
+                                <div
+                                    key={stop.id}
+                                    className="flex items-center justify-between p-3 mb-2 rounded-lg"
+                                    style={{ backgroundColor: `${stop.color}20` }}
                                 >
-                                    ×
-                                </button>
-                            </div>
-                        ))}
-                        {stops.length === 0 && (
-                            <p className="text-gray-500 text-center">
-                                Nhấp vào bản đồ để thêm điểm dừng
-                            </p>
-                        )}
+                                    <div>
+                                        <div className="font-semibold" style={{ color: stop.color }}>
+                                            Điểm dừng {index + 1}: {stop.name}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => removeStop(stop.id)}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                            {stops.length === 0 && (
+                                <p className="text-gray-500 text-center">
+                                    Nhấp vào bản đồ để thêm điểm dừng
+                                </p>
+                            )}
+                        </div>
                         {stops.length >= 2 && routeCoordinates.length > 0 && (
                             <button
                                 onClick={saveRoute}
                                 disabled={isLoading}
                                 className={`w-full mt-4 bg-green-500 text-white py-2 px-4 rounded 
-                                    ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}
+                    ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}
                             >
                                 {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
                             </button>
@@ -309,9 +326,9 @@ export default function CreateRoute() {
                     </>
                 ) : (
                     <div className="space-y-2">
-                        {savedRoutes.map(route => (
+                        {savedRoutes.map((route, index) => (
                             <div
-                                key={route.id}
+                                key={route.id || index}
                                 className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedRoute?.id === route.id
                                     ? 'bg-blue-100 border-blue-500'
                                     : 'bg-gray-50 hover:bg-gray-100'
@@ -339,8 +356,15 @@ export default function CreateRoute() {
             <div className="flex-grow">
                 <MapContainer
                     center={mapCenter}
-                    zoom={13}
+                    zoom={15.5}
                     style={{ height: '100%', width: '100%' }}
+                    maxBounds={[
+                        [10.830000, 106.830000], // Tọa độ góc dưới bên trái
+                        [10.850000, 106.860000]  // Tọa độ góc trên bên phải
+                    ]}
+                    maxBoundsViscosity={1.0} // Tăng độ nhạy của giới hạn
+                    minZoom={16} // Giới hạn mức zoom tối thiểu
+                    maxZoom={19} // Giới hạn mức zoom tối đa
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -357,7 +381,7 @@ export default function CreateRoute() {
                                 >
                                     <Popup>{stop.name}</Popup>
                                 </Marker>
-                            ))} 
+                            ))}
                             {stops.length >= 2 && (
                                 <RoutingMachine
                                     stops={stops}
