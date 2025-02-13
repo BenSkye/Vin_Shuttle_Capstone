@@ -121,6 +121,28 @@ export class DriverScheduleService implements IDriverScheduleService {
         return driverSchedule;
     }
 
+    async getPersonalSchedulesFromStartToEnd(driverId: string, start: Date, end: Date): Promise<DriverSchedule[]> {
+        // get all driver schedule from start to end
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Invalid date'
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const daynum = endDate.getDate() - startDate.getDate();
+        console.log(daynum);
+        const driverSchedulesList: DriverSchedule[] = [];
+        for (let i = 0; i <= daynum; i++) {
+            const date = new Date(start);
+            date.setDate(startDate.getDate() + i);
+            const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({ date: date, driver: driverId }, []);
+            driverSchedulesList.push(driverSchedules);
+        }
+        return driverSchedulesList;
+    }
+
     async getAllDriverSchedules(): Promise<DriverSchedule[]> {
         const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedules();
         return driverSchedules;
