@@ -1,113 +1,70 @@
-'use client'
+"use client"
 
 import { useState } from "react"
-import { Box, Card, Tab, Tabs } from "@mui/material"
-import { styled } from "@mui/material/styles"
+import { Tabs, Card } from "antd"
 import { FaHotel, FaPlane, FaCar } from "react-icons/fa"
-import dynamic from 'next/dynamic'
+import dynamic from "next/dynamic"
 
-// Dynamic imports với ssr: false
-const HourlyBooking = dynamic(
-    () => import('../../components/booking/hourbooking'),
-    { ssr: false }
-)
-
-const RouteBooking = dynamic(
-    () => import('../../components/booking/routebooking'),
-    { ssr: false }
-)
-
-const SharedBooing = dynamic(
-    () => import('../../components/booking/sharedbooking'),
-    { ssr: false }
-)
-
-const StyledTabs = styled(Tabs)(({ theme }) => ({
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: theme.shadows[1],
-    borderRadius: theme.shape.borderRadius,
-    '& .MuiTab-root': {
-        minWidth: 120,
-    },
-    '& .MuiTab-wrapper': {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-    },
-}));
-
-// ... keep existing styled components ...
+// Dynamic imports with ssr: false
+const HourlyBooking = dynamic(() => import("../../components/booking/hourbooking"), { ssr: false })
+const RouteBooking = dynamic(() => import("../../components/booking/routebooking"), { ssr: false })
+const SharedBooking = dynamic(() => import("../../components/booking/sharedbooking"), { ssr: false })
 
 export default function BookingTabs() {
-    const [value, setValue] = useState(0)
+    const [activeKey, setActiveKey] = useState("1")
 
-    const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-        setValue(newValue)
-    }
-
-    const tabContent = [
+    const items = [
         {
-            label: "Book theo giờ",
-            icon: <FaHotel size={20} />,
-            component: <HourlyBooking />
+            key: "1",
+            label: (
+                <span className="text-lg">
+                    <FaHotel className="mr-2 inline-block" /> Book theo giờ
+                </span>
+            ),
+            children: (
+                <Card className="p-6">
+                    <HourlyBooking />
+                </Card>
+            ),
         },
         {
-            label: "Book xe chung",
-            icon: <FaPlane size={20} />,
-            component: <SharedBooing />
+            key: "2",
+            label: (
+                <span className="text-lg">
+                    <FaPlane className="mr-2 inline-block" /> Book xe theo điểm đến
+                </span>
+            ),
+            children: (
+                <Card className="p-6">
+                    <SharedBooking />
+                </Card>
+            ),
         },
         {
-            label: "Book xe theo lộ trình",
-            icon: <FaCar size={20} />,
-            component: <RouteBooking onTabChange={() => { }} setPickup={() => { }} setDestination={() => { }} />
-        }
+            key: "3",
+            label: (
+                <span className="text-lg">
+                    <FaCar className="mr-2 inline-block" /> Book xe theo lộ trình
+                </span>
+            ),
+            children: (
+                <Card className="p-6">
+                    <RouteBooking onTabChange={() => { }} setPickup={() => { }} setDestination={() => { }} />
+                </Card>
+            ),
+        },
     ]
 
     return (
-        <Box sx={{
-            width: "100%",
-            maxWidth: "1400px",
-            mx: "auto",
-            mt: 4,
-            px: { xs: 1, sm: 2, md: 4 }
-        }}>
-            <StyledTabs
-                value={value}
-                onChange={handleChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="booking options tabs"
-                sx={{
-                    borderBottom: 1,
-                    borderColor: "divider",
-                    '& .MuiTabs-flexContainer': {
-                        justifyContent: { xs: 'flex-start', md: 'center' }
-                    }
-                }}
-            >
-                {tabContent.map((tab, index) => (
-                    <Tab
-                        key={index}
-                        icon={tab.icon}
-                        iconPosition="start"
-                        label={tab.label}
-                        id={`booking-tab-${index}`}
-                        aria-controls={`booking-tabpanel-${index}`}
-                    />
-                ))}
-            </StyledTabs>
-
-            <Card sx={{ p: { xs: 2, md: 4 } }}>
-                {tabContent.map((tab, index) => (
-                    <Box
-                        key={index}
-                        role="tabpanel"
-                        hidden={value !== index}
-                        id={`booking-tabpanel-${index}`}
-                    >
-                        {value === index && tab.component}
-                    </Box>
-                ))}
-            </Card>
-        </Box>
+        <div className="w-full max-w-7xl mx-auto mt-4 px-4">
+            <Tabs
+                activeKey={activeKey}
+                onChange={setActiveKey}
+                type="card"
+                items={items}
+                className="flex justify-center [&_.ant-tabs-nav]:w-auto [&_.ant-tabs-nav-list]:flex [&_.ant-tabs-nav-list]:justify-center [&_.ant-tabs-tab]:px-6 [&_.ant-tabs-tab]:py-3"
+            />
+        </div>
     )
 }
+

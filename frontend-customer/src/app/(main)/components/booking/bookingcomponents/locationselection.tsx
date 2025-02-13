@@ -4,7 +4,7 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import dynamic from "next/dynamic";
 
 // Dynamic import for Map component to prevent SSR issues
-const MapWithNoSSR = dynamic(() => import("../Map"), {
+const MapWithNoSSR = dynamic(() => import("../../Map"), {
     ssr: false,
     loading: () => <p>Loading Map...</p>,
 });

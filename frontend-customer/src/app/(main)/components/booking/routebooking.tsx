@@ -15,8 +15,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-import DateTimeSelection from "./datetimeselection";
-import VehicleSelection from "./vehicleselection";
+import DateTimeSelection from "./bookingcomponents/datetimeselection";
+import VehicleSelection from "./bookingcomponents/vehicleselection";
 import Map from "../Map";
 import LookUp from "../LookUp";
 
