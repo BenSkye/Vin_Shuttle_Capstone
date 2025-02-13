@@ -12,30 +12,29 @@ import {
 
 
 } from "antd";
-import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined, CreditCardOutlined } from "@ant-design/icons";
+import { CarOutlined, ClockCircleOutlined, CreditCardOutlined } from "@ant-design/icons";
 
-import dayjs from "dayjs";
-import DateTimeSelection from "./bookingcomponents/datetimeselection";
-import VehicleSelection from "./bookingcomponents/vehicleselection";
+
+
 import LocationSelection from "./bookingcomponents/locationselection";
+import TripTypeSelection from "./bookingcomponents/triptypeselection";
 import CheckoutPage from "./bookingcomponents/checkoutpage";
 
 const { Step } = Steps;
 const { Title } = Typography;
 
 const steps = [
-    { title: "Chọn ngày & giờ", icon: <ClockCircleOutlined /> },
-    { title: "Chọn loại xe", icon: <CarOutlined /> },
-    { title: "Chọn địa điểm đón", icon: <EnvironmentOutlined /> },
+    { title: "Chọn số người", icon: <ClockCircleOutlined /> },
+    { title: "Chọn điểm đón", icon: <CarOutlined /> },
+
     { title: "Thanh toán", icon: <CreditCardOutlined /> },
 ];
 
-const HourlyBookingPage = () => {
+const LineBookingPage = () => {
+    const [tripType, setTripType] = useState<"alone" | "shared">("alone");
+    const [passengerCount, setPassengerCount] = useState(1); // Thêm dòng này
     const [current, setCurrent] = useState(0);
-    const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
-    const [selectedTime, setSelectedTime] = useState("");
-    const [vehicleType, setVehicleType] = useState("");
-    const [numberOfVehicles, setNumberOfVehicles] = useState(1);
+
     const [pickup, setPickup] = useState("");
     const [destination, setDestination] = useState("");
     const [loading, setLoading] = useState(false);
@@ -78,11 +77,11 @@ const HourlyBookingPage = () => {
         }
     };
 
-
-
     return (
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: 40 }}>
-            <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>Đặt xe theo giờ</Title>
+            <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>
+                Chọn đi chung hay đi một mình
+            </Title>
             <Steps current={current} style={{ marginBottom: 40 }}>
                 {steps.map((item) => (
                     <Step key={item.title} title={item.title} icon={item.icon} />
@@ -91,22 +90,14 @@ const HourlyBookingPage = () => {
 
             <Card style={{ padding: 24 }}>
                 {current === 0 && (
-                    <DateTimeSelection
-                        selectedDate={selectedDate}
-                        selectedTime={selectedTime}
-                        onDateChange={setSelectedDate}
-                        onTimeChange={setSelectedTime}
+                    <TripTypeSelection
+                        tripType={tripType}
+                        onTripTypeChange={setTripType}
+                        passengerCount={passengerCount}
+                        onPassengerCountChange={setPassengerCount}
                     />
                 )}
                 {current === 1 && (
-                    <VehicleSelection
-                        vehicleType={vehicleType}
-                        numberOfVehicles={numberOfVehicles}
-                        onVehicleTypeChange={setVehicleType}
-                        onNumberOfVehiclesChange={setNumberOfVehicles}
-                    />
-                )}
-                {current === 2 && (
                     <LocationSelection
                         pickup={pickup}
                         destination={destination}
@@ -116,7 +107,7 @@ const HourlyBookingPage = () => {
                         loading={loading}
                     />
                 )}
-                {current === 3 && (
+                {current === 2 && (
                     <CheckoutPage />
                 )}
             </Card>
@@ -124,38 +115,19 @@ const HourlyBookingPage = () => {
             <Row justify="space-between" style={{ marginTop: 30 }}>
                 <Col>
                     {current > 0 && (
-                        <Button
-                            onClick={prev}
-                            size="large"
-                            style={{ padding: '8px 32px', height: 'auto', fontSize: '1.1rem' }}
-                        >
+                        <Button onClick={prev} size="large">
                             Quay lại
                         </Button>
                     )}
                 </Col>
                 <Col>
                     {current < steps.length - 1 && (
-                        <Button
-                            type="primary"
-                            onClick={next}
-                            disabled={
-                                (current === 0 && (!selectedDate || !selectedTime)) ||
-                                (current === 1 && !vehicleType) ||
-                                (current === 2 && !pickup)
-                            }
-                            size="large"
-                            style={{ padding: '8px 32px', height: 'auto', fontSize: '1.1rem' }}
-                        >
+                        <Button type="primary" onClick={next} size="large">
                             Tiếp theo
                         </Button>
                     )}
                     {current === steps.length - 1 && (
-                        <Button
-                            type="primary"
-                            onClick={handleFinish}
-                            size="large"
-                            style={{ padding: '8px 32px', height: 'auto', fontSize: '1.1rem' }}
-                        >
+                        <Button type="primary" onClick={handleFinish} size="large">
                             Xác nhận đặt xe
                         </Button>
                     )}
@@ -165,4 +137,4 @@ const HourlyBookingPage = () => {
     );
 };
 
-export default HourlyBookingPage;
+export default LineBookingPage;
