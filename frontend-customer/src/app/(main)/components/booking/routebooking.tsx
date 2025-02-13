@@ -1,185 +1,149 @@
-"use client";
+'use client'
 import React, { useState } from "react";
 import {
-    Box,
-    Container,
-    Stepper,
-    Step,
-    StepLabel,
-    Paper,
-    Grid,
+    Steps,
+    Button,
     Typography,
-    Button
-} from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
+    Card,
+    Row,
+    Col,
+    message,
+} from "antd";
+import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined } from "@ant-design/icons";
 
+import dayjs from "dayjs";
 import DateTimeSelection from "./bookingcomponents/datetimeselection";
 import VehicleSelection from "./bookingcomponents/vehicleselection";
-import Map from "../Map";
-import LookUp from "../LookUp";
+import LocationSelection from "./bookingcomponents/locationselection";
+import BusRoutes from "./bookingcomponents/busroutes";
+import CheckoutPage from "./bookingcomponents/checkoutpage";
 
-// Define the props for RouteBooking
-interface RouteBookingProps {
-    onTabChange: (newTab: string) => void;
-    setPickup: React.Dispatch<React.SetStateAction<string | null>>;
-    setDestination: React.Dispatch<React.SetStateAction<string | null>>;
-}
+const { Step } = Steps;
+const { Title } = Typography;
 
-const steps = ["Chọn thời gian", "Chọn phương tiện", "Chọn lộ trình"];
+const steps = [
+    { title: "Chọn ngày & giờ", icon: <ClockCircleOutlined /> },
+    { title: "Chọn loại xe", icon: <CarOutlined /> },
+    { title: "Chọn lộ trình", icon: <ClockCircleOutlined /> },
+    { title: "Chọn địa điểm đón", icon: <EnvironmentOutlined /> },
+    { title: "Thanh toán", icon: <EnvironmentOutlined /> },
+];
 
-const RouteBooking: React.FC<RouteBookingProps> = ({ onTabChange }) => {
-    const [activeStep, setActiveStep] = useState(0);
+const RouteBooking = () => {
+    const [current, setCurrent] = useState(0);
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
-    const [selectedTime, setSelectedTime] = useState<string>("");
-    const [vehicleType, setVehicleType] = useState<string>("");
-    const [numberOfVehicles, setNumberOfVehicles] = useState<number>(1);
-    const [pickup, setPickupState] = useState<string | null>(null);
-    const [destination, setDestinationState] = useState<string | null>(null);
+    const [selectedTime, setSelectedTime] = useState("");
+    const [vehicleType, setVehicleType] = useState("");
+    const [numberOfVehicles, setNumberOfVehicles] = useState(1);
+    const [pickup, setPickup] = useState("");
+    const [destination, setDestination] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleTabChange = (newTab: string) => {
-        onTabChange(newTab);
+    const next = () => {
+        setCurrent(current + 1);
     };
 
-    const handleNext = () => {
-        if (activeStep < steps.length - 1) {
-            setActiveStep((prevStep) => prevStep + 1);
+    const prev = () => {
+        setCurrent(current - 1);
+    };
+
+    const detectUserLocation = async () => {
+        setLoading(true);
+        try {
+            if (!navigator.geolocation) {
+                message.error("Trình duyệt không hỗ trợ định vị");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+                    );
+                    const data = await response.json();
+                    setPickup(data.display_name);
+                },
+                () => {
+                    message.error("Không thể xác định vị trí của bạn");
+                }
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleBack = () => {
-        setActiveStep((prevStep) => prevStep - 1);
-    };
+    return (
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: 40 }}>
+            <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>Đặt xe tuyến đường</Title>
+            <Steps current={current} style={{ marginBottom: 40 }}>
+                {steps.map((item) => (
+                    <Step key={item.title} title={item.title} icon={item.icon} />
+                ))}
+            </Steps>
 
-    const getStepContent = (step: number) => {
-        switch (step) {
-            case 0:
-                return (
+            <Card style={{ padding: 24 }}>
+                {current === 0 && (
                     <DateTimeSelection
                         selectedDate={selectedDate}
                         selectedTime={selectedTime}
                         onDateChange={setSelectedDate}
                         onTimeChange={setSelectedTime}
                     />
-                );
-            case 1:
-                return (
+                )}
+                {current === 1 && (
                     <VehicleSelection
                         vehicleType={vehicleType}
                         numberOfVehicles={numberOfVehicles}
                         onVehicleTypeChange={setVehicleType}
                         onNumberOfVehiclesChange={setNumberOfVehicles}
                     />
-                );
-            case 2:
-                return (
-                    <Box sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
-                        <LookUp onTabChange={handleTabChange} setPickup={setPickupState} setDestination={setDestinationState} />
-                        <Box sx={{ flex: 1, display: 'flex' }}>
-                            <Map pickup={pickup || ""} destination={destination || ""} />
-                        </Box>
-                    </Box>
-                );
-            default:
-                return "Unknown step";
-        }
-    };
+                )}
+                {current === 2 && (
+                    <BusRoutes />
 
-    return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Container maxWidth="xl">
-                <Box sx={{ my: 4 }}>
-                    <Typography variant="h4" component="h1" gutterBottom align="center">
-                        Đặt xe theo lộ trình
-                    </Typography>
+                )}
+                {current === 3 && (
+                    <LocationSelection
+                        pickup={pickup}
+                        destination={destination}
+                        onPickupChange={setPickup}
+                        onDestinationChange={setDestination}
+                        detectUserLocation={detectUserLocation}
+                        loading={loading} />
+                )}
+                {current === 4 && (
+                    <CheckoutPage />
+                )}
 
-                    <Stepper
-                        activeStep={activeStep}
-                        alternativeLabel
-                        sx={{
-                            mb: 4,
-                            maxWidth: '1200px',
-                            mx: 'auto'
-                        }}
-                    >
-                        {steps.map((label) => (
-                            <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
-                            </Step>
-                        ))}
-                    </Stepper>
+            </Card>
 
-                    <Paper
-                        sx={{
-                            p: { xs: 2, md: 4 },
-                            borderRadius: 2,
-                            maxWidth: '1200px',
-                            mx: 'auto'
-                        }}
-                    >
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} md={activeStep === 2 ? 12 : 8}>
-                                {getStepContent(activeStep)}
-                            </Grid>
+            <Row justify="space-between" style={{ marginTop: 30 }}>
+                <Col>
+                    {current > 0 && (
+                        <Button
+                            onClick={prev}
+                            size="large"
+                            style={{ padding: '8px 32px', height: 'auto', fontSize: '1.1rem' }}
+                        >
+                            Quay lại
+                        </Button>
+                    )}
+                </Col>
+                <Col>
+                    {current < steps.length - 1 && (
+                        <Button
+                            type="primary"
+                            onClick={next}
 
-                            {activeStep !== 2 && (
-                                <Grid item xs={12} md={4}>
-                                    <Paper
-                                        elevation={2}
-                                        sx={{
-                                            p: 3,
-                                            bgcolor: 'grey.50',
-                                            height: '100%'
-                                        }}
-                                    >
-                                        <Typography variant="h6" gutterBottom>
-                                            Thông tin đặt xe
-                                        </Typography>
-                                        <Box sx={{ mt: 2 }}>
-                                            {selectedDate && (
-                                                <Typography>Ngày: {selectedDate.format('DD/MM/YYYY')}</Typography>
-                                            )}
-                                            {selectedTime && (
-                                                <Typography>Giờ: {selectedTime}</Typography>
-                                            )}
-                                            {vehicleType && (
-                                                <Typography>Loại xe: {vehicleType}</Typography>
-                                            )}
-                                        </Box>
-                                    </Paper>
-                                </Grid>
-                            )}
-                        </Grid>
-
-                        <Box sx={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            mt: 3,
-                            pt: 3,
-                            borderTop: 1,
-                            borderColor: 'grey.200'
-                        }}>
-                            {activeStep !== 0 && (
-                                <Button onClick={handleBack} sx={{ mr: 2 }}>
-                                    Quay lại
-                                </Button>
-                            )}
-                            <Button
-                                variant="contained"
-                                onClick={handleNext}
-                                disabled={
-                                    (activeStep === 0 && (!selectedDate || !selectedTime)) ||
-                                    (activeStep === 1 && !vehicleType)
-                                }
-                            >
-                                {activeStep === steps.length - 1 ? "Hoàn thành" : "Tiếp theo"}
-                            </Button>
-                        </Box>
-                    </Paper>
-                </Box>
-            </Container>
-        </LocalizationProvider>
+                            size="large"
+                            style={{ padding: '8px 32px', height: 'auto', fontSize: '1.1rem' }}
+                        >
+                            Tiếp theo
+                        </Button>
+                    )}
+                </Col>
+            </Row>
+        </div>
     );
 };
 
