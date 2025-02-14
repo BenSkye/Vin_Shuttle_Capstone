@@ -1,9 +1,7 @@
 import React from "react";
-import { Box, TextField, MenuItem } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Space, DatePicker, Select } from "antd";
 import { FaClock } from "react-icons/fa";
-import dayjs from "dayjs";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 interface DateTimeSelectionProps {
     selectedDate: Dayjs | null;
@@ -16,7 +14,7 @@ const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
     selectedDate,
     selectedTime,
     onDateChange,
-    onTimeChange
+    onTimeChange,
 }) => {
     const timeSlots = Array.from({ length: 24 }, (_, i) => {
         const hour = i.toString().padStart(2, "0");
@@ -24,31 +22,31 @@ const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
     });
 
     return (
-        <Box>
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {/* Date Picker */}
             <DatePicker
-                label="Chọn ngày"
                 value={selectedDate}
                 onChange={onDateChange}
-                shouldDisableDate={(date) => !date?.isAfter(dayjs(), "day")}
-                sx={{ mb: 2 }}
+                disabledDate={(current) => current && current.isBefore(dayjs(), "day")}
+                style={{ width: "100%" }}
+                placeholder="Chọn ngày"
             />
-            <TextField
-                select
-                fullWidth
-                label="Chọn giờ"
+
+            {/* Time Selection */}
+            <Select
                 value={selectedTime}
-                onChange={(e) => onTimeChange(e.target.value)}
-                InputProps={{
-                    startAdornment: <FaClock style={{ marginRight: 8 }} />
-                }}
+                onChange={onTimeChange}
+                style={{ width: "100%" }}
+                placeholder="Chọn giờ"
+                suffixIcon={<FaClock />}
             >
                 {timeSlots.map((time) => (
-                    <MenuItem key={time} value={time}>
+                    <Select.Option key={time} value={time}>
                         {time}
-                    </MenuItem>
+                    </Select.Option>
                 ))}
-            </TextField>
-        </Box>
+            </Select>
+        </Space>
     );
 };
 

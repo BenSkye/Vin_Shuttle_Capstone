@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
@@ -72,6 +72,32 @@ export class DriverScheduleController {
         @Param('endDate') endDate: Date
     ) {
         return await this.driverScheduleService.getScheduleFromStartToEnd(startDate, endDate);
+    }
+
+
+    @Get('get-personal-schedules-from-start-to-end/:startDate/:endDate')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.DRIVER)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'For driver to get personal schedules in week' })
+    @ApiParam({
+        name: 'startDate',
+        description: 'The start date of the week',
+        example: '2021-10-01'
+    })
+    @ApiParam({
+        name: 'endDate',
+        description: 'The end date of the week',
+        example: '2021-10-07'
+    })
+    async getPersonalSchedulesInWeek(
+        @Request() req,
+        @Param('startDate') startDate: Date,
+        @Param('endDate') endDate: Date
+
+    ) {
+        return await this.driverScheduleService.getPersonalSchedulesFromStartToEnd(req.user._id, startDate, endDate);
     }
 
 }
