@@ -1,23 +1,14 @@
-'use client'
-
-import { Layout } from 'antd'
-
-const Header = () => {
-    return <div>Header</div>
-}
-
-const Footer = () => {
-    return <div>Footer</div>
-}
+'use client';
+import { Layout } from 'antd';
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-    return <Layout>
-        <Header />
-        <Layout.Content>
-            {children}
-        </Layout.Content>
-        <Footer />
-    </Layout>
-}
+    return (
+        <Layout>
+            <Layout.Content>
+                {children}
+            </Layout.Content>
+        </Layout>
+    );
+};
 
 export default AuthLayout;
