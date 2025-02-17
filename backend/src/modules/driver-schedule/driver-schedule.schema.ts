@@ -12,8 +12,8 @@ export class DriverSchedule {
     @Prop({ type: Date, required: true })
     date: Date; // Ngày làm việc (ví dụ: 2023-10-01)
 
-    @Prop({ type: String, enum: ['A', 'B', 'C'], required: true })
-    shift: string; // Ca làm việc (A, B, C)
+    @Prop({ type: String, enum: ['A', 'B', 'C', 'D'], required: true })
+    shift: string; // Ca làm việc (A, B, C, D)
 
     @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
     vehicle: Types.ObjectId;

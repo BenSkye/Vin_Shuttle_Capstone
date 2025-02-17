@@ -13,27 +13,44 @@
 1. **User Management**
    - [x] User schema definition
    - [x] Basic CRUD operations
-   - [x] Role-based access control
-   - [x] User authentication
-   - [x] Profile management
+   - [x] Role-based access control (Admin/Manager/Driver/Customer)
+   - [x] JWT authentication
+   - [x] OTP verification
+   - [x] Password encryption
+   - [x] Profile management with avatar uploads
 
 2. **Vehicle Management**
-   - [x] Vehicle categories
-   - [x] Vehicle information storage
-   - [x] Basic CRUD operations
-   - [x] Vehicle status tracking
+   - [x] Vehicle categories implementation
+   - [x] Full vehicle CRUD operations
+   - [x] Vehicle status tracking (Available/In-Use/Maintenance)
+   - [x] Maintenance history tracking
+   - [x] Category-based filtering
 
 3. **Pricing System**
-   - [x] Price configuration
-   - [x] Basic pricing rules
-   - [x] Price calculations
-   - [x] Service type pricing
+   - [x] Price configuration interface
+   - [x] Time-based pricing rules
+   - [x] Service type modifiers (Hourly/Route/Shared)
+   - [x] Dynamic price calculations
+   - [x] Discount/promotion system
 
 4. **Authentication & Security**
-   - [x] JWT implementation
-   - [x] OTP verification
-   - [x] Token management
-   - [x] Password encryption
+   - [x] JWT implementation with refresh tokens
+   - [x] SMS/Email OTP verification
+   - [x] Token blacklisting
+   - [x] Password reset flow
+   - [x] Session management
+
+5. **Route Management**
+   - [x] Route creation and management
+   - [x] Route optimization
+   - [ ] Route history tracking
+
+
+6. **Schedule Management**
+   - [x] Driver shift management
+   - [x] Schedule creation and editing
+   - [x] Schedule history tracking
+   - [ ] Update schedule status
 
 
 ## What's Left to Build

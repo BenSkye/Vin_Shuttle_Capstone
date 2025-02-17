@@ -17,6 +17,10 @@ export interface ITokenProvider {
     decodeToken(token: string): Promise<any>
 }
 
+export interface ISMSProvider {
+    sendOTP(phone: string, OTP: string): Promise<any>;
+}
+
 export const HEADER = {
     CLIENT_ID: 'x-client-id',
     AUTHORIZATION: 'authorization',

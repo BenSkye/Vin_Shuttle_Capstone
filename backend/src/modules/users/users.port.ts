@@ -14,7 +14,7 @@ export interface IUserRepository {
 export interface IUserService {
     listUsers(): Promise<object>;
     viewProfile(id: string): Promise<object>;
-
+    updateProfile(id: string, user: IUpdateUserDto): Promise<object>;
 }
 
 
