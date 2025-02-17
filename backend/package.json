@@ -32,6 +32,7 @@
     "@nestjs/swagger": "^8.1.1",
     "@nestjs/websockets": "^10.4.15",
     "@types/bcrypt": "^5.0.2",
+    "axios": "^1.7.9",
     "backend": "file:",
     "bcrypt": "^5.1.1",
     "joi": "^17.13.3",

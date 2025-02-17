@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { KeytokenModule } from "src/modules/keytoken/keytoken.module";
 import { ROUTE_REPOSITORY, ROUTE_SERVICE } from "src/modules/route/route.di-token";
-import { RouteRepository } from "src/modules/route/routerepo";
+import { RouteRepository } from "src/modules/route/route.repo";
 import { Route, RouteSchema } from "src/modules/route/route.schema";
 import { RouteService } from "src/modules/route/route.service";
 import { ShareModule } from "src/share/share.module";

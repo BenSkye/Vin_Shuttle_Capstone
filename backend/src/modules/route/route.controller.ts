@@ -95,7 +95,27 @@ export class RouteController {
                 value: {
                     name: "Updated Morning Shuttle",
                     description: "Updated morning shuttle service route",
-                    status: "active"
+                    status: "active",
+                    waypoints: [
+                        {
+                            id: 1,
+                            name: "Start Point",
+                            position: { lat: 10.762622, lng: 106.660172 },
+                            description: "District 1 Terminal"
+                        },
+                        {
+                            id: 2,
+                            name: "End Point",
+                            position: { lat: 10.776308, lng: 106.695274 },
+                            description: "District 2 Terminal"
+                        }
+                    ],
+                    routeCoordinates: [
+                        { lat: 10.762622, lng: 106.660172 },
+                        { lat: 10.776308, lng: 106.695274 }
+                    ],
+                    estimatedDuration: 30,
+                    totalDistance: 8.5
                 }
             }
         }

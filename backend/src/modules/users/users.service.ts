@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
+import { IUpdateUserDto } from 'src/modules/users/users.dto';
 import { IUserRepository, IUserService } from 'src/modules/users/users.port';
 import { UserDocument } from 'src/modules/users/users.schema';
 
@@ -25,5 +26,11 @@ export class UsersService implements IUserService {
         }
         return user;
     }
+
+    async updateProfile(id: string, user: IUpdateUserDto): Promise<object> {
+        const updatedUser = await this.userRepository.updateUser(id, user);
+        return updatedUser;
+    }
+
 
 }

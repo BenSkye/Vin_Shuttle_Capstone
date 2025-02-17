@@ -15,6 +15,7 @@ export class SmsService implements ISMSProvider {
     async sendOTP(phone: string, OTP: string): Promise<any> {
         // Gửi SMS qua Twilio
         phone = '+84' + phone.slice(1); // Định dạng E.164: +84123456789
+        console.log('phone', phone);
         await this.client.messages.create({
             body: `Mã OTP của bạn cho hệ thống VinShuttle là: ${OTP} - Hiệu lực 2 phút`,
             from: process.env.TWILIO_PHONE_NUMBER,
