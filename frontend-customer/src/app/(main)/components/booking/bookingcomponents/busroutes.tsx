@@ -1,30 +1,44 @@
 import { Search } from "lucide-react"
-import { Bus, Train } from "lucide-react"
+import { Bus, Train, Menu } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import type React from "react" // Import React
+import type React from "react"
+import { useState } from "react"
 
 export default function BusRoutes() {
+    const [showRoutes, setShowRoutes] = useState(false)
+
     return (
         <div className="flex flex-col h-screen">
             {/* Search Header */}
             <div className="flex items-center gap-4 p-4 border-b">
+                {/* Hiển thị menu trên mobile */}
+                <button
+                    className="lg:hidden p-2"
+                    onClick={() => setShowRoutes(!showRoutes)}
+                >
+                    <Menu className="h-5 w-5 text-gray-600" />
+                </button>
+
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input className="pl-9" placeholder="Tìm địa điểm..." type="search" />
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-
-                        <span className="text-sm font-medium">Địa điểm xung quanh</span>
-                    </div>
-                </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden lg:flex-row flex-col">
                 {/* Routes List */}
-                <div className="w-80 border-r overflow-y-auto">
-                    <div className="space-y-1 p-2">
+                <div
+                    className={`w-80 border-r overflow-y-auto p-2 bg-white transition-transform duration-300
+                    ${showRoutes ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:block fixed inset-0 z-10 lg:relative`}
+                >
+                    <button
+                        className="lg:hidden absolute top-4 right-4 p-2 bg-gray-200 rounded-full"
+                        onClick={() => setShowRoutes(false)}
+                    >
+                        ✕
+                    </button>
+                    <div className="space-y-1">
                         <RouteItem
                             icon={<Train className="h-5 w-5" />}
                             number="Metro 1"
@@ -64,9 +78,9 @@ export default function BusRoutes() {
                     </div>
                 </div>
 
-                {/* Empty Space for Map */}
+                {/* Map Area */}
                 <div className="flex-1 bg-gray-100 flex items-center justify-center">
-                    <span className="text-muted-foreground">Khu vực bản đồ (Bạn có thể thêm map tại đây)</span>
+                    <span className="text-muted-foreground">Khu vực bản đồ</span>
                 </div>
             </div>
         </div>
