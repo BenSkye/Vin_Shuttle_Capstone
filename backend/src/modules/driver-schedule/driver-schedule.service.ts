@@ -7,7 +7,7 @@ import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
-import { UserRole, UserStatus } from "src/share/enums";
+import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
 import { VehicleCondition } from "src/share/enums/vehicle.enum";
 
 
@@ -180,6 +180,111 @@ export class DriverScheduleService implements IDriverScheduleService {
         return updatedDriverSchedule;
     }
 
+
+    async driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverSchedule> {
+        // get current time,
+        const currentTime = new Date();
+        console.log('driverScheduleId', driverScheduleId)
+        const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(driverScheduleId);
+        if (!driverSchedule) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Driver Schedule not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        if (driverSchedule.driver.toString() !== driverId) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Driver not found'
+            }, HttpStatus.BAD_REQUEST);
+        }
+        if (driverSchedule.status !== DriverSchedulesStatus.NOT_STARTED) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Driver schedule has started or completed'
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const shift = driverSchedule.shift;
+        const shiftHours = ShiftHours[shift];
+
+        const expectedCheckin = new Date(driverSchedule.date);
+        expectedCheckin.setHours(shiftHours.start + ShiftDifference.IN, 0, 0, 0);
+
+        const expectedCheckout = new Date(driverSchedule.date);
+        expectedCheckout.setHours(shiftHours.end + ShiftDifference.OUT, 0, 0, 0);
+
+        if (currentTime < expectedCheckin || currentTime > expectedCheckout) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Driver schedule is not in shift time'
+            }, HttpStatus.BAD_REQUEST);
+        }
+
+        driverSchedule.status = DriverSchedulesStatus.IN_PROGRESS;
+        driverSchedule.checkinTime = currentTime;
+        if (currentTime.getTime() > expectedCheckin.getTime() - ShiftDifference.IN) {
+            driverSchedule.isLate = true
+        }
+
+        const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(driverScheduleId, {
+            status: driverSchedule.status,
+            checkinTime: driverSchedule.checkinTime,
+            isLate: driverSchedule.isLate
+        });
+
+        return scheduleUpdate;
+    }
+
+    async driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverSchedule> {
+        const currentTime = new Date();
+        const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(driverScheduleId);
+
+        if (!driverSchedule) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Driver Schedule not found'
+            }, HttpStatus.NOT_FOUND);
+        }
+        // Validate driver ownership
+        if (driverSchedule.driver.toString() !== driverId) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Driver not authorized for this schedule'
+            }, HttpStatus.BAD_REQUEST);
+        }
+        // Validate schedule status
+        if (driverSchedule.status !== DriverSchedulesStatus.IN_PROGRESS) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Schedule must be in progress to checkout'
+            }, HttpStatus.BAD_REQUEST);
+        }
+
+        // Calculate expected checkout time
+        const shift = driverSchedule.shift as Shift;
+        const shiftEndHour = ShiftHours[shift].end;
+        const expectedCheckout = new Date(driverSchedule.date);
+        expectedCheckout.setHours(shiftEndHour, 0, 0, 0);
+
+        // Validate checkout time
+        if (currentTime < expectedCheckout) {
+            driverSchedule.isEarlyCheckout = true;
+        }
+
+        // Update schedule
+        driverSchedule.status = DriverSchedulesStatus.COMPLETED;
+        driverSchedule.checkoutTime = currentTime;
+
+        const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(
+            driverScheduleId,
+            {
+                status: driverSchedule.status,
+                checkoutTime: driverSchedule.checkoutTime,
+                isEarlyCheckout: driverSchedule.isEarlyCheckout
+            }
+        );
+        return scheduleUpdate
+    }
 
 
 }

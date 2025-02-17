@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
@@ -30,13 +30,13 @@ export class DriverScheduleController {
             'Create a list of driver schedules': {
                 value: [
                     {
-                        driverId: '67873bb9cf95c847fe62ba5f',
+                        driver: '67873bb9cf95c847fe62ba5f',
                         date: '2021-10-01',
                         shift: 'A',
                         vehicle: '67873bb9cf95c847fe62ba5f'
                     },
                     {
-                        driverId: '67873bb9cf95c847fe62ba5f',
+                        driver: '67873bb9cf95c847fe62ba5f',
                         date: '2021-10-01',
                         shift: 'B',
                         vehicle: '67873bb9cf95c847fe62ba5f'
@@ -98,6 +98,44 @@ export class DriverScheduleController {
 
     ) {
         return await this.driverScheduleService.getPersonalSchedulesFromStartToEnd(req.user._id, startDate, endDate);
+    }
+
+
+    @Get('driver-checkin/:driverScheduleId')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.DRIVER)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'For driver to check-in' })
+    @ApiParam({
+        name: 'driverScheduleId',
+        description: 'Driver Schedule Id',
+        example: ''
+    })
+    async driverCheckin(
+        @Request() req,
+        @Param('driverScheduleId') driverScheduleId: string,
+    ) {
+        return await this.driverScheduleService.driverCheckIn(driverScheduleId, req.user._id)
+    }
+
+
+    @Get('driver-checkout/:driverScheduleId')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.DRIVER)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'For driver to check-out' })
+    @ApiParam({
+        name: 'driverScheduleId',
+        description: 'Driver Schedule Id',
+        example: ''
+    })
+    async driverCheckout(
+        @Request() req,
+        @Param('driverScheduleId ') driverScheduleId: string,
+    ) {
+        return await this.driverScheduleService.driverCheckOut(driverScheduleId, req.user._id)
     }
 
 }

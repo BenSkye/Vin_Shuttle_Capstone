@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { DriverSchedulesStatus } from 'src/share/enums';
+import { DriverSchedulesStatus, Shift } from 'src/share/enums';
 
 export type DriverScheduleDocument = Document & DriverSchedule;
 
@@ -12,7 +12,7 @@ export class DriverSchedule {
     @Prop({ type: Date, required: true })
     date: Date; // Ngày làm việc (ví dụ: 2023-10-01)
 
-    @Prop({ type: String, enum: ['A', 'B', 'C', 'D'], required: true })
+    @Prop({ type: String, enum: Shift, required: true })
     shift: string; // Ca làm việc (A, B, C, D)
 
     @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })

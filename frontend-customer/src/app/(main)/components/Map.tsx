@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import debounce from "lodash/debounce";
 import { MapProps, MapState } from "../../../service/interface/map.types";
 
-// Custom Icons
+// Custom Icon for Pickup Location
 const PickupIcon = new L.Icon({
     iconUrl: "https://img.icons8.com/color/48/4caf50/marker.png",
     iconSize: [32, 32],
@@ -13,27 +13,19 @@ const PickupIcon = new L.Icon({
     popupAnchor: [0, -32],
 });
 
-const DestinationIcon = new L.Icon({
-    iconUrl: "https://img.icons8.com/color/48/ff5722/marker.png",
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-});
-
-const Map = ({ pickup, destination }: MapProps) => {
+const Map = ({ pickup }: MapProps) => {
     const [state, setState] = useState<MapState>({
         pickupLocation: null,
-        destinationLocation: null,
         map: null,
-        error: null
+        error: null,
     });
     const mapRef = useRef<L.Map | null>(null);
 
-    const searchLocation = debounce(async (query: string, isPickup: boolean) => {
+    const searchLocation = debounce(async (query: string) => {
         if (!query.trim()) {
-            setState(prev => ({
+            setState((prev) => ({
                 ...prev,
-                [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+                pickupLocation: null,
             }));
             return;
         }
@@ -47,19 +39,19 @@ const Map = ({ pickup, destination }: MapProps) => {
 
             const data = await response.json();
             if (data.length === 0) {
-                setState(prev => ({
+                setState((prev) => ({
                     ...prev,
-                    error: `Không tìm thấy ${isPickup ? 'điểm đón' : 'điểm đến'}.`,
-                    [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+                    error: "Không tìm thấy điểm đón.",
+                    pickupLocation: null,
                 }));
                 return;
             }
 
             const location = new L.LatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
-            setState(prev => ({
+            setState((prev) => ({
                 ...prev,
-                [isPickup ? 'pickupLocation' : 'destinationLocation']: location,
-                error: null
+                pickupLocation: location,
+                error: null,
             }));
 
             if (mapRef.current) {
@@ -67,28 +59,17 @@ const Map = ({ pickup, destination }: MapProps) => {
             }
         } catch (error) {
             console.error("Error searching location:", error);
-            setState(prev => ({
+            setState((prev) => ({
                 ...prev,
                 error: "Không thể lấy dữ liệu vị trí.",
-                [isPickup ? 'pickupLocation' : 'destinationLocation']: null
+                pickupLocation: null,
             }));
         }
     }, 500);
 
     useEffect(() => {
-        if (pickup) searchLocation(pickup, true);
+        if (pickup) searchLocation(pickup);
     }, [pickup]);
-
-    useEffect(() => {
-        if (destination) searchLocation(destination, false);
-    }, [destination]);
-
-    useEffect(() => {
-        if (mapRef.current && state.pickupLocation && state.destinationLocation) {
-            const bounds = L.latLngBounds([state.pickupLocation, state.destinationLocation]);
-            mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-        }
-    }, [state.pickupLocation, state.destinationLocation]);
 
     return (
         <MapContainer
@@ -102,17 +83,9 @@ const Map = ({ pickup, destination }: MapProps) => {
             {state.pickupLocation && (
                 <Marker position={state.pickupLocation} icon={PickupIcon}>
                     <Popup>
-                        <strong>Điểm đón:</strong><br />
+                        <strong>Điểm đón:</strong>
+                        <br />
                         {pickup}
-                    </Popup>
-                </Marker>
-            )}
-
-            {state.destinationLocation && (
-                <Marker position={state.destinationLocation} icon={DestinationIcon}>
-                    <Popup>
-                        <strong>Điểm đến:</strong><br />
-                        {destination}
                     </Popup>
                 </Marker>
             )}
