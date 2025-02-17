@@ -45,7 +45,6 @@
     "moment": "^2.30.1",
     "next": "15.1.3",
     "react": "^19.0.0",
-    "react-booking-form": "^2.0.0-alpha.64",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.4.0",
     "react-icons": "^5.4.0",
