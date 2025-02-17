@@ -43,5 +43,14 @@ export const routeService = {
     getRoute: async (id: string) => {
         const response = await axios.get<RouteResponse>(`${API_URL}/routes/${id}`);
         return response.data;
+    },
+
+    editRoute: async (id: string, data: RouteRequest) => {
+        const response = await axios.put<RouteResponse>(`${API_URL}/routes/${id}`, data, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            }
+        });
+        return response.data;
     }
 };
