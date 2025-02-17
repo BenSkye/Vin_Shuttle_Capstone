@@ -18,3 +18,9 @@ export const ShiftHours = {
     [Shift.C]: { start: 12, end: 20 },
     [Shift.D]: { start: 15, end: 23 }
 };
+
+
+export enum ShiftDifference {
+    IN = -15,
+    OUT = +15
+}
