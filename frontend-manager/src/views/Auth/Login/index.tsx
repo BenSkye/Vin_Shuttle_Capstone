@@ -1,14 +1,23 @@
 'use client';
 import { Form, Input, Button, Checkbox, Typography } from 'antd';
+import Image from 'next/image';
+import { ValidateErrorEntity } from 'rc-field-form/lib/interface';
 
 const { Title } = Typography;
 
+// Define interface for form values
+interface LoginFormValues {
+    email: string;
+    password: string;
+    remember: boolean;
+}
+
 export default function Login() {
-    const onFinish = (values: any) => {
+    const onFinish = (values: LoginFormValues) => {
         console.log('Success:', values);
     };
 
-    const onFinishFailed = (errorInfo: any) => {
+    const onFinishFailed = (errorInfo: ValidateErrorEntity<LoginFormValues>) => {
         console.log('Failed:', errorInfo);
     };
 
@@ -53,7 +62,13 @@ export default function Login() {
                     <Form.Item>
                         <Button type="default" style={{ width: '100%' }}>
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src="/path/to/google-icon.png" alt="Google" style={{ width: '20px', height: '20px', marginRight: '8px' }} />
+                                <Image 
+                                    src="/path/to/google-icon.png" 
+                                    alt="Google"
+                                    width={20}
+                                    height={20}
+                                    style={{ marginRight: '8px' }}
+                                />
                                 Sign in with Google
                             </span>
                         </Button>
