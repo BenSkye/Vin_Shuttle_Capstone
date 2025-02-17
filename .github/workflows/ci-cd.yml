@@ -15,7 +15,13 @@ jobs:
     strategy:
       matrix:
         directory:
-          [frontend-customer, frontend-admin, frontend-manager, backend]
+          [
+            frontend-customer,
+            frontend-admin,
+            frontend-manager,
+            frontend-driver,
+            backend,
+          ]
 
     steps:
       - name: Checkout repository
@@ -82,4 +88,9 @@ jobs:
       - name: Deploy frontend-admin
         run: |
           cd frontend-admin
+          npm run deploy
+
+      - name: Deploy frontend-driver
+        run: |
+          cd frontend-driver
           npm run deploy
