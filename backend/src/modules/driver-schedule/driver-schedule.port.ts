@@ -21,4 +21,6 @@ export interface IDriverScheduleService {
     getDriverSchedules(query: any): Promise<any>;
     getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverSchedule[]>;
     updateDriverSchedule(id: string, driverSchedule: IUpdateDriverSchedule): Promise<DriverSchedule>;
+    driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverSchedule>;
+    driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverSchedule>;
 }
