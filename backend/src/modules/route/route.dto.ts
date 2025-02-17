@@ -30,7 +30,7 @@ export interface IUpdateRouteDto {
     waypoints: Waypoint[];
     routeCoordinates: Position[];
     estimatedDuration: number; // in minutes
-    totalDistance: number; // in kilometers
+    totalDistance?: number; // in kilometers
     // vehicleCategories?: string[];
-    tags?: string[];
+    // tags?: string[];
 }

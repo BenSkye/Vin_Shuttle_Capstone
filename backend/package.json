@@ -32,6 +32,7 @@
     "@nestjs/swagger": "^8.1.1",
     "@nestjs/websockets": "^10.4.15",
     "@types/bcrypt": "^5.0.2",
+    "axios": "^1.7.9",
     "backend": "file:",
     "bcrypt": "^5.1.1",
     "joi": "^17.13.3",
@@ -41,7 +42,8 @@
     "passport": "^0.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "twilio": "^5.4.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

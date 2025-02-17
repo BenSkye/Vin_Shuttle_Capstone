@@ -14,8 +14,8 @@
 ### Supporting Technologies
 - **Validation**: class-validator, class-transformer
 - **Testing**: Jest
-- **API Testing**: Postman/Insomnia
-- **Package Manager**: npm/yarn
+- **API Testing**: Postman
+- **Package Manager**: npm
 - **Process Manager**: PM2 (for production)
 - **Code Quality**: ESLint, Prettier
 - **Documentation**: Swagger/OpenAPI

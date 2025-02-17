@@ -10,6 +10,8 @@ import { IUserRepository } from "src/modules/users/users.port";
 import { convertObjectId } from "src/share/utils";
 import { KEYTOKEN_SERVICE } from "src/modules/keytoken/keytoken.di-token";
 import { IKeyTokenService } from "src/modules/keytoken/keytoken.port";
+import { SMS_PROVIDER } from "src/share/di-token";
+import { ISMSProvider } from "src/share/interface";
 
 
 @Injectable()
@@ -17,8 +19,8 @@ export class AuthService implements IAuthService {
     constructor(
         @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
         @Inject(OTP_SERVICE) private readonly otpService: IOTPService,
-        @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService
-
+        @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
+        @Inject(SMS_PROVIDER) private readonly smsService: ISMSProvider
     ) { }
 
     async registerCustomer(data: ICreateUserDto): Promise<object> {
@@ -56,6 +58,7 @@ export class AuthService implements IAuthService {
         }
         console.log('userExist', userExist);
         const otp = await this.otpService.create({ phone, role: userExist.role, name: userExist.name, _id: userExist._id.toString() });
+        await this.smsService.sendOTP(phone, otp);
         return otp;
     }
 
