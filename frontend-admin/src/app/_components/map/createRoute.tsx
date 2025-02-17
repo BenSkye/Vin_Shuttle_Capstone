@@ -243,20 +243,25 @@ export default function CreateRoute() {
 
     // Save logic handler
     const handleRouteSave = useCallback(async (routeData: RouteRequest) => {
-        if (isEditing && selectedRoute) {
-            const updatedRoute = await routeService.editRoute(selectedRoute.id, routeData);
-            if (updatedRoute) {
-                setSavedRoutes(prev => prev.map(route => 
-                    route.id === updatedRoute.id ? updatedRoute : route
-                ));
-                setSelectedRoute(updatedRoute);
+        try {
+            if (isEditing && selectedRoute?._id) {
+                const updatedRoute = await routeService.editRoute(selectedRoute._id, routeData);
+                if (updatedRoute) {
+                    setSavedRoutes(prev => prev.map(route => 
+                        route._id === updatedRoute._id ? updatedRoute : route
+                    ));
+                    setSelectedRoute(updatedRoute);
+                }
+            } else {
+                const newRoute = await routeService.createRoute(routeData);
+                if (newRoute) {
+                    setSavedRoutes(prev => [...prev, newRoute]);
+                    setSelectedRoute(newRoute);
+                }
             }
-        } else {
-            const newRoute = await routeService.createRoute(routeData);
-            if (newRoute) {
-                setSavedRoutes(prev => [...prev, newRoute]);
-                setSelectedRoute(newRoute);
-            }
+        } catch (error) {
+            console.error('Failed to save route:', error);
+            throw error;
         }
     }, [isEditing, selectedRoute, setSavedRoutes, setSelectedRoute]);
 
@@ -343,7 +348,7 @@ export default function CreateRoute() {
                             // Danh sách routes
                             savedRoutes.map((route, index) => (
                                 <div
-                                    key={route.id || index}
+                                    key={route._id || index}
                                     className="p-3 rounded-lg bg-gray-50"
                                 >
                                     <div className="flex justify-between items-center">
@@ -357,7 +362,11 @@ export default function CreateRoute() {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => handleEditRoute(route)}
+                                            onClick={() => {
+                                                console.log('Full route object:', route);
+                                                console.log('Editing route with ID:', route._id);
+                                                handleEditRoute(route);
+                                            }}
                                             className="p-2 text-blue-500 hover:text-blue-700"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
