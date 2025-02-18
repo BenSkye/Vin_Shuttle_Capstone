@@ -9,7 +9,8 @@
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
     "web": "expo start --web",
-    "build": "expo export"
+    "build": "expo export",
+    "deploy": "echo 'Deploy frontend-driver'"
   },
   "dependencies": {
     "expo": "^52.0.35",
