@@ -19,6 +19,12 @@ export class Trip {
     @Prop({ type: Date })
     timeEnd: Date;
 
+    @Prop({ type: Date, required: true })
+    timeStartEstimate: Date;
+
+    @Prop({ type: Date })
+    timeEndEstimate: Date;
+
     @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
     vehicleId: Types.ObjectId;
 
@@ -80,13 +86,6 @@ export class Trip {
         default: TripStatus.BOOKING
     })
     status: TripStatus;
-
-    // Indexes for frequent queries
-    @Prop({ index: true })
-    createdAt: Date;
-
-    @Prop({ index: true })
-    updatedAt: Date;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

@@ -1,7 +1,7 @@
 export enum VehicleOperationStatus {
-    ACTIVE = 'active',
-    INACTIVE = 'inactive',
-    DELETED = 'deleted'
+    PENDING = 'pending',
+    RUNNING = 'running',
+    CHARGING = 'charging'
 }
 
 export enum VehicleCondition {

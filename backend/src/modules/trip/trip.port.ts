@@ -13,6 +13,8 @@ export interface ITripRepository {
 export interface ITripService {
     createTrip(createTripDto: ICreateTripDto): Promise<Trip>;
     checkTrip(createTripDto: ICreateTripDto): Promise<boolean>;
+    getPersonalCustomerTrip(customerId: string): Promise<Trip[]>
+    getPersonalDriverTrip(driverId: string): Promise<Trip[]>
     // getTripById(id: string): Promise<Trip>;
     // getDriverTrips(driverId: string): Promise<Trip[]>;
 }

@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, Inject, Post } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Put, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AUTH_SERVICE } from "src/modules/auth/auth.di-token";
 import { customerLoginDto } from "src/modules/auth/auth.dto";
+import { AuthGuard } from "src/modules/auth/auth.guard";
 import { IAuthService } from "src/modules/auth/auth.port";
 import { CreateUserDto, ICreateUserDto } from "src/modules/users/users.dto";
 @ApiTags('auth')
@@ -71,4 +72,27 @@ export class AuthController {
     }
 
 
+    @Put('change-password')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Change user password' })
+    @ApiBody({
+        type: 'changeUserPassword',
+        description: 'Change user password',
+        examples: {
+            'Change Password': {
+                value: {
+                    oldPassword: '123',
+                    newPassword: '1234'
+                }
+            }
+        }
+    })
+    async changePassword(
+        @Request() req,
+        @Body() data: { oldPassword: string, newPassword: string }
+    ) {
+        return this.authService.changePassword(req.user._id, data.oldPassword, data.newPassword)
+    }
 }

@@ -15,7 +15,10 @@ export class Vehicle {
     @Prop({ required: true, unique: true })
     licensePlate: string;  // Biển số xe
 
-    @Prop({ type: String, enum: VehicleOperationStatus, default: VehicleOperationStatus.ACTIVE })
+    @Prop({ type: [String] })
+    image: string[]
+
+    @Prop({ type: String, enum: VehicleOperationStatus, default: VehicleOperationStatus.CHARGING })
     operationStatus: string;
 
     @Prop({ type: String, enum: VehicleCondition, default: VehicleCondition.AVAILABLE })

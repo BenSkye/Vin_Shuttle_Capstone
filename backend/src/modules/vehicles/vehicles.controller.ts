@@ -5,6 +5,7 @@ import { VehicleValidation } from 'src/modules/vehicles/validations/vehicle.vali
 import { CreateVehicleDto, ICreateVehicle, IUpdateVehicle, UpdateVehicleDto } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_SERVICE } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesService } from 'src/modules/vehicles/vehicles.port';
+import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
 
 @ApiTags('vehicles')
 @Controller('vehicles')
@@ -41,8 +42,11 @@ export class VehiclesController {
                     name: 'Xe điện 4 chỗ A01',
                     categoryId: '67873bb9cf95c847fe62ba5f',
                     licensePlate: '888.88',
-                    isActive: 'true',
-                    status: 'available'
+                    image: [
+                        'https://image.made-in-china.com/202f0j00JKrafunlaRhp/Elecric-Shuttle-Bus-14-Person-Seats-Sightseeing-Car-in-City-Sightseeing-Bus-DN-14G-.webp'
+                    ],
+                    operationStatus: VehicleOperationStatus.CHARGING,
+                    vehicleCondition: VehicleCondition.AVAILABLE
                 }
             }
         }
@@ -66,8 +70,11 @@ export class VehiclesController {
                     name: 'Xe điện 4 chỗ A01',
                     categoryId: '67873bb9cf95c847fe62ba5f',
                     licensePlate: '888.88',
-                    isActive: 'true',
-                    status: 'available'
+                    image: [
+                        'https://image.made-in-china.com/202f0j00JKrafunlaRhp/Elecric-Shuttle-Bus-14-Person-Seats-Sightseeing-Car-in-City-Sightseeing-Bus-DN-14G-.webp'
+                    ],
+                    operationStatus: VehicleOperationStatus.CHARGING,
+                    vehicleCondition: VehicleCondition.AVAILABLE
                 }
             }
         }
