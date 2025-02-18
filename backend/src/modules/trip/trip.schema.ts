@@ -38,7 +38,7 @@ export class Trip {
                 totalTime: Number, // in minutes
                 startPoint: String,
             },
-            bookingTrip: {
+            bookingScenicRoute: {
                 routeId: Types.ObjectId,
                 startPoint: String,
             },
@@ -59,7 +59,7 @@ export class Trip {
             totalTime: number;
             startPoint: string;
         };
-        bookingTrip?: {
+        bookingScenicRoute?: {
             routeId: Types.ObjectId;
             startPoint: string;
         };
@@ -101,9 +101,9 @@ TripSchema.pre<Trip>('validate', function (next) {
             if (!payload.bookingHour) return false;
             return payload.bookingHour.totalTime && payload.bookingHour.startPoint;
         },
-        [ServiceType.BOOKING_TRIP]: () => {
-            if (!payload.bookingTrip) return false;
-            return payload.bookingTrip.routeId && payload.bookingTrip.startPoint;
+        [ServiceType.BOOKING_SCENIC_ROUTE]: () => {
+            if (!payload.bookingScenicRoute) return false;
+            return payload.bookingScenicRoute.routeId && payload.bookingScenicRoute.startPoint;
         },
         [ServiceType.BOOKING_DESTINATION]: () => {
             if (!payload.bookingDestination) return false;
