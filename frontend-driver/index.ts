@@ -1,5 +1,5 @@
 import { registerRootComponent } from 'expo';
-
+// import './src/styles/nativewind-setup';
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
