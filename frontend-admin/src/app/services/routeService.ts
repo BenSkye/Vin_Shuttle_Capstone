@@ -14,7 +14,7 @@ export interface RouteRequest {
         };
         description?: string;
     }[];
-    routeCoordinates: {
+    scenicRouteCoordinates: {
         lat: number;
         lng: number;
     }[];
@@ -31,17 +31,25 @@ export interface RouteResponse extends RouteRequest {
 
 export const routeService = {
     createRoute: async (data: RouteRequest) => {
-        const response = await axios.post<RouteResponse>(`${API_URL}/routes`, data);
+        const response = await axios.post<RouteResponse>(`${API_URL}/scenic-routes`, data,{
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
         return response.data;
     },
 
     getAllRoutes: async () => {
-        const response = await axios.get<RouteResponse[]>(`${API_URL}/routes`);
+        const response = await axios.get<RouteResponse[]>(`${API_URL}/scenic-routes`,{
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
         return response.data;
     },
 
     getRouteById: async (id: string) => {
-        const response = await axios.get<RouteResponse>(`${API_URL}/routes/${id}`, {
+        const response = await axios.get<RouteResponse>(`${API_URL}/scenic-routes/${id}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
@@ -58,7 +66,7 @@ export const routeService = {
         console.log('Edit data:', data);
         
         const response = await axios.put<RouteResponse>(
-            `${API_URL}/routes/${id}`,
+            `${API_URL}/scenic-routes/${id}`,
             data,
             {
                 headers: {

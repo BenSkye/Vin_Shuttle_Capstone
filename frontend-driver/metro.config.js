@@ -1,16 +1,7 @@
-const { getDefaultConfig } = require("expo/metro-config")
-const { withNativeWind } = require("nativewind/metro")
+const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
 
-const config = getDefaultConfig(__dirname, {
-  isCSSEnabled: true
-})
+// eslint-disable-next-line no-undef
+const config = getDefaultConfig(__dirname);
 
-module.exports = withNativeWind(config, { 
-  input: "./src/styles/global.css",
-  inlineCSS: true,
-  postcss: {
-    plugins: [
-      require('tailwindcss'),
-    ]
-  }
-})
+module.exports = withNativeWind(config, { input: './global.css' });
