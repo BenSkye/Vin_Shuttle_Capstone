@@ -77,7 +77,44 @@ export class AuthService implements IAuthService {
                 message: 'Password not true'
             }, HttpStatus.NOT_FOUND);
         }
-        const token = await this.keyTokenService.createKeyToken({ userId: convertObjectId(userExist._id.toString()), role: userExist.role, name: userExist.name, phone: userExist.phone });
+        const token = await this.keyTokenService.createKeyToken(
+            {
+                userId: convertObjectId(userExist._id.toString()),
+                role: userExist.role, name: userExist.name,
+                phone: userExist.phone
+            });
+        return { isValid: true, token: token, userId: userExist._id };
+    }
+
+    async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<object> {
+        const userExist = await this.userRepository.findUser({ _id: userId });
+        if (!userExist) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'email not exist'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const match = await bcrypt.compare(oldPassword, userExist.password);
+        if (!match) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Password not true'
+            }, HttpStatus.NOT_FOUND);
+        }
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        const updatedUser = await this.userRepository.updateUser(userExist._id.toString(), { password: passwordHash });
+        if (!updatedUser) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'Change password fail'
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const token = await this.keyTokenService.createKeyToken(
+            {
+                userId: convertObjectId(updatedUser._id.toString()),
+                role: updatedUser.role, name: updatedUser.name,
+                phone: updatedUser.phone
+            });
         return { isValid: true, token: token, userId: userExist._id };
     }
 

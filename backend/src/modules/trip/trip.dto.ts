@@ -4,7 +4,8 @@ import { TripStatus } from "src/share/enums/trip.enum";
 export interface ICreateTripDto {
     customerId: string;
     driverId: string;
-    timeStart: Date;
+    timeStartEstimate: Date;
+    timeEndEstimate: Date;
     vehicleId: string;
     scheduleId: string;
     serviceType: ServiceType;
@@ -19,14 +20,16 @@ export interface ICreateTripDto {
 export interface IUpdateTripDto {
     customerId?: string;
     driverId?: string;
+    timeStartEstimate?: Date;
+    timeEndEstimate?: Date;
     timeStart?: Date;
+    timeEnd?: Date;
     vehicleId?: string;
     scheduleId?: string;
     status?: TripStatus
 }
 
 class BaseServicePayloadDto {
-    startPoint: string;
 }
 export class BookingHourPayloadDto extends BaseServicePayloadDto {
     totalTime: number;

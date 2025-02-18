@@ -1,19 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 
 export interface ICreateVehicle {
     name: string,
     categoryId: string,
     licensePlate: string,
-    isActive?: string,
-    status?: string
+    image?: string[],
+    operationStatus?: VehicleOperationStatus,
+    vehicleCondition?: VehicleCondition
 }
 
 export interface IUpdateVehicle {
     name?: string,
     categoryId?: string,
     licensePlate?: string,
-    isActive?: string,
-    status?: string
+    image?: string[],
+    operationStatus?: VehicleOperationStatus,
+    vehicleCondition?: VehicleCondition
 }
 
 export class CreateVehicleDto {
@@ -26,11 +29,11 @@ export class CreateVehicleDto {
     @ApiProperty({ example: '888.88' })
     licensePlate: string;
 
-    @ApiPropertyOptional({ example: 'true' })
-    isActive: string;
+    @ApiPropertyOptional({ example: VehicleOperationStatus.CHARGING })
+    operationStatus: string;
 
-    @ApiPropertyOptional({ example: 'available' })
-    status: string;
+    @ApiPropertyOptional({ example: VehicleCondition.AVAILABLE })
+    vehicleCondition: string;
 }
 
 
@@ -44,9 +47,10 @@ export class UpdateVehicleDto {
     @ApiPropertyOptional({ example: '888.88' })
     licensePlate: string;
 
-    @ApiPropertyOptional({ example: 'true' })
-    isActive: string;
 
-    @ApiPropertyOptional({ example: 'available' })
-    status: string;
+    @ApiPropertyOptional({ example: VehicleOperationStatus.CHARGING })
+    operationStatus: string;
+
+    @ApiPropertyOptional({ example: VehicleCondition.AVAILABLE })
+    vehicleCondition: string;
 }
