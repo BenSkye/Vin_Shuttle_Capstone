@@ -10,12 +10,12 @@ export interface Waypoint {
     description?: string;
 }
 
-export interface ICreateRouteDto {
+export interface ICreateScenicRouteDto {
     name: string;
     description: string;
     status?: 'active' | 'inactive';
     waypoints: Waypoint[];
-    routeCoordinates: Position[];
+    scenicRouteCoordinates: Position[];
     estimatedDuration: number; // in minutes
     totalDistance: number; // in kilometers
     // vehicleCategories: string[];
@@ -23,12 +23,12 @@ export interface ICreateRouteDto {
 }
 
 
-export interface IUpdateRouteDto {
+export interface IUpdateScenicRouteDto {
     name?: string;
     description?: string;
     status?: 'active' | 'inactive';
     waypoints: Waypoint[];
-    routeCoordinates: Position[];
+    scenicRouteCoordinates: Position[];
     estimatedDuration: number; // in minutes
     totalDistance?: number; // in kilometers
     // vehicleCategories?: string[];

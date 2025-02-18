@@ -11,7 +11,7 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { OtpModule } from 'src/modules/OTP/otp.module';
 import { PricingModule } from './modules/pricing/pricing.module';
-import { RouteModule } from 'src/modules/route/route.module';
+import { ScenicRouteModule } from 'src/modules/scenic-route/scenic-route.module';
 import { AppGateway } from 'src/app.gateway';
 import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
 
@@ -35,7 +35,7 @@ import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedul
     KeytokenModule,
     OtpModule,
     PricingModule,
-    RouteModule,
+    ScenicRouteModule,
     DriverScheduleModule
   ],
   controllers: [AppController],
