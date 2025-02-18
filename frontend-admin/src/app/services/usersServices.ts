@@ -63,5 +63,34 @@ export const usersService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Update user profile
+  async updateProfile(userData: Partial<UserProfile>): Promise<UserProfile> {
+    try {
+      const response = await axios.put(`${API_URL}/users/profile`, userData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update password
+  async updatePassword(passwordData: { currentPassword: string; newPassword: string }): Promise<void> {
+    try {
+      await axios.put(`${API_URL}/users/password`, passwordData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 };
