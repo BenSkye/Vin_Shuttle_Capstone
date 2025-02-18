@@ -70,11 +70,54 @@ export default function Profile() {
   }, [fetchProfile]);
 
   const onInfoFinish = async (values: InfoFormValues) => {
-    console.log('Info Update:', values);
+    try {
+      setLoading(true);
+      await usersService.updateProfile(values);
+      notification.success({
+        message: 'Thành công',
+        description: 'Cập nhật thông tin thành công',
+        duration: 5,
+        placement: 'topRight'
+      });
+      await fetchProfile(); // Refresh profile data
+    } catch (error: unknown) {
+      const err = error as ErrorResponse;
+      notification.error({
+        message: 'Lỗi',
+        description: err.response?.data?.message || err.message || 'Không thể cập nhật thông tin',
+        duration: 5,
+        placement: 'topRight'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onPasswordFinish = async (values: PasswordFormValues) => {
-    console.log('Password Update:', values);
+    try {
+      setLoading(true);
+      await usersService.updatePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword
+      });
+      notification.success({
+        message: 'Thành công',
+        description: 'Đổi mật khẩu thành công',
+        duration: 5,
+        placement: 'topRight'
+      });
+      passwordForm.resetFields();
+    } catch (error: unknown) {
+      const err = error as ErrorResponse;
+      notification.error({
+        message: 'Lỗi',
+        description: err.response?.data?.message || err.message || 'Không thể đổi mật khẩu',
+        duration: 5,
+        placement: 'topRight'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
 

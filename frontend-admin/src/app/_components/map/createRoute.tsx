@@ -232,7 +232,7 @@ export default function CreateRoute() {
                     lng: stop.position.lng
                 }
             })),
-            routeCoordinates: routeCoordinates.map(coord => ({
+            scenicRouteCoordinates: routeCoordinates.map(coord => ({
                 lat: coord.lat,
                 lng: coord.lng
             })),
@@ -551,7 +551,7 @@ export default function CreateRoute() {
                         selectedRoute && (
                             <>
                                 <SavedRouteDisplay
-                                    coordinates={selectedRoute.routeCoordinates.map(coord =>
+                                    coordinates={selectedRoute.scenicRouteCoordinates.map(coord =>
                                         L.latLng(coord.lat, coord.lng)
                                     )}
                                 />
