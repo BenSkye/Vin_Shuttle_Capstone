@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document } from 'mongoose';
 
 @Schema({ _id: false })
 class Position {
@@ -27,7 +27,7 @@ class Waypoint {
 
 
 @Schema({ timestamps: true })
-export class Route extends Document {
+export class ScenicRoute extends Document {
     @Prop({ required: true, type: String })
     name: string;
 
@@ -41,7 +41,7 @@ export class Route extends Document {
     waypoints: Waypoint[];
 
     @Prop({ required: true, type: [Position] })
-    routeCoordinates: Position[];
+    scenicRouteCoordinates: Position[];
 
     @Prop({ required: true, type: Number })
     estimatedDuration: number;
@@ -56,4 +56,4 @@ export class Route extends Document {
     // tags: string[];
 }
 
-export const RouteSchema = SchemaFactory.createForClass(Route);
+export const ScenicRouteSchema = SchemaFactory.createForClass(ScenicRoute);

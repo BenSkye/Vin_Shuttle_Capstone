@@ -1,29 +1,29 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRouteService } from './route.port';
-import { ROUTE_SERVICE } from './route.di-token';
+import { IScenicRouteService } from './scenic-route.port';
+import { SCENIC_ROUTE_SERVICE } from './scenic-route.di-token';
 import { RolesGuard } from 'src/modules/auth/role.guard';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
-import { ICreateRouteDto, IUpdateRouteDto } from 'src/modules/route/route.dto';
+import { ICreateScenicRouteDto, IUpdateScenicRouteDto } from 'src/modules/scenic-route/scenic-route.dto';
 
-@ApiTags('routes')
-@Controller('routes')
-export class RouteController {
+@ApiTags('scenic-routes')
+@Controller('scenic-routes')
+export class ScenicRouteController {
     constructor(
-        @Inject(ROUTE_SERVICE)
-        private readonly routeService: IRouteService
+        @Inject(SCENIC_ROUTE_SERVICE)
+        private readonly routeService: IScenicRouteService
     ) { }
 
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    // @UseGuards(AuthGuard, RolesGuard)
-    // @Roles('admin')
-    // @ApiBearerAuth('authorization')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Create a new route' })
     @ApiBody({
-        type: 'CreateRouteDto',
-        description: 'Route creation payload',
+        type: 'CreateScenicRouteDto',
+        description: 'ScenicScenicRoute creation payload',
         examples: {
             example1: {
                 value: {
@@ -43,7 +43,7 @@ export class RouteController {
                             description: "District 2 Terminal"
                         }
                     ],
-                    routeCoordinates: [
+                    scenicRouteCoordinates: [
                         { lat: 10.762622, lng: 106.660172 },
                         { lat: 10.776308, lng: 106.695274 }
                     ],
@@ -54,31 +54,37 @@ export class RouteController {
             }
         }
     })
-    async createRoute(
-        @Body() createRouteDto: ICreateRouteDto) {
-        return this.routeService.createRoute(createRouteDto);
+    async createScenicRoute(
+        @Body() createScenicRouteDto: ICreateScenicRouteDto) {
+        return this.routeService.createScenicRoute(createScenicRouteDto);
     }
 
     @Get()
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Get all routes' })
     @ApiResponse({
         status: 200,
         description: 'Returns all routes'
     })
-    async getAllRoutes() {
-        return this.routeService.getAllRoutes();
+    async getAllScenicRoutes() {
+        return this.routeService.getAllScenicRoutes();
     }
 
     @Get(':id')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Get a route by id' })
     @ApiResponse({
         status: 200,
         description: 'Returns the route'
     })
-    async getRoute(@Param('id') id: string) {
-        return this.routeService.getRoute(id);
+    async getScenicRoute(@Param('id') id: string) {
+        return this.routeService.getScenicRoute(id);
     }
 
     @Put(':id')
@@ -88,8 +94,8 @@ export class RouteController {
     @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Update a route' })
     @ApiBody({
-        type: 'UpdateRouteDto',
-        description: 'Route update payload',
+        type: 'UpdateScenicRouteDto',
+        description: 'ScenicScenicRoute update payload',
         examples: {
             example1: {
                 value: {
@@ -110,7 +116,7 @@ export class RouteController {
                             description: "District 2 Terminal"
                         }
                     ],
-                    routeCoordinates: [
+                    scenicRouteCoordinates: [
                         { lat: 10.762622, lng: 106.660172 },
                         { lat: 10.776308, lng: 106.695274 }
                     ],
@@ -122,13 +128,13 @@ export class RouteController {
     })
     @ApiResponse({
         status: 200,
-        description: 'Route has been updated successfully'
+        description: 'ScenicScenicRoute has been updated successfully'
     })
-    async updateRoute(
+    async updateScenicRoute(
         @Param('id') id: string,
-        @Body() updateRouteDto: IUpdateRouteDto
+        @Body() updateScenicRouteDto: IUpdateScenicRouteDto
     ) {
-        return this.routeService.updateRoute(id, updateRouteDto);
+        return this.routeService.updateScenicRoute(id, updateScenicRouteDto);
     }
 
 }
