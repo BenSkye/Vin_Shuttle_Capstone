@@ -142,6 +142,17 @@ const getStreetName = async (latlng: L.LatLng) => {
     return streetName || 'Tên đường không tìm thấy';
 };
 
+// Định nghĩa type cho error
+type SaveRouteError = {
+    message: string;
+    status?: number;
+};
+
+// Validation helper - đưa ra ngoài component
+const isValidRoute = (routeCoordinates: L.LatLng[], stops: BusStop[]) => {
+    return routeCoordinates.length > 0 && stops.length >= 2;
+};
+
 export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
     const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424]);
@@ -154,6 +165,7 @@ export default function CreateRoute() {
     const [totalDistance, setTotalDistance] = useState(0);
     const [routeName, setRouteName] = useState('');
     const [routeDescription, setRouteDescription] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         // Load saved routes from API
@@ -191,42 +203,115 @@ export default function CreateRoute() {
         setStops(prevStops => prevStops.filter(stop => stop.id !== stopId));
     }, []);
 
-    const saveRoute = useCallback(async () => {
-        if (routeCoordinates.length > 0 && stops.length >= 2) {
-            try {
-                setIsLoading(true);
-                const routeData: RouteRequest = {
-                    name: routeName,
-                    description: routeDescription,
-                    waypoints: stops.map(stop => ({
-                        id: stop.id,
-                        name: stop.name,
-                        position: {
-                            lat: stop.position.lat,
-                            lng: stop.position.lng
-                        }
-                    })),
-                    routeCoordinates: routeCoordinates.map(coord => ({
-                        lat: coord.lat,
-                        lng: coord.lng
-                    })),
-                    estimatedDuration: estimatedDuration,
-                    totalDistance: totalDistance
-                };
-                console.log('Route data:', routeData);
+    const handleEditRoute = useCallback((route: RouteResponse) => {
+        setIsEditing(true);
+        setSelectedRoute(route);
+        setIsCreatingRoute(true);
+        setRouteName(route.name);
+        setRouteDescription(route.description);
+        
+        const formattedStops = route.waypoints.map((waypoint, index) => ({
+            id: waypoint.id,
+            position: L.latLng(waypoint.position.lat, waypoint.position.lng),
+            name: waypoint.name,
+            color: COLORS[index % COLORS.length]
+        }));
+        setStops(formattedStops);
+    }, []);
+
+    // Data preparation helper
+    const prepareRouteData = useCallback((): RouteRequest => {
+        return {
+            name: routeName,
+            description: routeDescription,
+            waypoints: stops.map(stop => ({
+                id: stop.id,
+                name: stop.name,
+                position: {
+                    lat: stop.position.lat,
+                    lng: stop.position.lng
+                }
+            })),
+            routeCoordinates: routeCoordinates.map(coord => ({
+                lat: coord.lat,
+                lng: coord.lng
+            })),
+            estimatedDuration: estimatedDuration,
+            totalDistance: totalDistance
+        };
+    }, [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance]);
+
+    // Save logic handler
+    const handleRouteSave = useCallback(async (routeData: RouteRequest) => {
+        try {
+            if (isEditing && selectedRoute?._id) {
+                const updatedRoute = await routeService.editRoute(selectedRoute._id, routeData);
+                if (updatedRoute) {
+                    setSavedRoutes(prev => prev.map(route => 
+                        route._id === updatedRoute._id ? updatedRoute : route
+                    ));
+                    setSelectedRoute(updatedRoute);
+                }
+            } else {
                 const newRoute = await routeService.createRoute(routeData);
-                setSavedRoutes(prev => [...prev, newRoute]);
-                setIsCreatingRoute(false);
-                setSelectedRoute(newRoute);
-                alert('Đã lưu lộ trình thành công!');
-            } catch (error) {
-                console.error('Failed to save route:', error);
-                alert('Không thể lưu lộ trình. Vui lòng thử lại!');
-            } finally {
-                setIsLoading(false);
+                if (newRoute) {
+                    setSavedRoutes(prev => [...prev, newRoute]);
+                    setSelectedRoute(newRoute);
+                }
             }
+        } catch (error) {
+            console.error('Failed to save route:', error);
+            throw error;
         }
-    }, [routeCoordinates, stops, routeName, routeDescription, estimatedDuration, totalDistance]); // ❌ Đừng để `savedRoutes` ở đây
+    }, [isEditing, selectedRoute, setSavedRoutes, setSelectedRoute]);
+
+    // Success handler
+    const handleSaveSuccess = useCallback(() => {
+        setIsCreatingRoute(false);
+        setIsEditing(false);
+        alert(isEditing ? 'Đã cập nhật lộ trình thành công!' : 'Đã lưu lộ trình thành công!');
+    }, [isEditing, setIsCreatingRoute, setIsEditing]);
+
+    // Error handler
+    const handleSaveError = useCallback((error: SaveRouteError) => {
+        console.error('Failed to save route:', error);
+        alert('Không thể lưu lộ trình. Vui lòng thử lại!');
+    }, []);
+
+    // Main save function
+    const saveRoute = useCallback(async () => {
+        if (!isValidRoute(routeCoordinates, stops)) return;
+
+        try {
+            setIsLoading(true);
+            const routeData = prepareRouteData();
+            await handleRouteSave(routeData);
+            handleSaveSuccess();
+        } catch (error) {
+            handleSaveError(error as SaveRouteError);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [
+        routeCoordinates, 
+        stops, 
+        setIsLoading, 
+        prepareRouteData, 
+        handleRouteSave, 
+        handleSaveSuccess, 
+        handleSaveError
+    ]);
+
+    // Reset form helper
+    // const resetForm = useCallback(() => {
+    //     setIsCreatingRoute(false);
+    //     setSelectedRoute(null);
+    //     setStops([]);
+    //     setRouteCoordinates([]);
+    //     setIsEditing(false);
+    //     setRouteName('');
+    //     setRouteDescription('');
+    // }, []);
 
     const selectRoute = useCallback((route: RouteResponse) => {
         setSelectedRoute(route);
@@ -239,7 +324,7 @@ export default function CreateRoute() {
             <div className="w-80 bg-white shadow-lg p-4 overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-black">
-                        {isCreatingRoute ? 'Tạo lộ trình mới' : 'Danh sách lộ trình'}
+                        {isEditing ? 'Chỉnh sửa lộ trình' : (isCreatingRoute ? 'Tạo lộ trình mới' : 'Danh sách lộ trình')}
                     </h2>
                     <button
                         onClick={() => {
@@ -247,46 +332,144 @@ export default function CreateRoute() {
                             setSelectedRoute(null);
                             setStops([]);
                             setRouteCoordinates([]);
+                            setIsEditing(false);
+                            setRouteName('');
+                            setRouteDescription('');
                         }}
                         className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         {isCreatingRoute ? 'Xem danh sách' : 'Tạo mới'}
                     </button>
                 </div>
-                {isCreatingRoute && (
-                    <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
-                        <div className="space-y-2">
-                            <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
-                                Tên lộ trình
-                            </label>
-                            <input
-                                id="routeName"
-                                type="text"
-                                placeholder="Nhập tên lộ trình"
-                                value={routeName}
-                                onChange={(e) => setRouteName(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out text-black"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700 ">
-                                Mô tả lộ trình
-                            </label>
-                            {/* convert it to text area */}
-                            <input
-                                id="routeDescription"
-                                type="text"
-                                placeholder="Nhập mô tả lộ trình"
-                                value={routeDescription}
-                                onChange={(e) => setRouteDescription(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out  text-black"
-                            />
-                        </div>
-                    </div>
-                )}
 
-                {isCreatingRoute ? (
+                {!isCreatingRoute ? (
+                    <div className="space-y-2">
+                        {!selectedRoute ? (
+                            // Danh sách routes
+                            savedRoutes.map((route, index) => (
+                                <div
+                                    key={route._id || index}
+                                    className="p-3 rounded-lg bg-gray-50"
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <div 
+                                            className="flex-grow cursor-pointer"
+                                            onClick={() => selectRoute(route)}
+                                        >
+                                            <div className="font-medium text-black">{route.name}</div>
+                                            <div className="text-sm text-gray-600">
+                                                {new Date(route.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                console.log('Full route object:', route);
+                                                console.log('Editing route with ID:', route._id);
+                                                handleEditRoute(route);
+                                            }}
+                                            className="p-2 text-blue-500 hover:text-blue-700"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            // Chi tiết route đã chọn
+                            <div className="space-y-4">
+                                <button
+                                    onClick={() => setSelectedRoute(null)}
+                                    className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                    </svg>
+                                    Quay lại danh sách
+                                </button>
+                                <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <h3 className="text-xl font-bold text-black mb-2">{selectedRoute.name}</h3>
+                                    <p className="text-gray-600 mb-4">{selectedRoute.description || 'Không có mô tả'}</p>
+                                    
+                                    <div className="mb-4">
+                                        <h4 className="font-medium text-gray-700 mb-2">Các điểm dừng:</h4>
+                                        <div className="space-y-2">
+                                            {selectedRoute.waypoints.map((waypoint, index) => (
+                                                <div 
+                                                    key={waypoint.id} 
+                                                    className="flex items-center gap-2 p-2 rounded-md bg-gray-50"
+                                                    style={{ borderLeft: `4px solid ${COLORS[index % COLORS.length]}` }}
+                                                >
+                                                    <span className="font-medium text-gray-700">
+                                                        {index + 1}.
+                                                    </span>
+                                                    <span className="text-gray-600">{waypoint.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                            </svg>
+                                            <span>{selectedRoute.waypoints.length} điểm dừng</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                            </svg>
+                                            <span>Thời gian dự kiến: {Math.round(selectedRoute.estimatedDuration / 60)} phút</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                            </svg>
+                                            <span>Khoảng cách dự kiến: {(selectedRoute.totalDistance / 1000).toFixed(1)} km</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {savedRoutes.length === 0 && (
+                            <p className="text-gray-500 text-center">
+                                Chưa có lộ trình nào được lưu
+                            </p>
+                        )}
+                    </div>
+                ) : (
+                    // Form tạo/chỉnh sửa route
                     <>
+                        <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+                            <div className="space-y-2">
+                                <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
+                                    Tên lộ trình
+                                </label>
+                                <input
+                                    id="routeName"
+                                    type="text"
+                                    value={routeName}
+                                    onChange={(e) => setRouteName(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out text-black"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700 ">
+                                    Mô tả lộ trình
+                                </label>
+                                {/* convert it to text area */}
+                                <input
+                                    id="routeDescription"
+                                    type="text"
+                                    placeholder="Nhập mô tả lộ trình"
+                                    value={routeDescription}
+                                    onChange={(e) => setRouteDescription(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out  text-black"
+                                />
+                            </div>
+                        </div>
                         <div className="route-list">
                             {stops.map((stop, index) => (
                                 <div
@@ -324,32 +507,6 @@ export default function CreateRoute() {
                             </button>
                         )}
                     </>
-                ) : (
-                    <div className="space-y-2">
-                        {savedRoutes.map((route, index) => (
-                            <div
-                                key={route.id || index}
-                                className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedRoute?.id === route.id
-                                    ? 'bg-blue-100 border-blue-500'
-                                    : 'bg-gray-50 hover:bg-gray-100'
-                                    }`}
-                                onClick={() => selectRoute(route)}
-                            >
-                                <div className="font-medium">{route.name}</div>
-                                <div className="text-sm text-gray-600">
-                                    {new Date(route.createdAt).toLocaleDateString()}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    {route.waypoints.length} điểm dừng
-                                </div>
-                            </div>
-                        ))}
-                        {savedRoutes.length === 0 && (
-                            <p className="text-gray-500 text-center">
-                                Chưa có lộ trình nào được lưu
-                            </p>
-                        )}
-                    </div>
                 )}
             </div>
 

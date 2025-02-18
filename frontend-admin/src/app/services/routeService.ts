@@ -23,7 +23,7 @@ export interface RouteRequest {
 }
 
 export interface RouteResponse extends RouteRequest {
-    id: string;
+    _id: string;
     status: 'active' | 'inactive';
     createdAt: Date;
     updatedAt: Date;
@@ -40,8 +40,33 @@ export const routeService = {
         return response.data;
     },
 
-    getRoute: async (id: string) => {
-        const response = await axios.get<RouteResponse>(`${API_URL}/routes/${id}`);
+    getRouteById: async (id: string) => {
+        const response = await axios.get<RouteResponse>(`${API_URL}/routes/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
+        return response.data;
+    },
+
+    editRoute: async (id: string, data: RouteRequest) => {
+        if (!id) {
+            throw new Error('Route ID is required for editing');
+        }
+        
+        console.log('Editing route with ID:', id);
+        console.log('Edit data:', data);
+        
+        const response = await axios.put<RouteResponse>(
+            `${API_URL}/routes/${id}`,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            }
+        );
         return response.data;
     }
 };

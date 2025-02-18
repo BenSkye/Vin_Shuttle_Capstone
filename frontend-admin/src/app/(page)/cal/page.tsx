@@ -1,19 +1,22 @@
 'use client';
 import { useState } from 'react';
-import { Layout, Input, Button, message } from 'antd';
+import { Layout, Input, Button, message, Radio, Space } from 'antd';
 import Sidebar from '@/app/_components/common/Sidebar';
 import { pricingConfigServices } from '@/app/services/pricingServices';
 
 const { Header, Content } = Layout;
 
 interface TieredPricing {
-  range: number;
-  price: number;
+    range: number;
+    price: number;
 }
+
+type UnitType = 'distance' | 'time';
 
 export default function PriceCalculator() {
     const [baseUnit, setBaseUnit] = useState<number>(30);
     const [totalUnits, setTotalUnits] = useState<number>(0);
+    const [unitType, setUnitType] = useState<UnitType>('distance');
     const [tieredPricing, setTieredPricing] = useState<TieredPricing[]>([
         { range: 0, price: 32000 },
         { range: 60, price: 28000 }
@@ -22,14 +25,27 @@ export default function PriceCalculator() {
         totalPrice: number;
         calculations: string[];
     } | null>(null);
-    
+
+    const handleAddTier = () => {
+        setTieredPricing(prev => [
+            ...prev,
+            { range: prev[prev.length - 1]?.range + 30 || 30, price: 0 }
+        ]);
+    };
+
+    const handleRemoveTier = (index: number) => {
+        if (tieredPricing.length > 1) {
+            setTieredPricing(prev => prev.filter((_, i) => i !== index));
+        }
+    };
 
     const handleCalculate = async () => {
         try {
             const data = {
                 base_unit: baseUnit,
                 tiered_pricing: tieredPricing,
-                total_units: totalUnits
+                total_units: totalUnits,
+                unit_type: unitType
             };
 
             const response = await pricingConfigServices.calculatePrice(data);
@@ -58,7 +74,23 @@ export default function PriceCalculator() {
                     <div className="max-w-2xl mx-auto">
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Đơn vị cơ bản (km):</label>
+                                <label className="block text-sm font-medium mb-2">Chọn đơn vị tính:</label>
+                                <Radio.Group 
+                                    value={unitType} 
+                                    onChange={e => setUnitType(e.target.value)}
+                                    className="mb-4"
+                                >
+                                    <Space direction="horizontal">
+                                        <Radio value="distance">Khoảng cách (km)</Radio>
+                                        <Radio value="time">Thời gian (phút)</Radio>
+                                    </Space>
+                                </Radio.Group>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    Đơn vị cơ bản ({unitType === 'distance' ? 'km' : 'phút'}):
+                                </label>
                                 <Input
                                     type="number"
                                     value={baseUnit}
@@ -68,7 +100,9 @@ export default function PriceCalculator() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Tổng số đơn vị (km):</label>
+                                <label className="block text-sm font-medium mb-2">
+                                    Tổng số đơn vị ({unitType === 'distance' ? 'km' : 'phút'}):
+                                </label>
                                 <Input
                                     type="number"
                                     value={totalUnits}
@@ -78,11 +112,24 @@ export default function PriceCalculator() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-2">Bảng giá theo khoảng cách:</label>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-medium">
+                                        Bảng giá theo {unitType === 'distance' ? 'khoảng cách' : 'thời gian'}:
+                                    </label>
+                                    <Button 
+                                        type="dashed" 
+                                        onClick={handleAddTier}
+                                        className="mb-2"
+                                    >
+                                        + Thêm khoảng
+                                    </Button>
+                                </div>
                                 {tieredPricing.map((tier, index) => (
-                                    <div key={index} className="flex gap-4 mb-4">
+                                    <div key={index} className="flex gap-4 mb-4 items-end">
                                         <div className="flex-1">
-                                            <label className="block text-sm mb-1">Khoảng cách (km):</label>
+                                            <label className="block text-sm mb-1">
+                                                {unitType === 'distance' ? 'Khoảng cách (km)' : 'Thời gian (phút)'}:
+                                            </label>
                                             <Input
                                                 type="number"
                                                 value={tier.range}
@@ -97,6 +144,14 @@ export default function PriceCalculator() {
                                                 onChange={(e) => updateTieredPricing(index, 'price', Number(e.target.value))}
                                             />
                                         </div>
+                                        <Button 
+                                            danger 
+                                            type="text"
+                                            onClick={() => handleRemoveTier(index)}
+                                            disabled={tieredPricing.length <= 1}
+                                        >
+                                            Xóa
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
