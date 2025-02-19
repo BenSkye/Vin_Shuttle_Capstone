@@ -6,6 +6,7 @@ export const swaggerConfig = new DocumentBuilder()
     .setDescription('VinShuttle service API documentation')
     .setVersion('1.0')
     .addTag('auth', 'Authentication')
+    .addTag('booking', 'booking management')
     .addTag('users', 'User management')
     .addTag('vehicles', 'Vehicle management')
     .addTag('vehicle-categories', 'Vehicle category management')
@@ -13,6 +14,8 @@ export const swaggerConfig = new DocumentBuilder()
     .addTag('pricing', 'Pricing management')
     .addTag('scenic-routes', 'Scenic Routes management')
     .addTag('driver-schedules', 'Driver schedule management')
+    .addTag('trip', 'Trip management')
+
     .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         HEADER.AUTHORIZATION // Authorization header

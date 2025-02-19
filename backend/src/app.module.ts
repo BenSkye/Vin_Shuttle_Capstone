@@ -14,6 +14,8 @@ import { PricingModule } from './modules/pricing/pricing.module';
 import { ScenicRouteModule } from 'src/modules/scenic-route/scenic-route.module';
 import { AppGateway } from 'src/app.gateway';
 import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
+import { TripModule } from 'src/modules/trip/trip.module';
+import { BookingModule } from 'src/modules/booking/booking.module';
 
 @Module({
   imports: [
@@ -36,7 +38,9 @@ import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedul
     OtpModule,
     PricingModule,
     ScenicRouteModule,
-    DriverScheduleModule
+    DriverScheduleModule,
+    TripModule,
+    BookingModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
