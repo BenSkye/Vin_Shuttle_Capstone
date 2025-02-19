@@ -18,6 +18,7 @@ import {
 import { VehiclePricing, VehiclePricingSchema } from 'src/modules/pricing/pricing.vehicle.schema';
 import { ShareModule } from 'src/share/share.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
+import { VehicleCategoryModule } from 'src/modules/vehicle-categories/vehicle-category.module';
 
 
 const dependencies = [
@@ -41,6 +42,7 @@ const dependencies = [
             { name: ServiceConfig.name, schema: ServiceConfigSchema },
             { name: VehiclePricing.name, schema: VehiclePricingSchema }
         ]),
+        VehicleCategoryModule,
         ShareModule,
         KeytokenModule
     ],

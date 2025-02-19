@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
 import { ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
 import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
-import { DriverSchedule } from "src/modules/driver-schedule/driver-schedule.schema";
+import { DriverSchedule, DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
@@ -23,7 +23,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     ) { }
 
 
-    async createListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<DriverSchedule[]> {
+    async createListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<DriverScheduleDocument[]> {
         const newDriverSchedules = [];
         //check if driverSchedule of driverSchedules is have same 
         await this.checkListDriverSchedule(driverSchedules);
@@ -111,17 +111,17 @@ export class DriverScheduleService implements IDriverScheduleService {
         return true;
     }
 
-    async createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverSchedule> {
+    async createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument> {
         const newDriverSchedule = await this.driverScheduleRepository.createDriverSchedule(driverSchedule);
         return newDriverSchedule;
     }
 
-    async getDriverScheduleById(id: string): Promise<DriverSchedule> {
+    async getDriverScheduleById(id: string): Promise<DriverScheduleDocument> {
         const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(id);
         return driverSchedule;
     }
 
-    async getPersonalSchedulesFromStartToEnd(driverId: string, start: Date, end: Date): Promise<DriverSchedule[]> {
+    async getPersonalSchedulesFromStartToEnd(driverId: string, start: Date, end: Date): Promise<DriverScheduleDocument[]> {
         // get all driver schedule from start to end
         const startDate = new Date(start);
         const endDate = new Date(end);
@@ -133,22 +133,22 @@ export class DriverScheduleService implements IDriverScheduleService {
         }
         const daynum = endDate.getDate() - startDate.getDate();
         console.log(daynum);
-        const driverSchedulesList: DriverSchedule[] = [];
+        const driverSchedulesList: DriverScheduleDocument[] = [];
         for (let i = 0; i <= daynum; i++) {
             const date = new Date(start);
             date.setDate(startDate.getDate() + i);
             const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({ date: date, driver: driverId }, []);
-            driverSchedulesList.push(driverSchedules);
+            driverSchedulesList.push(...driverSchedules);
         }
         return driverSchedulesList;
     }
 
-    async getAllDriverSchedules(): Promise<DriverSchedule[]> {
+    async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
         const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedules();
         return driverSchedules;
     }
 
-    async getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverSchedule[]> {
+    async getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]> {
         // get all driver schedule from start to end
         const startDate = new Date(start);
         const endDate = new Date(end);
@@ -160,28 +160,28 @@ export class DriverScheduleService implements IDriverScheduleService {
         }
         const daynum = endDate.getDate() - startDate.getDate();
         console.log(daynum);
-        const driverSchedulesList: DriverSchedule[] = [];
+        const driverSchedulesList: DriverScheduleDocument[] = [];
         for (let i = 0; i <= daynum; i++) {
             const date = new Date(start);
             date.setDate(startDate.getDate() + i);
             const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({ date: date }, []);
-            driverSchedulesList.push(driverSchedules);
+            driverSchedulesList.push(...driverSchedules);
         }
         return driverSchedulesList;
     }
 
-    async getDriverSchedules(query: any): Promise<DriverSchedule[]> {
+    async getDriverSchedules(query: any): Promise<DriverScheduleDocument[]> {
         const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(query, []);
         return driverSchedules;
     }
 
-    async updateDriverSchedule(id: string, driverSchedule: IUpdateDriverSchedule): Promise<any> {
+    async updateDriverSchedule(id: string, driverSchedule: IUpdateDriverSchedule): Promise<DriverScheduleDocument> {
         const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(id, driverSchedule);
         return updatedDriverSchedule;
     }
 
 
-    async driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverSchedule> {
+    async driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
         // get current time,
         const currentTime = new Date();
         console.log('driverScheduleId', driverScheduleId)
@@ -235,7 +235,7 @@ export class DriverScheduleService implements IDriverScheduleService {
         return scheduleUpdate;
     }
 
-    async driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverSchedule> {
+    async driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
         const currentTime = new Date();
         const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(driverScheduleId);
 

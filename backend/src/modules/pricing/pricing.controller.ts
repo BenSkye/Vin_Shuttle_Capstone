@@ -189,15 +189,8 @@ export class PricingController {
         @Body(new JoiValidationPipe(PricingValidation.createVehiclePricing))
         dto: ICreateVehiclePricingDto
     ) {
-        try {
-            return await this.pricingService.createVehiclePricing(dto);
-        } catch (error) {
-            throw {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                message: 'Failed to create vehicle pricing',
-                error: error.message,
-            };
-        }
+        return await this.pricingService.createVehiclePricing(dto);
+
     }
 
 

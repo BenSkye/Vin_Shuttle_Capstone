@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
 import { TripStatus } from 'src/share/enums/trip.enum';
 
-export type TripDocument = Trip & Document;
+export type TripDocument = HydratedDocument<Trip>;
 
 @Schema({ timestamps: true })
 export class Trip {
@@ -47,15 +47,21 @@ export class Trip {
             bookingScenicRoute: {
                 routeId: Types.ObjectId,
                 startPoint: String,
+                distanceEstimate: Number,
+                distance: Number
             },
             bookingDestination: {
                 startPoint: String,
                 endPoint: String,
+                distanceEstimate: Number,
+                distance: Number
             },
             bookingShare: {
                 numberOfSeat: Number,
                 startPoint: String,
                 endPoint: String,
+                distanceEstimate: Number,
+                distance: Number
             }
         },
         required: true
@@ -63,7 +69,7 @@ export class Trip {
     servicePayload: {
         bookingHour?: {
             totalTime: number;
-            startPoint: string;
+            startPoint: string; //lat,lng
         };
         bookingScenicRoute?: {
             routeId: Types.ObjectId;
@@ -79,6 +85,9 @@ export class Trip {
             endPoint: string;
         };
     };
+
+    @Prop({ type: Number })
+    amount: number;
 
     @Prop({
         type: String,

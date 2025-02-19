@@ -9,6 +9,7 @@ export interface ICreateTripDto {
     vehicleId: string;
     scheduleId: string;
     serviceType: ServiceType;
+    amount: number;
     servicePayload:
     | BookingHourPayloadDto
     | BookingScenicRoutePayloadDto
@@ -26,6 +27,7 @@ export interface IUpdateTripDto {
     timeEnd?: Date;
     vehicleId?: string;
     scheduleId?: string;
+    amount?: number;
     status?: TripStatus
 }
 
@@ -39,17 +41,23 @@ export class BookingHourPayloadDto extends BaseServicePayloadDto {
 export class BookingScenicRoutePayloadDto extends BaseServicePayloadDto {
     routeId: string;
     startPoint: string;
+    distanceEstimate: number;
+    distance: number
 }
 
 export class BookingDestinationPayloadDto extends BaseServicePayloadDto {
     startPoint: string;
     endPoint: string;
+    distanceEstimate: number;
+    distance: number
 }
 
 export class BookingSharePayloadDto extends BaseServicePayloadDto {
     numberOfSeat: number;
     startPoint: string;
     endPoint: string;
+    distanceEstimate: number;
+    distance: number
 }
 
 

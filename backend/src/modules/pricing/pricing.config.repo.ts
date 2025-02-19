@@ -24,6 +24,10 @@ export class PricingConfigRepository implements IPricingConfigRepository {
         return await this.configModel.find().exec();
     }
 
+    async findById(id: string): Promise<ServiceConfigDocument> {
+        return await this.configModel.findById(id)
+    }
+
     async update(serviceType: string, config: ICreateServiceConfigDto): Promise<ServiceConfigDocument> {
         return await this.configModel.findOneAndUpdate({ service_type: serviceType }, config, { new: true }).exec();
     }

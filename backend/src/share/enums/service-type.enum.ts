@@ -4,3 +4,8 @@ export enum ServiceType {
     BOOKING_SHARE = 'booking_share',
     BOOKING_DESTINATION = 'booking_destination'
 }
+
+export enum BookingHourDuration {
+    MAX = 300,
+    MIN = 15
+}

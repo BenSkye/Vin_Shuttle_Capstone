@@ -20,8 +20,8 @@ export class VehiclePricingRepository implements IVehiclePricingRepository {
         return await this.pricingModel.findOne(query).exec();
     }
 
-    async findByVehicleCategory(vehicleId: string): Promise<VehiclePricingDocument> {
-        return await this.pricingModel.findOne({ vehicle_category: vehicleId }).exec();
+    async findByVehicleCategory(vehicleCategoryId: string): Promise<VehiclePricingDocument> {
+        return await this.pricingModel.findOne({ vehicle_category: vehicleCategoryId }).exec();
     }
 
     async findAll(): Promise<VehiclePricingDocument[]> {

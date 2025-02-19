@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, HydratedDocument, Types } from 'mongoose';
 import { DriverSchedulesStatus, Shift } from 'src/share/enums';
 
-export type DriverScheduleDocument = Document & DriverSchedule;
+export type DriverScheduleDocument = HydratedDocument<DriverSchedule>;
 
 @Schema({ collection: 'DriverSchedules', timestamps: true })
 export class DriverSchedule {

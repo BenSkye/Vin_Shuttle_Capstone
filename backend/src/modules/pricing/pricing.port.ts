@@ -11,13 +11,14 @@ export interface IPricingConfigRepository {
     create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument>;
     findByServiceType(serviceType: string): Promise<ServiceConfigDocument>;
     findAll(): Promise<ServiceConfigDocument[]>;
+    findById(id: string): Promise<ServiceConfigDocument>;
     update(serviceType: string, config: IUpdateServiceConfigDto): Promise<ServiceConfigDocument>;
 }
 
 export interface IVehiclePricingRepository {
     create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument>;
     findVehiclePricing(query: any): Promise<VehiclePricingDocument>;
-    findByVehicleCategory(vehicleId: string): Promise<VehiclePricingDocument>;
+    findByVehicleCategory(vehicleCategoryId: string): Promise<VehiclePricingDocument>;
     findAll(): Promise<VehiclePricingDocument[]>;
     update(pricing: IUpdateVehiclePricingDto): Promise<VehiclePricingDocument>;
 }
@@ -25,7 +26,7 @@ export interface IVehiclePricingRepository {
 export interface IPricingService {
     createServiceConfig(config: ICreateServiceConfigDto): Promise<any>;
     createVehiclePricing(pricing: ICreateVehiclePricingDto): Promise<any>;
-    calculatePrice(serviceType: string, vehicleId: string, units: number): Promise<number>;
+    calculatePrice(serviceType: string, vehicleCategoryId: string, units: number): Promise<number>;
     testPrice(base_unit: number, tiered_pricing: Array<any>, total_units: number): Promise<{
         totalPrice: number;
         calculations: string[];

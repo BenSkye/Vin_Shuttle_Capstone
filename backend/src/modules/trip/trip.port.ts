@@ -1,13 +1,13 @@
 import { ICreateTripDto } from 'src/modules/trip/trip.dto';
-import { Trip } from 'src/modules/trip/trip.schema';
+import { Trip, TripDocument } from 'src/modules/trip/trip.schema';
 
 
 export interface ITripRepository {
-    create(tripDto: ICreateTripDto): Promise<Trip>;
-    findById(id: string): Promise<Trip>;
-    findByDriverId(driverId: string): Promise<Trip[]>;
-    find(query: any, select: string[]): Promise<Trip[]>
-    updateStatus(id: string, status: string): Promise<Trip>;
+    create(tripDto: ICreateTripDto): Promise<TripDocument>;
+    findById(id: string): Promise<TripDocument>;
+    findByDriverId(driverId: string): Promise<TripDocument[]>;
+    find(query: any, select: string[]): Promise<TripDocument[]>
+    updateStatus(id: string, status: string): Promise<TripDocument>;
 }
 
 export interface ITripService {

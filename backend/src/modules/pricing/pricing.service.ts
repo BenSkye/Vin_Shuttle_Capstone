@@ -14,6 +14,8 @@ import {
     IUpdateServiceConfigDto,
     IUpdateVehiclePricingDto
 } from './pricing.dto';
+import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
+import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
 
 @Injectable()
 export class PricingService implements IPricingService {
@@ -21,7 +23,9 @@ export class PricingService implements IPricingService {
         @Inject(PRICING_CONFIG_REPOSITORY)
         private readonly configRepo: IPricingConfigRepository,
         @Inject(VEHICLE_PRICING_REPOSITORY)
-        private readonly vehiclePricingRepo: IVehiclePricingRepository
+        private readonly vehiclePricingRepo: IVehiclePricingRepository,
+        @Inject(VEHICLE_CATEGORY_REPOSITORY)
+        private readonly vehicleCategoryRepo: IVehicleCategoryRepository
     ) { }
 
     async createServiceConfig(config: ICreateServiceConfigDto) {
@@ -40,7 +44,7 @@ export class PricingService implements IPricingService {
 
     async createVehiclePricing(pricing: ICreateVehiclePricingDto) {
         const vehicle_category = pricing.vehicle_category;
-        const vehicle_category_exists = await this.vehiclePricingRepo.findByVehicleCategory(vehicle_category);
+        const vehicle_category_exists = await this.vehicleCategoryRepo.getById(vehicle_category);
         if (!vehicle_category_exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
@@ -48,7 +52,7 @@ export class PricingService implements IPricingService {
             }, HttpStatus.NOT_FOUND);
         }
         const service_config = pricing.service_config;
-        const service_config_exists = await this.configRepo.findByServiceType(service_config);
+        const service_config_exists = await this.configRepo.findById(service_config);
         if (!service_config_exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
@@ -121,7 +125,7 @@ export class PricingService implements IPricingService {
 
 
     //function to calculate price by hour or distance
-    async calculatePrice(serviceType: string, vehicleId: string, totalUnits: number) {
+    async calculatePrice(serviceType: string, vehicleCategoryId: string, totalUnits: number) {
         const config = await this.configRepo.findByServiceType(serviceType);
         if (!config) {
             throw new HttpException({
@@ -129,8 +133,10 @@ export class PricingService implements IPricingService {
                 message: 'Service config not found'
             }, HttpStatus.NOT_FOUND);
         }
+        console.log('vehicleCategoryId', vehicleCategoryId)
+        console.log('config', config)
         const pricing = await this.vehiclePricingRepo.findVehiclePricing({
-            vehicle_category: vehicleId,
+            vehicle_category: vehicleCategoryId.toString(),
             service_config: config?._id.toString()
         });
         if (!pricing) {
