@@ -7,6 +7,7 @@ import { BookingService } from "src/modules/booking/booking.service";
 import { DriverScheduleModule } from "src/modules/driver-schedule/driver-schedule.module";
 import { KeytokenModule } from "src/modules/keytoken/keytoken.module";
 import { PricingModule } from "src/modules/pricing/pricing.module";
+import { ScenicRouteModule } from "src/modules/scenic-route/scenic-route.module";
 import { TripModule } from "src/modules/trip/trip.module";
 import { VehicleCategoryModule } from "src/modules/vehicle-categories/vehicle-category.module";
 import { VehiclesModule } from "src/modules/vehicles/vehicles.module";
@@ -36,6 +37,7 @@ const dependencies = [
         DriverScheduleModule,
         TripModule,
         PricingModule,
+        ScenicRouteModule,
         ShareModule,
         KeytokenModule
     ],

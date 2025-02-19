@@ -6,6 +6,8 @@ import { IDriverScheduleRepository } from "src/modules/driver-schedule/driver-sc
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { PRICING_SERVICE } from "src/modules/pricing/pricing.di-token";
 import { IPricingService } from "src/modules/pricing/pricing.port";
+import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.di-token";
+import { IScenicRouteRepository } from "src/modules/scenic-route/scenic-route.port";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { VEHICLE_CATEGORY_REPOSITORY } from "src/modules/vehicle-categories/vehicle-category.di-token";
@@ -29,7 +31,9 @@ export class BookingService implements IBookingService {
         @Inject(VEHICLE_CATEGORY_REPOSITORY)
         private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
         @Inject(PRICING_SERVICE)
-        private readonly pricingService: IPricingService
+        private readonly pricingService: IPricingService,
+        @Inject(SCENIC_ROUTE_REPOSITORY)
+        private readonly scenicRouteRepository: IScenicRouteRepository
     ) { }
 
     async findAvailableVehicleBookingHour(
@@ -72,6 +76,48 @@ export class BookingService implements IBookingService {
         return result
     }
 
+
+    async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<object> {
+        const scenicRoute = await this.scenicRouteRepository.findById(scenicRouteId)
+        if (!scenicRoute) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Scenic Route not found`
+            }, HttpStatus.NOT_FOUND);
+        }
+
+        const durationMinutes = scenicRoute.estimatedDuration
+        const bookingStartTime = DateUtils.parseDate(date, startTime);
+        const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
+        const scheduleDate = DateUtils.parseDate(date);
+        const totalDistance = scenicRoute.totalDistance
+
+        //check if it is within the start and end of working time
+        await this.validateBookingTime(bookingStartTime, bookingEndTime)
+
+        //check if it in any Shift of system.
+        const matchingShifts = await this.getMatchingShifts(bookingStartTime, bookingEndTime)
+
+        //check available schedule in DB
+        const schedules = await this.getAvailableSchedules(
+            scheduleDate.toDate(),
+            matchingShifts
+        );
+
+        //check not conflict time with Trip in that uniqueSchedules 
+        const validSchedules = await this.filterSchedulesWithoutConflicts(
+            schedules,
+            bookingStartTime,
+            bookingEndTime
+        );
+
+
+        const vehicles = await this.getVehiclesFromSchedules(validSchedules);
+        const result = await this.groupByVehicleType(vehicles, ServiceType.BOOKING_SCENIC_ROUTE, totalDistance)
+        return result
+    }
+
+
     private async validateBookingTime(
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
@@ -85,10 +131,10 @@ export class BookingService implements IBookingService {
             (bookingStartTime.isBefore(expectedStartTime) || bookingStartTime.isAfter(expectedEndTime)) ||
             (bookingEndTime.isAfter(expectedEndTime) || bookingEndTime.isBefore(expectedStartTime))
         ) {
-            throw new HttpException(
-                { message: 'Booking time is not within working hours' },
-                HttpStatus.BAD_REQUEST
-            );
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking time is not within working hours`
+            }, HttpStatus.BAD_REQUEST);
         }
     }
 
