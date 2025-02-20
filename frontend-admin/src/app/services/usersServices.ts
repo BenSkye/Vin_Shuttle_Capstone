@@ -20,6 +20,20 @@ interface UserProfile {
   email: string;
 }
 
+interface PasswordUpdate {
+  oldPassword: string;
+  newPassword: string;
+}
+
+interface PasswordUpdateResponse {
+  isValid: boolean;
+  token: {
+    accessToken: string;
+    refreshToken: string;
+  };
+  userId: string;
+}
+
 export const usersService = {
   // Lấy danh sách users
   async getUsers(): Promise<User[]> {
@@ -38,7 +52,7 @@ export const usersService = {
   // Add user
   async addUser(userData: Omit<User, '_id'>): Promise<User> {
     try {
-      const response = await axios.post(`${API_URL}/users/profile`, userData, {
+      const response = await axios.post(`${API_URL}/auth/register`, userData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
@@ -80,15 +94,26 @@ export const usersService = {
     }
   },
 
-  // Update password
-  async updatePassword(passwordData: { currentPassword: string; newPassword: string }): Promise<void> {
+  // Update password with new API structure
+  async updatePassword(passwordData: PasswordUpdate): Promise<PasswordUpdateResponse> {
     try {
-      await axios.put(`${API_URL}/users/password`, passwordData, {
+      const response = await axios.put<PasswordUpdateResponse>(`${API_URL}/auth/change-password`, {
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword
+      }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'
         }
       });
+
+      // Lưu token mới vào localStorage
+      if (response.data.token) {
+        localStorage.setItem('accessToken', response.data.token.accessToken);
+        localStorage.setItem('refreshToken', response.data.token.refreshToken);
+      }
+
+      return response.data;
     } catch (error) {
       throw error;
     }

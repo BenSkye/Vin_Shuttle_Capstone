@@ -4,6 +4,7 @@ import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined, SearchOutlined
 import Sidebar from '../../_components/common/Sidebar';
 import { useEffect, useState, useCallback } from 'react';
 import { usersService } from '../../services/usersServices';
+import { useRouter } from 'next/navigation';
 
 const { Header, Content } = Layout;
 
@@ -22,7 +23,7 @@ interface InfoFormValues {
 }
 
 interface PasswordFormValues {
-  currentPassword: string;
+  oldPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
@@ -41,6 +42,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [infoForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
+  const router = useRouter();
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -96,17 +98,28 @@ export default function Profile() {
   const onPasswordFinish = async (values: PasswordFormValues) => {
     try {
       setLoading(true);
-      await usersService.updatePassword({
-        currentPassword: values.currentPassword,
+      const response = await usersService.updatePassword({
+        oldPassword: values.oldPassword,
         newPassword: values.newPassword
       });
-      notification.success({
-        message: 'Thành công',
-        description: 'Đổi mật khẩu thành công',
-        duration: 5,
-        placement: 'topRight'
-      });
-      passwordForm.resetFields();
+
+      if (response.isValid) {
+        notification.success({
+          message: 'Thành công',
+          description: 'Đổi mật khẩu thành công.',
+          duration: 5,
+          placement: 'topRight'
+        });
+        
+        // Clear form
+        passwordForm.resetFields();
+        
+        // Optional: Redirect to login page after successful password change
+        // setTimeout(() => {
+        //   localStorage.clear(); // Clear all stored data
+        //   router.push('/login'); // Redirect to login page
+        // }, 2000);
+      }
     } catch (error: unknown) {
       const err = error as ErrorResponse;
       notification.error({
@@ -229,7 +242,7 @@ export default function Profile() {
                           onFinish={onPasswordFinish}
                         >
                           <Form.Item
-                            name="currentPassword"
+                            name="oldPassword"
                             label="Mật khẩu hiện tại"
                             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu hiện tại!' }]}
                           >
