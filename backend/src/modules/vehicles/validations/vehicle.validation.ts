@@ -33,6 +33,8 @@ export const VehicleValidation = {
             })
             .label('Biển số xe'),
 
+        image: Joi.array().label('Hình ảnh xe'),
+
         isActive: Joi.boolean()
             .default(true)
             .messages({

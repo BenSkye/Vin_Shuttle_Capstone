@@ -33,6 +33,7 @@ export class VehiclesService {
                     message: 'Invalid Vehicle Category ID '
                 }, HttpStatus.BAD_REQUEST);
             }
+            console.log('data', data)
             const newVehicle = await this.vehicleRepository.insert(data)
             return newVehicle
         } catch (error) {
