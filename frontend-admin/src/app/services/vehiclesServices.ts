@@ -10,6 +10,18 @@ interface Vehicle {
   licensePlate: string;
   isActive: boolean;
   status: string;
+  image: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Vehicle2 {
+  _id: string;
+  name: string;
+  categoryId: string;
+  licensePlate: string;
+  isActive: boolean;
+  status: string;
   image: string;
   createdAt: string;
   updatedAt: string;
@@ -27,7 +39,7 @@ interface AddVehicleRequest {
 
 export const vehiclesService = {
   // Lấy danh sách vehicles
-  async getVehicles(): Promise<Vehicle[]> {
+  async getVehicles(): Promise<Vehicle2[]> {
     try {
       const response = await axios.get(`${API_URL}/vehicles`, {
         headers: {
