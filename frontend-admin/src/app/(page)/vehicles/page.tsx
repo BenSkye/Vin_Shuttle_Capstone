@@ -1,13 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react';
-import { Layout, Button, Input, Space, Table, App } from 'antd';
+import Link from 'next/link';
+import { Layout, Button, Input, Space, Table, App, Image } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import Sidebar from '../../_components/common/Sidebar';
 import { vehiclesService } from '../../services/vehiclesServices';
 import { categoryService } from '../../services/categoryServices';
 import AddVehicleModal from '../../_components/vehicles/addVehiclesModal';
-
+import placehoderImg from '../../assets/place.jpeg';
 const { Header, Content } = Layout;
 
 interface Vehicle {
@@ -17,6 +18,7 @@ interface Vehicle {
   licensePlate: string;
   isActive: boolean;
   status: string;
+  image: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,10 +37,16 @@ export default function Vehicles() {
   const [loading, setLoading] = useState(true);
   const { message } = App.useApp();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
 
   useEffect(() => {
-    fetchVehicles();
     fetchCategories();
+    fetchVehicles(pagination.current, pagination.pageSize, searchText);
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchCategories = async () => {
@@ -55,10 +63,33 @@ export default function Vehicles() {
     }
   };
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = async (page = 1, pageSize = 10, search = '') => {
     try {
+      setLoading(true);
       const data = await vehiclesService.getVehicles();
-      setVehicles(data);
+  
+      // Filter vehicles based on search text
+      let filteredData = data;
+      if (search) {
+        filteredData = data.filter((vehicle: Vehicle) => 
+          vehicle.name.toLowerCase().includes(search.toLowerCase()) ||
+          vehicle.licensePlate.toLowerCase().includes(search.toLowerCase()) ||
+          categories[vehicle.categoryId]?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+  
+      // Calculate pagination
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedData = filteredData.slice(startIndex, endIndex);
+  
+      setVehicles(paginatedData);
+      
+      setPagination({
+        current: page,
+        pageSize: pageSize,
+        total: filteredData.length // Set total to the length of filtered data
+      });
     } catch (error: unknown) {
       console.error('Error fetching vehicles:', error);
       message.error('Không thể tải danh sách phương tiện');
@@ -66,8 +97,37 @@ export default function Vehicles() {
       setLoading(false);
     }
   };
+  
+
+  // Handle search input change
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+    setPagination({ ...pagination, current: 1 }); // Reset to first page when searching
+    fetchVehicles(1, pagination.pageSize, value);
+  };
+
+  // Handle pagination change
+  const handleTableChange = (newPagination: any) => {
+    setPagination(newPagination);
+    fetchVehicles(newPagination.current, newPagination.pageSize, searchText);
+  };
 
   const columns: ColumnsType<Vehicle> = [
+    {
+      title: 'Hình ảnh',
+      key: 'image',
+      width: 100,
+      render: (record: Vehicle) => (
+        <Image
+          src={record.image || placehoderImg.src}
+          alt={record.name}
+          width={80}
+          height={80}
+          className="object-cover rounded"
+          fallback={placehoderImg.src}
+        />
+      )
+    },
     {
       title: 'Tên phương tiện',
       dataIndex: 'name',
@@ -107,6 +167,16 @@ export default function Vehicles() {
       key: 'updatedAt',
       render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
     },
+    {
+      title: 'Hành động',
+      key: 'action',
+      render: (record: Vehicle) => (
+        <Button type='primary'><Link href={`/vehicles/${record._id}`}>
+          Xem chi tiết
+        </Link>
+        </Button>
+      )
+    }
   ];
 
   const showModal = () => {
@@ -133,6 +203,9 @@ export default function Vehicles() {
               placeholder="Tìm kiếm phương tiện"
               prefix={<SearchOutlined />}
               className="w-64"
+              value={searchText}
+              onChange={(e) => handleSearch(e.target.value)}
+              allowClear
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
               Thêm phương tiện
@@ -145,6 +218,14 @@ export default function Vehicles() {
             dataSource={vehicles}
             loading={loading}
             rowKey="_id"
+            pagination={{
+              ...pagination,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng số ${total} phương tiện`,
+              pageSizeOptions: ['10', '20', '50'],
+              showQuickJumper: true,
+            }}
+            onChange={handleTableChange}
           />
         </Content>
       </Layout>
