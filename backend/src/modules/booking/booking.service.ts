@@ -121,6 +121,7 @@ export class BookingService implements IBookingService {
 
     async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<object> {
         //start time is current time
+        return {}
 
     }
 
