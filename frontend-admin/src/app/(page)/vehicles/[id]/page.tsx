@@ -1,5 +1,5 @@
-'use client'
-import { useEffect, useState, use } from 'react';
+'use client';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Layout, Button, Descriptions, App, Image, Spin } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -10,32 +10,44 @@ import placehoderImg from '../../../assets/place.jpeg';
 
 const { Header, Content } = Layout;
 
-// Map cho trạng thái xe
+interface Vehicle {
+  _id: string;
+  name: string;
+  categoryId: string;
+  licensePlate: string;
+  isActive: boolean;
+  status: string;
+  image: string[] | string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Map trạng thái xe
 const statusMap: { [key: string]: string } = {
-  'available': 'Sẵn sàng',
-  'busy': 'Đang bận',
-  'maintenance': 'Bảo trì'
+  available: 'Sẵn sàng',
+  busy: 'Đang bận',
+  maintenance: 'Bảo trì',
 };
-export default function VehicleDetail({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
-  const [vehicle, setVehicle] = useState<any>(null);
-  const [category, setCategory] = useState<string>('');
+
+export default function VehicleDetail({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [category, setCategory] = useState<string>('N/A');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { message } = App.useApp();
 
-  useEffect(() => {
-    fetchVehicleDetails();
-  }, [id]); // Changed from params.id to id
-
-  const fetchVehicleDetails = async () => {
+  // Sử dụng useCallback để tránh re-create hàm
+  const fetchVehicleDetails = useCallback(async () => {
     try {
-      const data = await vehiclesService.getVehicleById(id); // Using id instead of params.id
+      setLoading(true);
+      const data = await vehiclesService.getVehicleById(id);
       setVehicle(data);
-      // Fetch category details after getting vehicle data
+
+      // Fetch danh mục nếu có
       if (data.categoryId) {
         const categories = await categoryService.getCategories();
-        const vehicleCategory = categories.find(cat => cat._id === data.categoryId);
+        const vehicleCategory = categories.find((cat) => cat._id === data.categoryId);
         setCategory(vehicleCategory?.name || 'N/A');
       }
     } catch (error) {
@@ -44,7 +56,11 @@ export default function VehicleDetail({ params }: { params: Promise<{ id: string
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message]);
+
+  useEffect(() => {
+    fetchVehicleDetails();
+  }, [fetchVehicleDetails]);
 
   const handleBack = () => {
     router.push('/vehicles');
@@ -68,11 +84,7 @@ export default function VehicleDetail({ params }: { params: Promise<{ id: string
       <Sidebar />
       <Layout>
         <Header className="bg-white p-4 flex items-center">
-          <Button 
-            icon={<ArrowLeftOutlined />} 
-            onClick={handleBack}
-            className="mr-4"
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={handleBack} className="mr-4">
             Quay lại
           </Button>
           <h2 className="text-xl font-semibold">Chi tiết phương tiện</h2>
@@ -84,7 +96,7 @@ export default function VehicleDetail({ params }: { params: Promise<{ id: string
                 {Array.isArray(vehicle.image) ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <Image.PreviewGroup>
-                      {vehicle.image.map((imageUrl: string, index: number) => (
+                      {vehicle.image.map((imageUrl, index) => (
                         <div key={index} className="aspect-square">
                           <Image
                             src={imageUrl}
@@ -110,29 +122,15 @@ export default function VehicleDetail({ params }: { params: Promise<{ id: string
                   </div>
                 )}
               </div>
-              
+
               <Descriptions bordered column={1}>
-                <Descriptions.Item label="Tên phương tiện">
-                  {vehicle.name}
-                </Descriptions.Item>
-                <Descriptions.Item label="Danh mục">
-                  {category}
-                </Descriptions.Item>
-                <Descriptions.Item label="Biển số xe">
-                  {vehicle.licensePlate}
-                </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái">
-                  {statusMap[vehicle.status] || vehicle.status}
-                </Descriptions.Item>
-                <Descriptions.Item label="Tình trạng hoạt động">
-                  {vehicle.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Ngày tạo">
-                  {new Date(vehicle.createdAt).toLocaleDateString('vi-VN')}
-                </Descriptions.Item>
-                <Descriptions.Item label="Cập nhật lần cuối">
-                  {new Date(vehicle.updatedAt).toLocaleDateString('vi-VN')}
-                </Descriptions.Item>
+                <Descriptions.Item label="Tên phương tiện">{vehicle.name}</Descriptions.Item>
+                <Descriptions.Item label="Danh mục">{category}</Descriptions.Item>
+                <Descriptions.Item label="Biển số xe">{vehicle.licensePlate}</Descriptions.Item>
+                <Descriptions.Item label="Trạng thái">{statusMap[vehicle.status] || vehicle.status}</Descriptions.Item>
+                <Descriptions.Item label="Tình trạng hoạt động">{vehicle.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}</Descriptions.Item>
+                <Descriptions.Item label="Ngày tạo">{new Date(vehicle.createdAt).toLocaleDateString('vi-VN')}</Descriptions.Item>
+                <Descriptions.Item label="Cập nhật lần cuối">{new Date(vehicle.updatedAt).toLocaleDateString('vi-VN')}</Descriptions.Item>
               </Descriptions>
             </div>
           )}

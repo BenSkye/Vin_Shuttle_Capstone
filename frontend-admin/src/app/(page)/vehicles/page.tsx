@@ -10,7 +10,7 @@ import { categoryService } from '../../services/categoryServices';
 import AddVehicleModal from '../../_components/vehicles/addVehiclesModal';
 import placehoderImg from '../../assets/place.jpeg';
 const { Header, Content } = Layout;
-
+import type { TablePaginationConfig } from 'antd/es/table';
 interface Vehicle {
   _id: string;
   name: string;
@@ -107,9 +107,15 @@ export default function Vehicles() {
   };
 
   // Handle pagination change
-  const handleTableChange = (newPagination: any) => {
-    setPagination(newPagination);
-    fetchVehicles(newPagination.current, newPagination.pageSize, searchText);
+  const handleTableChange = (newPagination: TablePaginationConfig) => {
+    const paginationWithDefaultValues = {
+      ...newPagination,
+      current: newPagination.current ?? 1,
+      pageSize: newPagination.pageSize ?? 10,
+      total: pagination.total, // Ensure total is always a number
+    };
+    setPagination(paginationWithDefaultValues);
+    fetchVehicles(paginationWithDefaultValues.current, paginationWithDefaultValues.pageSize, searchText);
   };
 
   const columns: ColumnsType<Vehicle> = [

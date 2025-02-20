@@ -17,6 +17,12 @@ interface CategoryOption {
   label: string;
 }
 
+interface VehicleFormValues {
+  name: string;
+  categoryId: string;
+  licensePlate: string;
+}
+
 export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVehicleModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -41,14 +47,14 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
     }
   };
 
-  const handleFileChange = ({ fileList: newFileList }: any) => {
-    setFileList(newFileList.map((file: any) => file.originFileObj));
-  };
+  // const handleFileChange = ({ fileList: newFileList }: { fileList: any[] }) => {
+  //   setFileList(newFileList.map(file => file.originFileObj));
+  // };
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const values = await form.validateFields();
+      const values = await form.validateFields() as VehicleFormValues;
       
       // Upload images and get URLs
       const imageUrls = await Promise.all(fileList.map(file => uploadImage(file)));
@@ -121,7 +127,7 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
             listType="picture"
             multiple
             beforeUpload={() => false}
-            onChange={handleFileChange}
+            // onChange={handleFileChange}
           >
             <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
           </Upload>

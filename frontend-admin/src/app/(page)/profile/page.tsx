@@ -4,7 +4,7 @@ import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined, SearchOutlined
 import Sidebar from '../../_components/common/Sidebar';
 import { useEffect, useState, useCallback } from 'react';
 import { usersService } from '../../services/usersServices';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 
 const { Header, Content } = Layout;
 
@@ -42,7 +42,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [infoForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
-  const router = useRouter();
+  // const router = useRouter();
 
   const fetchProfile = useCallback(async () => {
     try {
