@@ -16,6 +16,7 @@ import { AppGateway } from 'src/app.gateway';
 import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
 import { TripModule } from 'src/modules/trip/trip.module';
 import { BookingModule } from 'src/modules/booking/booking.module';
+import { SearchModule } from 'src/modules/search/search.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { BookingModule } from 'src/modules/booking/booking.module';
     ScenicRouteModule,
     DriverScheduleModule,
     TripModule,
+    SearchModule,
     BookingModule
   ],
   controllers: [AppController],
