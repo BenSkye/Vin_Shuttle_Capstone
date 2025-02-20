@@ -91,8 +91,8 @@ function RoutingMachine({ stops, onRouteFound }: {
             const routes = e.routes;
             if (routes && routes.length > 0) {
                 const coordinates = routes[0].coordinates;
-                const estimatedDuration = routes[0].summary.totalTime;
-                const totalDistance = routes[0].summary.totalDistance;
+                const estimatedDuration = Number((routes[0].summary.totalTime / 60).toFixed(1));
+                const totalDistance = Number((routes[0].summary.totalDistance / 1000).toFixed(1));
                 onRouteFound(coordinates, estimatedDuration, totalDistance);
             }
         });
@@ -134,7 +134,7 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
 const getStreetName = async (latlng: L.LatLng) => {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
     const data = await response.json();
-    
+
     // Tách tên đường dựa trên dấu phẩy và lấy 2 phần tử đầu
     const streetParts = data.display_name ? data.display_name.split(',') : [];
     const streetName = streetParts.slice(0, 2).join(', '); // Kết hợp lại thành chuỗi
@@ -186,6 +186,7 @@ export default function CreateRoute() {
         setTotalDistance(totalDistance);
     }, []);
 
+
     const handleMapClick = useCallback(async (latlng: L.LatLng) => {
         const streetName = await getStreetName(latlng);
         setStops(prevStops => {
@@ -209,7 +210,7 @@ export default function CreateRoute() {
         setIsCreatingRoute(true);
         setRouteName(route.name);
         setRouteDescription(route.description);
-        
+
         const formattedStops = route.waypoints.map((waypoint, index) => ({
             id: waypoint.id,
             position: L.latLng(waypoint.position.lat, waypoint.position.lng),
@@ -247,7 +248,7 @@ export default function CreateRoute() {
             if (isEditing && selectedRoute?._id) {
                 const updatedRoute = await routeService.editRoute(selectedRoute._id, routeData);
                 if (updatedRoute) {
-                    setSavedRoutes(prev => prev.map(route => 
+                    setSavedRoutes(prev => prev.map(route =>
                         route._id === updatedRoute._id ? updatedRoute : route
                     ));
                     setSelectedRoute(updatedRoute);
@@ -293,12 +294,12 @@ export default function CreateRoute() {
             setIsLoading(false);
         }
     }, [
-        routeCoordinates, 
-        stops, 
-        setIsLoading, 
-        prepareRouteData, 
-        handleRouteSave, 
-        handleSaveSuccess, 
+        routeCoordinates,
+        stops,
+        setIsLoading,
+        prepareRouteData,
+        handleRouteSave,
+        handleSaveSuccess,
         handleSaveError
     ]);
 
@@ -352,7 +353,7 @@ export default function CreateRoute() {
                                     className="p-3 rounded-lg bg-gray-50"
                                 >
                                     <div className="flex justify-between items-center">
-                                        <div 
+                                        <div
                                             className="flex-grow cursor-pointer"
                                             onClick={() => selectRoute(route)}
                                         >
@@ -391,13 +392,13 @@ export default function CreateRoute() {
                                 <div className="bg-white rounded-lg p-4 shadow-sm">
                                     <h3 className="text-xl font-bold text-black mb-2">{selectedRoute.name}</h3>
                                     <p className="text-gray-600 mb-4">{selectedRoute.description || 'Không có mô tả'}</p>
-                                    
+
                                     <div className="mb-4">
                                         <h4 className="font-medium text-gray-700 mb-2">Các điểm dừng:</h4>
                                         <div className="space-y-2">
                                             {selectedRoute.waypoints.map((waypoint, index) => (
-                                                <div 
-                                                    key={waypoint.id} 
+                                                <div
+                                                    key={waypoint.id}
                                                     className="flex items-center gap-2 p-2 rounded-md bg-gray-50"
                                                     style={{ borderLeft: `4px solid ${COLORS[index % COLORS.length]}` }}
                                                 >
@@ -421,13 +422,13 @@ export default function CreateRoute() {
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                             </svg>
-                                            <span>Thời gian dự kiến: {Math.round(selectedRoute.estimatedDuration / 60)} phút</span>
+                                            <span>Thời gian dự kiến: {selectedRoute.estimatedDuration} phút</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-gray-600">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                                             </svg>
-                                            <span>Khoảng cách dự kiến: {(selectedRoute.totalDistance / 1000).toFixed(1)} km</span>
+                                            <span>Khoảng cách dự kiến: {selectedRoute.totalDistance} km</span>
                                         </div>
                                     </div>
                                 </div>
@@ -497,14 +498,31 @@ export default function CreateRoute() {
                             )}
                         </div>
                         {stops.length >= 2 && routeCoordinates.length > 0 && (
-                            <button
-                                onClick={saveRoute}
-                                disabled={isLoading}
-                                className={`w-full mt-4 bg-green-500 text-white py-2 px-4 rounded 
+                            <>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>Thời gian dự kiến: {estimatedDuration} phút</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>Khoảng cách dự kiến: {totalDistance} km</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={saveRoute}
+                                    disabled={isLoading}
+                                    className={`w-full mt-4 bg-green-500 text-white py-2 px-4 rounded 
                     ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`}
-                            >
-                                {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
-                            </button>
+                                >
+                                    {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
+                                </button>
+                            </>
                         )}
                     </>
                 )}

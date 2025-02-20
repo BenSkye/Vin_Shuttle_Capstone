@@ -37,4 +37,33 @@ export class BookingController {
     ) {
         return await this.bookingService.findAvailableVehicleBookingHour(date, startTime, durationMinutes)
     }
+
+
+    @Get('available-vehicle-booking-scenic-route/:date/:startTime/:scenicRouteId')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get available vehicle category, number and price for booking hour when customer provide time and duration' })
+    @ApiParam({
+        name: 'date',
+        description: 'date customer want to book',
+        example: '2025-02-17',
+    })
+    @ApiParam({
+        name: 'startTime',
+        description: 'startTime customer want to book',
+        example: '11:00',
+    })
+    @ApiParam({
+        name: 'scenicRouteId',
+        description: 'scenicRouteId customer want to book',
+        example: ''
+    })
+    async getAvailableVehicleBookingScenicRoute(
+        @Param('date') date: string,
+        @Param('startTime') startTime: string,
+        @Param('scenicRouteId') scenicRouteId: string,
+
+    ) {
+        return await this.bookingService.findAvailableVehicleBookingScenicRoute(scenicRouteId, date, startTime)
+    }
+
 }

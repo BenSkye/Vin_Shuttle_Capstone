@@ -91,6 +91,7 @@ export class BookingService implements IBookingService {
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
         const scheduleDate = DateUtils.parseDate(date);
         const totalDistance = scenicRoute.totalDistance
+        console.log('totalDistance', totalDistance)
 
         //check if it is within the start and end of working time
         await this.validateBookingTime(bookingStartTime, bookingEndTime)
@@ -117,6 +118,12 @@ export class BookingService implements IBookingService {
         return result
     }
 
+
+    async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<object> {
+        //start time is current time
+        return {}
+
+    }
 
     private async validateBookingTime(
         bookingStartTime: dayjs.Dayjs,
