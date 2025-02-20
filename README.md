@@ -1,4 +1,4 @@
-# VinShuttle - Electric Vehicle Booking System
+#  🛺⚡ VinShuttle - Electric Vehicle Booking System
 
 ## 🚀 Giới thiệu dự án
 VinShuttle là một hệ thống đặt xe điện thông minh, được thiết kế nhằm tối ưu hóa việc di chuyển nội bộ trong các khu đô thị lớn, đặc biệt là tại khu đô thị **VinHome Grand Park (VHGP), Thành phố Hồ Chí Minh**. Ứng dụng giúp giải quyết các vấn đề về sự bất tiện và thiếu hiệu quả của phương thức di chuyển truyền thống bằng cách cung cấp một nền tảng **tập trung, thân thiện với người dùng và bảo vệ môi trường**.
