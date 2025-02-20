@@ -15,6 +15,9 @@ export class User {
     @Prop({ default: '' })
     email: string;
 
+    @Prop({ type: String })
+    avatar: string
+
     @Prop()
     password?: string;
 
