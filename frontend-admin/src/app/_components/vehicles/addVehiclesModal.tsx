@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, message } from 'antd';
+import { Modal, Form, Input, Select, message, Upload, Button, UploadFile } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import { categoryService } from '../../services/categoryServices';
 import { vehiclesService } from '../../services/vehiclesServices';
+import { uploadImage } from '../../utils/firebase/firebase';
 
 interface AddVehicleModalProps {
   visible: boolean;
@@ -15,10 +17,17 @@ interface CategoryOption {
   label: string;
 }
 
+interface VehicleFormValues {
+  name: string;
+  categoryId: string;
+  licensePlate: string;
+}
+
 export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVehicleModalProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [fileList, setFileList] = useState<File[]>([]);
 
   useEffect(() => {
     fetchCategories();
@@ -38,20 +47,29 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
     }
   };
 
+  const handleFileChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
+    setFileList(newFileList.map(file => file.originFileObj as File));
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const values = await form.validateFields();
+      const values = await form.validateFields() as VehicleFormValues;
       
+      // Upload images and get URLs
+      const imageUrls = await Promise.all(fileList.map(file => uploadImage(file)));
+
       const vehicleData = {
         ...values,
         isActive: true,
-        status: 'available'
+        status: 'available',
+        image: imageUrls // Include image URLs
       };
 
       await vehiclesService.addVehicle(vehicleData);
       message.success('Thêm xe mới thành công');
       form.resetFields();
+      setFileList([]);
       onSuccess();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error 
@@ -102,6 +120,17 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
           rules={[{ required: true, message: 'Vui lòng nhập biển số xe' }]}
         >
           <Input placeholder="Nhập biển số xe" />
+        </Form.Item>
+
+        <Form.Item label="Hình ảnh">
+          <Upload
+            listType="picture"
+            multiple
+            beforeUpload={() => false}
+            onChange={handleFileChange}
+          >
+            <Button icon={<UploadOutlined />}>Tải lên hình ảnh</Button>
+          </Upload>
         </Form.Item>
       </Form>
     </Modal>

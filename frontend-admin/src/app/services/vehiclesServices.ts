@@ -10,6 +10,19 @@ interface Vehicle {
   licensePlate: string;
   isActive: boolean;
   status: string;
+  image: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Vehicle2 {
+  _id: string;
+  name: string;
+  categoryId: string;
+  licensePlate: string;
+  isActive: boolean;
+  status: string;
+  image: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,11 +34,12 @@ interface AddVehicleRequest {
   licensePlate: string;
   isActive: boolean;
   status: string;
+  image: string[];
 }
 
 export const vehiclesService = {
   // Lấy danh sách vehicles
-  async getVehicles(): Promise<Vehicle[]> {
+  async getVehicles(): Promise<Vehicle2[]> {
     try {
       const response = await axios.get(`${API_URL}/vehicles`, {
         headers: {
@@ -51,5 +65,20 @@ export const vehiclesService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Lấy chi tiết vehicle theo ID
+  async getVehicleById(vehicleId: string): Promise<Vehicle> {
+    try {
+      const response = await axios.get(`${API_URL}/vehicles/${vehicleId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
+
