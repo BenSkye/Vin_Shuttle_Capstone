@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import dayjs from "dayjs";
+import * as dayjs from 'dayjs';
 import { IBookingService } from "src/modules/booking/booking.port";
 import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
 import { IDriverScheduleRepository } from "src/modules/driver-schedule/driver-schedule.port";
@@ -76,7 +76,6 @@ export class BookingService implements IBookingService {
         return result
     }
 
-
     async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<object> {
         const scenicRoute = await this.scenicRouteRepository.findById(scenicRouteId)
         if (!scenicRoute) {
@@ -118,12 +117,41 @@ export class BookingService implements IBookingService {
         return result
     }
 
-
     async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<object> {
         //start time is current time
-        return {}
+        const now = dayjs();
+        const bookingStartTime = now.add(30, 'minute');
+        const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
+
+        await this.validateBookingTime(bookingStartTime, bookingEndTime);
+
+        const matchingShifts = this.getMatchingShifts(bookingStartTime, bookingEndTime);
+        console.log('matchingShifts', matchingShifts)
+        const midnightUTC = now.utc().startOf('day');
+
+        const schedules = await this.getAvailableSchedules(
+            midnightUTC.toDate(),
+            matchingShifts
+        );
+
+        const validSchedules = await this.filterSchedulesWithoutConflicts(
+            schedules,
+            bookingStartTime,
+            bookingEndTime
+        )
+
+        const vehicles = await this.getVehiclesFromSchedules(validSchedules);
+        return this.groupByVehicleType(
+            vehicles,
+            ServiceType.BOOKING_DESTINATION,
+            estimatedDistance
+        );
+
 
     }
+
+
+
 
     private async validateBookingTime(
         bookingStartTime: dayjs.Dayjs,

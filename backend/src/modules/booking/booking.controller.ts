@@ -66,4 +66,45 @@ export class BookingController {
         return await this.bookingService.findAvailableVehicleBookingScenicRoute(scenicRouteId, date, startTime)
     }
 
+
+
+    @Get('available-vehicle-booking-scenic-route/:startPoint/:endPoint/:estimatedDuration/:estimatedDistance')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get available vehicle category, number and price for booking hour when customer provide time and duration' })
+    @ApiParam({
+        name: 'startPoint',
+        description: 'startPoint of customer',
+        example: {
+            "lat": 10.83775,
+            "lng": 106.83796
+        },
+    })
+    @ApiParam({
+        name: 'endPoint',
+        description: 'endPoint customer want to book',
+        example: {
+            "lat": 10.8474,
+            "lng": 106.83683
+        },
+    })
+    @ApiParam({
+        name: 'estimatedDuration',
+        description: 'estimatedDuration customer want to book',
+        example: 5
+    })
+    @ApiParam({
+        name: 'estimatedDistance',
+        description: 'estimatedDistance customer want to book',
+        example: 2
+    })
+    async getAvailableVehicleBookingDestination(
+        @Param('startPoint') startPoint: object,
+        @Param('endPoint') endPoint: object,
+        @Param('estimatedDuration') estimatedDuration: number,
+        @Param('estimatedDistance') estimatedDistance: number,
+
+    ) {
+        return await this.bookingService.findAvailableVehicleBookingDestination(startPoint, endPoint, estimatedDuration, estimatedDistance)
+    }
+
 }

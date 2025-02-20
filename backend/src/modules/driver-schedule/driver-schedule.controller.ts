@@ -30,16 +30,28 @@ export class DriverScheduleController {
             'Create a list of driver schedules': {
                 value: [
                     {
-                        driver: '67873bb9cf95c847fe62ba5f',
-                        date: '2021-10-01',
-                        shift: 'A',
-                        vehicle: '67873bb9cf95c847fe62ba5f'
+                        driver: "67b6c79187febb73be4b3f09", // khanhDriver
+                        date: "2025-02-20",
+                        shift: "A",
+                        vehicle: "67878002048da981c9778455" // xe 6 chỗ A34
                     },
                     {
-                        driver: '67873bb9cf95c847fe62ba5f',
-                        date: '2021-10-01',
-                        shift: 'B',
-                        vehicle: '67873bb9cf95c847fe62ba5f'
+                        driver: "67ac45cc9796faf5cdbbf394", // quangDriver
+                        date: "2025-02-20",
+                        shift: "B",
+                        vehicle: "6787801c048da981c9778458" // xe 6 chỗ A2
+                    },
+                    {
+                        driver: "67ac45be9796faf5cdbbf391", // luanDriver
+                        date: "2025-02-20",
+                        shift: "C",
+                        vehicle: "67a2f142e7e80dd43a68e5ea" // Xe điện 10 chỗ B10
+                    },
+                    {
+                        driver: "67ac45b29796faf5cdbbf38e", // nhatDriver
+                        date: "2025-02-20",
+                        shift: "D",
+                        vehicle: "67a458c51b2e80feb417a726" // nhoc quan
                     }
                 ]
             }

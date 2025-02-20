@@ -11,7 +11,7 @@ export class UsersService implements IUserService {
     ) { }
 
     async listUsers(): Promise<UserDocument[]> {
-        const select = ['name', 'phone', 'email', 'role']
+        const select = ['name', 'phone', 'email', 'role', 'status']
         const listUsers = await this.userRepository.listUsers(select);
         return listUsers
     }

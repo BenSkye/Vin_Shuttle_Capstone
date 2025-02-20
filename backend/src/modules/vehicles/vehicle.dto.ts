@@ -29,6 +29,9 @@ export class CreateVehicleDto {
     @ApiProperty({ example: '888.88' })
     licensePlate: string;
 
+    @ApiProperty({ example: '' })
+    image: string[];
+
     @ApiPropertyOptional({ example: VehicleOperationStatus.CHARGING })
     operationStatus: string;
 
@@ -47,6 +50,8 @@ export class UpdateVehicleDto {
     @ApiPropertyOptional({ example: '888.88' })
     licensePlate: string;
 
+    @ApiProperty({ example: '' })
+    image: string[];
 
     @ApiPropertyOptional({ example: VehicleOperationStatus.CHARGING })
     operationStatus: string;

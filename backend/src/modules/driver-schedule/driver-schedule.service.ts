@@ -37,8 +37,9 @@ export class DriverScheduleService implements IDriverScheduleService {
     async checkListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<boolean> {
         // check not have same date and shift in array and in database
         for (const schedule of driverSchedules) {
+            console.log('schedule.driver', schedule.driver)
             const driver = await this.userRepository.getUserById(schedule.driver, ['status', 'role', 'name']);
-            console.log(driver);
+            console.log('driver', driver);
             if (driver.status !== UserStatus.ACTIVE || !driver || driver.role !== UserRole.DRIVER) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
