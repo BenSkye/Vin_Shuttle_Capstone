@@ -56,9 +56,14 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-function RoutingMachine({ stops, onRouteFound }: {
+function RoutingMachine({ stops, onRouteFound, savedRoute }: {
     stops: BusStop[];
     onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
+    savedRoute?: {
+        coordinates: L.LatLng[];
+        estimatedDuration: number;
+        totalDistance: number;
+    };
 }) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
@@ -71,6 +76,29 @@ function RoutingMachine({ stops, onRouteFound }: {
             routingControlRef.current = null;
         }
 
+        // Nếu có savedRoute, sử dụng coordinates đã lưu
+        if (savedRoute) {
+            const polyline = L.polyline(savedRoute.coordinates, {
+                color: '#3498db',
+                weight: 6,
+                opacity: 0.9
+            }).addTo(map);
+
+            map.fitBounds(polyline.getBounds());
+
+            // Sử dụng thông tin đã lưu
+            onRouteFound(
+                savedRoute.coordinates,
+                savedRoute.estimatedDuration,
+                savedRoute.totalDistance
+            );
+
+            return () => {
+                polyline.removeFrom(map);
+            };
+        }
+
+        // Nếu không có savedRoute, tạo route mới
         const waypoints = stops.map(stop => stop.position);
 
         routingControlRef.current = L.Routing.control({
@@ -103,7 +131,7 @@ function RoutingMachine({ stops, onRouteFound }: {
                 map.removeControl(routingControlRef.current);
             }
         };
-    }, [map, stops, onRouteFound]);
+    }, [map, stops, onRouteFound, savedRoute]);
 
     return null;
 }
@@ -235,7 +263,7 @@ export default function CreateRoute() {
         setRouteCoordinates(route.scenicRouteCoordinates.map(coord => L.latLng(coord.lat, coord.lng)));
     }, []);
 
-    // Data preparation helper
+
     const prepareRouteData = useCallback((): RouteRequest => {
         return {
             name: routeName,
@@ -257,7 +285,7 @@ export default function CreateRoute() {
         };
     }, [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance]);
 
-    // Save logic handler
+
     const handleRouteSave = useCallback(async (routeData: RouteRequest) => {
         try {
             if (isEditing && selectedRoute?._id) {

@@ -79,6 +79,20 @@ export const vehiclesService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  async updateVehicle(vehicleId: string, vehicleData: AddVehicleRequest): Promise<Vehicle> {
+    try {
+      const response = await axios.put(`${API_URL}/vehicles/${vehicleId}`, vehicleData, {
+       headers: {
+         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+       }
+     });
+     return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
+
 

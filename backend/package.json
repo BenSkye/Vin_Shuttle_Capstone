@@ -38,6 +38,7 @@
     "dayjs": "^1.11.13",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "mkcert": "^3.2.0",
     "mongoose": "^8.9.3",
     "otp-generator": "^4.0.1",
     "passport": "^0.7.0",

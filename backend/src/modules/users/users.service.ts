@@ -11,12 +11,12 @@ export class UsersService implements IUserService {
     ) { }
 
     async listUsers(): Promise<UserDocument[]> {
-        const select = ['name', 'phone', 'email', 'role', 'status']
+        const select = ['name', 'phone', 'email', 'role', 'status', 'avatar']
         const listUsers = await this.userRepository.listUsers(select);
         return listUsers
     }
     async viewProfile(id: string): Promise<object> {
-        const select = ['name', 'phone', 'email']
+        const select = ['name', 'phone', 'email', 'avatar']
         const user = await this.userRepository.getUserById(id, select)
         if (!user) {
             throw new HttpException({
