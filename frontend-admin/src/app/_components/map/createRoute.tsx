@@ -104,16 +104,17 @@ function RoutingMachine({ stops, onRouteFound, savedRoute }: {
         routingControlRef.current = L.Routing.control({
             waypoints: waypoints,
             routeWhileDragging: true,
-            addWaypoints: false,
-            fitSelectedRoutes: true,
+            addWaypoints: true,
+            fitSelectedRoutes: false,
             showAlternatives: false,
             show: false,
             lineOptions: {
-                styles: [{ color: '#3498db', weight: 6, opacity: 0.9 }],
+                styles: [{ color: '#3498db', weight: 2, opacity: 0.9 }],
                 extendToWaypoints: true,
-                missingRouteTolerance: 0
+                missingRouteTolerance: 5
             }
         }).addTo(map);
+
 
         routingControlRef.current.on('routesfound', (e) => {
             const routes = e.routes;
@@ -214,6 +215,19 @@ export default function CreateRoute() {
         setTotalDistance(totalDistance);
     }, []);
 
+    useEffect(() => {
+        console.log('routeCoordinates', routeCoordinates)
+    }, [routeCoordinates])
+
+
+    useEffect(() => {
+        console.log('estimatedDuration', estimatedDuration)
+    }, [estimatedDuration])
+
+    useEffect(() => {
+        console.log('totalDistance', totalDistance)
+    }, [totalDistance])
+
 
     const handleMapClick = useCallback(async (latlng: L.LatLng) => {
         const streetName = await getStreetName(latlng);
@@ -246,6 +260,7 @@ export default function CreateRoute() {
             color: COLORS[index % COLORS.length]
         }));
         setStops(formattedStops);
+        setRouteCoordinates(route.scenicRouteCoordinates.map(coord => L.latLng(coord.lat, coord.lng)));
     }, []);
 
 
@@ -575,24 +590,53 @@ export default function CreateRoute() {
                     />
 
                     {isCreatingRoute ? (
-                        <>
-                            {stops.map((stop) => (
-                                <Marker
-                                    key={stop.id}
-                                    position={stop.position}
-                                    icon={createCustomIcon({ color: stop.color })}
-                                >
-                                    <Popup>{stop.name}</Popup>
-                                </Marker>
-                            ))}
-                            {stops.length >= 2 && (
-                                <RoutingMachine
-                                    stops={stops}
-                                    onRouteFound={handleRouteFound}
-                                />
-                            )}
-                            <MapClickHandler onMapClick={handleMapClick} />
-                        </>
+                        isEditing ? (
+                            selectedRoute && (
+                                <>
+                                    <SavedRouteDisplay
+                                        coordinates={routeCoordinates.map(coord =>
+                                            L.latLng(coord.lat, coord.lng)
+                                        )}
+                                    />
+                                    {stops.map((stop) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
+                                        >
+                                            <Popup>{stop.name}</Popup>
+                                        </Marker>
+                                    ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                </>
+                            )
+                        ) :
+                            (
+                                <>
+                                    {stops.map((stop) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
+                                        >
+                                            <Popup>{stop.name}</Popup>
+                                        </Marker>
+                                    ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                </>
+                            )
                     ) : (
                         selectedRoute && (
                             <>
@@ -612,10 +656,11 @@ export default function CreateRoute() {
                                 ))}
                             </>
                         )
-                    )}
+                    )
+                    }
                 </MapContainer>
             </div>
-        </div>
+        </div >
     );
 }
 

@@ -61,9 +61,9 @@ export class ScenicRouteController {
 
     @Get()
     @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard, RolesGuard)
-    @Roles('admin')
-    @ApiBearerAuth('authorization')
+    // @UseGuards(AuthGuard, RolesGuard)
+    // @Roles('admin')
+    // @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Get all routes' })
     @ApiResponse({
         status: 200,
@@ -75,9 +75,9 @@ export class ScenicRouteController {
 
     @Get(':id')
     @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard, RolesGuard)
-    @Roles('admin')
-    @ApiBearerAuth('authorization')
+    // @UseGuards(AuthGuard, RolesGuard)
+    // @Roles('admin')
+    // @ApiBearerAuth('authorization')
     @ApiOperation({ summary: 'Get a route by id' })
     @ApiResponse({
         status: 200,

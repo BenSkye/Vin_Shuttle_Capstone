@@ -40,7 +40,7 @@ export class SearchService implements ISearchService {
         date: string,
         startTime: string,
         durationMinutes: number
-    ): Promise<object> {
+    ): Promise<any[]> {
 
         const scheduleDate = DateUtils.parseDate(date);
         const bookingStartTime = DateUtils.parseDate(date, startTime);
@@ -76,7 +76,7 @@ export class SearchService implements ISearchService {
         return result
     }
 
-    async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<object> {
+    async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<any[]> {
         const scenicRoute = await this.scenicRouteRepository.findById(scenicRouteId)
         if (!scenicRoute) {
             throw new HttpException({
@@ -117,7 +117,7 @@ export class SearchService implements ISearchService {
         return result
     }
 
-    async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<object> {
+    async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<any[]> {
         //start time is current time
         const now = dayjs();
         const bookingStartTime = now.add(30, 'minute');
@@ -153,7 +153,7 @@ export class SearchService implements ISearchService {
 
 
 
-    private async validateBookingTime(
+    async validateBookingTime(
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
     ): Promise<void> {
@@ -173,7 +173,7 @@ export class SearchService implements ISearchService {
         }
     }
 
-    private getMatchingShifts(
+    getMatchingShifts(
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
     ): Shift[] {
@@ -199,7 +199,7 @@ export class SearchService implements ISearchService {
         return matchingShifts
     }
 
-    private async getAvailableSchedules(
+    async getAvailableSchedules(
         date: Date,
         shifts: Shift[]
     ): Promise<DriverScheduleDocument[]> {
@@ -228,7 +228,7 @@ export class SearchService implements ISearchService {
         return uniqueSchedules
     }
 
-    private async filterSchedulesWithoutConflicts(
+    async filterSchedulesWithoutConflicts(
         schedules: DriverScheduleDocument[],
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
@@ -268,7 +268,7 @@ export class SearchService implements ISearchService {
         return schedules
     }
 
-    private async getVehiclesFromSchedules(
+    async getVehiclesFromSchedules(
         schedules: DriverScheduleDocument[]
     ): Promise<VehicleDocument[]> {
         const vehiclePromise = schedules.map(schedule =>
@@ -281,7 +281,7 @@ export class SearchService implements ISearchService {
         );
     }
 
-    private async groupByVehicleType(
+    async groupByVehicleType(
         vehicles: Vehicle[],
         serviceType: string,
         totalUnit: number
@@ -318,7 +318,7 @@ export class SearchService implements ISearchService {
         const pricedCategories = await Promise.all(pricingPromises);
 
         return pricedCategories.map(({ category, price }) => ({
-            vehicleType: category,
+            vehicleCategory: category,
             availableCount: categoryCounts.get(category._id.toString()) || 0,
             price: price
         }));
