@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ImageBackground, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ImageBackground, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { authService } from '../services/authService';
 
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email === 'luan@gmail.com' && password === '123') {
-      navigation.navigate('Home');
-    } else {
-      Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không đúng');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ email và mật khẩu');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await authService.login({ email, password });
+      
+      if (response.isValid) {
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không đúng');
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi đăng nhập';
+      console.log('errorMessage', error)
+
+      Alert.alert('Đăng nhập thất bại', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,6 +55,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            editable={!loading}
           />
           
           <Text style={styles.label}>Mật khẩu</Text>
@@ -45,10 +65,19 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
             secureTextEntry
             value={password}
             onChangeText={setPassword}
+            editable={!loading}
           />
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Đăng nhập</Text>
+          <TouchableOpacity 
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Đăng nhập</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -120,5 +149,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#7FBF7F', // lighter green when disabled
   },
 });

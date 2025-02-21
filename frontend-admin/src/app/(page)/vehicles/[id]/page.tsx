@@ -1,11 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Layout, Descriptions, Image, Spin, App, Card } from 'antd';
+import { useParams, useRouter } from 'next/navigation';
+import { Layout, Descriptions, Image, Spin, App, Card, Button } from 'antd';
 import Sidebar from '../../../_components/common/Sidebar';
 import { vehiclesService } from '../../../services/vehiclesServices';
 import { categoryService } from '../../../services/categoryServices';
 import placehoderImg from '../../../assets/place.jpeg';
+import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import EditVehicleModal from '../../../_components/vehicles/editVehiclesModal';
 
 const { Header, Content } = Layout;
 
@@ -37,10 +39,12 @@ interface Category {
 
 export default function VehicleDetail() {
   const params = useParams();
+  const router = useRouter();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const { message } = App.useApp();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +67,23 @@ export default function VehicleDetail() {
 
     fetchData();
   }, [params.id, message]);
+
+  const handleBack = () => {
+    router.push('/vehicles');
+  };
+
+  const handleEdit = () => {
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditSuccess = async () => {
+    setIsEditModalVisible(false);
+    // Refresh vehicle data
+    const vehicleId = params.id as string;
+    const vehicleData = await vehiclesService.getVehicleById(vehicleId);
+    setVehicle(vehicleData);
+    message.success('Cập nhật xe thành công');
+  };
 
   if (loading) {
     return (
@@ -94,31 +115,46 @@ export default function VehicleDetail() {
     <Layout>
       <Sidebar />
       <Layout>
-        <Header className="bg-white p-4">
-          <h2 className="text-xl font-semibold ml-7">Chi tiết phương tiện</h2>
+        <Header className="bg-white p-4 flex items-center gap-4">
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={handleBack}
+            className="flex items-center"
+          >
+            Quay lại
+          </Button>
+          <h2 className="text-xl font-semibold">Chi tiết phương tiện</h2>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={handleEdit}
+            className="ml-auto"
+          >
+            Chỉnh sửa
+          </Button>
         </Header>
         <Content className="m-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-6">
             {/* Vehicle Images */}
             <Card title="Hình ảnh phương tiện" className="bg-white">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {Array.isArray(vehicle.image) ? (
                   vehicle.image.map((img, index) => (
-                    <div key={index} className="aspect-square">
+                    <div key={index} className="aspect-square w-full">
                       <Image
                         src={img || placehoderImg.src}
                         alt={`${vehicle.name} - ${index + 1}`}
-                        className="object-cover rounded"
+                        className="object-cover rounded w-full h-full"
                         fallback={placehoderImg.src}
                       />
                     </div>
                   ))
                 ) : (
-                  <div className="aspect-square">
+                  <div className="aspect-square w-full">
                     <Image
                       src={vehicle.image || placehoderImg.src}
                       alt={vehicle.name}
-                      className="object-cover rounded"
+                      className="object-cover rounded w-full h-full"
                       fallback={placehoderImg.src}
                     />
                   </div>
@@ -128,7 +164,7 @@ export default function VehicleDetail() {
 
             {/* Vehicle Information */}
             <Card title="Thông tin chi tiết" className="bg-white">
-              <Descriptions layout="vertical" column={1}>
+              <Descriptions layout="horizontal" column={{ xs: 1, sm: 2, md: 3 }}>
                 <Descriptions.Item label="Tên phương tiện">
                   {vehicle.name}
                 </Descriptions.Item>
@@ -154,7 +190,7 @@ export default function VehicleDetail() {
                   {new Date(vehicle.updatedAt).toLocaleDateString('vi-VN')}
                 </Descriptions.Item>
                 {category && (
-                  <Descriptions.Item label="Mô tả danh mục">
+                  <Descriptions.Item label="Mô tả danh mục" span={3}>
                     {category.description}
                   </Descriptions.Item>
                 )}
@@ -162,6 +198,21 @@ export default function VehicleDetail() {
             </Card>
           </div>
         </Content>
+
+        {vehicle && (
+          <EditVehicleModal
+            visible={isEditModalVisible}
+            onCancel={() => setIsEditModalVisible(false)}
+            onSuccess={handleEditSuccess}
+            vehicleId={vehicle._id}
+            initialData={{
+              name: vehicle.name,
+              categoryId: vehicle.categoryId,
+              licensePlate: vehicle.licensePlate,
+              image: Array.isArray(vehicle.image) ? vehicle.image : [vehicle.image]
+            }}
+          />
+        )}
       </Layout>
     </Layout>
   );
