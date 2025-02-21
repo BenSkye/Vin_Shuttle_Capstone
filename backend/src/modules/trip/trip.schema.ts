@@ -4,7 +4,14 @@ import { ServiceType } from 'src/share/enums';
 import { TripStatus } from 'src/share/enums/trip.enum';
 
 export type TripDocument = HydratedDocument<Trip>;
+@Schema({ _id: false })
+class Position {
+    @Prop({ required: true, type: Number })
+    lat: number;
 
+    @Prop({ required: true, type: Number })
+    lng: number;
+}
 @Schema({ timestamps: true })
 export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -37,6 +44,9 @@ export class Trip {
         required: true
     })
     serviceType: ServiceType;
+
+    @Prop({ required: true, type: [Position] })
+    tripCoordinates: Position[];
 
     @Prop({
         type: {
@@ -95,6 +105,28 @@ export class Trip {
         default: TripStatus.BOOKING
     })
     status: TripStatus;
+
+    @Prop({ type: Date })
+    cancellationTime: Date;
+
+    @Prop({ type: String })
+    cancellationReason: string;
+
+    @Prop({ type: Number })
+    refundAmount: number;
+
+    @Prop({
+        type: [{
+            status: { type: String, enum: TripStatus },
+            changedAt: Date,
+            reason: String
+        }], default: []
+    })
+    statusHistory: Array<{
+        status: TripStatus;
+        changedAt: Date;
+        reason?: string;
+    }>;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

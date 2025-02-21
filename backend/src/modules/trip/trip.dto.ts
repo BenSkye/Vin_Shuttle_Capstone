@@ -1,5 +1,6 @@
 import { ServiceType } from "src/share/enums";
 import { TripStatus } from "src/share/enums/trip.enum";
+import { Position } from "src/share/interface";
 
 export interface ICreateTripDto {
     customerId: string;
@@ -27,35 +28,44 @@ export interface IUpdateTripDto {
     timeEnd?: Date;
     vehicleId?: string;
     scheduleId?: string;
+    tripCoordinates?: Position[]
     amount?: number;
-    status?: TripStatus
+    status?: TripStatus;
+    cancellationTime?: Date;
+    cancellationReason?: string;
+    refundAmount?: number;
+    statusHistory?: Array<{
+        status: TripStatus;
+        changedAt: Date;
+        reason?: string;
+    }>;
 }
 
 class BaseServicePayloadDto {
 }
 export class BookingHourPayloadDto extends BaseServicePayloadDto {
     totalTime: number;
-    startPoint: string;
+    startPoint: Position;
 }
 
 export class BookingScenicRoutePayloadDto extends BaseServicePayloadDto {
     routeId: string;
-    startPoint: string;
+    startPoint: Position;
     distanceEstimate: number;
     distance: number
 }
 
 export class BookingDestinationPayloadDto extends BaseServicePayloadDto {
-    startPoint: string;
-    endPoint: string;
+    startPoint: Position;
+    endPoint: Position;
     distanceEstimate: number;
     distance: number
 }
 
 export class BookingSharePayloadDto extends BaseServicePayloadDto {
     numberOfSeat: number;
-    startPoint: string;
-    endPoint: string;
+    startPoint: Position;
+    endPoint: Position;
     distanceEstimate: number;
     distance: number
 }

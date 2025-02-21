@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { BookingStatus } from 'src/share/enums';
+import { PaymentMethod } from 'src/share/enums/payment.enum';
 
 export type BookingDocument = Booking & Document;
 
@@ -24,23 +25,11 @@ export class Booking {
     @Prop({ type: Number, required: true })
     totalAmount: number;
 
-    @Prop({ type: String })
+    @Prop({ type: String, enum: PaymentMethod })
     paymentMethod: string;
 
     @Prop({ type: String })
     InvoiceId: string;
-
-    @Prop({ type: Date })
-    cancellationTime: Date;
-
-    @Prop({ type: String })
-    cancellationReason: string;
-
-    @Prop({ type: Number })
-    refundAmount: number;
-
-    // @Prop({ type: String, unique: true })
-    // confirmationNumber: string;
 
     @Prop({
         type: [{

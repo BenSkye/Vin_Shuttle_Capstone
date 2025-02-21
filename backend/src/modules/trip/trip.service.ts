@@ -5,7 +5,7 @@ import { DriverSchedule } from "src/modules/driver-schedule/driver-schedule.sche
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
-import { Trip } from "src/modules/trip/trip.schema";
+import { TripDocument } from "src/modules/trip/trip.schema";
 
 import { DriverSchedulesStatus, Shift, ShiftHours } from "src/share/enums";
 
@@ -19,7 +19,7 @@ export class TripService implements ITripService {
         private readonly driverScheduleRepository: IDriverScheduleRepository
     ) { }
 
-    async createTrip(createTripDto: ICreateTripDto): Promise<Trip> {
+    async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
         await this.checkTrip(createTripDto)
         const newTrip = await this.tripRepository.create(createTripDto)
         return newTrip
@@ -117,11 +117,11 @@ export class TripService implements ITripService {
         }
     }
 
-    async getPersonalCustomerTrip(customerId: string): Promise<Trip[]> {
+    async getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]> {
         return await this.tripRepository.find({ customerId }, [])
     }
 
-    async getPersonalDriverTrip(driverId: string): Promise<Trip[]> {
+    async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
         return await this.tripRepository.find({ driverId }, [])
     }
 
