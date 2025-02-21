@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, View } from 'react-native';
+import { authService } from '../services/authService';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -68,19 +70,49 @@ function TabNavigator() {
 }
 
 export default function AppNavigator() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuthState();
+  }, []);
+
+  const checkAuthState = async () => {
+    try {
+      const isAuth = await authService.checkAuthState();
+      setIsAuthenticated(isAuth);
+    } catch (error) {
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#00C000" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
         screenOptions={{
           headerShown: false,
         }}
+        initialRouteName={isAuthenticated ? "Home" : "Login"}
       >
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen
-          name="Home"
-          component={TabNavigator}
-          options={{ headerLeft: undefined }}
-        />
+        {!isAuthenticated ? (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        ) : (
+          <Stack.Screen
+            name="Home"
+            component={TabNavigator}
+            options={{ headerLeft: undefined }}
+          />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
