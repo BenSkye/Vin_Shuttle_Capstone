@@ -95,6 +95,8 @@ export class TripService implements ITripService {
         newStart: Date,
         newEnd: Date
     ): Promise<void> {
+        console.log('newStart', newStart)
+        console.log('newEnd', newEnd)
         const existingTrips = await this.tripRepository.find({
             scheduleId,
             $or: [
