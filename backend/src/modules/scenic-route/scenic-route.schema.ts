@@ -26,7 +26,7 @@ class Waypoint {
 }
 
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'ScenicRoutes', timestamps: true })
 export class ScenicRoute extends Document {
     @Prop({ required: true, type: String })
     name: string;

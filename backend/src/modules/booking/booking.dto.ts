@@ -26,3 +26,12 @@ export interface IBookingHourBody {
     vehicleCategories: { categoryVehicleId: string; quantity: number }[],
     paymentMethod: PaymentMethod
 }
+
+export interface IBookingScenicRouteBody {
+    startPoint: Position,
+    scenicRouteId: string,
+    date: string,
+    startTime: string,
+    vehicleCategories: { categoryVehicleId: string; quantity: number }[],
+    paymentMethod: PaymentMethod
+}

@@ -86,9 +86,9 @@ export class SearchService implements ISearchService {
         }
 
         const durationMinutes = scenicRoute.estimatedDuration
+        const scheduleDate = DateUtils.parseDate(date);
         const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
-        const scheduleDate = DateUtils.parseDate(date);
         const totalDistance = scenicRoute.totalDistance
         console.log('totalDistance', totalDistance)
 
@@ -235,7 +235,17 @@ export class SearchService implements ISearchService {
     ): Promise<DriverScheduleDocument[]> {
         const tripPromise = schedules.map(schedule =>
             this.tripRepository.find({
-                scheduleId: schedule._id
+                scheduleId: schedule._id.toString(),
+                $or: [
+                    {
+                        timeStartEstimate: { $lt: bookingEndTime.toDate() },
+                        timeEndEstimate: { $gt: bookingStartTime.toDate() }
+                    },
+                    {
+                        timeStartEstimate: { $lte: bookingStartTime.toDate() },
+                        timeEndEstimate: { $gte: bookingEndTime.toDate() }
+                    }
+                ]
             }, [])
         );
 
@@ -246,23 +256,10 @@ export class SearchService implements ISearchService {
             .filter((trip, index, self) =>
                 index === self.findIndex(s => s._id === trip._id)
             );
-
+        console.log('uniqueTrips', uniqueTrips)
+        console.log('schedules', schedules)
         for (const trip of uniqueTrips) {
-            const startTimeTrip = DateUtils.fromDate(trip.timeStartEstimate)
-            const endTimeTrip = DateUtils.fromDate(trip.timeEndEstimate)
-
-            if (
-                // (startTimeTrip.isAfter(bookingStartTime) && startTimeTrip.isBefore(bookingEndTime)) ||
-                // (endTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime)) ||
-                // (startTimeTrip.isBefore(bookingStartTime) && endTimeTrip.isAfter(bookingEndTime))||
-                // (startTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime))
-                !(
-                    endTimeTrip.isBefore(bookingStartTime) ||
-                    startTimeTrip.isAfter(bookingEndTime)
-                )
-            ) {
-                schedules.filter(schedule => schedule._id === trip.scheduleId)
-            }
+            schedules = schedules.filter(schedule => schedule._id.toString() !== trip.scheduleId.toString())
         }
 
         if (schedules.length == 0) {
