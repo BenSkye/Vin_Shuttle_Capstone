@@ -14,9 +14,9 @@ import {
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import DateTimeSelection from "./datetimeselection";
-import VehicleSelection from "./vehicleselection";
-import LocationSelection from "./locationselection";
+import DateTimeSelection from "./bookingcomponents/datetimeselection";
+import VehicleSelection from "./bookingcomponents/vehicleselection";
+import LocationSelection from "./bookingcomponents/locationselection";
 import dayjs from "dayjs";
 
 const steps = ["Chọn ngày và giờ", "Chọn loại xe", "Chọn địa điểm đón"];
@@ -26,9 +26,9 @@ const HourlyBookingPage = () => {
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
     const [selectedTime, setSelectedTime] = useState<string>("");
     const [vehicleType, setVehicleType] = useState<string>("");
-    const [numberOfVehicles, setNumberOfVehicles] = useState<number>(1);
+    const [numberOfVehicles, setNumberOfVehicles] = useState<{ [key: string]: number }>({});
     const [pickup, setPickup] = useState<string>("");
-    const [destination, setDestination] = useState<string>("");
+
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -53,6 +53,13 @@ const HourlyBookingPage = () => {
         }
     };
 
+    const handleNumberOfVehiclesChange = (type: string, count: number) => {
+        setNumberOfVehicles(prev => ({
+            ...prev,
+            [type]: count
+        }));
+    };
+
     const handleBack = () => {
         setActiveStep((prevStep) => prevStep - 1);
     };
@@ -62,7 +69,7 @@ const HourlyBookingPage = () => {
         setSelectedDate(null);
         setSelectedTime("");
         setVehicleType("");
-        setNumberOfVehicles(1);
+        setNumberOfVehicles({});
         setPickup("");
     };
 
@@ -127,16 +134,16 @@ const HourlyBookingPage = () => {
                         vehicleType={vehicleType}
                         numberOfVehicles={numberOfVehicles}
                         onVehicleTypeChange={setVehicleType}
-                        onNumberOfVehiclesChange={setNumberOfVehicles}
+                        onNumberOfVehiclesChange={handleNumberOfVehiclesChange}
                     />
                 );
             case 2:
                 return (
                     <LocationSelection
                         pickup={pickup}
-                        destination={destination}
+
                         onPickupChange={setPickup}
-                        onDestinationChange={setDestination}
+
                         detectUserLocation={detectUserLocation}
                         loading={loading}
                     />
