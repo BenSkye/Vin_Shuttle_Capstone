@@ -44,7 +44,7 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
                             type="number"
                             min={1}
                             max={vehicle.available}
-                            onChange={(e) => onNumberOfVehiclesChange(vehicle.value, Number(e.target.value) || 1)}
+                            onChange={(e) => onNumberOfVehiclesChange(vehicle.value, Number(e.target.value))}
                             className="w-full mt-2 p-2 border border-gray-300 rounded-md"
                             placeholder="Chọn số lượng"
                         />
