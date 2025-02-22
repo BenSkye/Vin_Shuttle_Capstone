@@ -252,8 +252,14 @@ export class SearchService implements ISearchService {
             const endTimeTrip = DateUtils.fromDate(trip.timeEndEstimate)
 
             if (
-                (startTimeTrip.isAfter(bookingStartTime) && startTimeTrip.isBefore(bookingEndTime)) ||
-                (endTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime))
+                // (startTimeTrip.isAfter(bookingStartTime) && startTimeTrip.isBefore(bookingEndTime)) ||
+                // (endTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime)) ||
+                // (startTimeTrip.isBefore(bookingStartTime) && endTimeTrip.isAfter(bookingEndTime))||
+                // (startTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime))
+                !(
+                    endTimeTrip.isBefore(bookingStartTime) ||
+                    startTimeTrip.isAfter(bookingEndTime)
+                )
             ) {
                 schedules.filter(schedule => schedule._id === trip.scheduleId)
             }

@@ -58,7 +58,7 @@ export class AuthService implements IAuthService {
         }
         console.log('userExist', userExist);
         const otp = await this.otpService.create({ phone, role: userExist.role, name: userExist.name, _id: userExist._id.toString() });
-        await this.smsService.sendOTP(phone, otp);
+        // await this.smsService.sendOTP(phone, otp);
         return otp;
     }
 
