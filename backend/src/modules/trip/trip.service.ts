@@ -41,7 +41,7 @@ export class TripService implements ITripService {
             }, HttpStatus.BAD_REQUEST);
         }
 
-        const { timeStart, timeEnd } = this.validateTimeRange(createTripDto, driverSchedule);
+        const { timeStart, timeEnd } = await this.validateTimeRange(createTripDto, driverSchedule);
 
         await this.checkScheduleConflicts(createTripDto.scheduleId, timeStart, timeEnd);
         return valid
@@ -108,7 +108,6 @@ export class TripService implements ITripService {
                 }
             ]
         }, []);
-
         if (existingTrips.length > 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,

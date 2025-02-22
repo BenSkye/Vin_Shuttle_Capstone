@@ -1,7 +1,6 @@
-import { ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
+import { IBookingHourBody, ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
 import { BookingDocument } from "src/modules/booking/booking.schema";
-import { PaymentMethod } from "src/share/enums/payment.enum";
-import { Position } from "src/share/interface";
+
 
 export interface IBookingRepository {
     create(bookingCreateDto: ICreateBooking): Promise<BookingDocument>
@@ -14,11 +13,6 @@ export interface IBookingRepository {
 export interface IBookingService {
     bookingHour(
         customerId: string,
-        startPoint: Position,
-        date: string,
-        startTime: string,
-        durationMinutes: number,
-        vehicleCategories: { categoryVehicleId: string; quantity: number }[],
-        paymentMethod: PaymentMethod
+        data: IBookingHourBody
     ): Promise<BookingDocument>
 }

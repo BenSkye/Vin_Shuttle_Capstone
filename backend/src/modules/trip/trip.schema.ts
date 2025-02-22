@@ -12,6 +12,8 @@ class Position {
     @Prop({ required: true, type: Number })
     lng: number;
 }
+const PositionSchema = SchemaFactory.createForClass(Position);
+
 @Schema({ timestamps: true })
 export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -20,7 +22,7 @@ export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     driverId: Types.ObjectId;
 
-    @Prop({ type: Date, required: true })
+    @Prop({ type: Date })
     timeStart: Date;
 
     @Prop({ type: Date })
@@ -45,31 +47,31 @@ export class Trip {
     })
     serviceType: ServiceType;
 
-    @Prop({ required: true, type: [Position] })
+    @Prop({ required: true, type: [PositionSchema] })
     tripCoordinates: Position[];
 
     @Prop({
         type: {
             bookingHour: {
                 totalTime: Number, // in minutes
-                startPoint: String,
+                startPoint: PositionSchema,
             },
             bookingScenicRoute: {
                 routeId: Types.ObjectId,
-                startPoint: String,
+                startPoint: PositionSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingDestination: {
-                startPoint: String,
-                endPoint: String,
+                startPoint: PositionSchema,
+                endPoint: PositionSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingShare: {
                 numberOfSeat: Number,
-                startPoint: String,
-                endPoint: String,
+                startPoint: PositionSchema,
+                endPoint: PositionSchema,
                 distanceEstimate: Number,
                 distance: Number
             }
@@ -79,20 +81,26 @@ export class Trip {
     servicePayload: {
         bookingHour?: {
             totalTime: number;
-            startPoint: string; //lat,lng
+            startPoint: Position; //lat,lng
         };
         bookingScenicRoute?: {
             routeId: Types.ObjectId;
-            startPoint: string;
+            startPoint: Position;
+            distanceEstimate: number;
+            distance: number;
         };
         bookingDestination?: {
-            startPoint: string;
-            endPoint: string;
+            startPoint: Position;
+            endPoint: Position;
+            distanceEstimate: number;
+            distance: number
         };
         bookingShare?: {
             numberOfSeat: number;
-            startPoint: string;
-            endPoint: string;
+            startPoint: Position;
+            endPoint: Position;
+            distanceEstimate: number;
+            distance: number
         };
     };
 
@@ -139,7 +147,8 @@ TripSchema.pre<Trip>('validate', function (next) {
     const validators = {
         [ServiceType.BOOKING_HOUR]: () => {
             if (!payload.bookingHour) return false;
-            return payload.bookingHour.totalTime && payload.bookingHour.startPoint;
+            const result = payload.bookingHour.totalTime && payload.bookingHour.startPoint;
+            return result
         },
         [ServiceType.BOOKING_SCENIC_ROUTE]: () => {
             if (!payload.bookingScenicRoute) return false;

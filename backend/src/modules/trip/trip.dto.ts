@@ -43,9 +43,12 @@ export interface IUpdateTripDto {
 
 class BaseServicePayloadDto {
 }
-export class BookingHourPayloadDto extends BaseServicePayloadDto {
-    totalTime: number;
-    startPoint: Position;
+export class BookingHourPayloadDto {
+    bookingHour: {
+        totalTime: number;
+        startPoint: Position;
+    }
+
 }
 
 export class BookingScenicRoutePayloadDto extends BaseServicePayloadDto {
