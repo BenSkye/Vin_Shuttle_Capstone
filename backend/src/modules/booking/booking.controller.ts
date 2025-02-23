@@ -4,7 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
-import { IBookingHourBody, IBookingScenicRouteBody } from "src/modules/booking/booking.dto";
+import { IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody } from "src/modules/booking/booking.dto";
 import { IBookingService } from "src/modules/booking/booking.port";
 import { UserRole } from "src/share/enums";
 
@@ -74,7 +74,6 @@ export class BookingController {
                     scenicRouteId: '67ba067fa6cb16fffb59a4e4',
                     date: '2025-02-17',
                     startTime: '11:00',
-                    durationMinutes: 30,
                     vehicleCategories: [
                         {
                             categoryVehicleId: '67873bb9cf95c847fe62ba5f',
@@ -91,6 +90,47 @@ export class BookingController {
         @Body() data: IBookingScenicRouteBody,
     ) {
         return await this.bookingService.bookingScenicRoute(
+            req.user._id,
+            data
+        )
+    }
+
+
+    @Post('create-booking-destination')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.CUSTOMER)
+    @ApiBearerAuth('authorization')
+    @ApiBody({
+        type: Object,
+        description: 'Create a Booking destination and their Trip for customer',
+        examples: {
+            'Create a Booking destination and their Trip for customer': {
+                value: {
+                    startPoint: {
+                        lat: 10.8334,
+                        lng: 106.8420,
+                    },
+                    endPoint: {
+                        lat: 10.8479,
+                        lng: 106.8357,
+                    },
+                    estimatedDuration: 7,
+                    distanceEstimate: 2.8,
+                    vehicleCategories:
+                    {
+                        categoryVehicleId: '67873bb9cf95c847fe62ba5f',
+                    },
+                    paymentMethod: 'pay_os'
+                }
+            }
+        }
+    })
+    async bookingDestination(
+        @Request() req,
+        @Body() data: IBookingDestinationBody,
+    ) {
+        return await this.bookingService.bookingDestination(
             req.user._id,
             data
         )

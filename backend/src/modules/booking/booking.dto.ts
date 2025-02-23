@@ -35,3 +35,11 @@ export interface IBookingScenicRouteBody {
     vehicleCategories: { categoryVehicleId: string; quantity: number }[],
     paymentMethod: PaymentMethod
 }
+export interface IBookingDestinationBody {
+    startPoint: Position,
+    endPoint: Position;
+    estimatedDuration: number
+    distanceEstimate: number;
+    vehicleCategories: { categoryVehicleId: string },
+    paymentMethod: PaymentMethod
+}

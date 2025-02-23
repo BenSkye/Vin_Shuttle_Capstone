@@ -10,4 +10,4 @@ export enum BookingHourDuration {
     MIN = 15
 }
 
-export const BOOKING_BUFFER_MINUTES = 5
+export const BOOKING_BUFFER_MINUTES = 2
