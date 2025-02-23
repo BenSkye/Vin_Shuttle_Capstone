@@ -15,7 +15,7 @@ import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehic
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { ServiceType, Shift, ShiftHours } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, ServiceType, Shift, ShiftHours } from "src/share/enums";
 import { DateUtils } from "src/share/utils";
 
 
@@ -120,7 +120,7 @@ export class SearchService implements ISearchService {
     async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<any[]> {
         //start time is current time
         const now = dayjs();
-        const bookingStartTime = now.add(30, 'minute');
+        const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
         const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
 
         await this.validateBookingTime(bookingStartTime, bookingEndTime);
