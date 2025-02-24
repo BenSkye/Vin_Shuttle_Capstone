@@ -942,3 +942,47 @@ export const driverSchedule = [
     { title: "Nhật", vehicles: "Bike", allDay: false, start: new Date(2024, 7, 16, 13, 0), end: new Date(2024, 7, 16, 13, 45) },
     { title: "Luân", vehicles: "Bus", allDay: false, start: new Date(2024, 7, 16, 14, 0), end: new Date(2024, 7, 16, 14, 45) }
 ];
+
+
+export const appointments = [
+    {
+        title: "Morning Setup",
+        startDate: new Date("2024-02-24T06:00:00.000Z"), // Ca A
+        endDate: new Date("2024-02-24T14:00:00.000Z"),
+    },
+    {
+        title: "Team Meeting",
+        startDate: new Date("2024-02-25T10:00:00.000Z"), // Ca B
+        endDate: new Date("2024-02-25T18:00:00.000Z"),
+    },
+    {
+        title: "Development Sprint",
+        startDate: new Date("2024-02-26T12:00:00.000Z"), // Ca C
+        endDate: new Date("2024-02-26T20:00:00.000Z"),
+    },
+    {
+        title: "Night Shift Operations",
+        startDate: new Date("2024-02-27T15:00:00.000Z"), // Ca D
+        endDate: new Date("2024-02-27T23:00:00.000Z"),
+    },
+    {
+        title: "Strategy Planning",
+        startDate: new Date("2024-02-28T06:00:00.000Z"), // Ca A
+        endDate: new Date("2024-02-28T14:00:00.000Z"),
+    },
+    {
+        title: "Marketing Workshop",
+        startDate: new Date("2024-02-29T10:00:00.000Z"), // Ca B
+        endDate: new Date("2024-02-29T18:00:00.000Z"),
+    },
+    {
+        title: "Product Launch Prep",
+        startDate: new Date("2024-03-01T12:00:00.000Z"), // Ca C
+        endDate: new Date("2024-03-01T20:00:00.000Z"),
+    },
+    {
+        title: "Security Check",
+        startDate: new Date("2024-03-02T15:00:00.000Z"), // Ca D
+        endDate: new Date("2024-03-02T23:00:00.000Z"),
+    }
+];
