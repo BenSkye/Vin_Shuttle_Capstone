@@ -37,6 +37,7 @@ export class BookingController {
                     vehicleCategories: [
                         {
                             categoryVehicleId: '67873bb9cf95c847fe62ba5f',
+                            name: 'Xe điện 6 Chỗ',
                             quantity: 2
                         }
                     ],
@@ -77,6 +78,7 @@ export class BookingController {
                     vehicleCategories: [
                         {
                             categoryVehicleId: '67873bb9cf95c847fe62ba5f',
+                            name: 'Xe điện 6 Chỗ',
                             quantity: 2
                         }
                     ],
@@ -120,6 +122,7 @@ export class BookingController {
                     vehicleCategories:
                     {
                         categoryVehicleId: '67873bb9cf95c847fe62ba5f',
+                        name: 'Xe điện 6 Chỗ',
                     },
                     paymentMethod: 'pay_os'
                 }

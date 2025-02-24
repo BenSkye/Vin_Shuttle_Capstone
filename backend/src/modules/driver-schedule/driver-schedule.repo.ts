@@ -18,11 +18,11 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
     }
 
     async getDriverScheduleById(id: string): Promise<DriverScheduleDocument> {
-        return await this.driverScheduleModel.findById(id);
+        return await this.driverScheduleModel.findById(id).populate('driver', 'name').populate('vehicle', 'name');
     }
 
     async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
-        return await this.driverScheduleModel.find();
+        return await this.driverScheduleModel.find().populate('driver', 'name').populate('vehicle', 'name');
     }
 
     async getDriverSchedules(query: any, select: string[]): Promise<DriverScheduleDocument[]> {
@@ -30,7 +30,7 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
     }
 
     async findOneDriverSchedule(query: any, select: string[]): Promise<DriverScheduleDocument> {
-        return await this.driverScheduleModel.findOne(query).select(getSelectData(select));
+        return await this.driverScheduleModel.findOne(query).select(getSelectData(select)).populate('driver', 'name').populate('vehicle', 'name');
     }
 
     async updateDriverSchedule(id: string, driverSchedule: any): Promise<DriverScheduleDocument> {

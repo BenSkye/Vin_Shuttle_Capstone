@@ -15,7 +15,7 @@ import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehic
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { BOOKING_BUFFER_MINUTES, ServiceType, Shift, ShiftHours } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, DriverSchedulesStatus, ServiceType, Shift, ShiftHours } from "src/share/enums";
 import { DateUtils } from "src/share/utils";
 
 
@@ -81,7 +81,8 @@ export class SearchService implements ISearchService {
         if (!scenicRoute) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Scenic Route not found`
+                message: `Scenic Route not found`,
+                vnMesage: 'Không tìm thấy tuyến đường ngăm cảnh',
             }, HttpStatus.NOT_FOUND);
         }
 
@@ -131,7 +132,8 @@ export class SearchService implements ISearchService {
 
         const schedules = await this.getAvailableSchedules(
             midnightUTC.toDate(),
-            matchingShifts
+            matchingShifts,
+            DriverSchedulesStatus.IN_PROGRESS
         );
 
         const validSchedules = await this.filterSchedulesWithoutConflicts(
@@ -168,7 +170,8 @@ export class SearchService implements ISearchService {
         ) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Booking time is not within working hours`
+                message: `Booking time is not within working hours`,
+                vnMesage: 'Thời gian đặt xe không nằm trong thời gian hoạt động',
             }, HttpStatus.BAD_REQUEST);
         }
     }
@@ -193,7 +196,8 @@ export class SearchService implements ISearchService {
         if (matchingShifts.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Booking time is not match any shift`
+                message: `Booking time is not match any shift`,
+                vnMesage: 'Không có ca phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
         return matchingShifts
@@ -201,15 +205,29 @@ export class SearchService implements ISearchService {
 
     async getAvailableSchedules(
         date: Date,
-        shifts: Shift[]
+        shifts: Shift[],
+        status?: DriverSchedulesStatus
     ): Promise<DriverScheduleDocument[]> {
         console.log('date', date.toISOString())
-        const schedulePromises = shifts.map(shift =>
-            this.driverScheduleRepository.getDriverSchedules({
-                date: date.toISOString(),
-                shift: shift,
-            }, [])
-        );
+
+
+        let schedulePromises: Promise<DriverScheduleDocument[]>[];
+        if (status) {
+            schedulePromises = shifts.map(shift =>
+                this.driverScheduleRepository.getDriverSchedules({
+                    date: date.toISOString(),
+                    shift: shift,
+                    status: status
+                }, [])
+            );
+        } else {
+            schedulePromises = shifts.map(shift =>
+                this.driverScheduleRepository.getDriverSchedules({
+                    date: date.toISOString(),
+                    shift: shift,
+                }, [])
+            );
+        }
 
         const scheduleResults = await Promise.all(schedulePromises);
         const uniqueSchedules = scheduleResults
@@ -221,7 +239,8 @@ export class SearchService implements ISearchService {
         if (uniqueSchedules.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `No more Schedule valid`
+                message: `No more Schedule valid`,
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -265,7 +284,8 @@ export class SearchService implements ISearchService {
         if (schedules.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `No more Schedule valid`
+                message: `No more Schedule valid`,
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
         return schedules

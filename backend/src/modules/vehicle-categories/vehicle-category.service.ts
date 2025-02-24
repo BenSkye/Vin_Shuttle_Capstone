@@ -21,14 +21,15 @@ export class VehicleCategoryService implements IVehicleCategoryService {
         if (!isValidObjectId(id)) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Invalid ID format'
+                message: 'Invalid ID format',
             }, HttpStatus.NOT_FOUND);
         }
         const vehicleCategory = this.vehicleCategoryRepository.getById(id);
         if (!vehicleCategory) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Vehicle category with ID ${id} not found`
+                message: `Vehicle category with ID ${id} not found`,
+                vnMesage: `Loại xe ${id} không tìm thấy`,
             }, HttpStatus.NOT_FOUND);
         }
         return vehicleCategory
@@ -39,7 +40,8 @@ export class VehicleCategoryService implements IVehicleCategoryService {
         if (!newVehicleCategory) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `can not insert vehicle category`
+                message: `can not insert vehicle category`,
+                vnMesage: 'Lỗi tạo loại xe',
             }, HttpStatus.BAD_REQUEST)
         }
 
