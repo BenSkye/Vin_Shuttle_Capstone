@@ -1,4 +1,4 @@
-import { IBookingHourBody, ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
+import { IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody, ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
 import { BookingDocument } from "src/modules/booking/booking.schema";
 
 
@@ -14,5 +14,13 @@ export interface IBookingService {
     bookingHour(
         customerId: string,
         data: IBookingHourBody
+    ): Promise<BookingDocument>
+    bookingScenicRoute(
+        customerId: string,
+        data: IBookingScenicRouteBody
+    ): Promise<BookingDocument>
+    bookingDestination(
+        customerId: string,
+        data: IBookingDestinationBody
     ): Promise<BookingDocument>
 }

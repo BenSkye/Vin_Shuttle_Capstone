@@ -14,7 +14,7 @@ class Position {
 }
 const PositionSchema = SchemaFactory.createForClass(Position);
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'Trips', timestamps: true })
 export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     customerId: Types.ObjectId;

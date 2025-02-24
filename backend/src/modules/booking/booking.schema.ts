@@ -7,7 +7,7 @@ export type BookingDocument = Booking & Document;
 
 
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'Bookings', timestamps: true })
 export class Booking {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     customerId: Types.ObjectId;

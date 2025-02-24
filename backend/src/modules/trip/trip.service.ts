@@ -37,7 +37,8 @@ export class TripService implements ITripService {
         if (!driverSchedule || driverSchedule.status == DriverSchedulesStatus.COMPLETED) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'driver Schedule is not valid'
+                message: 'driver Schedule is not valid',
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -83,7 +84,8 @@ export class TripService implements ITripService {
         if (timeStart < expectedStartTime || timeEnd > expectedEndTime) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Time has between shift: ${shiftHours.start}:00 - ${shiftHours.end}:00`
+                message: `Time has between shift: ${shiftHours.start}:00 - ${shiftHours.end}:00`,
+                vnMesage: `Thời gian đặt phải từ ${shiftHours.start}:00 - ${shiftHours.end}:00`,
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -95,6 +97,8 @@ export class TripService implements ITripService {
         newStart: Date,
         newEnd: Date
     ): Promise<void> {
+        console.log('newStart', newStart)
+        console.log('newEnd', newEnd)
         const existingTrips = await this.tripRepository.find({
             scheduleId,
             $or: [
@@ -111,7 +115,8 @@ export class TripService implements ITripService {
         if (existingTrips.length > 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Time has duplicate with some trip'
+                message: 'Time has duplicate with some trip',
+                vnMesage: 'Trùng lịch với chuyến đi khác',
             }, HttpStatus.BAD_REQUEST);
         }
     }
