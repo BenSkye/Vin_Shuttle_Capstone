@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { ServiceType, Shift, ShiftHours } from "src/share/enums";
+import { DriverSchedulesStatus, Shift } from "src/share/enums";
 
 export interface ISearchService {
     findAvailableVehicleBookingHour(date: string, startTime: string, durationMinutes: number): Promise<any[]>
@@ -21,7 +21,8 @@ export interface ISearchService {
 
     getAvailableSchedules(
         date: Date,
-        shifts: Shift[]
+        shifts: Shift[],
+        status?: DriverSchedulesStatus
     ): Promise<DriverScheduleDocument[]>
 
     filterSchedulesWithoutConflicts(

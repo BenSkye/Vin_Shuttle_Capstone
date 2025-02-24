@@ -1,14 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { BookingStatus } from 'src/share/enums';
 import { PaymentMethod } from 'src/share/enums/payment.enum';
 
-export type BookingDocument = Booking & Document;
+export type BookingDocument = HydratedDocument<Booking>;
 
 
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'Bookings', timestamps: true })
 export class Booking {
+    @Prop({ type: Number, unique: true })
+    bookingCode: number
+
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     customerId: Types.ObjectId;
 
@@ -62,3 +65,27 @@ export const BookingSchema = SchemaFactory.createForClass(Booking);
 
 // Add indexes
 BookingSchema.index({ customerId: 1, status: 1 });
+
+
+
+// Middleware tự động cập nhật lịch sử trạng thái
+BookingSchema.pre<Booking>('save', function (next) {
+    const modifiedPaths = (this as any).modifiedPaths();
+    // Kiểm tra cả trường hợp tạo mới và cập nhật  
+    if ((this as any).isNew || modifiedPaths.includes('status')) {
+        const currentStatus = this.status;
+
+        // Tránh trùng lặp entry đầu tiên khi tạo mới
+        if (!(this as any).isNew) {
+            const lastEntry = this.statusHistory.slice(-1)[0];
+            if (lastEntry?.status === currentStatus) return next();
+        }
+
+        this.statusHistory = this.statusHistory || [];
+        this.statusHistory.push({
+            status: currentStatus,
+            changedAt: new Date(),
+        });
+    }
+    next();
+});

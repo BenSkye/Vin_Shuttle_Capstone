@@ -35,7 +35,8 @@ export class PricingService implements IPricingService {
         if (exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config already exists'
+                message: 'Service config already exists',
+                vnMesage: 'Cấu hình dịch vụ đã tồn tại',
             }, HttpStatus.NOT_FOUND);
         }
         const newServiceConfig = this.configRepo.create(config);
@@ -48,7 +49,8 @@ export class PricingService implements IPricingService {
         if (!vehicle_category_exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle category not found'
+                message: 'Vehicle category not found',
+                vnMesage: 'Không tìm thấy loại xe',
             }, HttpStatus.NOT_FOUND);
         }
         const service_config = pricing.service_config;
@@ -56,7 +58,8 @@ export class PricingService implements IPricingService {
         if (!service_config_exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config not found'
+                message: 'Service config not found',
+                vnMesage: 'Không tìm thấy cấu hình dịch vụ',
             }, HttpStatus.NOT_FOUND);
         }
         //check if vehicle pricing already exists with the same vehicle category and service config
@@ -64,7 +67,8 @@ export class PricingService implements IPricingService {
         if (exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle pricing already exists'
+                message: 'Vehicle pricing already exists',
+                vnMesage: 'Cấu hình giá đã tồn tại',
             }, HttpStatus.NOT_FOUND);
         }
         //make sure that the tire_pricing is not empty and sorted by range
@@ -76,7 +80,8 @@ export class PricingService implements IPricingService {
         if (!config) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config not found'
+                message: 'Service config not found',
+                vnMesage: 'Không tìm thấy cấu hình dịch vụ',
             }, HttpStatus.NOT_FOUND);
         }
         return config;
@@ -87,7 +92,8 @@ export class PricingService implements IPricingService {
         if (!pricing) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle pricing not found'
+                message: 'Vehicle pricing not found',
+                vnMesage: 'Không tìm thấy cấu hình giá',
             }, HttpStatus.NOT_FOUND);
         }
         return pricing;
@@ -106,7 +112,8 @@ export class PricingService implements IPricingService {
         if (!exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config not found'
+                message: 'Service config not found',
+                vnMesage: 'Không tìm thấy cấu hình dịch vụ',
             }, HttpStatus.NOT_FOUND);
         }
         return await this.configRepo.update(serviceType, config);
@@ -117,7 +124,8 @@ export class PricingService implements IPricingService {
         if (!exists) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle pricing not found'
+                message: 'Vehicle pricing not found',
+                vnMesage: 'Không tìm thấy cấu hình giá',
             }, HttpStatus.NOT_FOUND);
         }
         return await this.vehiclePricingRepo.update(pricing);
@@ -130,11 +138,11 @@ export class PricingService implements IPricingService {
         if (!config) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Service config not found'
+                message: 'Service config not found',
+                vnMesage: 'Không tìm thấy cấu hình dịch vụ',
             }, HttpStatus.NOT_FOUND);
         }
-        console.log('vehicleCategoryId', vehicleCategoryId)
-        console.log('config', config)
+
         const pricing = await this.vehiclePricingRepo.findVehiclePricing({
             vehicle_category: vehicleCategoryId.toString(),
             service_config: config?._id.toString()
@@ -142,7 +150,8 @@ export class PricingService implements IPricingService {
         if (!pricing) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Vehicle pricing not found'
+                message: 'Vehicle pricing not found',
+                vnMesage: 'Không tìm thấy cấu hình giá',
             }, HttpStatus.NOT_FOUND);
         }
         // Calculate total price using applicable pricing tiers

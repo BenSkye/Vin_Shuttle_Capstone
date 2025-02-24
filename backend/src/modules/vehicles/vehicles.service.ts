@@ -30,7 +30,8 @@ export class VehiclesService {
             if (!isExistCategory) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: 'Invalid Vehicle Category ID '
+                    message: 'Invalid Vehicle Category ID ',
+                    vnMesage: 'Không tìm thấy loại xe',
                 }, HttpStatus.BAD_REQUEST);
             }
             console.log('data', data)
@@ -50,7 +51,8 @@ export class VehiclesService {
             if (!isExistCategory) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: 'Invalid Vehicle Category ID '
+                    message: 'Invalid Vehicle Category ID',
+                    vnMesage: 'Không tìm thấy loại xe',
                 }, HttpStatus.BAD_REQUEST);
             }
         }

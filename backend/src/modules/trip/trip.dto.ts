@@ -37,7 +37,6 @@ export interface IUpdateTripDto {
     statusHistory?: Array<{
         status: TripStatus;
         changedAt: Date;
-        reason?: string;
     }>;
 }
 
@@ -51,26 +50,32 @@ export class BookingHourPayloadDto {
 
 }
 
-export class BookingScenicRoutePayloadDto extends BaseServicePayloadDto {
-    routeId: string;
-    startPoint: Position;
-    distanceEstimate: number;
-    distance: number
+export class BookingScenicRoutePayloadDto {
+    bookingScenicRoute: {
+        routeId: string;
+        startPoint: Position;
+        distanceEstimate: number;
+        distance: number
+    }
 }
 
 export class BookingDestinationPayloadDto extends BaseServicePayloadDto {
-    startPoint: Position;
-    endPoint: Position;
-    distanceEstimate: number;
-    distance: number
+    bookingDestination: {
+        startPoint: Position;
+        endPoint: Position;
+        distanceEstimate: number;
+        distance: number
+    }
 }
 
 export class BookingSharePayloadDto extends BaseServicePayloadDto {
-    numberOfSeat: number;
-    startPoint: Position;
-    endPoint: Position;
-    distanceEstimate: number;
-    distance: number
+    bookingShare: {
+        numberOfSeat: number;
+        startPoint: Position;
+        endPoint: Position;
+        distanceEstimate: number;
+        distance: number
+    }
 }
 
 

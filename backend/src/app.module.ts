@@ -17,6 +17,7 @@ import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedul
 import { TripModule } from 'src/modules/trip/trip.module';
 import { BookingModule } from 'src/modules/booking/booking.module';
 import { SearchModule } from 'src/modules/search/search.module';
+import { CheckoutModule } from 'src/modules/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import { SearchModule } from 'src/modules/search/search.module';
     DriverScheduleModule,
     TripModule,
     SearchModule,
-    BookingModule
+    BookingModule,
+    CheckoutModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
