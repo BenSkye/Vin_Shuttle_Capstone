@@ -5,7 +5,7 @@ import { DriverSchedule } from "src/modules/driver-schedule/driver-schedule.sche
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
-import { Trip } from "src/modules/trip/trip.schema";
+import { TripDocument } from "src/modules/trip/trip.schema";
 
 import { DriverSchedulesStatus, Shift, ShiftHours } from "src/share/enums";
 
@@ -19,7 +19,7 @@ export class TripService implements ITripService {
         private readonly driverScheduleRepository: IDriverScheduleRepository
     ) { }
 
-    async createTrip(createTripDto: ICreateTripDto): Promise<Trip> {
+    async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
         await this.checkTrip(createTripDto)
         const newTrip = await this.tripRepository.create(createTripDto)
         return newTrip
@@ -37,11 +37,12 @@ export class TripService implements ITripService {
         if (!driverSchedule || driverSchedule.status == DriverSchedulesStatus.COMPLETED) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'driver Schedule is not valid'
+                message: 'driver Schedule is not valid',
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
 
-        const { timeStart, timeEnd } = this.validateTimeRange(createTripDto, driverSchedule);
+        const { timeStart, timeEnd } = await this.validateTimeRange(createTripDto, driverSchedule);
 
         await this.checkScheduleConflicts(createTripDto.scheduleId, timeStart, timeEnd);
         return valid
@@ -83,7 +84,8 @@ export class TripService implements ITripService {
         if (timeStart < expectedStartTime || timeEnd > expectedEndTime) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Time has between shift: ${shiftHours.start}:00 - ${shiftHours.end}:00`
+                message: `Time has between shift: ${shiftHours.start}:00 - ${shiftHours.end}:00`,
+                vnMesage: `Thời gian đặt phải từ ${shiftHours.start}:00 - ${shiftHours.end}:00`,
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -95,6 +97,8 @@ export class TripService implements ITripService {
         newStart: Date,
         newEnd: Date
     ): Promise<void> {
+        console.log('newStart', newStart)
+        console.log('newEnd', newEnd)
         const existingTrips = await this.tripRepository.find({
             scheduleId,
             $or: [
@@ -108,20 +112,20 @@ export class TripService implements ITripService {
                 }
             ]
         }, []);
-
         if (existingTrips.length > 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Time has duplicate with some trip'
+                message: 'Time has duplicate with some trip',
+                vnMesage: 'Trùng lịch với chuyến đi khác',
             }, HttpStatus.BAD_REQUEST);
         }
     }
 
-    async getPersonalCustomerTrip(customerId: string): Promise<Trip[]> {
+    async getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]> {
         return await this.tripRepository.find({ customerId }, [])
     }
 
-    async getPersonalDriverTrip(driverId: string): Promise<Trip[]> {
+    async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
         return await this.tripRepository.find({ driverId }, [])
     }
 

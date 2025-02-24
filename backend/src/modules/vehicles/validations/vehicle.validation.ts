@@ -80,6 +80,8 @@ export const VehicleValidation = {
             })
             .label('Trạng thái hoạt động'),
 
+        image: Joi.array().label('Hình ảnh xe'),
+
         status: Joi.string()
             .valid(...vehicleStatus)
             .messages({

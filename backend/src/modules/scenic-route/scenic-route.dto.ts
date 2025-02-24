@@ -1,7 +1,5 @@
-export interface Position {
-    lat: number;
-    lng: number;
-}
+import { Position } from "src/share/interface";
+
 
 export interface Waypoint {
     id: number;

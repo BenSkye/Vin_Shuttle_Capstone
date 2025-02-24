@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
 import { ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
 import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
-import { DriverSchedule, DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
+import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
@@ -43,7 +43,8 @@ export class DriverScheduleService implements IDriverScheduleService {
             if (driver.status !== UserStatus.ACTIVE || !driver || driver.role !== UserRole.DRIVER) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Driver ${driver.name} is not active`
+                    message: `Driver ${driver.name} is not active`,
+                    vnMesage: `Tài xế ${driver.name} không sẵn sàng`
                 }, HttpStatus.BAD_REQUEST);
             }
 
@@ -51,13 +52,16 @@ export class DriverScheduleService implements IDriverScheduleService {
             if (!vehicle) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Vehicle ${schedule.vehicle} not found`
+                    message: `Vehicle ${schedule.vehicle} not found`,
+                    vnMesage: `Không tìm thấy xe ${schedule.vehicle}`
+
                 }, HttpStatus.BAD_REQUEST);
             }
             if (vehicle.vehicleCondition !== VehicleCondition.AVAILABLE) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Vehicle ${schedule.vehicle} is not available`
+                    message: `Vehicle ${schedule.vehicle} is not available`,
+                    vnMesage: `Xe ${schedule.vehicle} không sẵn sàng`
                 }, HttpStatus.BAD_REQUEST);
             }
 
@@ -70,7 +74,8 @@ export class DriverScheduleService implements IDriverScheduleService {
             if (isExistScheduleWithDriver) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Duplicate date shift with driver ${schedule.date}-${schedule.shift}-${schedule.driver} in database`
+                    message: `Duplicate date shift with driver ${schedule.date}-${schedule.shift}-${schedule.driver} in database`,
+                    vnMesage: `Trùng lịch ${schedule.date}-${schedule.shift}-${schedule.driver}`
                 }, HttpStatus.BAD_REQUEST);
             }
 
@@ -83,7 +88,8 @@ export class DriverScheduleService implements IDriverScheduleService {
             if (isExistScheduleWithVehicle) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Duplicate date shift with vehicle ${schedule.date}-${schedule.shift}-${schedule.vehicle} in database`
+                    message: `Duplicate date shift with vehicle ${schedule.date}-${schedule.shift}-${schedule.vehicle} in database`,
+                    vnMesage: `Trùng lịch ${schedule.date}-${schedule.shift}-${schedule.vehicle}`
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -96,13 +102,15 @@ export class DriverScheduleService implements IDriverScheduleService {
             if (seen.has(keyWithDriver)) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Duplicate date shift with driver ${keyWithDriver} in list`
+                    message: `Duplicate date shift with driver ${keyWithDriver} in list`,
+                    vnMesage: `Trùng lịch ${keyWithDriver}`
                 }, HttpStatus.BAD_REQUEST);
             }
             if (seen.has(keyWithVehicle)) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Duplicate date shift with vehicle  ${keyWithVehicle} in list`
+                    message: `Duplicate date shift with vehicle  ${keyWithVehicle} in list`,
+                    vnMesage: `Trùng lịch ${keyWithVehicle}`
                 }, HttpStatus.BAD_REQUEST);
             }
             seen.add(keyWithDriver)
@@ -129,7 +137,8 @@ export class DriverScheduleService implements IDriverScheduleService {
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Invalid date'
+                message: 'Invalid date',
+                vnMesage: `Ngày không hợp lệ`,
             }, HttpStatus.BAD_REQUEST);
         }
         const daynum = endDate.getDate() - startDate.getDate();
@@ -156,7 +165,8 @@ export class DriverScheduleService implements IDriverScheduleService {
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Invalid date'
+                message: 'Invalid date',
+                vnMesage: `Ngày không hợp lệ`,
             }, HttpStatus.BAD_REQUEST);
         }
         const daynum = endDate.getDate() - startDate.getDate();
@@ -186,38 +196,45 @@ export class DriverScheduleService implements IDriverScheduleService {
         // get current time,
         const currentTime = new Date();
         console.log('driverScheduleId', driverScheduleId)
-        const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(driverScheduleId);
+        const driverSchedule = await
+            this.driverScheduleRepository.findOneDriverSchedule(
+                {
+                    _id: driverScheduleId,
+                    driver: driverId
+                }, []);
         if (!driverSchedule) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Driver Schedule not found'
+                message: 'Driver Schedule not found',
+                vnMesage: `Không tìm thấy lịch`,
             }, HttpStatus.NOT_FOUND);
-        }
-        if (driverSchedule.driver.toString() !== driverId) {
-            throw new HttpException({
-                statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Driver not found'
-            }, HttpStatus.BAD_REQUEST);
         }
         if (driverSchedule.status !== DriverSchedulesStatus.NOT_STARTED) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Driver schedule has started or completed'
+                message: 'Driver schedule has started or completed',
+                vnMesage: 'Đã chấm công',
             }, HttpStatus.BAD_REQUEST);
         }
         const shift = driverSchedule.shift;
         const shiftHours = ShiftHours[shift];
 
         const expectedCheckin = new Date(driverSchedule.date);
-        expectedCheckin.setHours(shiftHours.start + ShiftDifference.IN, 0, 0, 0);
+        expectedCheckin.setHours(shiftHours.start, ShiftDifference.IN, 0, 0);
 
         const expectedCheckout = new Date(driverSchedule.date);
-        expectedCheckout.setHours(shiftHours.end + ShiftDifference.OUT, 0, 0, 0);
+        expectedCheckout.setHours(shiftHours.end, ShiftDifference.OUT, 0, 0);
+
+        console.log('shiftHours', shiftHours)
+        console.log('expectedCheckin', expectedCheckin)
+        console.log('expectedCheckout', expectedCheckout)
+        console.log('currentTime', currentTime)
 
         if (currentTime < expectedCheckin || currentTime > expectedCheckout) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Driver schedule is not in shift time'
+                message: 'Driver schedule is not in shift time',
+                vnMesage: 'Không trong ca làm',
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -238,26 +255,24 @@ export class DriverScheduleService implements IDriverScheduleService {
 
     async driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
         const currentTime = new Date();
-        const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(driverScheduleId);
-
+        const driverSchedule = await this.driverScheduleRepository.findOneDriverSchedule(
+            {
+                _id: driverScheduleId,
+                driver: driverId
+            }, []);
         if (!driverSchedule) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Driver Schedule not found'
+                message: 'Driver Schedule not found',
+                vnMesage: `Không tìm thấy lịch`,
             }, HttpStatus.NOT_FOUND);
-        }
-        // Validate driver ownership
-        if (driverSchedule.driver.toString() !== driverId) {
-            throw new HttpException({
-                statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Driver not authorized for this schedule'
-            }, HttpStatus.BAD_REQUEST);
         }
         // Validate schedule status
         if (driverSchedule.status !== DriverSchedulesStatus.IN_PROGRESS) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Schedule must be in progress to checkout'
+                message: 'Schedule must be in progress to checkout',
+                vnMesage: 'Không thể kết ca',
             }, HttpStatus.BAD_REQUEST);
         }
 

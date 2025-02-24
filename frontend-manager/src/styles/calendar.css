@@ -1,0 +1,61 @@
+.calendar-container {
+    @apply w-full max-w-4xl mx-auto;
+}
+
+.calendar-header {
+    @apply flex items-center justify-between mb-4;
+}
+
+.calendar-grid {
+    @apply grid grid-cols-7 gap-1;
+}
+
+.calendar-day-header {
+    @apply p-2 text-center font-semibold bg-gray-100;
+}
+
+.calendar-day {
+    @apply min-h-[100px] p-2 border cursor-pointer transition-colors duration-200;
+}
+
+.calendar-day:hover {
+    @apply bg-gray-50;
+}
+
+.calendar-day.selected {
+    @apply bg-blue-50 border-blue-500;
+}
+
+.appointment-item {
+    @apply text-sm p-1 mb-1 rounded cursor-pointer transition-colors duration-200;
+}
+
+.appointment-item.confirmed {
+    @apply bg-green-100 hover:bg-green-200;
+}
+
+.appointment-item.pending {
+    @apply bg-yellow-100 hover:bg-yellow-200;
+}
+
+.appointment-item.cancelled {
+    @apply bg-red-100 hover:bg-red-200;
+}
+
+/* Ẩn các hàng giờ từ 7h đến 13h */
+.dx-scheduler-time-panel-cell[data-hour="7"],
+.dx-scheduler-time-panel-cell[data-hour="8"],
+.dx-scheduler-time-panel-cell[data-hour="9"],
+.dx-scheduler-time-panel-cell[data-hour="10"],
+.dx-scheduler-time-panel-cell[data-hour="11"],
+.dx-scheduler-time-panel-cell[data-hour="12"],
+.dx-scheduler-time-panel-cell[data-hour="13"] {
+    display: none;
+}
+
+/* Điều chỉnh chiều cao của các khung giờ để không bị trống */
+.dx-scheduler-time-panel-cell[data-hour="6"],
+.dx-scheduler-time-panel-cell[data-hour="14"] {
+    height: 60px !important;
+    /* Tăng kích thước nếu cần */
+}

@@ -1,13 +1,15 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { BookingController } from "src/modules/booking/booking.controller";
-import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
+import { BOOKING_REPOSITORY, BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
+import { BookingRepository } from "src/modules/booking/booking.repo";
 import { Booking, BookingSchema } from "src/modules/booking/booking.schema";
 import { BookingService } from "src/modules/booking/booking.service";
 import { DriverScheduleModule } from "src/modules/driver-schedule/driver-schedule.module";
 import { KeytokenModule } from "src/modules/keytoken/keytoken.module";
 import { PricingModule } from "src/modules/pricing/pricing.module";
 import { ScenicRouteModule } from "src/modules/scenic-route/scenic-route.module";
+import { SearchModule } from "src/modules/search/search.module";
 import { TripModule } from "src/modules/trip/trip.module";
 import { VehicleCategoryModule } from "src/modules/vehicle-categories/vehicle-category.module";
 import { VehiclesModule } from "src/modules/vehicles/vehicles.module";
@@ -18,9 +20,10 @@ const dependencies = [
         provide: BOOKING_SERVICE,
         useClass: BookingService
     },
-    // {
-    //     provide: BOOKING_REPOSITORY
-    // }
+    {
+        provide: BOOKING_REPOSITORY,
+        useClass: BookingRepository
+    }
 ]
 
 
@@ -37,6 +40,7 @@ const dependencies = [
         DriverScheduleModule,
         TripModule,
         PricingModule,
+        SearchModule,
         ScenicRouteModule,
         ShareModule,
         KeytokenModule

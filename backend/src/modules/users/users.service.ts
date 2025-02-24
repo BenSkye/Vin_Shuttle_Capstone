@@ -21,7 +21,8 @@ export class UsersService implements IUserService {
         if (!user) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'User Not Found'
+                message: 'User Not Found',
+                vnMesage: 'Không tìm thấy người dùng',
             }, HttpStatus.NOT_FOUND);
         }
         return user;

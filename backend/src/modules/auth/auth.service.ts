@@ -29,7 +29,8 @@ export class AuthService implements IAuthService {
         if (userExist) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Phone number already exist'
+                message: 'Phone number already exist',
+                vnMessage: 'Số điện thoại đã tồn tại'
             }, HttpStatus.BAD_REQUEST);
         }
         if (data.password) {
@@ -40,7 +41,8 @@ export class AuthService implements IAuthService {
         if (!newUser) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Failed to create user'
+                message: 'Failed to create user',
+                vnMesage: 'Lỗi khi tạo tài khoản'
             }, HttpStatus.BAD_REQUEST);
         }
         return newUser;
@@ -53,12 +55,12 @@ export class AuthService implements IAuthService {
         if (!userExist) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Phone number not exist'
+                message: 'Phone number not exist',
+                vnMesage: 'Số điện thoại không tồn tại'
             }, HttpStatus.NOT_FOUND);
         }
-        console.log('userExist', userExist);
         const otp = await this.otpService.create({ phone, role: userExist.role, name: userExist.name, _id: userExist._id.toString() });
-        await this.smsService.sendOTP(phone, otp);
+        // await this.smsService.sendOTP(phone, otp);
         return otp;
     }
 
@@ -67,14 +69,16 @@ export class AuthService implements IAuthService {
         if (!userExist) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'email not exist'
+                message: 'email not exist',
+                vnMesage: 'Email không tồn tại'
             }, HttpStatus.NOT_FOUND);
         }
         const match = await bcrypt.compare(password, userExist.password);
         if (!match) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Password not true'
+                message: 'Password not true',
+                vnMesage: 'Mật khẩu sai'
             }, HttpStatus.NOT_FOUND);
         }
         const token = await this.keyTokenService.createKeyToken(
@@ -91,14 +95,16 @@ export class AuthService implements IAuthService {
         if (!userExist) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'email not exist'
+                message: 'user not exist',
+                vnMesage: 'Người dùng không tồn tại'
             }, HttpStatus.NOT_FOUND);
         }
         const match = await bcrypt.compare(oldPassword, userExist.password);
         if (!match) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'Password not true'
+                message: 'Old Password not true',
+                vnMesage: 'Mật khẩu cũ không đúng'
             }, HttpStatus.NOT_FOUND);
         }
         const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -106,7 +112,8 @@ export class AuthService implements IAuthService {
         if (!updatedUser) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Change password fail'
+                message: 'Change password fail',
+                vnMesage: 'Đổi mật khẩu thất bại'
             }, HttpStatus.BAD_REQUEST);
         }
         const token = await this.keyTokenService.createKeyToken(

@@ -56,9 +56,14 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-function RoutingMachine({ stops, onRouteFound }: {
+function RoutingMachine({ stops, onRouteFound, savedRoute }: {
     stops: BusStop[];
     onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
+    savedRoute?: {
+        coordinates: L.LatLng[];
+        estimatedDuration: number;
+        totalDistance: number;
+    };
 }) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
@@ -71,21 +76,45 @@ function RoutingMachine({ stops, onRouteFound }: {
             routingControlRef.current = null;
         }
 
+        // Nếu có savedRoute, sử dụng coordinates đã lưu
+        if (savedRoute) {
+            const polyline = L.polyline(savedRoute.coordinates, {
+                color: '#3498db',
+                weight: 6,
+                opacity: 0.9
+            }).addTo(map);
+
+            map.fitBounds(polyline.getBounds());
+
+            // Sử dụng thông tin đã lưu
+            onRouteFound(
+                savedRoute.coordinates,
+                savedRoute.estimatedDuration,
+                savedRoute.totalDistance
+            );
+
+            return () => {
+                polyline.removeFrom(map);
+            };
+        }
+
+        // Nếu không có savedRoute, tạo route mới
         const waypoints = stops.map(stop => stop.position);
 
         routingControlRef.current = L.Routing.control({
             waypoints: waypoints,
             routeWhileDragging: true,
-            addWaypoints: false,
-            fitSelectedRoutes: true,
+            addWaypoints: true,
+            fitSelectedRoutes: false,
             showAlternatives: false,
             show: false,
             lineOptions: {
-                styles: [{ color: '#3498db', weight: 6, opacity: 0.9 }],
+                styles: [{ color: '#3498db', weight: 2, opacity: 0.9 }],
                 extendToWaypoints: true,
-                missingRouteTolerance: 0
+                missingRouteTolerance: 5
             }
         }).addTo(map);
+
 
         routingControlRef.current.on('routesfound', (e) => {
             const routes = e.routes;
@@ -102,7 +131,7 @@ function RoutingMachine({ stops, onRouteFound }: {
                 map.removeControl(routingControlRef.current);
             }
         };
-    }, [map, stops, onRouteFound]);
+    }, [map, stops, onRouteFound, savedRoute]);
 
     return null;
 }
@@ -186,6 +215,19 @@ export default function CreateRoute() {
         setTotalDistance(totalDistance);
     }, []);
 
+    useEffect(() => {
+        console.log('routeCoordinates', routeCoordinates)
+    }, [routeCoordinates])
+
+
+    useEffect(() => {
+        console.log('estimatedDuration', estimatedDuration)
+    }, [estimatedDuration])
+
+    useEffect(() => {
+        console.log('totalDistance', totalDistance)
+    }, [totalDistance])
+
 
     const handleMapClick = useCallback(async (latlng: L.LatLng) => {
         const streetName = await getStreetName(latlng);
@@ -218,9 +260,10 @@ export default function CreateRoute() {
             color: COLORS[index % COLORS.length]
         }));
         setStops(formattedStops);
+        setRouteCoordinates(route.scenicRouteCoordinates.map(coord => L.latLng(coord.lat, coord.lng)));
     }, []);
 
-    // Data preparation helper
+
     const prepareRouteData = useCallback((): RouteRequest => {
         return {
             name: routeName,
@@ -242,7 +285,7 @@ export default function CreateRoute() {
         };
     }, [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance]);
 
-    // Save logic handler
+
     const handleRouteSave = useCallback(async (routeData: RouteRequest) => {
         try {
             if (isEditing && selectedRoute?._id) {
@@ -547,24 +590,53 @@ export default function CreateRoute() {
                     />
 
                     {isCreatingRoute ? (
-                        <>
-                            {stops.map((stop) => (
-                                <Marker
-                                    key={stop.id}
-                                    position={stop.position}
-                                    icon={createCustomIcon({ color: stop.color })}
-                                >
-                                    <Popup>{stop.name}</Popup>
-                                </Marker>
-                            ))}
-                            {stops.length >= 2 && (
-                                <RoutingMachine
-                                    stops={stops}
-                                    onRouteFound={handleRouteFound}
-                                />
-                            )}
-                            <MapClickHandler onMapClick={handleMapClick} />
-                        </>
+                        isEditing ? (
+                            selectedRoute && (
+                                <>
+                                    <SavedRouteDisplay
+                                        coordinates={routeCoordinates.map(coord =>
+                                            L.latLng(coord.lat, coord.lng)
+                                        )}
+                                    />
+                                    {stops.map((stop) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
+                                        >
+                                            <Popup>{stop.name}</Popup>
+                                        </Marker>
+                                    ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                </>
+                            )
+                        ) :
+                            (
+                                <>
+                                    {stops.map((stop) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
+                                        >
+                                            <Popup>{stop.name}</Popup>
+                                        </Marker>
+                                    ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                </>
+                            )
                     ) : (
                         selectedRoute && (
                             <>
@@ -584,10 +656,11 @@ export default function CreateRoute() {
                                 ))}
                             </>
                         )
-                    )}
+                    )
+                    }
                 </MapContainer>
             </div>
-        </div>
+        </div >
     );
 }
 

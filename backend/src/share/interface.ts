@@ -11,6 +11,11 @@ export interface TokenPayload {
     phone: string;
 }
 
+export interface Position {
+    lat: number;
+    lng: number;
+}
+
 export interface ITokenProvider {
     generateTokenPair(payload: TokenPayload, publicKey: string, privateKey: string): Promise<tokenDTO>;
     verifyToken(token: string, key: string): Promise<TokenPayload | null>;

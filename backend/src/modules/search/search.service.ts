@@ -15,7 +15,7 @@ import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehic
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { Vehicle, VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { ServiceType, Shift, ShiftHours } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, DriverSchedulesStatus, ServiceType, Shift, ShiftHours } from "src/share/enums";
 import { DateUtils } from "src/share/utils";
 
 
@@ -40,7 +40,7 @@ export class SearchService implements ISearchService {
         date: string,
         startTime: string,
         durationMinutes: number
-    ): Promise<object> {
+    ): Promise<any[]> {
 
         const scheduleDate = DateUtils.parseDate(date);
         const bookingStartTime = DateUtils.parseDate(date, startTime);
@@ -76,19 +76,20 @@ export class SearchService implements ISearchService {
         return result
     }
 
-    async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<object> {
+    async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<any[]> {
         const scenicRoute = await this.scenicRouteRepository.findById(scenicRouteId)
         if (!scenicRoute) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Scenic Route not found`
+                message: `Scenic Route not found`,
+                vnMesage: 'Không tìm thấy tuyến đường ngăm cảnh',
             }, HttpStatus.NOT_FOUND);
         }
 
         const durationMinutes = scenicRoute.estimatedDuration
+        const scheduleDate = DateUtils.parseDate(date);
         const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
-        const scheduleDate = DateUtils.parseDate(date);
         const totalDistance = scenicRoute.totalDistance
         console.log('totalDistance', totalDistance)
 
@@ -117,10 +118,10 @@ export class SearchService implements ISearchService {
         return result
     }
 
-    async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<object> {
+    async findAvailableVehicleBookingDestination(startPoint: object, endPoint: object, estimatedDuration: number, estimatedDistance: number): Promise<any[]> {
         //start time is current time
         const now = dayjs();
-        const bookingStartTime = now.add(30, 'minute');
+        const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
         const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
 
         await this.validateBookingTime(bookingStartTime, bookingEndTime);
@@ -131,7 +132,8 @@ export class SearchService implements ISearchService {
 
         const schedules = await this.getAvailableSchedules(
             midnightUTC.toDate(),
-            matchingShifts
+            matchingShifts,
+            DriverSchedulesStatus.IN_PROGRESS
         );
 
         const validSchedules = await this.filterSchedulesWithoutConflicts(
@@ -153,7 +155,7 @@ export class SearchService implements ISearchService {
 
 
 
-    private async validateBookingTime(
+    async validateBookingTime(
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
     ): Promise<void> {
@@ -168,12 +170,13 @@ export class SearchService implements ISearchService {
         ) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Booking time is not within working hours`
+                message: `Booking time is not within working hours`,
+                vnMesage: 'Thời gian đặt xe không nằm trong thời gian hoạt động',
             }, HttpStatus.BAD_REQUEST);
         }
     }
 
-    private getMatchingShifts(
+    getMatchingShifts(
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
     ): Shift[] {
@@ -193,23 +196,38 @@ export class SearchService implements ISearchService {
         if (matchingShifts.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Booking time is not match any shift`
+                message: `Booking time is not match any shift`,
+                vnMesage: 'Không có ca phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
         return matchingShifts
     }
 
-    private async getAvailableSchedules(
+    async getAvailableSchedules(
         date: Date,
-        shifts: Shift[]
+        shifts: Shift[],
+        status?: DriverSchedulesStatus
     ): Promise<DriverScheduleDocument[]> {
         console.log('date', date.toISOString())
-        const schedulePromises = shifts.map(shift =>
-            this.driverScheduleRepository.getDriverSchedules({
-                date: date.toISOString(),
-                shift: shift,
-            }, [])
-        );
+
+
+        let schedulePromises: Promise<DriverScheduleDocument[]>[];
+        if (status) {
+            schedulePromises = shifts.map(shift =>
+                this.driverScheduleRepository.getDriverSchedules({
+                    date: date.toISOString(),
+                    shift: shift,
+                    status: status
+                }, [])
+            );
+        } else {
+            schedulePromises = shifts.map(shift =>
+                this.driverScheduleRepository.getDriverSchedules({
+                    date: date.toISOString(),
+                    shift: shift,
+                }, [])
+            );
+        }
 
         const scheduleResults = await Promise.all(schedulePromises);
         const uniqueSchedules = scheduleResults
@@ -221,21 +239,32 @@ export class SearchService implements ISearchService {
         if (uniqueSchedules.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `No more Schedule valid`
+                message: `No more Schedule valid`,
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
 
         return uniqueSchedules
     }
 
-    private async filterSchedulesWithoutConflicts(
+    async filterSchedulesWithoutConflicts(
         schedules: DriverScheduleDocument[],
         bookingStartTime: dayjs.Dayjs,
         bookingEndTime: dayjs.Dayjs
     ): Promise<DriverScheduleDocument[]> {
         const tripPromise = schedules.map(schedule =>
             this.tripRepository.find({
-                scheduleId: schedule._id
+                scheduleId: schedule._id.toString(),
+                $or: [
+                    {
+                        timeStartEstimate: { $lt: bookingEndTime.toDate() },
+                        timeEndEstimate: { $gt: bookingStartTime.toDate() }
+                    },
+                    {
+                        timeStartEstimate: { $lte: bookingStartTime.toDate() },
+                        timeEndEstimate: { $gte: bookingEndTime.toDate() }
+                    }
+                ]
             }, [])
         );
 
@@ -246,29 +275,23 @@ export class SearchService implements ISearchService {
             .filter((trip, index, self) =>
                 index === self.findIndex(s => s._id === trip._id)
             );
-
+        console.log('uniqueTrips', uniqueTrips)
+        console.log('schedules', schedules)
         for (const trip of uniqueTrips) {
-            const startTimeTrip = DateUtils.fromDate(trip.timeStartEstimate)
-            const endTimeTrip = DateUtils.fromDate(trip.timeEndEstimate)
-
-            if (
-                (startTimeTrip.isAfter(bookingStartTime) && startTimeTrip.isBefore(bookingEndTime)) ||
-                (endTimeTrip.isAfter(bookingStartTime) && endTimeTrip.isBefore(bookingEndTime))
-            ) {
-                schedules.filter(schedule => schedule._id === trip.scheduleId)
-            }
+            schedules = schedules.filter(schedule => schedule._id.toString() !== trip.scheduleId.toString())
         }
 
         if (schedules.length == 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `No more Schedule valid`
+                message: `No more Schedule valid`,
+                vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
         }
         return schedules
     }
 
-    private async getVehiclesFromSchedules(
+    async getVehiclesFromSchedules(
         schedules: DriverScheduleDocument[]
     ): Promise<VehicleDocument[]> {
         const vehiclePromise = schedules.map(schedule =>
@@ -281,7 +304,7 @@ export class SearchService implements ISearchService {
         );
     }
 
-    private async groupByVehicleType(
+    async groupByVehicleType(
         vehicles: Vehicle[],
         serviceType: string,
         totalUnit: number
@@ -318,7 +341,7 @@ export class SearchService implements ISearchService {
         const pricedCategories = await Promise.all(pricingPromises);
 
         return pricedCategories.map(({ category, price }) => ({
-            vehicleType: category,
+            vehicleCategory: category,
             availableCount: categoryCounts.get(category._id.toString()) || 0,
             price: price
         }));
