@@ -10,7 +10,7 @@ import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
 import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ITripService } from "src/modules/trip/trip.port";
-import { BOOKING_BUFFER_MINUTES, ServiceType } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, DriverSchedulesStatus, ServiceType } from "src/share/enums";
 
 import { DateUtils } from "src/share/utils";
 
@@ -77,13 +77,15 @@ export class BookingService implements IBookingService {
             if (!availableCategory) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Insufficient availability for category ${requestedCategory.categoryVehicleId}`
+                    message: `Insufficient availability for category ${requestedCategory.name}`,
+                    vnMesage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Not enough quantity for ${availableCategory.name}`
+                    message: `Not enough quantity for ${availableCategory.name}`,
+                    vnMesage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -173,7 +175,8 @@ export class BookingService implements IBookingService {
         if (!scenicRoute) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Scenic Route not found`
+                message: `Scenic Route not found`,
+                vnMesage: `Không tìm thấy tuyến đường`
             }, HttpStatus.NOT_FOUND);
         }
 
@@ -220,13 +223,15 @@ export class BookingService implements IBookingService {
             if (!availableCategory) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Insufficient availability for category ${requestedCategory.categoryVehicleId}`
+                    message: `Insufficient availability for category ${requestedCategory.name}`,
+                    vnMesage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Not enough quantity for ${availableCategory.name}`
+                    message: `Not enough quantity for ${availableCategory.name}`,
+                    vnMesage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -309,7 +314,8 @@ export class BookingService implements IBookingService {
         if (distanceEstimate <= 0) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Invalid distance'
+                message: 'Invalid distance',
+                vnMesage: 'Lỗi khoảng cách đoạn đường'
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -328,7 +334,8 @@ export class BookingService implements IBookingService {
 
         const schedules = await this.searchService.getAvailableSchedules(
             midnightUTC.toDate(),
-            matchingShifts
+            matchingShifts,
+            DriverSchedulesStatus.IN_PROGRESS
         );
 
         // Lọc schedules không xung đột
@@ -356,7 +363,8 @@ export class BookingService implements IBookingService {
         if (!availableCategory || availableCategory.availableCount < 1) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: `Insufficient vehicles for category ${vehicleCategories.categoryVehicleId}`
+                message: `Insufficient vehicles for category ${vehicleCategories.name}`,
+                vnMesage: `Không đủ số lượng xe`
             }, HttpStatus.BAD_REQUEST);
         }
 

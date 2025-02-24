@@ -17,7 +17,8 @@ export class ScenicRouteService implements IScenicRouteService {
         if (!newScenicRoute) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Failed to create scenic route'
+                message: 'Failed to create scenic route',
+                vnMesage: 'Không thể tạo tuyến đường ngăm cảnh',
             }, HttpStatus.BAD_REQUEST);
         }
         return newScenicRoute;
@@ -28,7 +29,8 @@ export class ScenicRouteService implements IScenicRouteService {
         if (!route) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: 'ScenicRoute not found'
+                message: 'ScenicRoute not found',
+                vnMesage: 'Không tìm thấy tuyến đường ngắm cảnh',
             }, HttpStatus.NOT_FOUND);
         }
         return route;
@@ -43,7 +45,8 @@ export class ScenicRouteService implements IScenicRouteService {
         if (!updatedScenicRoute) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
-                message: 'Failed to update scenic route'
+                message: 'Failed to update scenic route',
+                vnMesage: 'Không thể sửa tuyến đường ngăm cảnh',
             }, HttpStatus.BAD_REQUEST);
         }
         return updatedScenicRoute;
