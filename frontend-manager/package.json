@@ -16,7 +16,6 @@
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
     "@ant-design/nextjs-registry": "^1.0.2",
-    "@devexpress/dx-react-scheduler": "^4.0.10",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
@@ -36,6 +35,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
+    "devextreme": "^24.2.5",
+    "devextreme-react": "^24.2.5",
     "frontend-manager": "file:",
     "i18next": "^24.2.0",
     "i18next-browser-languagedetector": "^8.0.2",
