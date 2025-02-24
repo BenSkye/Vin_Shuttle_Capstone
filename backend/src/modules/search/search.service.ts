@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
 import { IDriverScheduleRepository } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";

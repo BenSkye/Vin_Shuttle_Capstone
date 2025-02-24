@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
 import { IBookingRepository } from "src/modules/booking/booking.port";
 import { Booking, BookingDocument } from "src/modules/booking/booking.schema";
+import { BookingStatus } from "src/share/enums";
 import { getSelectData } from "src/share/utils";
 
 @Injectable()
@@ -28,6 +29,14 @@ export class BookingRepository implements IBookingRepository {
 
     async updateBooking(id: string, bookingUpdateDto: IUpdateBooking): Promise<BookingDocument> {
         return await this.BookingModel.findByIdAndUpdate(id, bookingUpdateDto)
+    }
+
+    async updateStatusBooking(id: string, status: BookingStatus): Promise<BookingDocument> {
+        return await this.BookingModel.findByIdAndUpdate(id, { status: status })
+    }
+
+    async deleteBooking(id: string): Promise<void> {
+        return await this.BookingModel.findByIdAndDelete(id)
     }
 
 }
