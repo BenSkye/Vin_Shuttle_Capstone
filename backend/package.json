@@ -31,6 +31,7 @@
     "@nestjs/platform-socket.io": "^10.4.15",
     "@nestjs/swagger": "^8.1.1",
     "@nestjs/websockets": "^10.4.15",
+    "@payos/node": "^1.0.10",
     "@types/bcrypt": "^5.0.2",
     "axios": "^1.7.9",
     "backend": "file:",

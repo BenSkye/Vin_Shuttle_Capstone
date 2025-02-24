@@ -1,0 +1,1 @@
+export const CHECKOUT_SERVICE = Symbol('CHECKOUT_SERVICE');

@@ -1,6 +1,7 @@
 import { Module, Provider } from "@nestjs/common";
-import { SMS_PROVIDER, TOKEN_PROVIDER } from "src/share/di-token";
+import { PAYOS_PROVIDER, SMS_PROVIDER, TOKEN_PROVIDER } from "src/share/di-token";
 import { JwtTokenService } from "src/share/jwt";
+import { PayosService } from "src/share/payos";
 import { SmsService } from "src/share/sms";
 
 
@@ -12,6 +13,10 @@ const dependencies = [
     {
         provide: SMS_PROVIDER,
         useClass: SmsService
+    },
+    {
+        provide: PAYOS_PROVIDER,
+        useClass: PayosService
     }
 ]
 

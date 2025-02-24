@@ -127,13 +127,11 @@ export class Trip {
         type: [{
             status: { type: String, enum: TripStatus },
             changedAt: Date,
-            reason: String
         }], default: []
     })
     statusHistory: Array<{
         status: TripStatus;
         changedAt: Date;
-        reason?: string;
     }>;
 }
 
@@ -170,5 +168,22 @@ TripSchema.pre<Trip>('validate', function (next) {
         return next(new Error(`Invalid payload for service type ${serviceType}`));
     }
 
+    next();
+});
+TripSchema.pre<Document & Trip>('save', function (next) {
+    if ((this as any).isNew || (this as any).isModified('status')) {
+        const currentStatus = this.status;
+
+        if (!(this as any).isNew) {
+            const lastStatus = this.statusHistory.slice(-1)[0]?.status;
+            if (lastStatus === currentStatus) return next();
+        }
+
+        this.statusHistory = this.statusHistory || [];
+        this.statusHistory.push({
+            status: currentStatus,
+            changedAt: new Date()
+        });
+    }
     next();
 });

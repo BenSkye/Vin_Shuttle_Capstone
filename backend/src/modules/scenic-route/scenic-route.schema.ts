@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { ScenicRouteStatus } from 'src/share/enums/scenic-routes.enum';
 
 @Schema({ _id: false })
@@ -26,9 +26,10 @@ class Waypoint {
     description?: string;
 }
 
+export type ScenicRouteDocument = HydratedDocument<ScenicRoute>;
 
 @Schema({ collection: 'ScenicRoutes', timestamps: true })
-export class ScenicRoute extends Document {
+export class ScenicRoute {
     @Prop({ required: true, type: String })
     name: string;
 

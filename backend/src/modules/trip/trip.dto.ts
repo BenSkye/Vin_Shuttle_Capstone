@@ -37,7 +37,6 @@ export interface IUpdateTripDto {
     statusHistory?: Array<{
         status: TripStatus;
         changedAt: Date;
-        reason?: string;
     }>;
 }
 

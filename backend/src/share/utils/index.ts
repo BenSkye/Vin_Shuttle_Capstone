@@ -1,6 +1,6 @@
-import * as dayjs from 'dayjs'
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { Types } from "mongoose";
 
 
@@ -12,6 +12,11 @@ export const getSelectData = (fields: string[]) => {
     return fields.join(' ')
 }
 
+export const generateBookingCode = (): number => {
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    return parseInt(`${timestamp}${random.toString().padStart(3, '0')}`);
+}
 
 
 dayjs.extend(utc);

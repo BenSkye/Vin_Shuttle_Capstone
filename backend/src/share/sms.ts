@@ -9,7 +9,9 @@ export class SmsService implements ISMSProvider {
     private readonly client: Twilio;
 
     constructor() {
-        this.client = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        this.client = new Twilio(
+            process.env.TWILIO_ACCOUNT_SID,
+            process.env.TWILIO_AUTH_TOKEN);
     }
 
     async sendOTP(phone: string, OTP: string): Promise<any> {
