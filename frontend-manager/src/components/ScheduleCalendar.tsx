@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { Card } from './ui/card';
@@ -10,7 +11,7 @@ interface Activity {
     description?: string;
     startTime: string;
     endTime: string;
-    day: number; // 0-6 (Sunday-Saturday)
+    day: number;
     color?: string;
 }
 
@@ -25,7 +26,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     onActivityClick,
     onSlotClick,
 }) => {
-    const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date()));
+    const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
     // Generate time slots from 8 AM to 8 PM
     const timeSlots = Array.from({ length: 4 }, (_, i) => String.fromCharCode(65 + i));
