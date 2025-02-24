@@ -1,0 +1,31 @@
+.schedule-container {
+    @apply w-full overflow-x-auto;
+}
+
+.schedule-grid {
+    @apply grid grid-cols-[100px_repeat(7, 1fr)] min-w-[800px];
+}
+
+.time-slot {
+    @apply border-b border-r p-2 bg-gray-50 text-sm;
+}
+
+.day-header {
+    @apply border-b border-r p-2 bg-gray-50 text-center font-semibold;
+}
+
+.activity-cell {
+    @apply border-b border-r p-1 min-h-[60px] relative hover:bg-gray-50 cursor-pointer;
+}
+
+.activity-item {
+    @apply mb-1 p-1 rounded text-sm cursor-pointer transition-colors duration-200;
+}
+
+.activity-title {
+    @apply font-medium;
+}
+
+.activity-time {
+    @apply text-xs text-gray-600;
+}

@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     }
     return config
   },
+
+  images: {
+    remotePatterns: [{ hostname: 'images.pexels.com' }],
+  }
 }
 
 export default nextConfig
