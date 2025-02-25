@@ -123,6 +123,7 @@ const HourlyBookingPage = () => {
             }
             return true;
         } catch (error: unknown) {
+            console.log('error127', error)
             notification.error({
                 message: 'Không tìm thấy xe',
                 description: error.message || 'Không thể tải danh sách xe',
@@ -232,7 +233,7 @@ const HourlyBookingPage = () => {
                             detectUserLocation={detectUserLocation}
                         />
                     )}
-                    {current === 3 && <CheckoutPage bookingResponse={bookingResponse} />}
+                    {current === 3 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
                 </Card>
 
                 <Row justify="space-between" style={{ marginTop: 30 }}>

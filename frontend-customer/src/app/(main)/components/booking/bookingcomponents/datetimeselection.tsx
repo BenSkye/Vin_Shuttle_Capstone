@@ -1,6 +1,6 @@
 import React from "react";
 import { DatePicker, Card, Typography, Row, Col, InputNumber, Space, Grid } from 'antd';
-import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { CalendarOutlined } from '@ant-design/icons';
 import { BookingHourDuration, BOOKING_BUFFER_MINUTES } from '@/constants/booking.constants';
 import dayjs from 'dayjs';
 
@@ -19,7 +19,6 @@ interface DateTimeSelectionProps {
 const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
     selectedDate,
     startTime,
-    duration,
     onDateChange,
     onStartTimeChange,
     onDurationChange
@@ -31,7 +30,7 @@ const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
         return current && current < dayjs().startOf('day');
     };
 
-    const disabledDateTime = (current: dayjs.Dayjs) => {
+    const disabledDateTime = () => {
         const isToday = selectedDate?.isSame(dayjs(), 'day');
         const now = dayjs();
         const currentHour = now.hour();

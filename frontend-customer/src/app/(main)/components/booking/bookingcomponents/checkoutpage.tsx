@@ -1,6 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useState } from "react";
 import { ServiceType } from "@/constants/service-type.enum";
 import { Trip, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingDestinationPayloadDto, BookingSharePayloadDto } from "@/interface/trip";
 import { BookingResponse } from "@/interface/booking";
@@ -11,8 +10,6 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     const [booking, setBooking] = useState<BookingResponse["newBooking"] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const router = useRouter();
-    const params = useSearchParams();
     const [trips, setTrips] = useState<Trip[] | null>(null);
     const [paymentUrl, setPaymentUrl] = useState("");
     const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -24,20 +21,24 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         setLoading(false);
     }, [bookingResponse]);
 
-    const fetchTrip = async () => {
+    const fetchTrip = useCallback(async () => {
         const trips = [];
         if (booking) {
             for (const tripId of booking.trips) {
-                const trip = await getPersonalTripById(tripId);
-                trips.push(trip);
+                try {
+                    const trip = await getPersonalTripById(tripId);
+                    trips.push(trip);
+                } catch (error: unknown) {
+                    setError(error.message || "Lỗi không xác định");
+                }
             }
         }
         setTrips(trips);
-    }
+    }, [booking])
 
     useEffect(() => {
         fetchTrip();
-    }, [booking]);
+    }, [booking, fetchTrip]);
 
     useEffect(() => {
         handlePayment()
@@ -143,4 +144,6 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     );
 };
 
+
 export default CheckoutPage;
+
