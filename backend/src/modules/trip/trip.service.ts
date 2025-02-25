@@ -47,6 +47,8 @@ export class TripService implements ITripService {
             }, HttpStatus.BAD_REQUEST);
         }
 
+        //add
+
         if (createTripDto.serviceType === ServiceType.BOOKING_BUS_ROUTE) {
             const payload = createTripDto.servicePayload as BookingBusRoutePayloadDto;
             const busRoute = await this.busRouteRepository.findById(payload.bookingBusRoute.routeId);
