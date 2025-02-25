@@ -102,6 +102,14 @@ export class Trip {
             distanceEstimate: number;
             distance: number
         };
+        bookingBusRoute?: {
+        routeId: Types.ObjectId;
+        fromStopId: Types.ObjectId;
+        toStopId: Types.ObjectId;
+        distanceEstimate: number;
+        distance: number;
+        numberOfSeat: number;
+    };
     };
 
     @Prop({ type: Number })
@@ -161,7 +169,13 @@ TripSchema.pre<Trip>('validate', function (next) {
             return payload.bookingShare.numberOfSeat &&
                 payload.bookingShare.startPoint &&
                 payload.bookingShare.endPoint;
-        }
+        },
+        [ServiceType.BOOKING_BUS_ROUTE]: () => {
+            if (!payload.bookingBusRoute) return false;
+            return payload.bookingBusRoute.routeId &&
+                payload.bookingBusRoute.fromStopId &&
+                payload.bookingBusRoute.toStopId;
+}
     };
 
     if (!validators[serviceType]?.()) {

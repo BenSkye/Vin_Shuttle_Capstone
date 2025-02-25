@@ -18,6 +18,8 @@ import { TripModule } from 'src/modules/trip/trip.module';
 import { BookingModule } from 'src/modules/booking/booking.module';
 import { SearchModule } from 'src/modules/search/search.module';
 import { CheckoutModule } from 'src/modules/checkout/checkout.module';
+import { BusStopModule } from './modules/bus-stop/bus-stop.module';
+import { BusRouteModule } from './modules/bus-route/bus-route.module';
 
 @Module({
   imports: [
@@ -44,7 +46,9 @@ import { CheckoutModule } from 'src/modules/checkout/checkout.module';
     TripModule,
     SearchModule,
     BookingModule,
-    CheckoutModule
+    CheckoutModule,
+    BusStopModule,
+    BusRouteModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

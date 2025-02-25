@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Inject, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
@@ -6,6 +6,7 @@ import { RolesGuard } from "src/modules/auth/role.guard";
 import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ITripService } from "src/modules/trip/trip.port";
 import { UserRole } from "src/share/enums";
+
 
 @ApiTags('trip')
 @Controller('trip')
@@ -38,5 +39,27 @@ export class TripController {
         @Request() req,
     ) {
         return await this.tripService.getPersonalDriverTrip(req.user._id)
+    }
+
+
+    @Post('calculate-bus-route-fare')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Calculate bus route fare' })
+    async calculateBusRouteFare(
+        @Body() data: {
+            routeId: string;
+            fromStopId: string;
+            toStopId: string;
+            numberOfSeats: number;
+        }
+    ) {
+        return await this.tripService.calculateBusRouteFare(
+            data.routeId,
+            data.fromStopId,
+            data.toStopId,
+            data.numberOfSeats
+        );
     }
 }

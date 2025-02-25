@@ -3,11 +3,14 @@ import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-sc
 import { IDriverScheduleRepository } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverSchedule } from "src/modules/driver-schedule/driver-schedule.schema";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
-import { ICreateTripDto } from "src/modules/trip/trip.dto";
+import { BookingBusRoutePayloadDto, ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
 import { TripDocument } from "src/modules/trip/trip.schema";
 
-import { DriverSchedulesStatus, Shift, ShiftHours } from "src/share/enums";
+import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours } from "src/share/enums";
+
+import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
+import { IBusRouteRepository } from '../bus-route/bus-route.port';
 
 
 @Injectable()
@@ -16,7 +19,9 @@ export class TripService implements ITripService {
         @Inject(TRIP_REPOSITORY)
         private readonly tripRepository: ITripRepository,
         @Inject(DRIVERSCHEDULE_REPOSITORY)
-        private readonly driverScheduleRepository: IDriverScheduleRepository
+        private readonly driverScheduleRepository: IDriverScheduleRepository,
+        @Inject(BUS_ROUTE_REPOSITORY)
+        private readonly busRouteRepository: IBusRouteRepository
     ) { }
 
     async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -40,6 +45,47 @@ export class TripService implements ITripService {
                 message: 'driver Schedule is not valid',
                 vnMesage: 'Không có lịch phù hợp',
             }, HttpStatus.BAD_REQUEST);
+        }
+
+        //add
+
+        if (createTripDto.serviceType === ServiceType.BOOKING_BUS_ROUTE) {
+            const payload = createTripDto.servicePayload as BookingBusRoutePayloadDto;
+            const busRoute = await this.busRouteRepository.findById(payload.bookingBusRoute.routeId);
+            
+            if (!busRoute) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Bus route not found',
+                    vnMessage: 'Không tìm thấy tuyến xe',
+                }, HttpStatus.BAD_REQUEST);
+            }
+
+            // Validate stops
+            const fromStop = busRoute.stops.find(s => s.stopId.toString() === payload.bookingBusRoute.fromStopId);
+            const toStop = busRoute.stops.find(s => s.stopId.toString() === payload.bookingBusRoute.toStopId);
+
+            if (!fromStop || !toStop) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Invalid bus stops',
+                    vnMessage: 'Trạm dừng không hợp lệ',
+                }, HttpStatus.BAD_REQUEST);
+            }
+
+            if (fromStop.orderIndex >= toStop.orderIndex) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Invalid stop order',
+                    vnMessage: 'Thứ tự trạm không hợp lệ',
+                }, HttpStatus.BAD_REQUEST);
+            }
+
+            // Calculate estimated duration based on stops
+            const duration = toStop.estimatedTime - fromStop.estimatedTime;
+            createTripDto.timeEndEstimate = new Date(
+                createTripDto.timeStartEstimate.getTime() + duration * 60 * 1000
+            );
         }
 
         const { timeStart, timeEnd } = await this.validateTimeRange(createTripDto, driverSchedule);
@@ -127,6 +173,22 @@ export class TripService implements ITripService {
 
     async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
         return await this.tripRepository.find({ driverId }, [])
+    }
+
+     async calculateBusRouteFare(
+        routeId: string, 
+        fromStopId: string, 
+        toStopId: string,
+        numberOfSeats: number
+    ): Promise<number> {
+        const route = await this.busRouteRepository.findById(routeId);
+        const fromStop = route.stops.find(s => s.stopId.toString() === fromStopId);
+        const toStop = route.stops.find(s => s.stopId.toString() === toStopId);
+        
+        const distance = toStop.distanceFromStart - fromStop.distanceFromStart;
+        const baseFare = (distance / route.totalDistance) * route.basePrice;
+        
+        return Math.round(baseFare * numberOfSeats);
     }
 
 }

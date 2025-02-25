@@ -15,7 +15,8 @@ export interface ICreateTripDto {
     | BookingHourPayloadDto
     | BookingScenicRoutePayloadDto
     | BookingDestinationPayloadDto
-    | BookingSharePayloadDto;
+    | BookingSharePayloadDto
+    | BookingBusRoutePayloadDto;
 }
 
 
@@ -56,6 +57,17 @@ export class BookingScenicRoutePayloadDto {
         startPoint: Position;
         distanceEstimate: number;
         distance: number
+    }
+}
+
+export class BookingBusRoutePayloadDto {
+    bookingBusRoute: {
+        routeId: string;
+        fromStopId: string;
+        toStopId: string;
+        distanceEstimate: number;
+        distance: number;
+        numberOfSeat: number;
     }
 }
 
