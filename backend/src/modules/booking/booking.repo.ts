@@ -1,17 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { ICreateBooking, IUpdateBooking } from "src/modules/booking/booking.dto";
-import { IBookingRepository } from "src/modules/booking/booking.port";
-import { Booking, BookingDocument } from "src/modules/booking/booking.schema";
-import { BookingStatus } from "src/share/enums";
-import { getSelectData } from "src/share/utils";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ICreateBooking, IUpdateBooking } from 'src/modules/booking/booking.dto';
+import { IBookingRepository } from 'src/modules/booking/booking.port';
+import { Booking, BookingDocument } from 'src/modules/booking/booking.schema';
+import { BookingStatus } from 'src/share/enums';
+import { getSelectData } from 'src/share/utils';
 
 @Injectable()
 export class BookingRepository implements IBookingRepository {
-    constructor(
-        @InjectModel(Booking.name) private readonly BookingModel: Model<Booking>
-    ) { }
+    constructor(@InjectModel(Booking.name) private readonly BookingModel: Model<Booking>) { }
 
     async create(bookingCreateDto: ICreateBooking): Promise<BookingDocument> {
         const newBooking = new this.BookingModel(bookingCreateDto)
@@ -29,15 +27,14 @@ export class BookingRepository implements IBookingRepository {
     }
 
     async updateBooking(id: string, bookingUpdateDto: IUpdateBooking): Promise<BookingDocument> {
-        return await this.BookingModel.findByIdAndUpdate(id, bookingUpdateDto)
+        return await this.BookingModel.findByIdAndUpdate(id, bookingUpdateDto);
     }
 
     async updateStatusBooking(id: string, status: BookingStatus): Promise<BookingDocument> {
-        return await this.BookingModel.findByIdAndUpdate(id, { status: status })
+        return await this.BookingModel.findByIdAndUpdate(id, { status: status });
     }
 
     async deleteBooking(id: string): Promise<void> {
-        return await this.BookingModel.findByIdAndDelete(id)
+        return await this.BookingModel.findByIdAndDelete(id);
     }
-
 }

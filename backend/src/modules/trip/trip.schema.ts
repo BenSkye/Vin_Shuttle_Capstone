@@ -53,7 +53,7 @@ export class Trip {
     @Prop({
         type: String,
         enum: ServiceType,
-        required: true
+        required: true,
     })
     serviceType: ServiceType;
 
@@ -84,6 +84,14 @@ export class Trip {
                 endPoint: StartPointSchema,
                 distanceEstimate: Number,
                 distance: Number
+            },
+            bookingBusRoute: {
+                routeId: Types.ObjectId,
+                fromStopId: Types.ObjectId,
+                toStopId: Types.ObjectId,
+                distanceEstimate: Number,
+                distance: Number,
+                numberOfSeat: Number,
             }
         },
         required: true
@@ -130,6 +138,14 @@ export class Trip {
             distanceEstimate: number;
             distance: number
         };
+        bookingBusRoute?: {
+            routeId: Types.ObjectId;
+            fromStopId: Types.ObjectId;
+            toStopId: Types.ObjectId;
+            distanceEstimate: number;
+            distance: number;
+            numberOfSeat: number;
+        };
     };
 
     @Prop({ type: Number })
@@ -138,7 +154,7 @@ export class Trip {
     @Prop({
         type: String,
         enum: TripStatus,
-        default: TripStatus.BOOKING
+        default: TripStatus.BOOKING,
     })
     status: TripStatus;
 
@@ -152,10 +168,13 @@ export class Trip {
     refundAmount: number;
 
     @Prop({
-        type: [{
-            status: { type: String, enum: TripStatus },
-            changedAt: Date,
-        }], default: []
+        type: [
+            {
+                status: { type: String, enum: TripStatus },
+                changedAt: Date,
+            },
+        ],
+        default: [],
     })
     statusHistory: Array<{
         status: TripStatus;
@@ -189,7 +208,15 @@ TripSchema.pre<Trip>('validate', function (next) {
             return payload.bookingShare.numberOfSeat &&
                 payload.bookingShare.startPoint.position &&
                 payload.bookingShare.endPoint.position;
-        }
+        },
+        [ServiceType.BOOKING_BUS_ROUTE]: () => {
+            if (!payload.bookingBusRoute) return false;
+            return (
+                payload.bookingBusRoute.routeId &&
+                payload.bookingBusRoute.fromStopId &&
+                payload.bookingBusRoute.toStopId
+            );
+        },
     };
 
     if (!validators[serviceType]?.()) {
@@ -210,7 +237,7 @@ TripSchema.pre<Document & Trip>('save', function (next) {
         this.statusHistory = this.statusHistory || [];
         this.statusHistory.push({
             status: currentStatus,
-            changedAt: new Date()
+            changedAt: new Date(),
         });
     }
     next();
