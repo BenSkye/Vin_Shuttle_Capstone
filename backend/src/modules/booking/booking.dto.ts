@@ -2,47 +2,47 @@ import { PaymentMethod } from "src/share/enums/payment.enum"
 import { Position, StartPoint } from "src/share/interface"
 
 export interface ICreateBooking {
-    bookingCode: number;
-    customerId: string;
-    trips: string[];
-    totalAmount: number;
-    paymentMethod: string;
+    bookingCode: number
+    customerId: string
+    trips: string[]
+    totalAmount: number
+    paymentMethod: string
 }
 
 export interface IUpdateBooking {
-    bookingCode?: string;
-    customerId?: string;
-    trips?: string[];
-    totalAmount?: number;
-    paymentMethod?: string;
-    InvoiceId?: string;
-    cancellationTime?: string;
-    cancellationReason?: string;
-    statusHistory?: object;
+    bookingCode?: string
+    customerId?: string
+    trips?: string[]
+    totalAmount?: number
+    paymentMethod?: string
+    InvoiceId?: string
+    cancellationTime?: string
+    cancellationReason?: string,
+    statusHistory?: object
 }
 
 export interface IBookingHourBody {
-    startPoint: Position;
-    date: string;
-    startTime: string;
-    durationMinutes: number;
-    vehicleCategories: { categoryVehicleId: string; name: string; quantity: number }[];
-    paymentMethod: PaymentMethod;
+    startPoint: StartPoint,
+    date: string,
+    startTime: string,
+    durationMinutes: number,
+    vehicleCategories: { categoryVehicleId: string; name: string, quantity: number }[],
+    paymentMethod: PaymentMethod
 }
 
 export interface IBookingScenicRouteBody {
-    startPoint: Position;
-    scenicRouteId: string;
-    date: string;
-    startTime: string;
-    vehicleCategories: { categoryVehicleId: string; name: string; quantity: number }[];
-    paymentMethod: PaymentMethod;
+    startPoint: StartPoint,
+    scenicRouteId: string,
+    date: string,
+    startTime: string,
+    vehicleCategories: { categoryVehicleId: string; name: string, quantity: number }[],
+    paymentMethod: PaymentMethod
 }
 export interface IBookingDestinationBody {
-    startPoint: Position;
-    endPoint: Position;
-    estimatedDuration: number;
+    startPoint: StartPoint,
+    endPoint: StartPoint;
+    estimatedDuration: number
     distanceEstimate: number;
-    vehicleCategories: { categoryVehicleId: string; name: string };
-    paymentMethod: PaymentMethod;
+    vehicleCategories: { categoryVehicleId: string, name: string },
+    paymentMethod: PaymentMethod
 }
