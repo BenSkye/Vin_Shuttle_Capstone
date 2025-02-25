@@ -20,11 +20,12 @@ export interface RouteRequest {
     }[];
     estimatedDuration: number;
     totalDistance: number;
+    status?: 'draft' | 'active' | 'inactive';
 }
 
 export interface RouteResponse extends RouteRequest {
     _id: string;
-    status: 'active' | 'inactive';
+    status: 'draft' | 'active' | 'inactive';
     createdAt: Date;
     updatedAt: Date;
 }
