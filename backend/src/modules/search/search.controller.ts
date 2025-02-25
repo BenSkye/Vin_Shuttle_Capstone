@@ -3,7 +3,7 @@ import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { SEARCH_SERVICE } from 'src/modules/search/search.di-token';
 import { ISearchService } from 'src/modules/search/search.port';
 
-@Controller()
+@Controller('search')
 @ApiTags('search')
 export class SearchController {
   constructor(

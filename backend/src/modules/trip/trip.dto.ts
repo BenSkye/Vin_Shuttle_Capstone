@@ -1,6 +1,6 @@
-import { ServiceType } from 'src/share/enums';
-import { TripStatus } from 'src/share/enums/trip.enum';
-import { Position } from 'src/share/interface';
+import { ServiceType } from "src/share/enums";
+import { TripStatus } from "src/share/enums/trip.enum";
+import { Position, StartPoint } from "src/share/interface";
 
 export interface ICreateTripDto {
   customerId: string;
@@ -12,11 +12,11 @@ export interface ICreateTripDto {
   serviceType: ServiceType;
   amount: number;
   servicePayload:
-    | BookingHourPayloadDto
-    | BookingScenicRoutePayloadDto
-    | BookingDestinationPayloadDto
-    | BookingSharePayloadDto
-    | BookingBusRoutePayloadDto;
+  | BookingHourPayloadDto
+  | BookingScenicRoutePayloadDto
+  | BookingDestinationPayloadDto
+  | BookingSharePayloadDto
+  | BookingBusRoutePayloadDto;
 }
 
 export interface IUpdateTripDto {
@@ -40,21 +40,39 @@ export interface IUpdateTripDto {
   }>;
 }
 
-class BaseServicePayloadDto {}
+
+
 export class BookingHourPayloadDto {
   bookingHour: {
     totalTime: number;
-    startPoint: Position;
-  };
-}
+    startPoint: StartPoint;
+  }
 
+}
 export class BookingScenicRoutePayloadDto {
   bookingScenicRoute: {
     routeId: string;
-    startPoint: Position;
+    startPoint: StartPoint;
     distanceEstimate: number;
-    distance: number;
-  };
+    distance: number
+  }
+}
+export class BookingDestinationPayloadDto {
+  bookingDestination: {
+    startPoint: StartPoint;
+    endPoint: StartPoint;
+    distanceEstimate: number;
+    distance: number
+  }
+}
+export class BookingSharePayloadDto {
+  bookingShare: {
+    numberOfSeat: number;
+    startPoint: StartPoint;
+    endPoint: StartPoint;
+    distanceEstimate: number;
+    distance: number
+  }
 }
 
 export class BookingBusRoutePayloadDto {
@@ -68,21 +86,3 @@ export class BookingBusRoutePayloadDto {
   };
 }
 
-export class BookingDestinationPayloadDto extends BaseServicePayloadDto {
-  bookingDestination: {
-    startPoint: Position;
-    endPoint: Position;
-    distanceEstimate: number;
-    distance: number;
-  };
-}
-
-export class BookingSharePayloadDto extends BaseServicePayloadDto {
-  bookingShare: {
-    numberOfSeat: number;
-    startPoint: Position;
-    endPoint: Position;
-    distanceEstimate: number;
-    distance: number;
-  };
-}

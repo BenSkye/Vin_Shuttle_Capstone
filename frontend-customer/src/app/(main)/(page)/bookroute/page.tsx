@@ -3,10 +3,11 @@ import React, { useState } from "react";
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
 import DateTimeSelection from "../../components/booking/bookingcomponents/datetimeselection";
-import VehicleSelection from "../../components/booking/bookingcomponents/vehicleselection";
+// import { AvailableVehicle } from "@/interface/booking";
 import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
 import BusRoutes from "../../components/booking/bookingcomponents/busroutes";
 import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+import { BookingResponse } from "@/interface/booking";
 
 const steps = [
     { title: "Chọn ngày & giờ", icon: <FaClock /> },
@@ -19,57 +20,44 @@ const steps = [
 const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
-    const [selectedTime, setSelectedTime] = useState("");
-    const [vehicleType, setVehicleType] = useState<string>("");
-    const [numberOfVehicles, setNumberOfVehicles] = useState<{ [key: string]: number }>({});
-    const [pickup, setPickup] = useState("");
+    const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
+    const [duration, setDuration] = useState<number>(60);
+    // const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
+    const [startPoint, setStartPoint] = useState<{
+        position: { lat: number; lng: number };
+        address: string;
+    }>({
+        position: { lat: 10.840405, lng: 106.843424 },
+        address: ''
+    });
+    const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
 
     const [loading, setLoading] = useState(false);
 
     const next = () => setCurrent((prev) => prev + 1);
     const prev = () => setCurrent((prev) => prev - 1);
 
-    const handleDateChange = (date: dayjs.Dayjs | null) => {
-        setSelectedDate(date);
-    };
-
-    const handleTimeChange = (time: string) => {
-        setSelectedTime(time);
-    };
-
-    const handleVehicleTypeChange = (type: string) => {
-        setVehicleType(type);
-    };
-
-    const handleNumberOfVehiclesChange = (type: string, count: number) => {
-        setNumberOfVehicles((prevState) => ({
-            ...prevState,
-            [type]: count,
-        }));
-    };
-
-    const detectUserLocation = async () => {
+    const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
         setLoading(true);
-        try {
-            if (!navigator.geolocation) {
-                alert("Trình duyệt không hỗ trợ định vị");
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
-                    );
-                    const data = await response.json();
-                    setPickup(data.display_name);
-                },
-                () => alert("Không thể xác định vị trí của bạn")
-            );
-        } finally {
-            setLoading(false);
+        setStartPoint({
+            position: newPosition,
+            address: newAddress
+        });
+        setLoading(false);
+    };
+
+
+    const detectUserLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const { latitude, longitude } = position.coords;
+                console.log("User location:", latitude, longitude);
+            });
+        } else {
+            console.error("Geolocation is not supported by this browser.");
         }
     };
+
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -93,32 +81,32 @@ const RouteBooking = () => {
                     {current === 0 && (
                         <DateTimeSelection
                             selectedDate={selectedDate}
-                            selectedTime={selectedTime}
-                            onDateChange={handleDateChange}
-                            onTimeChange={handleTimeChange}
+                            startTime={startTime}
+                            duration={duration}
+                            onDateChange={setSelectedDate}
+                            onStartTimeChange={setStartTime}
+                            onDurationChange={setDuration}
                         />
                     )}
                     {current === 1 && (
-                        <VehicleSelection
-                            vehicleType={vehicleType}
-                            numberOfVehicles={numberOfVehicles}
-                            onVehicleTypeChange={handleVehicleTypeChange}
-                            onNumberOfVehiclesChange={handleNumberOfVehiclesChange}
+                        <LocationSelection
+                            startPoint={startPoint}
+                            onLocationChange={handleLocationChange}
+                            loading={loading}
+                            detectUserLocation={detectUserLocation}
                         />
                     )}
                     {current === 2 && <BusRoutes />}
                     {current === 3 && (
                         <LocationSelection
-                            pickup={pickup}
-                            onPickupChange={setPickup}
+                            startPoint={startPoint}
+                            onLocationChange={handleLocationChange}
                             loading={loading}
-                            detectUserLocation={detectUserLocation}  // Pass detectUserLocation here
+                            detectUserLocation={detectUserLocation}
                         />
                     )}
-                    {current === 4 && (
-                        <CheckoutPage
-
-                        />
+                    {current === 4 && bookingResponse && (
+                        <CheckoutPage bookingResponse={bookingResponse} />
                     )}
                 </div>
 

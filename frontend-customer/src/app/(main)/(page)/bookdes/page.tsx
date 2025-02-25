@@ -16,9 +16,22 @@ const LineBookingPage = () => {
 
     const [passengerCount, setPassengerCount] = useState(1);
     const [current, setCurrent] = useState(0);
-    const [pickup, setPickup] = useState("");
+    const [startPoint, setStartPoint] = useState<{
+        position: { lat: number; lng: number };
+        address: string;
+    }>({
+        position: { lat: 10.840405, lng: 106.843424 },
+        address: ''
+    });
 
     const [loading, setLoading] = useState(false);
+
+    const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
+        setStartPoint({
+            position: newPosition,
+            address: newAddress
+        });
+    };
 
     const next = () => setCurrent(current + 1);
     const prev = () => setCurrent(current - 1);
@@ -72,12 +85,10 @@ const LineBookingPage = () => {
                     )}
                     {current === 1 && (
                         <LocationSelection
-                            pickup={pickup}
-
-                            onPickupChange={setPickup}
-
-                            detectUserLocation={detectUserLocation}
+                            startPoint={startPoint}
+                            onLocationChange={handleLocationChange}
                             loading={loading}
+                            detectUserLocation={detectUserLocation}
                         />
                     )}
                     {current === 2 && <CheckoutPage />}

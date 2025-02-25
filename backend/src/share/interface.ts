@@ -17,6 +17,11 @@ export interface Position {
   lng: number;
 }
 
+export interface StartPoint {
+    position: Position;
+    address: string;
+}
+
 export interface ITokenProvider {
   generateTokenPair(
     payload: TokenPayload,

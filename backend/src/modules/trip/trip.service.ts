@@ -21,7 +21,7 @@ export class TripService implements ITripService {
     private readonly driverScheduleRepository: IDriverScheduleRepository,
     @Inject(BUS_ROUTE_REPOSITORY)
     private readonly busRouteRepository: IBusRouteRepository,
-  ) {}
+  ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
     await this.checkTrip(createTripDto);
@@ -199,6 +199,13 @@ export class TripService implements ITripService {
 
   async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
     return await this.tripRepository.find({ driverId }, []);
+  }
+
+  async getTripById(customerId: string, id: string): Promise<TripDocument> {
+    return await this.tripRepository.findOne({
+      _id: id,
+      customerId: customerId
+    }, [])
   }
 
   async calculateBusRouteFare(

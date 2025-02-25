@@ -12,36 +12,28 @@ export class TripRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name)
     private readonly tripModel: Model<Trip>,
-  ) {}
+  ) { }
 
   async create(tripDto: ICreateTripDto): Promise<TripDocument> {
-    const newTrip = new this.tripModel(tripDto);
+    const newTrip = new this.tripModel(tripDto)
     return await newTrip.save();
   }
   async findById(id: string): Promise<TripDocument> {
-    return await this.tripModel
-      .findById(id)
-      .populate('customerId', 'name')
-      .populate('driverId', 'name')
-      .populate('vehicleId');
+    return await this.tripModel.findById(id).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
   }
   async findByDriverId(driverId: string): Promise<TripDocument[]> {
-    return await this.tripModel
-      .find({ driverId: driverId })
-      .populate('customerId', 'name')
-      .populate('driverId', 'name')
-      .populate('vehicleId');
+    return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
   }
   async find(query: any, select: string[]): Promise<TripDocument[]> {
-    return await this.tripModel
-      .find(query)
-      .select(getSelectData(select))
-      .populate('customerId', 'name')
-      .populate('driverId', 'name')
-      .populate('vehicleId');
+    return await this.tripModel.find(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
   }
+
+  async findOne(query: any, select: string[]): Promise<TripDocument> {
+    return await this.tripModel.findOne(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+  }
+
   async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {
-    return await this.tripModel.findByIdAndUpdate(id, { status });
+    return await this.tripModel.findByIdAndUpdate(id, { status })
   }
 
   async updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument> {

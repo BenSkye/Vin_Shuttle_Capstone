@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import debounce from "lodash/debounce";
-import { MapProps, MapState } from "../../../service/interface/map.types";
+import { MapProps, MapState } from "../../../interface/map.types";
 
 // Custom Icon for Pickup Location
 const PickupIcon = new L.Icon({
@@ -21,7 +21,7 @@ const Map = ({ pickup }: MapProps) => {
     });
     const mapRef = useRef<L.Map | null>(null);
 
-    const searchLocation = debounce(async (query: string) => {
+    const searchLocation = useCallback(debounce(async (query: string) => {
         if (!query.trim()) {
             setState((prev) => ({
                 ...prev,
@@ -65,11 +65,11 @@ const Map = ({ pickup }: MapProps) => {
                 pickupLocation: null,
             }));
         }
-    }, 500);
+    }, 500), [pickup]);
 
     useEffect(() => {
         if (pickup) searchLocation(pickup);
-    }, [pickup]);
+    }, [pickup, searchLocation]);
 
     return (
         <MapContainer
