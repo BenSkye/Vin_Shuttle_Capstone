@@ -48,9 +48,9 @@ import { BusRouteModule } from './modules/bus-route/bus-route.module';
     BookingModule,
     CheckoutModule,
     BusStopModule,
-    BusRouteModule
+    BusRouteModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

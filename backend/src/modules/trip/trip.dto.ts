@@ -1,17 +1,17 @@
-import { ServiceType } from "src/share/enums";
-import { TripStatus } from "src/share/enums/trip.enum";
-import { Position } from "src/share/interface";
+import { ServiceType } from 'src/share/enums';
+import { TripStatus } from 'src/share/enums/trip.enum';
+import { Position } from 'src/share/interface';
 
 export interface ICreateTripDto {
-    customerId: string;
-    driverId: string;
-    timeStartEstimate: Date;
-    timeEndEstimate: Date;
-    vehicleId: string;
-    scheduleId: string;
-    serviceType: ServiceType;
-    amount: number;
-    servicePayload:
+  customerId: string;
+  driverId: string;
+  timeStartEstimate: Date;
+  timeEndEstimate: Date;
+  vehicleId: string;
+  scheduleId: string;
+  serviceType: ServiceType;
+  amount: number;
+  servicePayload:
     | BookingHourPayloadDto
     | BookingScenicRoutePayloadDto
     | BookingDestinationPayloadDto
@@ -19,75 +19,70 @@ export interface ICreateTripDto {
     | BookingBusRoutePayloadDto;
 }
 
-
 export interface IUpdateTripDto {
-    customerId?: string;
-    driverId?: string;
-    timeStartEstimate?: Date;
-    timeEndEstimate?: Date;
-    timeStart?: Date;
-    timeEnd?: Date;
-    vehicleId?: string;
-    scheduleId?: string;
-    tripCoordinates?: Position[]
-    amount?: number;
-    status?: TripStatus;
-    cancellationTime?: Date;
-    cancellationReason?: string;
-    refundAmount?: number;
-    statusHistory?: Array<{
-        status: TripStatus;
-        changedAt: Date;
-    }>;
+  customerId?: string;
+  driverId?: string;
+  timeStartEstimate?: Date;
+  timeEndEstimate?: Date;
+  timeStart?: Date;
+  timeEnd?: Date;
+  vehicleId?: string;
+  scheduleId?: string;
+  tripCoordinates?: Position[];
+  amount?: number;
+  status?: TripStatus;
+  cancellationTime?: Date;
+  cancellationReason?: string;
+  refundAmount?: number;
+  statusHistory?: Array<{
+    status: TripStatus;
+    changedAt: Date;
+  }>;
 }
 
-class BaseServicePayloadDto {
-}
+class BaseServicePayloadDto {}
 export class BookingHourPayloadDto {
-    bookingHour: {
-        totalTime: number;
-        startPoint: Position;
-    }
-
+  bookingHour: {
+    totalTime: number;
+    startPoint: Position;
+  };
 }
 
 export class BookingScenicRoutePayloadDto {
-    bookingScenicRoute: {
-        routeId: string;
-        startPoint: Position;
-        distanceEstimate: number;
-        distance: number
-    }
+  bookingScenicRoute: {
+    routeId: string;
+    startPoint: Position;
+    distanceEstimate: number;
+    distance: number;
+  };
 }
 
 export class BookingBusRoutePayloadDto {
-    bookingBusRoute: {
-        routeId: string;
-        fromStopId: string;
-        toStopId: string;
-        distanceEstimate: number;
-        distance: number;
-        numberOfSeat: number;
-    }
+  bookingBusRoute: {
+    routeId: string;
+    fromStopId: string;
+    toStopId: string;
+    distanceEstimate: number;
+    distance: number;
+    numberOfSeat: number;
+  };
 }
 
 export class BookingDestinationPayloadDto extends BaseServicePayloadDto {
-    bookingDestination: {
-        startPoint: Position;
-        endPoint: Position;
-        distanceEstimate: number;
-        distance: number
-    }
+  bookingDestination: {
+    startPoint: Position;
+    endPoint: Position;
+    distanceEstimate: number;
+    distance: number;
+  };
 }
 
 export class BookingSharePayloadDto extends BaseServicePayloadDto {
-    bookingShare: {
-        numberOfSeat: number;
-        startPoint: Position;
-        endPoint: Position;
-        distanceEstimate: number;
-        distance: number
-    }
+  bookingShare: {
+    numberOfSeat: number;
+    startPoint: Position;
+    endPoint: Position;
+    distanceEstimate: number;
+    distance: number;
+  };
 }
-
-

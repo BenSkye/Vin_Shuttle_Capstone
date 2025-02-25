@@ -5,17 +5,11 @@ import { KeyTokenSchema } from 'src/modules/keytoken/keytoken.schema';
 import { KeyTokenService } from 'src/modules/keytoken/keytoken.service';
 import { ShareModule } from 'src/share/share.module';
 
-
-const dependencies: Provider[] = [
-    { provide: KEYTOKEN_SERVICE, useClass: KeyTokenService },
-]
+const dependencies: Provider[] = [{ provide: KEYTOKEN_SERVICE, useClass: KeyTokenService }];
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: 'KeyToken', schema: KeyTokenSchema }]),
-        ShareModule
-    ],
-    providers: [...dependencies],
-    exports: [...dependencies, MongooseModule, KEYTOKEN_SERVICE]
+  imports: [MongooseModule.forFeature([{ name: 'KeyToken', schema: KeyTokenSchema }]), ShareModule],
+  providers: [...dependencies],
+  exports: [...dependencies, MongooseModule, KEYTOKEN_SERVICE],
 })
-export class KeytokenModule { }
+export class KeytokenModule {}

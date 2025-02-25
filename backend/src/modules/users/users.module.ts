@@ -10,17 +10,17 @@ import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 
 const dependencies = [
   { provide: USER_SERVICE, useClass: UsersService },
-  { provide: USER_REPOSITORY, useClass: UsersRepository }
-]
+  { provide: USER_REPOSITORY, useClass: UsersRepository },
+];
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     ShareModule,
-    KeytokenModule
+    KeytokenModule,
   ],
   controllers: [UsersController],
   providers: [...dependencies],
-  exports: [...dependencies]
+  exports: [...dependencies],
 })
-export class UsersModule { }
+export class UsersModule {}
