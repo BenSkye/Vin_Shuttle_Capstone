@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { FiPhone } from "react-icons/fi"
 
-import { loginCustomer } from "../../../API/user"
-import { verifyOTP } from "../../../API/user"
+import { loginCustomer } from "../../../service/user.service"
+import { verifyOTP } from "../../../service/user.service"
 import { useRouter } from "next/navigation"
 
 interface OTPResponse {

@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import debounce from "lodash/debounce";
-import { MapProps, MapState } from "../../../service/interface/map.types";
+import { MapProps, MapState } from "../../../interface/map.types";
 
 // Custom Icon for Pickup Location
 const PickupIcon = new L.Icon({
