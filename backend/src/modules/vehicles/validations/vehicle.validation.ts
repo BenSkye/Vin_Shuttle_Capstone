@@ -73,14 +73,13 @@ export const VehicleValidation = {
                 'string.empty': ValidationMessages.string.empty
             })
             .label('Biển số xe'),
-
+            image: Joi.array().label('Hình ảnh xe'),
         isActive: Joi.boolean()
             .messages({
                 'boolean.base': ValidationMessages.boolean.base
             })
             .label('Trạng thái hoạt động'),
 
-        image: Joi.array().label('Hình ảnh xe'),
 
         status: Joi.string()
             .valid(...vehicleStatus)

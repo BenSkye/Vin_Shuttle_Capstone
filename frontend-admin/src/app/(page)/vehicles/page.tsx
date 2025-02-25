@@ -16,19 +16,24 @@ interface Vehicle {
   name: string;
   categoryId: string;
   licensePlate: string;
-  isActive: boolean;
-  status: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
   image: string;
   createdAt: string;
   updatedAt: string;
 }
 
+// Update the status maps
+const vehicleConditionMap: { [key: string]: string } = {
+  'available': 'Sẵn sàng sử dụng',
+  'in-use': 'Đang sử dụng',
+  'maintenance': 'Đang bảo trì'
+};
 
-// Map cho trạng thái xe
-const statusMap: { [key: string]: string } = {
-  'available': 'Sẵn sàng',
-  'busy': 'Đang bận',
-  'maintenance': 'Bảo trì'
+const operationStatusMap: { [key: string]: string } = {
+  'pending': 'Chờ hoạt động',
+  'running': 'Đang chạy',
+  'charging': 'Đang sạc'
 };
 
 export default function Vehicles() {
@@ -150,16 +155,16 @@ export default function Vehicles() {
       key: 'licensePlate',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => statusMap[status] || status
+      title: 'Tình trạng xe',
+      dataIndex: 'vehicleCondition',
+      key: 'vehicleCondition',
+      render: (condition: string) => vehicleConditionMap[condition] || condition
     },
     {
-      title: 'Hoạt động',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean) => isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'
+      title: 'Trạng thái hoạt động',
+      dataIndex: 'operationStatus',
+      key: 'operationStatus',
+      render: (status: string) => operationStatusMap[status] || status
     },
     {
       title: 'Ngày tạo',

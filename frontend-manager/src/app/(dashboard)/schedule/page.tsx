@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Input, Form, Button } from 'antd';
 import { Activity } from '@/interfaces/index';
+import EventCalendar from '@/components/EventCalendar';
+import Announcements from '@/components/Announcements';
+
 
 const SchedulePage = () => {
     const [activities, setActivities] = useState([
@@ -90,50 +93,58 @@ const SchedulePage = () => {
     };
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Weekly Schedule</h1>
-            <ScheduleCalendar
-                activities={activities}
-                onActivityClick={handleActivityClick}
-                onSlotClick={handleSlotClick}
-            />
+        <div className="p-4 flex gap-4 flex-col md:flex-row">
+            <div className="p-4">
+                <h1 className="text-2xl font-bold mb-4">Weekly Schedule</h1>
+                <ScheduleCalendar
+                    activities={activities}
+                    onActivityClick={handleActivityClick}
+                    onSlotClick={handleSlotClick}
+                />
 
-            {/* Modal for Adding/Editing Activity */}
-            <Modal
-                title={selectedActivity ? 'Edit Activity' : 'Add Activity'}
-                open={isModalOpen}
-                onOk={handleModalOk}
-                onCancel={() => setIsModalOpen(false)}
-                okText={selectedActivity ? 'Update' : 'Add'}
-                cancelText="Cancel"
-                footer={[
-                    <Button key="cancel" onClick={() => setIsModalOpen(false)}>
-                        Cancel
-                    </Button>,
-                    selectedActivity && (
-                        <Button key="delete" danger onClick={handleDelete}>
-                            Delete
+                {/* Modal for Adding/Editing Activity */}
+                <Modal
+                    title={selectedActivity ? 'Edit Activity' : 'Add Activity'}
+                    open={isModalOpen}
+                    onOk={handleModalOk}
+                    onCancel={() => setIsModalOpen(false)}
+                    okText={selectedActivity ? 'Update' : 'Add'}
+                    cancelText="Cancel"
+                    footer={[
+                        <Button key="cancel" onClick={() => setIsModalOpen(false)}>
+                            Cancel
+                        </Button>,
+                        selectedActivity && (
+                            <Button key="delete" danger onClick={handleDelete}>
+                                Delete
+                            </Button>
+                        ),
+                        <Button key="submit" type="primary" onClick={handleModalOk}>
+                            {selectedActivity ? 'Update' : 'Add'}
                         </Button>
-                    ),
-                    <Button key="submit" type="primary" onClick={handleModalOk}>
-                        {selectedActivity ? 'Update' : 'Add'}
-                    </Button>
-                ]}
-            >
-                <Form form={form} layout="vertical">
-                    <Form.Item
-                        name="title"
-                        label="Tên Tài Xế"
-                        rules={[{ required: true, message: 'Please enter a title' }]}
-                    >
-                        <Input placeholder="Enter activity title" />
-                    </Form.Item>
+                    ]}
+                >
+                    <Form form={form} layout="vertical">
+                        <Form.Item
+                            name="title"
+                            label="Tên Tài Xế"
+                            rules={[{ required: true, message: 'Please enter a title' }]}
+                        >
+                            <Input placeholder="Enter activity title" />
+                        </Form.Item>
 
 
 
-                </Form>
-            </Modal>
+                    </Form>
+                </Modal>
+            </div>
+            <div className="w-full lg:w-1/3 flex flex-col gap-8">
+                <EventCalendar />
+                <Announcements />
+            </div>
         </div>
+
+
     );
 };
 

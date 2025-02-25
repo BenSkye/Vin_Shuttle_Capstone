@@ -24,7 +24,6 @@ function TabNavigator() {
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
           switch (route.name) {
             case 'Trang chủ':
               iconName = focused ? 'home' : 'home-outline';
@@ -44,7 +43,6 @@ function TabNavigator() {
             default:
               iconName = 'home-outline';
           }
-
           return <Ionicons name={iconName as any} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#00C000',
@@ -98,21 +96,15 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator 
+      <Stack.Navigator
         screenOptions={{
           headerShown: false,
         }}
-        initialRouteName={isAuthenticated ? "Home" : "Login"}
       >
-        {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        ) : (
-          <Stack.Screen
-            name="Home"
-            component={TabNavigator}
-            options={{ headerLeft: undefined }}
-          />
-        )}
+        <Stack.Screen name="Login">
+          {(props) => <LoginScreen {...props} setAuthenticated={setIsAuthenticated} />}
+        </Stack.Screen>
+        <Stack.Screen name="Home" component={TabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
