@@ -8,6 +8,7 @@ import { TripRepository } from "src/modules/trip/trip.repo";
 import { Trip, TripSchema } from "src/modules/trip/trip.schema";
 import { TripService } from "src/modules/trip/trip.service";
 import { ShareModule } from "src/share/share.module";
+import { BusRouteModule } from '../bus-route/bus-route.module';
 
 const dependencies = [
     {
@@ -30,7 +31,8 @@ const dependencies = [
         ]),
         DriverScheduleModule,
         ShareModule,
-        KeytokenModule
+        KeytokenModule,
+         BusRouteModule,
     ],
     controllers: [TripController],
     providers: [...dependencies],

@@ -18,6 +18,12 @@ export interface ITripService {
     checkTrip(createTripDto: ICreateTripDto): Promise<boolean>;
     getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]>
     getPersonalDriverTrip(driverId: string): Promise<TripDocument[]>
+      calculateBusRouteFare(
+        routeId: string,
+        fromStopId: string,
+        toStopId: string,
+        numberOfSeats: number
+    ): Promise<number>;
     // getTripById(id: string): Promise<Trip>;
     // getDriverTrips(driverId: string): Promise<Trip[]>;
 }
