@@ -11,7 +11,7 @@ import { swaggerConfig } from 'src/config/swagger.config';
 // };
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true, /*httpsOptions*/ });
+  const app = await NestFactory.create(AppModule, { cors: true /*httpsOptions*/ });
   app.enableCors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -22,10 +22,10 @@ async function bootstrap() {
     swaggerOptions: {
       persistAuthorization: true,
     },
-    customSiteTitle: 'VinShuttle API Docs'
+    customSiteTitle: 'VinShuttle API Docs',
   });
   //log link to swagger
-  console.log(`Swagger UI is running on http://localhost:${process.env.PORT ?? 2028}/api-docs`);// thêm chữ s vào nếu muốn sài https
+  console.log(`Swagger UI is running on http://localhost:${process.env.PORT ?? 2028}/api-docs`); // thêm chữ s vào nếu muốn sài https
   await app.listen(process.env.PORT ?? 2028);
 }
 bootstrap();

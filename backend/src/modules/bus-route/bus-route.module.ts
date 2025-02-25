@@ -9,29 +9,29 @@ import { KeytokenModule } from '../keytoken/keytoken.module';
 import { ShareModule } from 'src/share/share.module';
 
 const dependencies = [
-    {
-        provide: BUS_ROUTE_REPOSITORY,
-        useClass: BusRouteRepository
-    },
-    {
-        provide: BUS_ROUTE_SERVICE,
-        useClass: BusRouteService
-    }
+  {
+    provide: BUS_ROUTE_REPOSITORY,
+    useClass: BusRouteRepository,
+  },
+  {
+    provide: BUS_ROUTE_SERVICE,
+    useClass: BusRouteService,
+  },
 ];
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            {
-                name: BusRoute.name,
-                schema: BusRouteSchema
-            }
-        ]),
-        KeytokenModule,
-        ShareModule
-    ],
-    controllers: [BusRouteController],
-    providers: [...dependencies],
-    exports: [...dependencies]
+  imports: [
+    MongooseModule.forFeature([
+      {
+        name: BusRoute.name,
+        schema: BusRouteSchema,
+      },
+    ]),
+    KeytokenModule,
+    ShareModule,
+  ],
+  controllers: [BusRouteController],
+  providers: [...dependencies],
+  exports: [...dependencies],
 })
 export class BusRouteModule {}

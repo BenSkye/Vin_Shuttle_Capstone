@@ -1,28 +1,28 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, Types } from "mongoose";
-import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
 
 export type VehicleDocument = HydratedDocument<Vehicle>;
 
 @Schema({ collection: 'Vehicles', timestamps: true })
 export class Vehicle {
-    @Prop({ required: true, unique: true })
-    name: string;
+  @Prop({ required: true, unique: true })
+  name: string;
 
-    @Prop({ type: Types.ObjectId, ref: 'VehicleCategory', required: true })
-    categoryId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'VehicleCategory', required: true })
+  categoryId: Types.ObjectId;
 
-    @Prop({ required: true, unique: true })
-    licensePlate: string;  // Biển số xe
+  @Prop({ required: true, unique: true })
+  licensePlate: string; // Biển số xe
 
-    @Prop({ type: [String] })
-    image: string[]
+  @Prop({ type: [String] })
+  image: string[];
 
-    @Prop({ type: String, enum: VehicleOperationStatus, default: VehicleOperationStatus.CHARGING })
-    operationStatus: string;
+  @Prop({ type: String, enum: VehicleOperationStatus, default: VehicleOperationStatus.CHARGING })
+  operationStatus: string;
 
-    @Prop({ type: String, enum: VehicleCondition, default: VehicleCondition.AVAILABLE })
-    vehicleCondition: string;
+  @Prop({ type: String, enum: VehicleCondition, default: VehicleCondition.AVAILABLE })
+  vehicleCondition: string;
 }
 
-export const VehicleSchema = SchemaFactory.createForClass(Vehicle); 
+export const VehicleSchema = SchemaFactory.createForClass(Vehicle);

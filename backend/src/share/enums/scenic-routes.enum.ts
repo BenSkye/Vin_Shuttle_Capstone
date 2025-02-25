@@ -1,5 +1,5 @@
 export enum ScenicRouteStatus {
-    DRAFT = 'draft',
-    ACTIVE = 'active',
-    INACTIVE = 'inactive'
+  DRAFT = 'draft',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
 }
