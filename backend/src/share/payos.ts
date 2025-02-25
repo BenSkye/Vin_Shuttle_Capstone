@@ -28,8 +28,8 @@ export class PayosService implements IPayosService {
             orderCode: createPaymentDto.bookingCode,
             amount: createPaymentDto.amount,
             description: createPaymentDto.description,
-            cancelUrl: `${domain}/v1/api/payos${createPaymentDto.cancelUrl}`,
-            returnUrl: `${domain}/v1/api/payos${createPaymentDto.returnUrl}`,
+            cancelUrl: `${domain}/checkout${createPaymentDto.cancelUrl}`,
+            returnUrl: `${domain}/checkout${createPaymentDto.returnUrl}`,
         };
 
         return this.payos.createPaymentLink(requestData);

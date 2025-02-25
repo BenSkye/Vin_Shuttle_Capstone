@@ -34,15 +34,16 @@ export class CheckoutService implements ICheckoutService {
                     bookingCode: booking.bookingCode,
                     amount: booking.totalAmount,
                     description: `Đặt xe ${booking.bookingCode}`,
-                    cancelUrl: '',
-                    returnUrl: ''
+                    cancelUrl: '/cancel-booking-payment',
+                    returnUrl: '/return-booking-payment'
                 }
             )
-
+        console.log('paymentResult', paymentResult)
         return paymentResult
     }
 
     async getPayOsReturn(reqQuery: any): Promise<BookingDocument> {
+        console.log('reqQuery', reqQuery)
         let booking
         if (reqQuery.code === '00') {
             booking = await this.bookingService.payBookingSuccess(reqQuery.orderCode)

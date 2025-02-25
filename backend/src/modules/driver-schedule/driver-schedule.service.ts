@@ -141,16 +141,13 @@ export class DriverScheduleService implements IDriverScheduleService {
                 vnMesage: `Ngày không hợp lệ`,
             }, HttpStatus.BAD_REQUEST);
         }
-        const daynum = endDate.getDate() - startDate.getDate();
-        console.log(daynum);
-        const driverSchedulesList: DriverScheduleDocument[] = [];
-        for (let i = 0; i <= daynum; i++) {
-            const date = new Date(start);
-            date.setDate(startDate.getDate() + i);
-            const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({ date: date, driver: driverId }, []);
-            driverSchedulesList.push(...driverSchedules);
-        }
-        return driverSchedulesList;
+        const schedules = await this.driverScheduleRepository.getDriverSchedules({
+            date: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        }, []);
+        return schedules;
     }
 
     async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
@@ -169,16 +166,13 @@ export class DriverScheduleService implements IDriverScheduleService {
                 vnMesage: `Ngày không hợp lệ`,
             }, HttpStatus.BAD_REQUEST);
         }
-        const daynum = endDate.getDate() - startDate.getDate();
-        console.log(daynum);
-        const driverSchedulesList: DriverScheduleDocument[] = [];
-        for (let i = 0; i <= daynum; i++) {
-            const date = new Date(start);
-            date.setDate(startDate.getDate() + i);
-            const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({ date: date }, []);
-            driverSchedulesList.push(...driverSchedules);
-        }
-        return driverSchedulesList;
+        const schedules = await this.driverScheduleRepository.getDriverSchedules({
+            date: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        }, []);
+        return schedules;
     }
 
     async getDriverSchedules(query: any): Promise<DriverScheduleDocument[]> {
@@ -255,11 +249,12 @@ export class DriverScheduleService implements IDriverScheduleService {
 
     async driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
         const currentTime = new Date();
-        const driverSchedule = await this.driverScheduleRepository.findOneDriverSchedule(
-            {
-                _id: driverScheduleId,
-                driver: driverId
-            }, []);
+        const driverSchedule = await
+            this.driverScheduleRepository.findOneDriverSchedule(
+                {
+                    _id: driverScheduleId,
+                    driver: driverId
+                }, []);
         if (!driverSchedule) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
