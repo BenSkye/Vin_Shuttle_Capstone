@@ -36,4 +36,10 @@ export class UsersRepository implements IUserRepository {
         return result
     }
 
+    async findManyUsers(query: any, select: string[]): Promise<UserDocument[]> {
+        const result = await this.userModel.find(query).select(getSelectData(select)).exec()
+        return result
+    }
+
+
 }

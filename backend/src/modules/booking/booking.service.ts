@@ -1,18 +1,20 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { BOOKING_REPOSITORY } from "src/modules/booking/booking.di-token";
 import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody } from "src/modules/booking/booking.dto";
 import { IBookingRepository, IBookingService } from "src/modules/booking/booking.port";
 import { BookingDocument } from "src/modules/booking/booking.schema";
+import { CHECKOUT_SERVICE } from "src/modules/checkout/checkout.di-token";
+import { ICheckoutService } from "src/modules/checkout/checkout.port";
 import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.di-token";
 import { IScenicRouteRepository } from "src/modules/scenic-route/scenic-route.port";
 import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
-import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
-import { ITripService } from "src/modules/trip/trip.port";
-import { BOOKING_BUFFER_MINUTES, DriverSchedulesStatus, ServiceType } from "src/share/enums";
+import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
+import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
+import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, TripStatus } from "src/share/enums";
 
-import { DateUtils } from "src/share/utils";
+import { DateUtils, generateBookingCode } from "src/share/utils";
 
 Injectable()
 export class BookingService implements IBookingService {
@@ -23,14 +25,18 @@ export class BookingService implements IBookingService {
         private readonly searchService: ISearchService,
         @Inject(TRIP_SERVICE)
         private readonly tripService: ITripService,
+        @Inject(TRIP_REPOSITORY)
+        private readonly tripRepository: ITripRepository,
         @Inject(SCENIC_ROUTE_REPOSITORY)
-        private readonly scenicRouteRepository: IScenicRouteRepository
+        private readonly scenicRouteRepository: IScenicRouteRepository,
+        @Inject(forwardRef(() => CHECKOUT_SERVICE))
+        private readonly checkoutService: ICheckoutService
     ) { }
 
     async bookingHour(
         customerId: string,
         data: IBookingHourBody
-    ): Promise<BookingDocument> {
+    ): Promise<{ newBooking: BookingDocument, paymentUrl: string }> {
         const {
             startPoint,
             date,
@@ -145,8 +151,9 @@ export class BookingService implements IBookingService {
             const newTrip = await this.tripService.createTrip(TripDto)
             ListTrip.push(newTrip._id)
         }
-
+        const bookingCode = generateBookingCode()
         const bookingDto = {
+            bookingCode,
             customerId: customerId,
             trips: ListTrip,
             totalAmount: totalAmount,
@@ -154,13 +161,24 @@ export class BookingService implements IBookingService {
         }
 
         const newBooking = await this.bookingRepository.create(bookingDto)
-        return newBooking
+        if (!newBooking) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'fail to create booking',
+                vnMesage: 'Lỗi tạo booking',
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        return {
+            newBooking,
+            paymentUrl: paymentResult.checkoutUrl
+        }
     }
 
     async bookingScenicRoute(
         customerId: string,
         data: IBookingScenicRouteBody
-    ): Promise<BookingDocument> {
+    ): Promise<{ newBooking: BookingDocument, paymentUrl: string }> {
         const {
             startPoint,
             scenicRouteId,
@@ -285,22 +303,35 @@ export class BookingService implements IBookingService {
             ListTrip.push(newTrip._id);
             totalAmount += vehicleCategory.price;
         }
-
+        const bookingCode = generateBookingCode()
         // Tạo booking
         const bookingDto = {
+            bookingCode,
             customerId,
             trips: ListTrip,
             totalAmount,
             paymentMethod
         };
 
-        return this.bookingRepository.create(bookingDto);
+        const newBooking = await this.bookingRepository.create(bookingDto)
+        if (!newBooking) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'fail to create booking',
+                vnMesage: 'Lỗi tạo booking',
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        return {
+            newBooking,
+            paymentUrl: paymentResult.checkoutUrl
+        }
     }
 
     async bookingDestination(
         customerId: string,
         data: IBookingDestinationBody
-    ): Promise<BookingDocument> {
+    ): Promise<{ newBooking: BookingDocument, paymentUrl: string }> {
         const {
             startPoint,
             endPoint,
@@ -417,16 +448,80 @@ export class BookingService implements IBookingService {
             ListTrip.push(newTrip._id);
             totalAmount += vehicleCategory.price;
         }
-
+        const bookingCode = generateBookingCode()
         // Tạo booking
         const bookingDto = {
+            bookingCode,
             customerId,
             trips: ListTrip,
             totalAmount,
             paymentMethod
         };
 
-        return this.bookingRepository.create(bookingDto);
+        const newBooking = await this.bookingRepository.create(bookingDto)
+        if (!newBooking) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'fail to create booking',
+                vnMesage: 'Lỗi tạo booking',
+            }, HttpStatus.BAD_REQUEST);
+        }
+        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        return {
+            newBooking,
+            paymentUrl: paymentResult.checkoutUrl
+        }
     }
 
+    async payBookingSuccess(bookingCode: number): Promise<BookingDocument> {
+        const booking = await this.bookingRepository.findOneBooking(
+            {
+                bookingCode
+            }, []
+        )
+        const listTripId = booking.trips
+        for (const tripId of listTripId) {
+            const tripUpdate = await this.tripRepository.updateStatus(
+                tripId.toString(),
+                TripStatus.PAYED
+            )
+            if (!tripUpdate) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: `Failed to update trip ${tripId}`,
+                    vnMesage: `Lỗi cập nhật trip ${tripId}`,
+                }, HttpStatus.BAD_REQUEST);
+            }
+        }
+        const updateBooking = await this.bookingRepository.updateStatusBooking(
+            booking._id.toString(),
+            BookingStatus.CONFIRMED
+        )
+        if (!updateBooking) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Failed to update booking ${booking._id}`,
+                vnMesage: `Lỗi cập nhật booking ${booking._id}`,
+            }, HttpStatus.BAD_REQUEST);
+        }
+        return updateBooking
+    }
+
+    async payBookingFail(bookingCode: number): Promise<void> {
+        const booking = await this.bookingRepository.findOneBooking(
+            {
+                bookingCode
+            }, []
+        )
+        const listTripId = booking.trips
+        for (const tripId of listTripId) {
+            await this.tripRepository.deleteTrip(
+                tripId.toString()
+            )
+        }
+        await this.bookingRepository.deleteBooking(
+            booking._id.toString()
+        )
+    }
 }
+

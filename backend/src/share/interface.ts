@@ -1,3 +1,5 @@
+import { CheckoutResponseDataType } from "@payos/node/lib/type";
+
 export interface tokenDTO {
     accessToken: string;
     refreshToken: string;
@@ -24,6 +26,16 @@ export interface ITokenProvider {
 
 export interface ISMSProvider {
     sendOTP(phone: string, OTP: string): Promise<any>;
+}
+
+export interface IPayosService {
+    createPaymentLink(createPaymentDto: {
+        bookingCode: number;
+        amount: number;
+        description: string;
+        cancelUrl: string;
+        returnUrl: string;
+    }): Promise<CheckoutResponseDataType>
 }
 
 export const HEADER = {

@@ -27,3 +27,15 @@ export interface Appointment {
     startTime: string; // Định dạng HH:mm
     endTime: string; // Định dạng HH:mm
 }
+
+export interface Driver {
+    id: number;
+    teacherId: string;
+    name: string;
+    email?: string;
+    photo: string;
+    phone: string;
+    subjects: string[];
+    classes: string[];
+    address: string;
+};

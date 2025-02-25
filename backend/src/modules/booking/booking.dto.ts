@@ -2,6 +2,7 @@ import { PaymentMethod } from "src/share/enums/payment.enum"
 import { Position } from "src/share/interface"
 
 export interface ICreateBooking {
+    bookingCode: number
     customerId: string
     trips: string[]
     totalAmount: number
@@ -9,13 +10,15 @@ export interface ICreateBooking {
 }
 
 export interface IUpdateBooking {
+    bookingCode?: string
     customerId?: string
     trips?: string[]
     totalAmount?: number
     paymentMethod?: string
     InvoiceId?: string
     cancellationTime?: string
-    cancellationReason?: string
+    cancellationReason?: string,
+    statusHistory?: object
 }
 
 export interface IBookingHourBody {
