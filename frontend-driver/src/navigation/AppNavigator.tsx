@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, View } from 'react-native';
-import { authService } from '../services/authService';
+import { authService } from '../services/authServices';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';

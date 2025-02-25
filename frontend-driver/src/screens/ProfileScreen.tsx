@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserProfile, UserProfile } from '../services/userService';
+import { getUserProfile, UserProfile } from '../services/userServices';
 import { Ionicons } from '@expo/vector-icons';
-import { authService } from '../services/authService';
+import { authService } from '../services/authServices';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {

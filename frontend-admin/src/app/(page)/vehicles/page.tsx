@@ -18,7 +18,7 @@ interface Vehicle {
   licensePlate: string;
   vehicleCondition: 'available' | 'in-use' | 'maintenance';
   operationStatus: 'pending' | 'running' | 'charging';
-  image: string;
+  image: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -130,7 +130,7 @@ export default function Vehicles() {
       width: 100,
       render: (record: Vehicle) => (
         <Image
-          src={record.image || placehoderImg.src}
+          src={record.image?.[0] || placehoderImg.src}
           alt={record.name}
           width={80}
           height={80}
