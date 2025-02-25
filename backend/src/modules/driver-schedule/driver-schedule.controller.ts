@@ -145,7 +145,7 @@ export class DriverScheduleController {
     })
     async driverCheckout(
         @Request() req,
-        @Param('driverScheduleId ') driverScheduleId: string,
+        @Param('driverScheduleId') driverScheduleId: string,
     ) {
         return await this.driverScheduleService.driverCheckOut(driverScheduleId, req.user._id)
     }

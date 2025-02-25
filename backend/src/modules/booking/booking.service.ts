@@ -12,7 +12,7 @@ import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
 import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
-import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, TripStatus } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, TripStatus } from "src/share/enums";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
 
@@ -49,7 +49,17 @@ export class BookingService implements IBookingService {
         const scheduleDate = DateUtils.parseDate(date);
         const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
+        // check bookingStartTime sau thời gian hiện tại
 
+        const now = dayjs();
+        const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+        if (bookingStartTime.isBefore(minAllowedTime)) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking time must be at least ${BOOKING_BUFFER_MINUTES} minutes from now`,
+                vnMessage: `Thời gian đặt phải cách hiện tại ít nhất ${BOOKING_BUFFER_MINUTES} phút`
+            }, HttpStatus.BAD_REQUEST);
+        }
 
         //check if it is within the start and end of working time
         const [_, matchingShifts] = await Promise.all([
@@ -58,10 +68,20 @@ export class BookingService implements IBookingService {
         ]);
 
         //check available schedule in DB
-        const schedules = await this.searchService.getAvailableSchedules(
+        let schedules = await this.searchService.getAvailableSchedules(
             scheduleDate.toDate(),
             matchingShifts
         );
+
+
+        if (scheduleDate.isSame(now, 'day')) {
+            console.log('now', now)
+            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
+            schedules = schedules.filter(schedule =>
+                matchingShifts.includes(schedule.shift as Shift) &&
+                schedule.status === DriverSchedulesStatus.IN_PROGRESS
+            );
+        }
 
         //check not conflict time with Trip in that uniqueSchedules 
         const validSchedules = await this.searchService.filterSchedulesWithoutConflicts(
@@ -203,6 +223,16 @@ export class BookingService implements IBookingService {
         const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
 
+        const now = dayjs();
+        const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+        if (bookingStartTime.isBefore(minAllowedTime)) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking time must be at least ${BOOKING_BUFFER_MINUTES} minutes from now`,
+                vnMessage: `Thời gian đặt phải cách hiện tại ít nhất ${BOOKING_BUFFER_MINUTES} phút`
+            }, HttpStatus.BAD_REQUEST);
+        }
+
         // Validate booking time và lấy shifts
         const [_, matchingShifts] = await Promise.all([
             this.searchService.validateBookingTime(bookingStartTime, bookingEndTime),
@@ -210,10 +240,18 @@ export class BookingService implements IBookingService {
         ]);
 
         // Lấy schedules khả dụng
-        const schedules = await this.searchService.getAvailableSchedules(
+        let schedules = await this.searchService.getAvailableSchedules(
             scheduleDate.toDate(),
             matchingShifts
         );
+        if (scheduleDate.isSame(now, 'day')) {
+            console.log('now', now)
+            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
+            schedules = schedules.filter(schedule =>
+                matchingShifts.includes(schedule.shift as Shift) &&
+                schedule.status === DriverSchedulesStatus.IN_PROGRESS
+            );
+        }
 
         // Lọc schedules không xung đột
         const validSchedules = await this.searchService.filterSchedulesWithoutConflicts(

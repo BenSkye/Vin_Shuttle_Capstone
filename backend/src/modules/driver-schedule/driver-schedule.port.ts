@@ -1,6 +1,6 @@
 
 import { ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
-import { DriverSchedule, DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
+import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 
 export interface IDriverScheduleRepository {
     createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument>;
