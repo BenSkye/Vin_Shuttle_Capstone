@@ -3,7 +3,7 @@ import apiClient from '@/service/apiClient';
 
 export const vehicleSearchHour = async (date: string, startTime: string, durationMinutes: number): Promise<AvailableVehicle> => {
     try {
-        const response = await apiClient.get(`/ search/available-vehicle-search-hour/${date}/${startTime}/${durationMinutes}`);
+        const response = await apiClient.get(`/search/available-vehicle-search-hour/${date}/${startTime}/${durationMinutes}`);
         return response.data;
     } catch (error: any) {
         if (error.response) {

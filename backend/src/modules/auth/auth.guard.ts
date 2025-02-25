@@ -25,6 +25,7 @@ export class AuthGuard implements CanActivate {
         }
         const token = authorization.split(' ')[1];
         const decodeInformation = await this.tokenProvider.decodeToken(token)
+        console.log('decodeInformation', decodeInformation)
         const keystore = await this.keyTokenService.findByUserId(decodeInformation._id);
         if (!keystore) {
             return false;

@@ -28,8 +28,11 @@ export class BookingController {
             'Create a Booking Hour and their Trip for customer': {
                 value: {
                     startPoint: {
-                        lat: 10.8358,
-                        lng: 106.84286,
+                        position: {
+                            lat: 10.8376,
+                            lng: 106.84268,
+                        },
+                        address: 'Trường liên cấp VinSchool, Đường V3, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
                     },
                     date: '2025-02-17',
                     startTime: '11:00',
@@ -69,8 +72,11 @@ export class BookingController {
             'Create a Booking Scenic route and their Trip for customer': {
                 value: {
                     startPoint: {
-                        lat: 10.8358,
-                        lng: 106.84286,
+                        position: {
+                            lat: 10.8376,
+                            lng: 106.84268,
+                        },
+                        address: 'Trường liên cấp VinSchool, Đường V3, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
                     },
                     scenicRouteId: '67ba067fa6cb16fffb59a4e4',
                     date: '2025-02-17',
@@ -110,12 +116,18 @@ export class BookingController {
             'Create a Booking destination and their Trip for customer': {
                 value: {
                     startPoint: {
-                        lat: 10.8334,
-                        lng: 106.8420,
+                        position: {
+                            lat: 10.8376,
+                            lng: 106.84268,
+                        },
+                        address: 'Trường liên cấp VinSchool, Đường V3, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
                     },
                     endPoint: {
-                        lat: 10.8479,
-                        lng: 106.8357,
+                        position: {
+                            lat: 10.8468,
+                            lng: 106.8375,
+                        },
+                        address: 'Hồ bơi nội khu S9, Đường D7, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
                     },
                     estimatedDuration: 7,
                     distanceEstimate: 2.8,

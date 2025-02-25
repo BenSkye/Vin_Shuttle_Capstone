@@ -1,5 +1,5 @@
 import { PaymentMethod } from "src/share/enums/payment.enum"
-import { Position } from "src/share/interface"
+import { Position, StartPoint } from "src/share/interface"
 
 export interface ICreateBooking {
     bookingCode: number
@@ -22,7 +22,7 @@ export interface IUpdateBooking {
 }
 
 export interface IBookingHourBody {
-    startPoint: Position,
+    startPoint: StartPoint,
     date: string,
     startTime: string,
     durationMinutes: number,
@@ -31,7 +31,7 @@ export interface IBookingHourBody {
 }
 
 export interface IBookingScenicRouteBody {
-    startPoint: Position,
+    startPoint: StartPoint,
     scenicRouteId: string,
     date: string,
     startTime: string,
@@ -39,8 +39,8 @@ export interface IBookingScenicRouteBody {
     paymentMethod: PaymentMethod
 }
 export interface IBookingDestinationBody {
-    startPoint: Position,
-    endPoint: Position;
+    startPoint: StartPoint,
+    endPoint: StartPoint;
     estimatedDuration: number
     distanceEstimate: number;
     vehicleCategories: { categoryVehicleId: string, name: string },

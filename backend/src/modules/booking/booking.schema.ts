@@ -16,7 +16,10 @@ export class Booking {
     customerId: Types.ObjectId;
 
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Trip' }], required: true })
-    trips: Types.ObjectId[];
+    trips: [{
+        type: Types.ObjectId,
+        ref: 'Trip'
+    }]
 
     @Prop({
         type: String,

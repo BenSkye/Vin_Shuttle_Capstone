@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Inject, Request, UseGuards } from "@nestjs/common";
+import { Controller, Get, HttpCode, HttpStatus, Inject, Param, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
@@ -38,5 +38,14 @@ export class TripController {
         @Request() req,
     ) {
         return await this.tripService.getPersonalDriverTrip(req.user._id)
+    }
+
+    @Get('customer-personal-trip/:id')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard, RolesGuard)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Get trip by id' })
+    async getTripById(@Param('id') id: string, @Request() req) {
+        return await this.tripService.getTripById(req.user._id, id)
     }
 }

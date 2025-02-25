@@ -1,78 +1,144 @@
 "use client";
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ServiceType } from "@/constants/service-type.enum";
+import { Trip, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingDestinationPayloadDto, BookingSharePayloadDto } from "@/interface/trip";
+import { BookingResponse } from "@/interface/booking";
+import { getPersonalTripById } from "@/service/trip.service";
 
-import React from "react";
 
-const pickupInfo = {
-    pickupLocation: "123 Đường ABC, Quận 1, TP.HCM",
-    pickupDateTime: "2025-02-14 08:00",
-    travelDuration: "2 giờ",
-};
+const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse }) => {
+    const [booking, setBooking] = useState<BookingResponse["newBooking"] | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const router = useRouter();
+    const params = useSearchParams();
+    const [trips, setTrips] = useState<Trip[] | null>(null);
+    const [paymentUrl, setPaymentUrl] = useState("");
+    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+    const [iframeLoading, setIframeLoading] = useState(true);
 
-const vehicleData = [
-    {
-        key: "1",
-        type: "Sedan",
-        quantity: 2,
-        price: 500000,
-        details: [
-            { plate: "51A-12345", seats: 4, driver: "Nguyễn Văn A" },
-            { plate: "51A-67890", seats: 4, driver: "Trần Văn B" }
-        ]
-    },
-    {
-        key: "2",
-        type: "SUV",
-        quantity: 1,
-        price: 700000,
-        details: [
-            { plate: "51B-11223", seats: 7, driver: "Lê Văn C" }
-        ]
+    useEffect(() => {
+        setBooking(bookingResponse.newBooking);
+        setPaymentUrl(bookingResponse.paymentUrl);
+        setLoading(false);
+    }, [bookingResponse]);
+
+    const fetchTrip = async () => {
+        const trips = [];
+        if (booking) {
+            for (const tripId of booking.trips) {
+                const trip = await getPersonalTripById(tripId);
+                trips.push(trip);
+            }
+        }
+        setTrips(trips);
     }
-];
 
-const totalPrice = vehicleData.reduce((sum, v) => sum + v.price * v.quantity, 0);
+    useEffect(() => {
+        fetchTrip();
+    }, [booking]);
 
-const CheckoutPage = () => {
+    useEffect(() => {
+        handlePayment()
+    }, [paymentUrl]);
+
+
+
+    const handlePayment = () => {
+        setShowPaymentDialog(true);
+    };
+
+    const handleIframeLoad = () => {
+        setIframeLoading(false);
+    };
+
+    const renderTripDetails = (trip: Trip) => {
+        switch (trip.serviceType) {
+            case ServiceType.BOOKING_HOUR:
+                return (
+                    <div className="mb-4 p-4 border rounded-lg">
+                        <p>Thời gian: {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút</p>
+                        <p>Điểm đón: {(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}</p>
+                    </div>
+                );
+            case ServiceType.BOOKING_SCENIC_ROUTE:
+                return (
+                    <div className="mb-4 p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">Tour tham quan</h3>
+                        <p>Tuyến đường: {(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId}</p>
+                        <p>Khoảng cách: {(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.distanceEstimate}km</p>
+                    </div>
+                );
+            case ServiceType.BOOKING_DESTINATION:
+                return (
+                    <div className="mb-4 p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">Điểm đến cố định</h3>
+                        <p>Điểm đón: {(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}</p>
+                        <p>Điểm đến: {(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.endPoint.address}</p>
+                    </div>
+                );
+            case ServiceType.BOOKING_SHARE:
+                return (
+                    <div className="mb-4 p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">Đi chung xe</h3>
+                        <p>Số chỗ: {(trip.servicePayload as BookingSharePayloadDto).bookingShare.numberOfSeat}</p>
+                        <p>Điểm đến: {(trip.servicePayload as BookingSharePayloadDto).bookingShare.endPoint.address}</p>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    if (loading) return <div className="text-center py-8">Đang tải thông tin...</div>;
+    if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
+    if (!booking) return <div className="text-center py-8">Không tìm thấy thông tin đơn hàng</div>;
+
     return (
         <div className="flex justify-center p-4 max-w-full">
             <div className="w-full max-w-4xl bg-white shadow-md p-6 rounded-lg">
-                <h2 className="text-2xl font-semibold text-center mb-6">Chi tiết đơn hàng</h2>
+                <h2 className="text-2xl font-semibold text-center mb-6">Chi tiết đơn hàng #{booking.bookingCode}</h2>
 
                 <div className="mb-6 border p-4 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-4">Thông tin đón</h4>
-                    <p><strong>Điểm đón:</strong> {pickupInfo.pickupLocation}</p>
-                    <p><strong>Ngày giờ đón:</strong> {pickupInfo.pickupDateTime}</p>
-                    <p><strong>Thời gian di chuyển:</strong> {pickupInfo.travelDuration}</p>
+                    <h4 className="text-lg font-semibold mb-4">Thông tin thanh toán</h4>
+                    <p><strong>Phương thức:</strong> {booking.paymentMethod ? booking.paymentMethod.charAt(0).toUpperCase() + booking.paymentMethod.slice(1) : 'Chưa chọn'}</p>
+                    <p><strong>Ngày tạo:</strong> {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('vi-VN') : 'Chưa có'}</p>
+                    <p><strong>Trạng thái:</strong> {booking.status || 'Chưa có'}</p>
                 </div>
 
-                <div className="overflow-x-auto mb-6">
-                    <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border p-2">Loại xe</th>
-                                <th className="border p-2">Số lượng</th>
-                                <th className="border p-2">Giá mỗi xe</th>
-                                <th className="border p-2">Tổng</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {vehicleData.map((vehicle) => (
-                                <tr key={vehicle.key} className="text-center border">
-                                    <td className="border p-2">{vehicle.type}</td>
-                                    <td className="border p-2">{vehicle.quantity}</td>
-                                    <td className="border p-2">{vehicle.price.toLocaleString()} VND</td>
-                                    <td className="border p-2">{(vehicle.price * vehicle.quantity).toLocaleString()} VND</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="mb-6">
+                    <h4 className="text-lg font-semibold mb-4">Chi tiết các chuyến đi</h4>
+                    {trips?.map((trip) => (
+                        <div key={trip._id} className="mb-4">
+                            {renderTripDetails(trip)}
+                        </div>
+                    ))}
                 </div>
 
-                <div className="bg-gray-100 p-4 rounded-lg flex justify-between items-center">
-                    <h4 className="text-lg font-semibold">Tổng tiền:</h4>
-                    <h3 className="text-xl font-bold text-blue-500">{totalPrice.toLocaleString()} VND</h3>
+                <div className="bg-blue-50 p-4 rounded-lg flex flex-col items-center">
+                    <h3 className="text-xl font-bold text-blue-600 mb-4">
+                        Tổng tiền: {booking.totalAmount.toLocaleString('vi-VN')} VND
+                    </h3>
                 </div>
             </div>
+            {showPaymentDialog &&
+                <div className="relative min-h-[500px]">
+                    {iframeLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                        </div>
+                    )}
+                    <iframe
+                        src={paymentUrl}
+                        className="w-full h-[500px] border-0"
+                        onLoad={handleIframeLoad}
+                        title="Payment Gateway"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                </div>
+            }
+
         </div>
     );
 };

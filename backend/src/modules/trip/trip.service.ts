@@ -129,6 +129,13 @@ export class TripService implements ITripService {
         return await this.tripRepository.find({ driverId }, [])
     }
 
+    async getTripById(customerId: string, id: string): Promise<TripDocument> {
+        return await this.tripRepository.findOne({
+            _id: id,
+            customerId: customerId
+        }, [])
+    }
+
 }
 
 

@@ -27,6 +27,11 @@ export class TripRepository implements ITripRepository {
     async find(query: any, select: string[]): Promise<TripDocument[]> {
         return await this.tripModel.find(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
     }
+
+    async findOne(query: any, select: string[]): Promise<TripDocument> {
+        return await this.tripModel.findOne(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+    }
+
     async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {
         return await this.tripModel.findByIdAndUpdate(id, { status })
     }

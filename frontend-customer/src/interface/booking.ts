@@ -19,8 +19,11 @@ export interface VehicleCategory {
 // Interface cho request booking
 export interface BookingHourRequest {
     startPoint: {
-        lat: number;
-        lng: number;
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
     };
     date: string;
     startTime: string;
@@ -34,8 +37,16 @@ export interface BookingHourRequest {
 
 // Interface cho response booking
 export interface BookingResponse {
-    bookingId: string;
-    totalAmount: number;
-    paymentUrl?: string; // Dùng cho payment gateway
-    estimatedArrivalTime: string;
+    newBooking: {
+        _id: string;
+        bookingCode: number;
+        totalAmount: number;
+        trips: string[];
+        paymentMethod?: string;
+        status?: string;
+        createdAt: string;
+    };
+    paymentUrl: string;
 }
+
+

@@ -18,6 +18,11 @@ export interface Position {
     lng: number;
 }
 
+export interface StartPoint {
+    position: Position;
+    address: string;
+}
+
 export interface ITokenProvider {
     generateTokenPair(payload: TokenPayload, publicKey: string, privateKey: string): Promise<tokenDTO>;
     verifyToken(token: string, key: string): Promise<TokenPayload | null>;

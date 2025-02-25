@@ -34,13 +34,13 @@ if (typeof window !== 'undefined') {
 }
 
 interface LocationSelectionProps {
-    pickup: string;
-    onPickupChange: (value: string) => void;
+    startPoint: {
+        position: { lat: number; lng: number };
+        address: string;
+    };
+    onLocationChange: (position: { lat: number; lng: number }, address: string) => void;
     detectUserLocation: () => void;
     loading: boolean;
-    lat: number;
-    lng: number;
-    onPositionChange: (lat: number, lng: number) => void;
 }
 
 const MapClickHandler = ({ onMapClick }: { onMapClick: (latlng: L.LatLng) => void }) => {
@@ -83,9 +83,11 @@ const geocode = async (query: string): Promise<[number, number]> => {
 const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
     try {
         const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+            `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
         );
+        console.log(`https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`);
         const data = await response.json();
+        console.log('data', data);
         return data.display_name || 'Không xác định được địa chỉ';
     } catch (error) {
         console.error('Reverse geocoding error:', error);
@@ -94,17 +96,14 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
 };
 
 const LocationSelection = ({
-    pickup,
-    onPickupChange,
+    startPoint,
+    onLocationChange,
     detectUserLocation,
     loading,
-    lat,
-    lng,
-    onPositionChange,
 }: LocationSelectionProps) => {
     const [isFetching, setIsFetching] = useState(false);
     const [isClient, setIsClient] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(pickup);
+    const [searchQuery, setSearchQuery] = useState(startPoint.address);
 
     useEffect(() => {
         setIsClient(true);
@@ -117,8 +116,7 @@ const LocationSelection = ({
         try {
             setIsFetching(true);
             const [newLat, newLng] = await geocode(searchQuery);
-            onPositionChange(newLat, newLng);
-            onPickupChange(await reverseGeocodeOSM(newLat, newLng));
+            onLocationChange({ lat: newLat, lng: newLng }, searchQuery);
         } catch (error) {
             console.error('Search error:', error);
         } finally {
@@ -130,8 +128,8 @@ const LocationSelection = ({
         try {
             setIsFetching(true);
             const address = await reverseGeocodeOSM(latlng.lat, latlng.lng);
-            onPickupChange(address);
-            onPositionChange(latlng.lat, latlng.lng);
+            onLocationChange({ lat: latlng.lat, lng: latlng.lng }, address);
+            setSearchQuery(address);
 
             // Force update map view
             const map = L.map('map');
@@ -176,8 +174,8 @@ const LocationSelection = ({
             <div className="map-container">
                 <MapContainer
                     id="map"
-                    center={[lat || 10.840405, lng || 106.843424]}
-                    zoom={lat && lng ? 15 : 13}
+                    center={[startPoint.position.lat || 10.840405, startPoint.position.lng || 106.843424]}
+                    zoom={startPoint.position.lat && startPoint.position.lng ? 15 : 13}
                     scrollWheelZoom={true}
                 >
                     <TileLayer
@@ -185,8 +183,8 @@ const LocationSelection = ({
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
 
-                    {lat && lng && (
-                        <Marker position={[lat, lng]}>
+                    {startPoint.position.lat && startPoint.position.lng && (
+                        <Marker position={[startPoint.position.lat, startPoint.position.lng]}>
                             <Popup className="font-semibold">
                                 📍 Điểm đón của bạn
                             </Popup>

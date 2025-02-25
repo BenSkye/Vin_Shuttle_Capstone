@@ -7,7 +7,6 @@ import {
     Card,
     Row,
     Col,
-    message,
     notification,
 } from "antd";
 import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined, CreditCardOutlined } from "@ant-design/icons";
@@ -17,8 +16,9 @@ import VehicleSelection from "../../components/booking/bookingcomponents/vehicle
 import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
 import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 import { vehicleSearchHour } from "@/service/search.service";
-import { AvailableVehicle, BookingHourRequest } from "@/interface/booking";
+import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
 import { BookingHourDuration } from "@/constants/booking.constants";
+import { bookingHour } from "@/service/booking.service";
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -35,16 +35,19 @@ const HourlyBookingPage = () => {
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
     const [duration, setDuration] = useState<number>(60);
-    const [pickup, setPickup] = useState("");
     const [loading, setLoading] = useState(false);
     const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
     const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([]);
-    const [pickupLocation, setPickupLocation] = useState({
-        lat: 10.840405,
-        lng: 106.843424
+    const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
+    const [startPoint, setStartPoint] = useState<{
+        position: { lat: number; lng: number };
+        address: string;
+    }>({
+        position: { lat: 10.840405, lng: 106.843424 },
+        address: ''
     });
     const [booking, setBooking] = useState<BookingHourRequest>({
-        startPoint: { lat: 0, lng: 0 },
+        startPoint: { position: { lat: 0, lng: 0 }, address: '' },
         date: '',
         startTime: '',
         durationMinutes: 0,
@@ -81,16 +84,13 @@ const HourlyBookingPage = () => {
         });
     };
 
-    const handlePositionChange = (lat: number, lng: number) => {
-        setPickupLocation({ lat, lng });
-        // Update booking state
-        setBooking(prev => ({
-            ...prev,
-            startPoint: { lat, lng }
-        }));
+    const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
+        setStartPoint({
+            position: newPosition,
+            address: newAddress
+        });
     };
 
-    // Thêm hàm kiểm tra điều kiện next
     const canProceedToNextStep = () => {
         switch (current) {
             case 0:
@@ -98,7 +98,7 @@ const HourlyBookingPage = () => {
             case 1:
                 return selectedVehicles.length > 0;
             case 2:
-                return !!pickup;
+                return !!startPoint.address.trim();
             default:
                 return true;
         }
@@ -148,6 +148,14 @@ const HourlyBookingPage = () => {
             const success = await fetchAvailableVehicles();
             if (!success) return;
         }
+        // Handle submission when moving to checkout
+        if (current === 2) {
+            try {
+                await handleSubmit();
+            } catch {
+                return; // Prevent advancing on error
+            }
+        }
         setCurrent(current + 1);
     };
 
@@ -158,27 +166,31 @@ const HourlyBookingPage = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Simulate an API call or process
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate a 2-second delay
-            message.success("Đặt xe thành công!");
-        } catch (error) {
-            message.error("Có lỗi xảy ra!");
-            console.log(error)
+            const response = await bookingHour(booking);
+            setBookingResponse(response); // Store response
+            return response; // Return for next step
+        } catch (error: unknown) {
+            notification.error({
+                message: 'Lỗi đặt xe',
+                description: error.message || 'Không thể đặt xe',
+            });
+            console.log(error);
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        setBooking({
-            ...booking,
+        setBooking(prev => ({
+            ...prev,
+            startPoint: startPoint,
             date: selectedDate?.format('YYYY-MM-DD') || '',
             startTime: startTime?.format('HH:mm') || '',
             durationMinutes: duration,
-            vehicleCategories: selectedVehicles,
-            paymentMethod: 'pay_os'
-        });
-    }, [selectedDate, startTime, duration, selectedVehicles]);
+            vehicleCategories: selectedVehicles
+        }));
+    }, [selectedDate, startTime, duration, selectedVehicles, startPoint]);
 
     useEffect(() => {
         console.log(booking)
@@ -214,16 +226,13 @@ const HourlyBookingPage = () => {
                     }
                     {current === 2 && (
                         <LocationSelection
-                            pickup={pickup}
-                            onPickupChange={setPickup}
+                            startPoint={startPoint}
+                            onLocationChange={handleLocationChange}
                             loading={loading}
                             detectUserLocation={detectUserLocation}
-                            lat={pickupLocation.lat}
-                            lng={pickupLocation.lng}
-                            onPositionChange={handlePositionChange}
                         />
                     )}
-                    {current === 3 && <CheckoutPage />}
+                    {current === 3 && <CheckoutPage bookingResponse={bookingResponse} />}
                 </Card>
 
                 <Row justify="space-between" style={{ marginTop: 30 }}>
@@ -244,22 +253,11 @@ const HourlyBookingPage = () => {
                                 type="primary"
                                 onClick={next}
                                 disabled={!canProceedToNextStep()}
-                                loading={current === 0 && loading}
+                                loading={(current === 0 || current === 2) && loading}
                                 size="large"
                                 style={{ padding: "8px 32px", height: "auto", fontSize: "1.1rem" }}
                             >
                                 Tiếp theo
-                            </Button>
-                        )}
-                        {current === steps.length - 1 && (
-                            <Button
-                                type="primary"
-                                onClick={handleSubmit}
-                                loading={loading}  // Show loading spinner while the async operation is in progress
-                                size="large"
-                                style={{ padding: "8px 32px", height: "auto", fontSize: "1.1rem" }}
-                            >
-                                Xác nhận đặt xe
                             </Button>
                         )}
                     </Col>
