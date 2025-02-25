@@ -182,6 +182,12 @@ const isValidRoute = (routeCoordinates: L.LatLng[], stops: BusStop[]) => {
     return routeCoordinates.length > 0 && stops.length >= 2;
 };
 
+const STATUS_OPTIONS = [
+    { value: 'draft', label: 'Bản nháp' },
+    { value: 'active', label: 'Đang hoạt động' },
+    { value: 'inactive', label: 'Ngừng hoạt động' }
+];
+
 export default function CreateRoute() {
     const [stops, setStops] = useState<BusStop[]>([]);
     const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424]);
@@ -195,6 +201,7 @@ export default function CreateRoute() {
     const [routeName, setRouteName] = useState('');
     const [routeDescription, setRouteDescription] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [routeStatus, setRouteStatus] = useState<'draft' | 'active' | 'inactive'>('draft');
 
     useEffect(() => {
         // Load saved routes from API
@@ -252,6 +259,7 @@ export default function CreateRoute() {
         setIsCreatingRoute(true);
         setRouteName(route.name);
         setRouteDescription(route.description);
+        setRouteStatus(route.status);
 
         const formattedStops = route.waypoints.map((waypoint, index) => ({
             id: waypoint.id,
@@ -281,9 +289,10 @@ export default function CreateRoute() {
                 lng: coord.lng
             })),
             estimatedDuration: estimatedDuration,
-            totalDistance: totalDistance
+            totalDistance: totalDistance,
+            status: routeStatus
         };
-    }, [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance]);
+    }, [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance, routeStatus]);
 
 
     const handleRouteSave = useCallback(async (routeData: RouteRequest) => {
@@ -361,6 +370,28 @@ export default function CreateRoute() {
         setSelectedRoute(route);
         setIsCreatingRoute(false);
     }, []);
+
+    useEffect(() => {
+        if (selectedRoute) {
+            setRouteName(selectedRoute.name);
+            setRouteDescription(selectedRoute.description);
+            setRouteStatus(selectedRoute.status);
+        }
+    }, [selectedRoute]);
+
+    const renderStatusBadge = (status: 'draft' | 'active' | 'inactive') => {
+        const statusConfig = {
+            draft: { color: 'bg-gray-200 text-gray-800', text: 'Bản nháp' },
+            active: { color: 'bg-green-200 text-green-800', text: 'Đang hoạt động' },
+            inactive: { color: 'bg-red-200 text-red-800', text: 'Ngừng hoạt động' }
+        };
+        const config = statusConfig[status];
+        return (
+            <span className={`px-2 py-1 rounded-full text-sm ${config.color}`}>
+                {config.text}
+            </span>
+        );
+    };
 
     return (
         <div className="h-screen flex">
@@ -473,6 +504,10 @@ export default function CreateRoute() {
                                             </svg>
                                             <span>Khoảng cách dự kiến: {selectedRoute.totalDistance} km</span>
                                         </div>
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <span className="font-medium">Trạng thái:</span>
+                                            {renderStatusBadge(selectedRoute.status)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -512,6 +547,23 @@ export default function CreateRoute() {
                                     onChange={(e) => setRouteDescription(e.target.value)}
                                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out  text-black"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="routeStatus" className="block text-sm font-medium text-gray-700">
+                                    Trạng thái
+                                </label>
+                                <select
+                                    id="routeStatus"
+                                    value={routeStatus}
+                                    onChange={(e) => setRouteStatus(e.target.value as 'draft' | 'active' | 'inactive')}
+                                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out text-black"
+                                >
+                                    {STATUS_OPTIONS.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <div className="route-list">

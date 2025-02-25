@@ -8,8 +8,8 @@ interface Vehicle {
   name: string;
   categoryId: string;
   licensePlate: string;
-  isActive: boolean;
-  status: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
   image: string[];
   createdAt: string;
   updatedAt: string;
@@ -20,8 +20,8 @@ interface Vehicle2 {
   name: string;
   categoryId: string;
   licensePlate: string;
-  isActive: boolean;
-  status: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
   image: string;
   createdAt: string;
   updatedAt: string;
@@ -32,8 +32,8 @@ interface AddVehicleRequest {
   name: string;
   categoryId: string;
   licensePlate: string;
-  isActive: boolean;
-  status: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
   image: string[];
 }
 
@@ -83,12 +83,19 @@ export const vehiclesService = {
 
   async updateVehicle(vehicleId: string, vehicleData: AddVehicleRequest): Promise<Vehicle> {
     try {
-      const response = await axios.put(`${API_URL}/vehicles/${vehicleId}`, vehicleData, {
-       headers: {
-         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-       }
-     });
-     return response.data;
+      const response = await axios.put(`${API_URL}/vehicles/${vehicleId}`, 
+        {
+          ...vehicleData,
+          image: Array.isArray(vehicleData.image) ? vehicleData.image : [vehicleData.image]
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
     } catch (error) {
       throw error;
     }

@@ -10,12 +10,17 @@ import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 import EditVehicleModal from '../../../_components/vehicles/editVehiclesModal';
 
 const { Header, Content } = Layout;
-
 // Map cho trạng thái xe
-const statusMap: { [key: string]: string } = {
-  'available': 'Sẵn sàng',
-  'busy': 'Đang bận',
-  'maintenance': 'Bảo trì'
+const vehicleConditionMap: { [key: string]: string } = {
+  'available': 'Sẵn sàng sử dụng',
+  'in-use': 'Đang sử dụng',
+  'maintenance': 'Đang bảo trì'
+};
+
+const operationStatusMap: { [key: string]: string } = {
+  'pending': 'Chờ hoạt động',
+  'running': 'Đang chạy',
+  'charging': 'Đang sạc'
 };
 
 interface Vehicle {
@@ -23,8 +28,8 @@ interface Vehicle {
   name: string;
   categoryId: string;
   licensePlate: string;
-  isActive: boolean;
-  status: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
   image: string[];
   createdAt: string;
   updatedAt: string;
@@ -43,8 +48,8 @@ export default function VehicleDetail() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
-  const { message } = App.useApp();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const { message } = App.useApp();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,9 +59,10 @@ export default function VehicleDetail() {
         const vehicleData = await vehiclesService.getVehicleById(vehicleId);
         setVehicle(vehicleData);
 
-        // Fetch category data
-        const categoryData = await categoryService.getCategoryById(vehicleData.categoryId);
-        setCategory(categoryData);
+        if (vehicleData.categoryId) {
+          const categoryData = await categoryService.getCategoryById(vehicleData.categoryId);
+          setCategory(categoryData);
+        }
       } catch (error) {
         console.error('Error fetching vehicle details:', error);
         message.error('Không thể tải thông tin phương tiện');
@@ -83,6 +89,10 @@ export default function VehicleDetail() {
     const vehicleData = await vehiclesService.getVehicleById(vehicleId);
     setVehicle(vehicleData);
     message.success('Cập nhật xe thành công');
+  };
+
+  const handleCancel = () => {
+    setIsEditModalVisible(false);
   };
 
   if (loading) {
@@ -116,8 +126,8 @@ export default function VehicleDetail() {
       <Sidebar />
       <Layout>
         <Header className="bg-white p-4 flex items-center gap-4">
-          <Button 
-            icon={<ArrowLeftOutlined />} 
+          <Button
+            icon={<ArrowLeftOutlined />}
             onClick={handleBack}
             className="flex items-center"
           >
@@ -138,7 +148,7 @@ export default function VehicleDetail() {
             {/* Vehicle Images */}
             <Card title="Hình ảnh phương tiện" className="bg-white">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Array.isArray(vehicle.image) ? (
+                {vehicle.image && vehicle.image.length > 0 ? (
                   vehicle.image.map((img, index) => (
                     <div key={index} className="aspect-square w-full">
                       <Image
@@ -152,10 +162,9 @@ export default function VehicleDetail() {
                 ) : (
                   <div className="aspect-square w-full">
                     <Image
-                      src={vehicle.image || placehoderImg.src}
-                      alt={vehicle.name}
+                      src={placehoderImg.src}
+                      alt="Placeholder"
                       className="object-cover rounded w-full h-full"
-                      fallback={placehoderImg.src}
                     />
                   </div>
                 )}
@@ -164,33 +173,33 @@ export default function VehicleDetail() {
 
             {/* Vehicle Information */}
             <Card title="Thông tin chi tiết" className="bg-white">
-              <Descriptions layout="horizontal" column={{ xs: 1, sm: 2, md: 3 }}>
-                <Descriptions.Item label="Tên phương tiện">
+              <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
+                <Descriptions.Item label="Tên phương tiện" span={1}>
                   {vehicle.name}
                 </Descriptions.Item>
-                <Descriptions.Item label="Danh mục">
+                <Descriptions.Item label="Danh mục" span={1}>
                   {category?.name || 'N/A'}
                 </Descriptions.Item>
-                <Descriptions.Item label="Số ghế">
+                <Descriptions.Item label="Số ghế" span={1}>
                   {category?.numberOfSeat || 'N/A'}
                 </Descriptions.Item>
-                <Descriptions.Item label="Biển số xe">
+                <Descriptions.Item label="Biển số xe" span={1}>
                   {vehicle.licensePlate}
                 </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái">
-                  {statusMap[vehicle.status] || vehicle.status}
+                <Descriptions.Item label="Tình trạng xe" span={1}>
+                  {vehicleConditionMap[vehicle.vehicleCondition]}
                 </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái hoạt động">
-                  {vehicle.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                <Descriptions.Item label="Trạng thái hoạt động" span={1}>
+                  {operationStatusMap[vehicle.operationStatus]}
                 </Descriptions.Item>
-                <Descriptions.Item label="Ngày tạo">
+                <Descriptions.Item label="Ngày tạo" span={1}>
                   {new Date(vehicle.createdAt).toLocaleDateString('vi-VN')}
                 </Descriptions.Item>
-                <Descriptions.Item label="Cập nhật lần cuối">
+                <Descriptions.Item label="Cập nhật lần cuối" span={1}>
                   {new Date(vehicle.updatedAt).toLocaleDateString('vi-VN')}
                 </Descriptions.Item>
-                {category && (
-                  <Descriptions.Item label="Mô tả danh mục" span={3}>
+                {category?.description && (
+                  <Descriptions.Item label="Mô tả danh mục" span={1}>
                     {category.description}
                   </Descriptions.Item>
                 )}
@@ -202,14 +211,16 @@ export default function VehicleDetail() {
         {vehicle && (
           <EditVehicleModal
             visible={isEditModalVisible}
-            onCancel={() => setIsEditModalVisible(false)}
+            onCancel={handleCancel}
             onSuccess={handleEditSuccess}
             vehicleId={vehicle._id}
             initialData={{
               name: vehicle.name,
               categoryId: vehicle.categoryId,
               licensePlate: vehicle.licensePlate,
-              image: Array.isArray(vehicle.image) ? vehicle.image : [vehicle.image]
+              vehicleCondition: vehicle.vehicleCondition,
+              operationStatus: vehicle.operationStatus,
+              image: vehicle.image
             }}
           />
         )}

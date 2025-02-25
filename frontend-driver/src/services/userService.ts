@@ -16,15 +16,22 @@ const getUserProfile = async (): Promise<UserProfile> => {
   const accessToken = await AsyncStorage.getItem('accessToken');
   
   if (!accessToken) {
-    throw new Error('Không tìm thấy token xác thực');
+    throw new Error('TOKEN_NOT_FOUND');
   }
 
-  const response = await axios.get(`${API_URL}/users/profile`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
+  try {
+    const response = await axios.get(`${API_URL}/users/profile`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data?.message === 'TokenExpiredError: jwt expired') {
+      throw new Error('TOKEN_EXPIRED');
     }
-  });
-  return response.data;
+    throw error;
+  }
 };
 
 export { getUserProfile };

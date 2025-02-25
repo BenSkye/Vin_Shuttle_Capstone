@@ -21,6 +21,8 @@ interface VehicleFormValues {
   name: string;
   categoryId: string;
   licensePlate: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
 }
 
 export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVehicleModalProps) {
@@ -61,9 +63,9 @@ export default function AddVehicleModal({ visible, onCancel, onSuccess }: AddVeh
 
       const vehicleData = {
         ...values,
-        isActive: true,
-        status: 'available',
-        image: imageUrls // Include image URLs
+        vehicleCondition: 'available' as const, // Default value
+        operationStatus: 'pending' as const,    // Default value
+        image: imageUrls
       };
 
       await vehiclesService.addVehicle(vehicleData);

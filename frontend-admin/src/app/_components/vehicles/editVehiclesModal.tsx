@@ -15,6 +15,8 @@ interface EditVehicleModalProps {
     name: string;
     categoryId: string;
     licensePlate: string;
+    vehicleCondition: 'available' | 'in-use' | 'maintenance';
+    operationStatus: 'pending' | 'running' | 'charging';
     image: string[];
   };
 }
@@ -28,7 +30,21 @@ interface VehicleFormValues {
   name: string;
   categoryId: string;
   licensePlate: string;
+  vehicleCondition: 'available' | 'in-use' | 'maintenance';
+  operationStatus: 'pending' | 'running' | 'charging';
 }
+
+const vehicleConditionOptions = [
+  { value: 'available', label: 'Sẵn sàng sử dụng' },
+  { value: 'in-use', label: 'Đang sử dụng' },
+  { value: 'maintenance', label: 'Đang bảo trì' }
+];
+
+const operationStatusOptions = [
+  { value: 'pending', label: 'Chờ hoạt động' },
+  { value: 'running', label: 'Đang chạy' },
+  { value: 'charging', label: 'Đang sạc' }
+];
 
 export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicleId, initialData }: EditVehicleModalProps) {
   const [form] = Form.useForm();
@@ -39,11 +55,19 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
 
   useEffect(() => {
     fetchCategories();
-    if (initialData) {
+    if (visible && initialData) {
       form.setFieldsValue(initialData);
       setExistingImages(initialData.image || []);
     }
-  }, [initialData, form]);
+  }, [visible, initialData, form]);
+
+  useEffect(() => {
+    if (!visible) {
+      form.resetFields();
+      setFileList([]);
+      setExistingImages([]);
+    }
+  }, [visible, form]);
 
   const fetchCategories = async () => {
     try {
@@ -76,8 +100,6 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
 
       const vehicleData = {
         ...values,
-        isActive: true,
-        status: 'available',
         image: allImages
       };
 
@@ -103,7 +125,10 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
     <Modal
       title="Chỉnh sửa thông tin xe"
       open={visible}
-      onCancel={onCancel}
+      onCancel={() => {
+        form.resetFields();
+        onCancel();
+      }}
       onOk={handleSubmit}
       confirmLoading={loading}
       okText="Cập nhật"
@@ -112,6 +137,7 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
       <Form
         form={form}
         layout="vertical"
+        preserve={false}
       >
         <Form.Item
           name="name"
@@ -138,6 +164,28 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
           rules={[{ required: true, message: 'Vui lòng nhập biển số xe' }]}
         >
           <Input placeholder="Nhập biển số xe" />
+        </Form.Item>
+
+        <Form.Item
+          name="vehicleCondition"
+          label="Tình trạng xe"
+          rules={[{ required: true, message: 'Vui lòng chọn tình trạng xe' }]}
+        >
+          <Select
+            placeholder="Chọn tình trạng xe"
+            options={vehicleConditionOptions}
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="operationStatus"
+          label="Trạng thái hoạt động"
+          rules={[{ required: true, message: 'Vui lòng chọn trạng thái hoạt động' }]}
+        >
+          <Select
+            placeholder="Chọn trạng thái hoạt động"
+            options={operationStatusOptions}
+          />
         </Form.Item>
 
         <Form.Item label="Hình ảnh hiện tại">

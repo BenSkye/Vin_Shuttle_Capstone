@@ -3,7 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ImageBackground, StyleS
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authService } from '../services/authService';
 
-export default function LoginScreen({ navigation }: { navigation: any }) {
+export default function LoginScreen({ 
+  navigation, 
+  setAuthenticated 
+}: { 
+  navigation: any;
+  setAuthenticated: (value: boolean) => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,14 +25,17 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
       const response = await authService.login({ email, password });
       
       if (response.isValid) {
-        navigation.navigate('Home');
+        setAuthenticated(true); // Cập nhật trạng thái đăng nhập
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
       } else {
         Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không đúng');
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi đăng nhập';
-      console.log('errorMessage', error)
-
+      console.log('errorMessage', error);
       Alert.alert('Đăng nhập thất bại', errorMessage);
     } finally {
       setLoading(false);
@@ -105,7 +114,7 @@ const styles = StyleSheet.create({
   logo: {
     width: '100%',
     height: '100%',
-    filter: 'invert(1)'
+    filter: 'invert(1)',
   },
   title: {
     fontSize: 25,
