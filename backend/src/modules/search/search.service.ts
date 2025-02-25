@@ -46,6 +46,15 @@ export class SearchService implements ISearchService {
         const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
 
+        const now = dayjs();
+        const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+        if (bookingStartTime.isBefore(minAllowedTime)) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking time must be at least ${BOOKING_BUFFER_MINUTES} minutes from now`,
+                vnMessage: `Thời gian đặt phải cách hiện tại ít nhất ${BOOKING_BUFFER_MINUTES} phút`
+            }, HttpStatus.BAD_REQUEST);
+        }
 
         //check if it is within the start and end of working time
         await this.validateBookingTime(bookingStartTime, bookingEndTime)
@@ -58,10 +67,18 @@ export class SearchService implements ISearchService {
         console.log('scheduleDate', scheduleDate.utc().format('YYYY-MM-DD'))
 
         //check available schedule in DB
-        const schedules = await this.getAvailableSchedules(
+        let schedules = await this.getAvailableSchedules(
             scheduleDate.toDate(),
             matchingShifts
         );
+        if (scheduleDate.isSame(now, 'day')) {
+            console.log('now', now)
+            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
+            schedules = schedules.filter(schedule =>
+                matchingShifts.includes(schedule.shift as Shift) &&
+                schedule.status === DriverSchedulesStatus.IN_PROGRESS
+            );
+        }
 
         //check not conflict time with Trip in that uniqueSchedules 
         const validSchedules = await this.filterSchedulesWithoutConflicts(
@@ -77,6 +94,18 @@ export class SearchService implements ISearchService {
     }
 
     async findAvailableVehicleBookingScenicRoute(scenicRouteId: string, date: string, startTime: string): Promise<any[]> {
+        const bookingStartTime = DateUtils.parseDate(date, startTime);
+
+        const now = dayjs();
+        const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+        if (bookingStartTime.isBefore(minAllowedTime)) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking time must be at least ${BOOKING_BUFFER_MINUTES} minutes from now`,
+                vnMessage: `Thời gian đặt phải cách hiện tại ít nhất ${BOOKING_BUFFER_MINUTES} phút`
+            }, HttpStatus.BAD_REQUEST);
+        }
+
         const scenicRoute = await this.scenicRouteRepository.findById(scenicRouteId)
         if (!scenicRoute) {
             throw new HttpException({
@@ -88,7 +117,6 @@ export class SearchService implements ISearchService {
 
         const durationMinutes = scenicRoute.estimatedDuration
         const scheduleDate = DateUtils.parseDate(date);
-        const bookingStartTime = DateUtils.parseDate(date, startTime);
         const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
         const totalDistance = scenicRoute.totalDistance
         console.log('totalDistance', totalDistance)
@@ -100,11 +128,19 @@ export class SearchService implements ISearchService {
         const matchingShifts = await this.getMatchingShifts(bookingStartTime, bookingEndTime)
 
         //check available schedule in DB
-        const schedules = await this.getAvailableSchedules(
+        let schedules = await this.getAvailableSchedules(
             scheduleDate.toDate(),
             matchingShifts
         );
 
+        if (scheduleDate.isSame(now, 'day')) {
+            console.log('now', now)
+            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
+            schedules = schedules.filter(schedule =>
+                matchingShifts.includes(schedule.shift as Shift) &&
+                schedule.status === DriverSchedulesStatus.IN_PROGRESS
+            );
+        }
         //check not conflict time with Trip in that uniqueSchedules 
         const validSchedules = await this.filterSchedulesWithoutConflicts(
             schedules,
@@ -151,7 +187,6 @@ export class SearchService implements ISearchService {
 
 
     }
-
 
 
 

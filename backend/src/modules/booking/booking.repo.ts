@@ -15,7 +15,7 @@ export class BookingRepository implements IBookingRepository {
 
     async create(bookingCreateDto: ICreateBooking): Promise<BookingDocument> {
         const newBooking = new this.BookingModel(bookingCreateDto)
-        return await newBooking.save()
+        return (await newBooking.save()).populate('trips')
     }
     async getBookingById(id: string): Promise<BookingDocument> {
         return await this.BookingModel.findById(id)
