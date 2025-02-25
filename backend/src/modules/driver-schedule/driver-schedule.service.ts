@@ -142,6 +142,7 @@ export class DriverScheduleService implements IDriverScheduleService {
             }, HttpStatus.BAD_REQUEST);
         }
         const schedules = await this.driverScheduleRepository.getDriverSchedules({
+            driver: driverId,
             date: {
                 $gte: startDate,
                 $lte: endDate
