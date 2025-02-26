@@ -13,6 +13,7 @@ import ScheduleScreen from '../screens/ScheduleScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TripHistoryScreen from '../screens/TripHistoryScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -30,6 +31,9 @@ function TabNavigator() {
               break;
             case 'Lịch trình':
               iconName = focused ? 'calendar' : 'calendar-outline';
+              break;
+            case 'Lịch sử':
+              iconName = focused ? 'time' : 'time-outline';
               break;
             case 'Thông báo':
               iconName = focused ? 'notifications' : 'notifications-outline';
@@ -60,6 +64,7 @@ function TabNavigator() {
     >
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
+      <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
       <Tab.Screen name="Thông báo" component={NotificationScreen} />
       <Tab.Screen name="Tin nhắn" component={ChatScreen} />
       <Tab.Screen name="Cá nhân" component={ProfileScreen} />
@@ -105,6 +110,7 @@ export default function AppNavigator() {
           {(props) => <LoginScreen {...props} setAuthenticated={setIsAuthenticated} />}
         </Stack.Screen>
         <Stack.Screen name="Home" component={TabNavigator} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

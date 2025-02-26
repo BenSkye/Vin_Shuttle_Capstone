@@ -6,13 +6,24 @@ import { getUserProfile, UserProfile } from '../services/userServices';
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/authServices';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+// Định nghĩa type cho navigation
+type RootStackParamList = {
+  Profile: undefined;
+  TripHistory: undefined;
+  Login: undefined;
+  // ... other screens
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     const fetchProfile = async () => {
