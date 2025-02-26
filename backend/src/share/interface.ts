@@ -18,8 +18,8 @@ export interface Position {
 }
 
 export interface StartPoint {
-    position: Position;
-    address: string;
+  position: Position;
+  address: string;
 }
 
 export interface ITokenProvider {
@@ -44,6 +44,12 @@ export interface IPayosService {
     cancelUrl: string;
     returnUrl: string;
   }): Promise<CheckoutResponseDataType>;
+}
+
+export interface IRedisService {
+  set(key: string, value: string, ttl?: number): Promise<void>;
+  get(key: string): Promise<string | null>;
+  del(key: string): Promise<void>;
 }
 
 export const HEADER = {

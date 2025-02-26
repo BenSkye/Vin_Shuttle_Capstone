@@ -67,29 +67,27 @@ export class DriverScheduleService implements IDriverScheduleService {
 
       const isExistScheduleWithDriver = await this.driverScheduleRepository.findOneDriverSchedule({
         date: schedule.date,
-        shift: schedule.shift,
         driver: schedule.driver
       }, []
       );
       if (isExistScheduleWithDriver) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `Duplicate date shift with driver ${schedule.date}-${schedule.shift}-${schedule.driver} in database`,
-          vnMesage: `Trùng lịch ${schedule.date}-${schedule.shift}-${schedule.driver}`
+          message: `Duplicate date shift with driver ${schedule.date}-${schedule.driver} in database`,
+          vnMesage: `Trùng lịch ${schedule.date}-${schedule.driver}`
         }, HttpStatus.BAD_REQUEST);
       }
 
       const isExistScheduleWithVehicle = await this.driverScheduleRepository.findOneDriverSchedule({
         date: schedule.date,
-        shift: schedule.shift,
         vehicle: schedule.vehicle
       }, []
       );
       if (isExistScheduleWithVehicle) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `Duplicate date shift with vehicle ${schedule.date}-${schedule.shift}-${schedule.vehicle} in database`,
-          vnMesage: `Trùng lịch ${schedule.date}-${schedule.shift}-${schedule.vehicle}`
+          message: `Duplicate date shift with vehicle ${schedule.date}-${schedule.vehicle} in database`,
+          vnMesage: `Trùng lịch ${schedule.date}-${schedule.vehicle}`
         }, HttpStatus.BAD_REQUEST);
       }
     }
@@ -97,8 +95,8 @@ export class DriverScheduleService implements IDriverScheduleService {
     const seen = new Set<string>();
     for (const schedule of driverSchedules) {
       console.log(schedule.date);
-      const keyWithDriver = `${schedule.date}-${schedule.shift}-${schedule.driver}`;
-      const keyWithVehicle = `${schedule.date}-${schedule.shift}-${schedule.vehicle}`;
+      const keyWithDriver = `${schedule.date}-${schedule.driver}`;
+      const keyWithVehicle = `${schedule.date}-${schedule.vehicle}`;
       if (seen.has(keyWithDriver)) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,

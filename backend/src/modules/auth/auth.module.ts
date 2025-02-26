@@ -2,10 +2,11 @@ import { Module, Provider } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/modules/auth/auth.controller';
-import { AUTH_GUARD, AUTH_SERVICE, ROLE_GUARD } from 'src/modules/auth/auth.di-token';
+import { AUTH_GUARD, AUTH_SERVICE, ROLE_GUARD, WS_AUTH_GUARD } from 'src/modules/auth/auth.di-token';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthService } from 'src/modules/auth/auth.service';
 import { RolesGuard } from 'src/modules/auth/role.guard';
+import { WsAuthGuard } from 'src/modules/auth/wsAuth.guard';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { KeyTokenService } from 'src/modules/keytoken/keytoken.service';
@@ -30,6 +31,10 @@ const dependencies: Provider[] = [
     provide: ROLE_GUARD,
     useClass: RolesGuard,
   },
+  {
+    provide: WS_AUTH_GUARD,
+    useClass: WsAuthGuard,
+  },
 ];
 
 // const tokenProvider: Provider = { provide: TOKEN_PROVIDER, useValue: tokenJWTProvider };
@@ -47,6 +52,6 @@ const dependencies: Provider[] = [
   ],
   controllers: [AuthController],
   providers: [...dependencies],
-  exports: [AUTH_GUARD, AUTH_SERVICE],
+  exports: [AUTH_GUARD, AUTH_SERVICE, WS_AUTH_GUARD],
 })
-export class AuthModule {}
+export class AuthModule { }
