@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
@@ -41,10 +41,33 @@ export class TripController {
   @Get('customer-personal-trip/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.CUSTOMER)
   @ApiBearerAuth('authorization')
   @ApiOperation({ summary: 'Get trip by id' })
   async getTripById(@Param('id') id: string, @Request() req) {
     return await this.tripService.getTripById(req.user._id, id)
+  }
+
+  @Post('driver-pickup-customer')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Driver pickup customer' })
+  @ApiBody({
+    type: String,
+    description: 'Driver pickup customer',
+    examples: {
+      'Driver pickup customer': {
+        value: {
+          tripId: '67b6c79187febb73be4b3f09',
+        },
+      },
+    },
+
+  })
+  async driverPickupCustomer(@Body() data: { tripId: string }, @Request() req) {
+    return await this.tripService.driverPickupCustomer(data.tripId, req.user._id)
   }
 
   @Post('calculate-bus-route-fare')

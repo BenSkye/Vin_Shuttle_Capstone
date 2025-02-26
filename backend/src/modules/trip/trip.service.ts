@@ -2,15 +2,16 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { DRIVERSCHEDULE_REPOSITORY } from 'src/modules/driver-schedule/driver-schedule.di-token';
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverSchedule } from 'src/modules/driver-schedule/driver-schedule.schema';
-import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
+import { TRIP_GATEWAY, TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
 import { BookingBusRoutePayloadDto, ICreateTripDto } from 'src/modules/trip/trip.dto';
 import { ITripRepository, ITripService } from 'src/modules/trip/trip.port';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 
-import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours } from 'src/share/enums';
+import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from 'src/share/enums';
 
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
+import { TripGateway } from 'src/modules/trip/trip.gateway';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -21,6 +22,8 @@ export class TripService implements ITripService {
     private readonly driverScheduleRepository: IDriverScheduleRepository,
     @Inject(BUS_ROUTE_REPOSITORY)
     private readonly busRouteRepository: IBusRouteRepository,
+    @Inject(TRIP_GATEWAY)
+    private readonly tripGateway: TripGateway,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -223,8 +226,48 @@ export class TripService implements ITripService {
 
     return Math.round(baseFare * numberOfSeats);
   }
-}
 
+  async driverPickupCustomer(tripId: string, driverId: string): Promise<TripDocument> {
+    //check if driver is this trip driver
+    const trip = await this.tripRepository.findOne({ _id: tripId }, []);
+    if (!trip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip not found',
+          vnMessage: 'Chuyến đi không tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (trip.driverId._id.toString() !== driverId.toString()) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver is not this trip driver',
+          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.PICKUP);
+    if (!updatedTrip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip update failed',
+          vnMessage: 'Cập nhật chuyến đi thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.customerId.toString(),
+      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+    );
+    return updatedTrip;
+  }
+}
 // if (createTripDto.serviceType == ServiceType.BOOKING_HOUR) {
 //     const totalMinutes = (createTripDto.servicePayload as BookingHourPayloadDto).totalTime;
 //     // Chuyển đổi phút sang milliseconds

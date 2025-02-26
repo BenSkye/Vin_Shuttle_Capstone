@@ -33,7 +33,7 @@ export class TripRepository implements ITripRepository {
   }
 
   async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {
-    return await this.tripModel.findByIdAndUpdate(id, { status })
+    return await this.tripModel.findByIdAndUpdate(id, { status }, { new: true })
   }
 
   async updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument> {
