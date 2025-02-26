@@ -10,26 +10,26 @@ import { VehiclesRepository } from 'src/modules/vehicles/vehicles.repo';
 const dependencies: Provider[] = [
   {
     provide: VEHICLE_REPOSITORY,
-    useClass: VehiclesRepository
+    useClass: VehiclesRepository,
   },
   {
     provide: VEHICLE_SERVICE,
-    useClass: VehiclesService
-  }
-]
+    useClass: VehiclesService,
+  },
+];
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       {
         name: Vehicle.name,
-        schema: VehicleSchema
-      }
+        schema: VehicleSchema,
+      },
     ]),
-    VehicleCategoryModule
+    VehicleCategoryModule,
   ],
   controllers: [VehiclesController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class VehiclesModule { }
+export class VehiclesModule {}

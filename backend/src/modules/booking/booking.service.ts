@@ -161,8 +161,8 @@ export class BookingService implements IBookingService {
                     bookingHour: {
                         totalTime: durationMinutes,
                         startPoint: {
-                            lat: startPoint.lat,
-                            lng: startPoint.lng
+                            position: startPoint.position,
+                            address: startPoint.address
                         }
                     }
                 }
@@ -328,8 +328,8 @@ export class BookingService implements IBookingService {
                     bookingScenicRoute: {
                         routeId: scenicRouteId,
                         startPoint: {
-                            lat: startPoint.lat,
-                            lng: startPoint.lng
+                            position: startPoint.position,
+                            address: startPoint.address
                         },
                         distanceEstimate: scenicRoute.totalDistance,
                         distance: scenicRoute.totalDistance
@@ -469,12 +469,12 @@ export class BookingService implements IBookingService {
                 servicePayload: {
                     bookingDestination: {
                         startPoint: {
-                            lat: startPoint.lat,
-                            lng: startPoint.lng
+                            position: startPoint.position,
+                            address: startPoint.address
                         },
                         endPoint: {
-                            lat: endPoint.lat,
-                            lng: endPoint.lng
+                            position: startPoint.position,
+                            address: startPoint.address
                         },
                         distanceEstimate,
                         distance: distanceEstimate
@@ -562,4 +562,3 @@ export class BookingService implements IBookingService {
         )
     }
 }
-

@@ -67,8 +67,11 @@ npm install
 
 # Run the server
 tsc && npm run start
+
+# Run the server swagger
+ npm  start --watch   
 ```
-🔥 **Swagger API Documentation**: After starting, access `http://localhost:3000/api` to view the API documentation.
+🔥 **Swagger API Documentation**: After starting, access `[http://localhost:3000/api](http://localhost:2028/api-docs)` to view the API documentation.
 
 ### 🌐 2. Frontend (Admin, Manager, Customer)
 ```bash

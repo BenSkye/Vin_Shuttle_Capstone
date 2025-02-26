@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { FiPhone } from "react-icons/fi"
-
-import { loginCustomer } from "../../../API/user"
-import { verifyOTP } from "../../../API/user"
+import Cookies from 'js-cookie';
+import { loginCustomer } from "../../../service/user.service"
+import { verifyOTP } from "../../../service/user.service"
 import { useRouter } from "next/navigation"
 
 interface OTPResponse {
@@ -68,8 +68,12 @@ export default function LoginPage() {
                     localStorage.setItem('refreshToken', data.token.refreshToken);
                     localStorage.setItem('userId', data.userId);
 
+                    //Store tokens in cookies
+                    Cookies.set('authorization', data.token.accessToken);
+                    Cookies.set('refreshToken', data.token.refreshToken);
+                    Cookies.set('userId', data.userId);
+
                     // Clear any existing errors
-                    setError("");
 
                     // Redirect to home page or dashboard
                     router.push('/');

@@ -1,15 +1,14 @@
-import { Types } from "mongoose";
-import { KeyToken } from "src/modules/keytoken/keytoken.schema";
-
+import { Types } from 'mongoose';
+import { KeyToken } from 'src/modules/keytoken/keytoken.schema';
 
 export interface KeyTokenCreateDTO {
-    userId: Types.ObjectId,
-    role: string,
-    name: string,
-    phone: string
+  userId: Types.ObjectId;
+  role: string;
+  name: string;
+  phone: string;
 }
 
 export interface IKeyTokenService {
-    createKeyToken(data: KeyTokenCreateDTO): Promise<object>
-    findByUserId(userId: string): Promise<KeyToken>
+  createKeyToken(data: KeyTokenCreateDTO): Promise<object>;
+  findByUserId(userId: string): Promise<KeyToken>;
 }

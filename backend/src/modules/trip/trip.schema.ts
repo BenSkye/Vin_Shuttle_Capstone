@@ -14,6 +14,16 @@ class Position {
 }
 const PositionSchema = SchemaFactory.createForClass(Position);
 
+@Schema({ _id: false })
+class StartPoint {
+    @Prop({ required: true, type: PositionSchema })
+    position: Position;
+
+    @Prop({ required: true, type: String })
+    address: string;
+}
+const StartPointSchema = SchemaFactory.createForClass(StartPoint);
+
 @Schema({ collection: 'Trips', timestamps: true })
 export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -43,7 +53,7 @@ export class Trip {
     @Prop({
         type: String,
         enum: ServiceType,
-        required: true
+        required: true,
     })
     serviceType: ServiceType;
 
@@ -53,27 +63,35 @@ export class Trip {
     @Prop({
         type: {
             bookingHour: {
-                totalTime: Number, // in minutes
-                startPoint: PositionSchema,
+                totalTime: Number,
+                startPoint: StartPointSchema,
             },
             bookingScenicRoute: {
                 routeId: Types.ObjectId,
-                startPoint: PositionSchema,
+                startPoint: StartPointSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingDestination: {
-                startPoint: PositionSchema,
-                endPoint: PositionSchema,
+                startPoint: StartPointSchema,
+                endPoint: StartPointSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingShare: {
                 numberOfSeat: Number,
-                startPoint: PositionSchema,
-                endPoint: PositionSchema,
+                startPoint: StartPointSchema,
+                endPoint: StartPointSchema,
                 distanceEstimate: Number,
                 distance: Number
+            },
+            bookingBusRoute: {
+                routeId: Types.ObjectId,
+                fromStopId: Types.ObjectId,
+                toStopId: Types.ObjectId,
+                distanceEstimate: Number,
+                distance: Number,
+                numberOfSeat: Number,
             }
         },
         required: true
@@ -81,26 +99,52 @@ export class Trip {
     servicePayload: {
         bookingHour?: {
             totalTime: number;
-            startPoint: Position; //lat,lng
+            startPoint: {
+                position: Position;
+                address: string;
+            };
         };
         bookingScenicRoute?: {
             routeId: Types.ObjectId;
-            startPoint: Position;
+            startPoint: {
+                position: Position;
+                address: string;
+            };
             distanceEstimate: number;
             distance: number;
         };
         bookingDestination?: {
-            startPoint: Position;
-            endPoint: Position;
+            startPoint: {
+                position: Position;
+                address: string;
+            };
+            endPoint: {
+                position: Position;
+                address: string;
+            };
             distanceEstimate: number;
             distance: number
         };
         bookingShare?: {
             numberOfSeat: number;
-            startPoint: Position;
-            endPoint: Position;
+            startPoint: {
+                position: Position;
+                address: string;
+            };
+            endPoint: {
+                position: Position;
+                address: string;
+            };
             distanceEstimate: number;
             distance: number
+        };
+        bookingBusRoute?: {
+            routeId: Types.ObjectId;
+            fromStopId: Types.ObjectId;
+            toStopId: Types.ObjectId;
+            distanceEstimate: number;
+            distance: number;
+            numberOfSeat: number;
         };
     };
 
@@ -110,7 +154,7 @@ export class Trip {
     @Prop({
         type: String,
         enum: TripStatus,
-        default: TripStatus.BOOKING
+        default: TripStatus.BOOKING,
     })
     status: TripStatus;
 
@@ -124,10 +168,13 @@ export class Trip {
     refundAmount: number;
 
     @Prop({
-        type: [{
-            status: { type: String, enum: TripStatus },
-            changedAt: Date,
-        }], default: []
+        type: [
+            {
+                status: { type: String, enum: TripStatus },
+                changedAt: Date,
+            },
+        ],
+        default: [],
     })
     statusHistory: Array<{
         status: TripStatus;
@@ -145,23 +192,31 @@ TripSchema.pre<Trip>('validate', function (next) {
     const validators = {
         [ServiceType.BOOKING_HOUR]: () => {
             if (!payload.bookingHour) return false;
-            const result = payload.bookingHour.totalTime && payload.bookingHour.startPoint;
+            const result = payload.bookingHour.totalTime && payload.bookingHour.startPoint.position;
             return result
         },
         [ServiceType.BOOKING_SCENIC_ROUTE]: () => {
             if (!payload.bookingScenicRoute) return false;
-            return payload.bookingScenicRoute.routeId && payload.bookingScenicRoute.startPoint;
+            return payload.bookingScenicRoute.routeId && payload.bookingScenicRoute.startPoint.position;
         },
         [ServiceType.BOOKING_DESTINATION]: () => {
             if (!payload.bookingDestination) return false;
-            return payload.bookingDestination.startPoint && payload.bookingDestination.endPoint;
+            return payload.bookingDestination.startPoint.position && payload.bookingDestination.endPoint.position;
         },
         [ServiceType.BOOKING_SHARE]: () => {
             if (!payload.bookingShare) return false;
             return payload.bookingShare.numberOfSeat &&
-                payload.bookingShare.startPoint &&
-                payload.bookingShare.endPoint;
-        }
+                payload.bookingShare.startPoint.position &&
+                payload.bookingShare.endPoint.position;
+        },
+        [ServiceType.BOOKING_BUS_ROUTE]: () => {
+            if (!payload.bookingBusRoute) return false;
+            return (
+                payload.bookingBusRoute.routeId &&
+                payload.bookingBusRoute.fromStopId &&
+                payload.bookingBusRoute.toStopId
+            );
+        },
     };
 
     if (!validators[serviceType]?.()) {
@@ -182,7 +237,7 @@ TripSchema.pre<Document & Trip>('save', function (next) {
         this.statusHistory = this.statusHistory || [];
         this.statusHistory.push({
             status: currentStatus,
-            changedAt: new Date()
+            changedAt: new Date(),
         });
     }
     next();
