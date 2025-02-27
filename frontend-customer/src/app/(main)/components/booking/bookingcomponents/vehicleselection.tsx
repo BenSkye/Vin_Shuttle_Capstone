@@ -37,6 +37,7 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {availableVehicles.map((vehicle) => {
                         const selectedQuantity = getSelectedQuantity(vehicle.vehicleCategory._id);
+                        console.log('selectedQuantity', selectedQuantity)
                         const isSelected = selectedQuantity > 0;
 
                         return (

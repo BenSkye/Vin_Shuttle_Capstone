@@ -1,12 +1,13 @@
-import React from "react";
-import { DatePicker, Card, Typography, Row, Col, InputNumber, Space, Grid } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
-import { BookingHourDuration, BOOKING_BUFFER_MINUTES } from '@/constants/booking.constants';
+import { useState } from 'react';
+import { DatePicker, TimePicker, Select, Card } from 'antd';
+import { ClockCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import locale from 'antd/es/date-picker/locale/vi_VN';
+import { InputNumber } from 'antd';
 
-const { Title, Text } = Typography;
-const { useBreakpoint } = Grid;
 
+const { Option } = Select;
 interface DateTimeSelectionProps {
     selectedDate: dayjs.Dayjs | null;
     startTime: dayjs.Dayjs | null;
@@ -16,114 +17,140 @@ interface DateTimeSelectionProps {
     onDurationChange: (duration: number) => void;
 }
 
-const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
+const DateTimeSelection = ({
     selectedDate,
     startTime,
+    duration,
     onDateChange,
     onStartTimeChange,
-    onDurationChange
-}) => {
-    const screens = useBreakpoint();
-    const isMobile = screens.xs;
-
+    onDurationChange,
+}: DateTimeSelectionProps) => {
+    // Disallow past dates
     const disabledDate = (current: dayjs.Dayjs) => {
         return current && current < dayjs().startOf('day');
     };
 
-    const disabledDateTime = () => {
-        const isToday = selectedDate?.isSame(dayjs(), 'day');
-        const now = dayjs();
-        const currentHour = now.hour();
-        const currentMinute = now.minute() + BOOKING_BUFFER_MINUTES;
-
-        let disabledHours = Array.from({ length: 24 }, (_, i) => i)
-            .filter(h => h < 6 || h >= 23);
-
-        if (isToday) {
-            const pastHours = Array.from({ length: currentHour }, (_, i) => i);
-            disabledHours = [...new Set([...disabledHours, ...pastHours])];
+    // Disallow past times for today
+    const disabledTime = (current: dayjs.Dayjs | null) => {
+        if (!current || !selectedDate) return {};
+        if (selectedDate.isSame(dayjs(), 'day')) {
+            return {
+                disabledHours: () => Array.from({ length: dayjs().hour() }, (_, i) => i),
+                disabledMinutes: (hour: number) =>
+                    hour === dayjs().hour()
+                        ? Array.from({ length: dayjs().minute() }, (_, i) => i)
+                        : [],
+            };
         }
-
-        return {
-            disabledHours: () => disabledHours,
-            disabledMinutes: (selectedHour: number) => {
-                if (isToday && selectedHour === currentHour) {
-                    return Array.from({ length: currentMinute }, (_, i) => i);
-                }
-                return [];
-            }
-        };
+        return {};
     };
 
     return (
-        <Card
-            bordered={false}
-            style={{
-                padding: isMobile ? "16px" : "24px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-        >
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Title
-                    level={3}
-                    style={{
-                        marginBottom: 24,
-                        textAlign: 'center',
-                        fontSize: isMobile ? "20px" : "24px"
-                    }}
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+            {/* Grid container with responsive columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Date Selection Card */}
+                <Card
+                    className="shadow-sm hover:shadow-md transition-shadow duration-300"
+                    title={
+                        <div className="flex items-center gap-2 text-gray-700 text-sm sm:text-base">
+                            <CalendarOutlined className="text-blue-500" />
+                            <span>Chọn ngày</span>
+                        </div>
+                    }
+                    bodyStyle={{ padding: '12px' }}
                 >
-                    Chọn ngày và giờ
-                </Title>
+                    <DatePicker
+                        className="w-full"
+                        format="DD/MM/YYYY"
+                        disabledDate={disabledDate}
+                        value={selectedDate}
+                        onChange={onDateChange}
+                        placeholder="Chọn ngày đặt xe"
+                        locale={locale}
+                        showToday={false}
+                        size="large"
+                    />
+                </Card>
 
-                <Row gutter={[16, 24]}>
-                    <Col xs={24} md={12}>
-                        <Text strong>Chọn ngày:</Text>
-                        <DatePicker
-                            style={{ width: '100%', marginTop: 8 }}
-                            value={selectedDate}
-                            onChange={onDateChange}
-                            disabledDate={disabledDate}
-                            format="DD/MM/YYYY"
-                            placeholder="Chọn ngày"
-                            size={isMobile ? "large" : "middle"}
-                            suffixIcon={<CalendarOutlined />}
-                        />
-                    </Col>
+                {/* Time Selection Card */}
+                <Card
+                    className="shadow-sm hover:shadow-md transition-shadow duration-300"
+                    title={
+                        <div className="flex items-center gap-2 text-gray-700 text-sm sm:text-base">
+                            <ClockCircleOutlined className="text-blue-500" />
+                            <span>Chọn giờ</span>
+                        </div>
+                    }
+                    bodyStyle={{ padding: '12px' }}
+                >
+                    <TimePicker
+                        className="w-full"
+                        format="HH:mm"
+                        value={startTime}
+                        onChange={onStartTimeChange}
+                        placeholder="Chọn giờ đặt xe"
+                        locale={locale}
+                        disabledTime={() => disabledTime(startTime)}
+                        minuteStep={15}
+                        size="large"
+                        showNow={false}
+                    />
+                </Card>
+            </div>
 
-                    <Col xs={24} md={12}>
-                        <Text strong>Chọn giờ bắt đầu:</Text>
-                        <DatePicker.TimePicker
-                            style={{ width: '100%', marginTop: 8 }}
-                            value={startTime}
-                            onChange={onStartTimeChange}
-                            disabledTime={disabledDateTime}
-                            format="HH:mm"
-                            minuteStep={1}
-                            placeholder="Chọn giờ"
-                            size={isMobile ? "large" : "middle"}
-                            disabled={!selectedDate}
-                        />
-                    </Col>
+            {/* Duration Selection Card */}
+            <Card
+                className="mt-4 sm:mt-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+                title={
+                    <div className="flex items-center gap-2 text-gray-700 text-sm sm:text-base">
+                        <ClockCircleOutlined className="text-blue-500" />
+                        <span>Thời gian thuê xe</span>
+                    </div>
+                }
+                bodyStyle={{ padding: '12px' }}
+            >
+                <div className="flex flex-col gap-4">
+                    <InputNumber
+                        className="w-full"
+                        value={duration}
+                        onChange={(value) => onDurationChange(value || 0)}
+                        size="large"
+                        min={15}  // Giá trị tối thiểu là 15 phút
+                        max={1440} // Giá trị tối đa là 24 giờ (1440 phút)
+                        step={15} // Bước nhảy 15 phút
+                        addonAfter="phút" // Hiển thị đơn vị "phút"
+                    />
 
-                    <Col xs={24} md={12}>
-                        <Text strong>Thời lượng (phút):</Text>
-                        <InputNumber
-                            style={{ width: '100%', marginTop: 8 }}
-                            min={BookingHourDuration.MIN}
-                            max={BookingHourDuration.MAX}
-                            onChange={(value) => {
-                                const numericValue = Math.min(
-                                    Math.max(value || 30, 30),
-                                    300
-                                );
-                                onDurationChange(numericValue);
-                            }}
-                            placeholder="Nhập thời lượng"
-                        />
-                    </Col>
-                </Row>
-            </Space>
-        </Card>
+                    {/* Time Summary with responsive text */}
+                    {selectedDate && startTime && (
+                        <div className="mt-3 p-3 sm:p-4 bg-blue-50 rounded-lg">
+                            <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                                Thông tin chuyến đi:
+                            </h4>
+                            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                                <p className="flex justify-between">
+                                    <span className="font-medium">Ngày đặt:</span>
+                                    <span>{selectedDate.format('DD/MM/YYYY')}</span>
+                                </p>
+                                <p className="flex justify-between">
+                                    <span className="font-medium">Giờ bắt đầu:</span>
+                                    <span>{startTime.format('HH:mm')}</span>
+                                </p>
+                                <p className="flex justify-between">
+                                    <span className="font-medium">Thời gian thuê:</span>
+                                    <span>{duration / 60} giờ</span>
+                                </p>
+                                <p className="flex justify-between">
+                                    <span className="font-medium">Giờ kết thúc:</span>
+                                    <span>{startTime.add(duration, 'minute').format('HH:mm')}</span>
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </div>
     );
 };
 
