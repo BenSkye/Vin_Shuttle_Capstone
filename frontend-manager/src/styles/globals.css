@@ -11,3 +11,11 @@
 .react-calendar__navigation__label__labelText {
   font-weight: 600;
 }
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gray-50 {
+  background-color: #F9FAFB;
+}

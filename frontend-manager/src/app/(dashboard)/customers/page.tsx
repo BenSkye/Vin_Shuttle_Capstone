@@ -1,78 +1,52 @@
+'use client';
+
+import { useState, useEffect } from "react";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import Image from "next/image";
 import Link from "next/link";
 import { Column } from '@/interfaces/index';
-
-interface Customer {
-    id: number;
-    customerId: string;
-    name: string;
-    email: string;
-    photo: string;
-    phone: string;
-    address: string;
-    bookingCount: number;
-}
-
-const customersData: Customer[] = [
-    {
-        id: 1,
-        customerId: "CUS001",
-        name: "John Smith",
-        email: "john.smith@email.com",
-        photo: "https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg",
-        phone: "0987654321",
-        address: "123 Customer St, City",
-        bookingCount: 15
-    },
-    {
-        id: 2,
-        customerId: "CUS002",
-        name: "Mary Johnson",
-        email: "mary.j@email.com",
-        photo: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
-        phone: "0987654322",
-        address: "456 Customer Ave, City",
-        bookingCount: 8
-    },
-    // Add more customer data as needed
-];
+import { Customer } from "@/interfaces/index";
+import { getCustomer } from "@/services/api/user";
+import axios from "axios";
 
 const columns: Column<Customer>[] = [
-    {
-        header: "ID",
-        accessor: "customerId",
-        className: "hidden md:table-cell",
-    },
-    {
-        header: "Name",
-        accessor: "name",
-    },
-    {
-        header: "Phone",
-        accessor: "phone",
-        className: "hidden md:table-cell",
-    },
-    {
-        header: "Address",
-        accessor: "address",
-        className: "hidden lg:table-cell",
-    },
-    {
-        header: "Bookings",
-        accessor: "bookingCount",
-        className: "hidden md:table-cell",
-    },
+    { header: "ID", accessor: "id", className: "hidden md:table-cell" },
+    { header: "Name", accessor: "name" },
+    { header: "Phone", accessor: "phone", className: "hidden md:table-cell" },
+    { header: "Email", accessor: "email", className: "hidden lg:table-cell" },
 ];
 
 const CustomerPage = () => {
+    const [customers, setCustomers] = useState<Customer[]>([]);
+
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const response = await getCustomer();
+
+                console.log("Full API Response:", response);
+                const data = response;
+                console.log("Extracted Data:", data);
+                if (Array.isArray(data)) {
+                    setCustomers(data);
+                } else {
+                    console.error("API returned unexpected data format:", data);
+                }
+            } catch (error) {
+                console.error("Error fetching customers:", error);
+            }
+        };
+
+        fetchCustomers();
+    }, []);
+
     const renderRow = (item: Customer) => (
         <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight">
             <td className="flex items-center gap-4 p-4">
                 <Image
-                    src={item.photo}
+                    src="/icons/user.png"
                     alt=""
                     width={40}
                     height={40}
@@ -83,10 +57,7 @@ const CustomerPage = () => {
                     <p className="text-xs text-gray-500">{item.email}</p>
                 </div>
             </td>
-            <td className="hidden md:table-cell">{item.customerId}</td>
             <td className="hidden md:table-cell">{item.phone}</td>
-            <td className="hidden md:table-cell">{item.address}</td>
-            <td className="hidden md:table-cell">{item.bookingCount}</td>
             <td>
                 <div className="flex items-center gap-2">
                     <Link href={`/customers/${item.id}`}>
@@ -117,8 +88,8 @@ const CustomerPage = () => {
                 </div>
             </div>
 
-            {/* LIST */}
-            <Table columns={columns} renderRow={renderRow} data={customersData} />
+            {/* TABLE */}
+            <Table columns={columns} renderRow={renderRow} data={customers} />
 
             {/* PAGINATION */}
             <Pagination />

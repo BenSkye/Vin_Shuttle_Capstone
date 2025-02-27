@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { role } from '../libs/data'
+import { TbSteeringWheel } from "react-icons/tb";
 
 const menuItems = [
     {
@@ -9,11 +10,11 @@ const menuItems = [
             {
                 icon: "/icons/home.png",
                 label: "Trang chủ",
-                href: "/admin",
+                href: "/",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
-                icon: "/teacher.png",
+                icon: "/icons/driver.png",
                 label: "Tài xế",
                 href: "/drivers",
                 visible: ["admin", "teacher"],
@@ -21,7 +22,7 @@ const menuItems = [
             {
                 icon: "/teacher.png",
                 label: "Khách hàng",
-                href: "/list/teachers",
+                href: "/customers",
                 visible: ["admin", "teacher"],
             },
 

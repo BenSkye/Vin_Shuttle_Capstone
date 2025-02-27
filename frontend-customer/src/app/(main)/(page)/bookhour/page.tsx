@@ -55,6 +55,12 @@ const HourlyBookingPage = () => {
         paymentMethod: 'pay_os'
     });
 
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            console.log("Chạy trên client!");
+        }
+    }, []);
+
     // Define detectUserLocation function 
     const detectUserLocation = () => {
         if (navigator.geolocation) {
@@ -169,13 +175,14 @@ const HourlyBookingPage = () => {
         try {
             const response = await bookingHour(booking);
             setBookingResponse(response); // Store response
+            console.log('response', response);
             return response; // Return for next step
         } catch (error: unknown) {
             notification.error({
                 message: 'Lỗi đặt xe',
                 description: error.message || 'Không thể đặt xe',
             });
-            console.log(error);
+            console.log("Error", error);
             throw error;
         } finally {
             setLoading(false);
@@ -198,16 +205,24 @@ const HourlyBookingPage = () => {
     }, [booking])
 
     return (
-        <div style={{ backgroundColor: "#f0f2f5", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
-            <Card style={{ maxWidth: 1200, width: "100%", padding: 40, boxShadow: "0 4px 10px rgba(0,0,0,0.1)", borderRadius: 12 }}>
-                <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>Đặt xe theo giờ</Title>
-                <Steps current={current} style={{ marginBottom: 40 }}>
+        <div className="bg-[#f0f2f5] min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
+            <Card className="w-full max-w-[1200px] p-4 sm:p-6 md:p-8 shadow-md rounded-xl">
+                <Title level={2} className="text-center text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8">
+                    Đặt xe theo giờ
+                </Title>
+
+                <Steps
+                    current={current}
+                    className="mb-6 sm:mb-8"
+                    size="small"
+                    responsive
+                >
                     {steps.map((item) => (
                         <Step key={item.title} title={item.title} icon={item.icon} />
                     ))}
                 </Steps>
 
-                <Card style={{ padding: 24 }}>
+                <Card className="p-3 sm:p-4 md:p-6">
                     {current === 0 && (
                         <DateTimeSelection
                             selectedDate={selectedDate}
@@ -236,13 +251,13 @@ const HourlyBookingPage = () => {
                     {current === 3 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
                 </Card>
 
-                <Row justify="space-between" style={{ marginTop: 30 }}>
+                <Row justify="space-between" className="mt-6 sm:mt-8">
                     <Col>
                         {current > 0 && (
                             <Button
                                 onClick={prev}
                                 size="large"
-                                style={{ padding: "8px 32px", height: "auto", fontSize: "1.1rem" }}
+                                className="px-4 sm:px-6 h-auto text-sm sm:text-base"
                             >
                                 Quay lại
                             </Button>
@@ -256,7 +271,7 @@ const HourlyBookingPage = () => {
                                 disabled={!canProceedToNextStep()}
                                 loading={(current === 0 || current === 2) && loading}
                                 size="large"
-                                style={{ padding: "8px 32px", height: "auto", fontSize: "1.1rem" }}
+                                className="px-4 sm:px-6 h-auto text-sm sm:text-base"
                             >
                                 Tiếp theo
                             </Button>
