@@ -51,9 +51,9 @@ export interface IRedisService {
   set(key: string, value: string, ttl?: number): Promise<void>;
   get(key: string): Promise<string | null>;
   del(key: string): Promise<void>;
-  setUserSocket(userId: string, socketId: string): Promise<void>;
-  deleteUserSocket(socketId: string): Promise<void>;
-  getUserSocket(userId: string): Promise<string | null>;
+  setUserSocket(namespace: string, userId: string, socketId: string): Promise<void>;
+  deleteUserSocket(namespace: string, socketId: string): Promise<void>;
+  getUserSocket(namespace: string, userId: string): Promise<string[]>;
 }
 
 export const HEADER = {
