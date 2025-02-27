@@ -11,6 +11,8 @@ const useTripSocket = (id?: string) => {
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
+
+
         const fetchInitialData = async () => {
             setLoading(true);
             try {
@@ -29,23 +31,31 @@ const useTripSocket = (id?: string) => {
         };
 
         const socket = initSocket(SOCKET_NAMESPACE.TRIPS);
-        console.log('Attempting to connect to socket...');
 
-        socket.connect();
-
-        socket.on('connect', () => {
+        const handleConnect = () => {
             console.log('Socket connected:', socket.id);
-        });
+            fetchInitialData();
+        };
+
+        console.log('Attempting to connect to socket...');
+        if (!socket.connected) {
+            socket.connect();
+        }
+
+        socket.on('connect', handleConnect);
         socket.on('connect_error', (err) => {
             console.error('Connection error:', err.message);
         });
 
         if (id) {
-            socket.on(`trip_updated_detail_${id}`, (updatedTrip: Trip) => {
+            const eventKey = `trip_updated_detail_${id}`;
+            console.log(`Listening for: ${eventKey}`);
+            socket.on(eventKey, (updatedTrip: Trip) => {
                 setTripDetail(updatedTrip);
             });
         } else {
-            socket.on('trip_updated', (updatedTrips: Trip[]) => {
+            const eventKey = 'trip_updated';
+            socket.on(eventKey, (updatedTrips: Trip[]) => {
                 setTrips(updatedTrips);
             });
         }

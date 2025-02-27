@@ -65,7 +65,7 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         try {
             const payload = (client as any).user;
             client.join(`user_${payload._id}`);
-            this.redisService.setUserSocket(payload._id, client.id);
+            this.redisService.setUserSocket(SOCKET_NAMESPACE.TRIPS, payload._id, client.id);
             console.log(`Client connected: ${client.id}, User: ${payload._id}`);
         } catch (error) {
             client.disconnect(true);
@@ -74,20 +74,23 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     handleDisconnect(client: Socket) {
-        this.redisService.deleteUserSocket(client.id);
+        this.redisService.deleteUserSocket(SOCKET_NAMESPACE.TRIPS, client.id);
         console.log(`Client disconnected: ${client.id}`);
     }
 
     async emitTripUpdate(userId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSocket(userId);
+        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
         if (socketId) {
             this.server.to(socketId).emit('trip_updated', tripData);
         }
     }
 
     async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSocket(userId);
+        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
+        console.log('socketId', socketId)
+        console.log('trip_updated_detail_', tripId)
         if (socketId) {
+            ``
             this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData);
         }
     }

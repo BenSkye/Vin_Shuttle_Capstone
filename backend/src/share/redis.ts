@@ -25,26 +25,26 @@ export class RedisService implements IRedisService {
         await this.redisClient.del(key);
     }
 
-    async setUserSocket(userId: string, socketId: string): Promise<void> {
+    async setUserSocket(namespace: string, userId: string, socketId: string): Promise<void> {
         const pipeline = this.redisClient.pipeline();
-        pipeline.set(`user:${userId}`, socketId, 'EX', 86400);
-        pipeline.set(`socket:${socketId}`, userId, 'EX', 86400);
+        const socketIds = await this.redisClient.smembers(`${namespace}-${userId}`);
+        pipeline.set(`${namespace}-${socketId}`, userId, 'EX', 86400);
+        if (socketIds.includes(socketId)) return;
+        pipeline.sadd(`${namespace}-${userId}`, socketId);
         await pipeline.exec();
     }
 
-    async deleteUserSocket(socketId: string): Promise<void> {
-        const userId = await this.redisClient.get(`socket:${socketId}`);
+    async deleteUserSocket(namespace: string, socketId: string): Promise<void> {
+        const userId = await this.redisClient.get(`${namespace}-${socketId}`);
+        console.log('userIdDelete', userId)
+        console.log('socketIdDelete', socketId)
         const pipeline = this.redisClient.pipeline();
-
-        if (userId) {
-            pipeline.del(`user:${userId}`);
-        }
-        pipeline.del(`socket:${socketId}`);
-
+        pipeline.srem(`${namespace}-${userId}`, socketId);
+        pipeline.del(`${namespace}-${socketId}`);
         await pipeline.exec();
     }
 
-    async getUserSocket(userId: string): Promise<string | null> {
-        return this.redisClient.get(`user:${userId}`);
+    async getUserSocket(namespace: string, userId: string): Promise<string[]> {
+        return this.redisClient.smembers(`${namespace}-${userId}`);
     }
 }
