@@ -25,6 +25,7 @@ export interface ITripService {
     toStopId: string,
     numberOfSeats: number,
   ): Promise<number>;
+  driverPickupCustomer(tripId: string, driverId: string): Promise<TripDocument>;
   // getTripById(id: string): Promise<Trip>;
   // getDriverTrips(driverId: string): Promise<Trip[]>;
 }
