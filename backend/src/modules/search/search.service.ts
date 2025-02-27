@@ -39,7 +39,7 @@ export class SearchService implements ISearchService {
     private readonly pricingService: IPricingService,
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly scenicRouteRepository: IScenicRouteRepository,
-  ) {}
+  ) { }
 
   async findAvailableVehicleBookingHour(
     date: string,
@@ -238,9 +238,8 @@ export class SearchService implements ISearchService {
       const shiftEnd = bookingStartTime.startOf('day').add(ShiftHours[shift].end, 'hour');
 
       return (
-        bookingStartTime.isAfter(shiftStart) ||
-        (bookingStartTime.isSame(shiftStart) && bookingEndTime.isBefore(shiftEnd)) ||
-        bookingEndTime.isSame(shiftEnd)
+        (bookingStartTime.isAfter(shiftStart) || bookingStartTime.isSame(shiftStart)) &&
+        (bookingEndTime.isBefore(shiftEnd) || bookingEndTime.isSame(shiftEnd))
       );
     });
     if (matchingShifts.length == 0) {
