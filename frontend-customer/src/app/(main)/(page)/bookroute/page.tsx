@@ -1,13 +1,17 @@
 'use client';
-import React, { useState } from "react";
+import { useState } from 'react';
+import { Steps } from 'antd';
+import DateTimeSelection from '../../components/booking/bookingcomponents/datetimeselection';
+import LocationSelection from '../../components/booking/bookingcomponents/locationselection';
+// import { AvailableVehicle } from "@/interface/booking";
+import BusRoutes from '../../components/booking/bookingcomponents/busroutes';
+import CheckoutPage from '../../components/booking/bookingcomponents/checkoutpage';
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
-import DateTimeSelection from "../../components/booking/bookingcomponents/datetimeselection";
-// import { AvailableVehicle } from "@/interface/booking";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
-import BusRoutes from "../../components/booking/bookingcomponents/busroutes";
-import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 import { BookingResponse } from "@/interface/booking";
+import VehicleSelection from '../../components/booking/bookingcomponents/vehicleselection';
+
+
 
 const steps = [
     { title: "Chọn ngày & giờ", icon: <FaClock /> },
@@ -21,8 +25,9 @@ const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
+    const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
+    const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([]);
     const [duration, setDuration] = useState<number>(60);
-    // const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
     const [startPoint, setStartPoint] = useState<{
         position: { lat: number; lng: number };
         address: string;
@@ -46,6 +51,22 @@ const RouteBooking = () => {
         setLoading(false);
     };
 
+    const handleVehicleSelection = (categoryId: string, quantity: number) => {
+        setSelectedVehicles(prev => {
+            const existing = prev.find(v => v.categoryVehicleId === categoryId);
+            if (existing) {
+                if (quantity === 0) {
+                    return prev.filter(v => v.categoryVehicleId !== categoryId);
+                }
+                return prev.map(v =>
+                    v.categoryVehicleId === categoryId ? { ...v, quantity } : v
+                );
+            }
+            return quantity > 0
+                ? [...prev, { categoryVehicleId: categoryId, quantity }]
+                : prev;
+        });
+    };
 
     const detectUserLocation = () => {
         if (navigator.geolocation) {
@@ -58,73 +79,115 @@ const RouteBooking = () => {
         }
     };
 
+    const handleFinish = () => {
+        // Add logic to handle booking completion
+    };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg p-10">
-                <h2 className="text-2xl font-bold text-center mb-10">Đặt xe tuyến đường</h2>
+        <div className="min-h-screen bg-gray-50">
+            <div className="w-full px-4 py-8">
+                <div className="container mx-auto">
+                    <div className="bg-white rounded-lg shadow-md p-6 lg:p-8">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8">
+                            Đặt xe theo tuyến
+                        </h1>
 
-                <div className="flex justify-between items-center mb-10">
-                    {steps.map((step, index) => (
-                        <div
-                            key={index}
-                            className={`flex flex-col items-center text-center p-2 border-b-4 transition-all ${current === index ? "border-blue-500 text-blue-500" : "border-gray-300 text-gray-500"
-                                }`}
-                        >
-                            {step.icon}
-                            <span className="text-sm mt-1">{step.title}</span>
+                        <div className="mb-10 w-full">
+                            <div className="hidden sm:block">
+                                <Steps
+                                    current={current}
+                                    items={steps}
+                                    className="custom-steps"
+                                />
+                            </div>
+                            <div className="sm:hidden">
+                                <p className="text-center text-gray-600">
+                                    Bước {current + 1}/{steps.length}: {steps[current].title}
+                                </p>
+                            </div>
                         </div>
-                    ))}
-                </div>
 
-                <div>
-                    {current === 0 && (
-                        <DateTimeSelection
-                            selectedDate={selectedDate}
-                            startTime={startTime}
-                            duration={duration}
-                            onDateChange={setSelectedDate}
-                            onStartTimeChange={setStartTime}
-                            onDurationChange={setDuration}
-                        />
-                    )}
-                    {current === 1 && (
-                        <LocationSelection
-                            startPoint={startPoint}
-                            onLocationChange={handleLocationChange}
-                            loading={loading}
-                            detectUserLocation={detectUserLocation}
-                        />
-                    )}
-                    {current === 2 && <BusRoutes />}
-                    {current === 3 && (
-                        <LocationSelection
-                            startPoint={startPoint}
-                            onLocationChange={handleLocationChange}
-                            loading={loading}
-                            detectUserLocation={detectUserLocation}
-                        />
-                    )}
-                    {current === 4 && bookingResponse && (
-                        <CheckoutPage bookingResponse={bookingResponse} />
-                    )}
-                </div>
+                        <div className="w-full transition-all duration-300 ease-in-out">
+                            <div className="mb-8 w-full">
+                                {current === 0 && (
+                                    <DateTimeSelection
+                                        selectedDate={selectedDate}
+                                        startTime={startTime}
+                                        duration={duration}
+                                        onDateChange={setSelectedDate}
+                                        onStartTimeChange={setStartTime}
+                                        onDurationChange={setDuration}
+                                    />
+                                )}
+                                {current === 1 && (
+                                    <VehicleSelection
+                                        availableVehicles={availableVehicles}
+                                        selectedVehicles={selectedVehicles}
+                                        onSelectionChange={handleVehicleSelection}
+                                    />
+                                )}
+                                {current === 2 && <BusRoutes />}
+                                {current === 3 && (
+                                    <LocationSelection
+                                        startPoint={startPoint}
+                                        onLocationChange={handleLocationChange}
+                                        loading={loading}
+                                        detectUserLocation={detectUserLocation}
+                                    />
+                                )}
+                                {current === 4 && bookingResponse && (
+                                    <CheckoutPage bookingResponse={bookingResponse} />
+                                )}
+                            </div>
 
-                <div className="flex justify-between mt-8">
-                    {current > 0 && (
-                        <button onClick={prev} className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                            Quay lại
-                        </button>
-                    )}
-                    {current < steps.length - 1 ? (
-                        <button onClick={next} className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            Tiếp theo
-                        </button>
-                    ) : (
-                        <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                            Xác nhận đặt xe
-                        </button>
-                    )}
+                            <div className="flex justify-between mt-8 gap-4">
+                                {current > 0 && (
+                                    <button
+                                        onClick={prev}
+                                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg 
+                                    hover:bg-gray-200 transition-colors duration-200 ease-in-out
+                                        focus:outline-none focus:ring-2 focus:ring-gray-300
+                                        min-w-[120px]"
+                                    >
+                                        Quay lại
+                                    </button>
+                                )}
+                                {current < steps.length - 1 ? (
+                                    <button
+                                        onClick={next}
+                                        className="px-6 py-3 bg-blue-500 text-white rounded-lg 
+                                    hover:bg-blue-600 transition-colors duration-200 ease-in-out
+                                    focus:outline-none focus:ring-2 focus:ring-blue-300
+                                        disabled:bg-blue-300 disabled:cursor-not-allowed
+                                        min-w-[120px]"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <span className="flex items-center justify-center">
+                                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                Đang xử lý...
+                                            </span>
+                                        ) : (
+                                            'Tiếp theo'
+                                        )}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleFinish}
+                                        className="px-6 py-3 bg-green-500 text-white rounded-lg 
+                                    hover:bg-green-600 transition-colors duration-200 ease-in-out
+                                        focus:outline-none focus:ring-2 focus:ring-green-300
+                                        min-w-[120px]"
+                                    >
+                                        Xác nhận đặt xe
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
