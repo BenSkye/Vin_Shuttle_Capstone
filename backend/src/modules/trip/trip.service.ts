@@ -265,6 +265,11 @@ export class TripService implements ITripService {
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
     );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.customerId.toString(),
+      updatedTrip._id.toString(),
+      updatedTrip
+    );
     return updatedTrip;
   }
 }

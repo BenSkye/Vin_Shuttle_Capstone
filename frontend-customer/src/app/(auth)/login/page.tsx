@@ -64,14 +64,14 @@ export default function LoginPage() {
 
                 if (data.isValid) {
                     // Store tokens in localStorage
-                    localStorage.setItem('accessToken', data.token.accessToken);
+                    localStorage.setItem('authorization', data.token.accessToken);
                     localStorage.setItem('refreshToken', data.token.refreshToken);
                     localStorage.setItem('userId', data.userId);
 
-                    //Store tokens in cookies
-                    Cookies.set('authorization', data.token.accessToken);
-                    Cookies.set('refreshToken', data.token.refreshToken);
-                    Cookies.set('userId', data.userId);
+                    //Store tokens in cookies in 2 days
+                    Cookies.set('authorization', data.token.accessToken, { expires: 2 });
+                    Cookies.set('refreshToken', data.token.refreshToken, { expires: 2 });
+                    Cookies.set('userId', data.userId, { expires: 2 });
 
                     // Clear any existing errors
 

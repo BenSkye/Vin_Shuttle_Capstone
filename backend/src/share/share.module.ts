@@ -4,7 +4,8 @@ import { JwtTokenService } from 'src/share/jwt';
 import { PayosService } from 'src/share/payos';
 import { RedisService } from 'src/share/redis';
 import { SmsService } from 'src/share/sms';
-import { createClient } from 'redis';
+import { Redis } from 'ioredis';
+
 
 export const tokenJWTProvider = new JwtTokenService('2d', '7d');
 const tokenProvider: Provider = { provide: TOKEN_PROVIDER, useValue: tokenJWTProvider };
@@ -21,36 +22,33 @@ const dependencies = [
   },
   {
     provide: REDIS_CLIENT,
-    useFactory: async () => {
-      const client = createClient({
-        socket: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT) || 6379
-        },
+    useFactory: () => {
+      const redis = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT) || 6379,
         password: process.env.REDIS_PASSWORD || undefined,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+        reconnectOnError: (err) => {
+          const targetErrors = [/READONLY/, /ETIMEDOUT/];
+          return targetErrors.some(pattern => pattern.test(err.message));
+        }
       });
 
-      // Thêm event listeners để log trạng thái kết nối
-      client
+      // Thêm event listeners
+      redis
         .on('connect', () => console.log('Connecting to Redis...'))
-        .on('ready', () => console.log('✅ Redis connection established '))
+        .on('ready', () => console.log('✅ Redis connection established'))
         .on('error', (e) => console.error('❌ Redis connection error:', e))
         .on('reconnecting', () => console.log('Reconnecting to Redis...'))
         .on('end', () => console.log('Redis connection closed'));
 
-      try {
-        await client.connect();
-        return client;
-      } catch (error) {
-        console.error('Failed to connect to Redis:', error);
-        throw error;
-      }
+      return redis;
     }
   },
   {
     provide: REDIS_PROVIDER,
     useClass: RedisService,
-  }
+  },
 ];
 
 @Module({

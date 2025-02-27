@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react';
 import { initSocket } from '@/service/socket';
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum';
-import { getPersonalTrip } from '@/service/trip.service';
+import { getPersonalTrip, getPersonalTripById } from '@/service/trip.service';
 import { Trip } from '@/interface/trip';
 
-const useTripSocket = () => {
+const useTripSocket = (id?: string) => {
     const [trips, setTrips] = useState<Trip[]>([]);
+    const [tripDetail, setTripDetail] = useState<Trip | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         const fetchInitialData = async () => {
+            setLoading(true);
             try {
-                const initialTrips = await getPersonalTrip();
-                setTrips(initialTrips);
+                if (id) {
+                    const tripDetailData = await getPersonalTripById(id);
+                    setTripDetail(tripDetailData);
+                } else {
+                    const initialTrips = await getPersonalTrip();
+                    setTrips(initialTrips);
+                }
                 setLoading(false);
             } catch (err) {
                 setError(err as Error);
@@ -33,19 +40,29 @@ const useTripSocket = () => {
             console.error('Connection error:', err.message);
         });
 
-        socket.on('trip_updated', (updatedTrips: Trip[]) => {
-            setTrips(updatedTrips);
-        });
+        if (id) {
+            socket.on(`trip_updated_detail_${id}`, (updatedTrip: Trip) => {
+                setTripDetail(updatedTrip);
+            });
+        } else {
+            socket.on('trip_updated', (updatedTrips: Trip[]) => {
+                setTrips(updatedTrips);
+            });
+        }
 
         fetchInitialData();
 
         return () => {
-            socket.off('trip_updated');
+            if (id) {
+                socket.off(`trip_updated_detail_${id}`);
+            } else {
+                socket.off('trip_updated');
+            }
             socket.disconnect();
         };
-    }, []);
+    }, [id]);
 
-    return { data: trips, isLoading: loading, error };
+    return { data: id ? tripDetail : trips, isLoading: loading, error };
 };
 
 export default useTripSocket;

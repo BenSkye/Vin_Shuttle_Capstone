@@ -34,6 +34,7 @@
     "@nestjs/swagger": "^8.1.1",
     "@nestjs/websockets": "^10.4.15",
     "@payos/node": "^1.0.10",
+    "@socket.io/redis-adapter": "^7.2.0",
     "@types/bcrypt": "^5.0.2",
     "axios": "^1.7.9",
     "backend": "file:",
@@ -41,6 +42,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dayjs": "^1.11.13",
+    "ioredis": "^5.5.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mkcert": "^3.2.0",
@@ -50,6 +52,7 @@
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.7.2",
     "swagger-ui-express": "^5.0.1",
     "twilio": "^5.4.4"
   },
