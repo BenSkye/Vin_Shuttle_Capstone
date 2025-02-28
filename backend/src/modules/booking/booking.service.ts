@@ -12,7 +12,7 @@ import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
 import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
-import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, TripStatus } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from "src/share/enums";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
 
@@ -73,14 +73,20 @@ export class BookingService implements IBookingService {
             matchingShifts
         );
 
-
         if (scheduleDate.isSame(now, 'day')) {
-            console.log('now', now)
-            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
-            schedules = schedules.filter(schedule =>
-                matchingShifts.includes(schedule.shift as Shift) &&
-                schedule.status === DriverSchedulesStatus.IN_PROGRESS
-            );
+            const currentHour = now.hour();
+            console.log('currentHour', currentHour)
+            schedules = schedules.filter(schedule => {
+                const shift = schedule.shift as Shift;
+                const shiftStartHour = ShiftHours[shift].start;
+
+                // If current time is after shift start, only include IN_PROGRESS schedules
+                // Otherwise, include all schedules for shifts that haven't started yet
+                if (currentHour >= shiftStartHour) {
+                    return schedule.status === DriverSchedulesStatus.IN_PROGRESS;
+                }
+                return true;
+            });
         }
 
         //check not conflict time with Trip in that uniqueSchedules 
@@ -560,5 +566,24 @@ export class BookingService implements IBookingService {
         await this.bookingRepository.deleteBooking(
             booking._id.toString()
         )
+    }
+
+
+    async getCustomerPersonalBooking(customerId: string): Promise<BookingDocument[]> {
+        return await this.bookingRepository.getBookings({ customerId }, [])
+    }
+    async getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument> {
+        const booking = await this.bookingRepository.findOneBooking({
+            _id: id,
+            customerId
+        }, [])
+        if (!booking) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Not found booking ${id}`,
+                vnMesage: `Không tìm thấy đặt xe ${id}`,
+            }, HttpStatus.NOT_FOUND);
+        }
+        return booking
     }
 }

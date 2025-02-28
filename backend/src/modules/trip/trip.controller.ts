@@ -45,7 +45,7 @@ export class TripController {
   @ApiBearerAuth('authorization')
   @ApiOperation({ summary: 'Get trip by id' })
   async getTripById(@Param('id') id: string, @Request() req) {
-    return await this.tripService.getTripById(req.user._id, id)
+    return await this.tripService.getPersonalCustomerTripById(req.user._id, id)
   }
 
   @Post('driver-pickup-customer')

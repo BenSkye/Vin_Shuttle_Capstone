@@ -4,6 +4,9 @@ import useTripSocket from '@/hooks/useTripSocket';
 import Link from 'next/link';
 import { BookingDestinationPayloadDto, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingSharePayloadDto, Trip } from '@/interface/trip';
 import { use } from 'react';
+import { ServiceType } from '@/constants/service-type.enum';
+import RealTimeTripMap from '@/app/(main)/components/trip/RealTimeTripMap';
+import { TripStatus } from '@/constants/trip.enum';
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const id = use(params).id;
@@ -21,15 +24,30 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
 
     const renderServiceDetails = (trip: Trip) => {
         switch (trip.serviceType) {
-            case 'bookingHour':
+            case ServiceType.BOOKING_HOUR:
                 const hourPayload = trip.servicePayload as BookingHourPayloadDto;
                 return (
-                    <div className="space-y-2">
-                        <p>Điểm đón: {hourPayload.bookingHour.startPoint.address}</p>
-                        <p>Tổng thời gian: {hourPayload.bookingHour.totalTime} giờ</p>
-                    </div>
+                    <>
+                        <div className="space-y-2">
+                            <p>Điểm đón: {hourPayload.bookingHour.startPoint.address}</p>
+                            <p>Tổng thời gian: {hourPayload.bookingHour.totalTime} giờ</p>
+                        </div>
+                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
+                            <div className="space-y-4">
+                                <RealTimeTripMap
+                                    pickupLocation={[
+                                        hourPayload.bookingHour.startPoint.position.lat,
+                                        hourPayload.bookingHour.startPoint.position.lng
+                                    ]}
+                                    vehicleId={trip.vehicleId._id}
+                                />
+                            </div>
+                        ) : (
+                            <></>
+                        )}
+                    </>
                 );
-            case 'bookingScenicRoute':
+            case ServiceType.BOOKING_SCENIC_ROUTE:
                 const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto;
                 return (
                     <div className="space-y-2">
@@ -39,7 +57,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         <p>Khoảng cách thực tế: {scenicPayload.bookingScenicRoute.distance} km</p>
                     </div>
                 );
-            case 'bookingDestination':
+            case ServiceType.BOOKING_DESTINATION:
                 const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto;
                 return (
                     <div className="space-y-2">
@@ -49,7 +67,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         <p>Khoảng cách thực tế: {destinationPayload.bookingDestination.distance} km</p>
                     </div>
                 );
-            case 'bookingShare':
+            case ServiceType.BOOKING_SHARE:
                 const sharePayload = trip.servicePayload as BookingSharePayloadDto;
                 return (
                     <div className="space-y-2">

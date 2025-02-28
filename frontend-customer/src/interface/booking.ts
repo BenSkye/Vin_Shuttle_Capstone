@@ -1,3 +1,4 @@
+import { BookingStatus } from "@/constants/booking.constants";
 
 // Interface cho response API tìm xe
 export interface AvailableVehicle {
@@ -5,7 +6,6 @@ export interface AvailableVehicle {
     availableCount: number;
     price: number;
 }
-
 export interface VehicleCategory {
     _id: string;
     name: string;
@@ -15,7 +15,6 @@ export interface VehicleCategory {
     updatedAt: string;
     __v: number;
 }
-
 // Interface cho request booking
 export interface BookingHourRequest {
     startPoint: {
@@ -34,8 +33,7 @@ export interface BookingHourRequest {
     }[];
     paymentMethod: 'pay_os' | 'cash' | 'momo'; // Các phương thức thanh toán hỗ trợ
 }
-
-// Interface cho response booking
+// Interface cho response booking when checkout
 export interface BookingResponse {
     newBooking: {
         _id: string;
@@ -47,6 +45,20 @@ export interface BookingResponse {
         createdAt: string;
     };
     paymentUrl: string;
+}
+
+//Interface for booking
+export interface IBooking {
+    _id: string,
+    bookingCode: number,
+    trips: [string],
+    status: BookingStatus,
+    totalAmount: number,
+    statusHistory: Array<{
+        status: BookingStatus;
+        changedAt: Date;
+        reason?: string;
+    }>;
 }
 
 
