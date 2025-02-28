@@ -32,8 +32,8 @@ export class Booking {
     @Prop({ type: String, enum: PaymentMethod })
     paymentMethod: string;
 
-    @Prop({ type: String })
-    InvoiceId: string;
+    // @Prop({ type: String })
+    // InvoiceId: string;
 
     @Prop({
         type: [

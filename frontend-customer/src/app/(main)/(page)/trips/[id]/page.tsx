@@ -36,8 +36,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                             <div className="space-y-4">
                                 <RealTimeTripMap
                                     pickupLocation={[
-                                        hourPayload.bookingHour.startPoint.lat,
-                                        hourPayload.bookingHour.startPoint.lng
+                                        hourPayload.bookingHour.startPoint.position.lat,
+                                        hourPayload.bookingHour.startPoint.position.lng
                                     ]}
                                     vehicleId={trip.vehicleId._id}
                                 />
