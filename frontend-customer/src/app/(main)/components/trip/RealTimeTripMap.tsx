@@ -34,6 +34,7 @@ const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) =>
 
     // Cập nhật vị trí xe khi có thay đổi
     useEffect(() => {
+        console.log('vehicleLocation', vehicleLocation)
         if (vehicleLocation && markerRef.current) {
             const newLatLng = L.latLng(vehicleLocation.lat, vehicleLocation.lng);
             markerRef.current.setLatLng(newLatLng);

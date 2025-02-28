@@ -33,4 +33,7 @@ export interface IBookingService {
   ): Promise<{ newBooking: BookingDocument; paymentUrl: string }>;
   payBookingSuccess(bookingCode: number): Promise<BookingDocument>;
   payBookingFail(bookingCode: number): Promise<void>;
+
+  getCustomerPersonalBooking(customerId: string): Promise<BookingDocument[]>
+  getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument>
 }
