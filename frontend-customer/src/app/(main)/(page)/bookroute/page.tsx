@@ -83,6 +83,50 @@ const RouteBooking = () => {
         // Add logic to handle booking completion
     };
 
+    const hardcodedVehicles = [
+        {
+            id: "1",
+            name: "Toyota Innova",
+            type: "SUV",
+            capacity: 7,
+            price: 500000,
+            image: "/images/toyota-innova.jpg",
+            features: ["Máy lạnh", "Hệ thống âm thanh", "Cửa sổ trời"],
+            available: true
+        },
+        {
+            id: "2",
+            name: "Hyundai County",
+            type: "Mini Bus",
+            capacity: 29,
+            price: 1200000,
+            image: "/images/hyundai-county.jpg",
+            features: ["Ghế ngả", "WiFi miễn phí", "Hệ thống loa"],
+            available: true
+        },
+        {
+            id: "3",
+            name: "Ford Transit",
+            type: "Van",
+            capacity: 16,
+            price: 800000,
+            image: "/images/ford-transit.jpg",
+            features: ["Ghế da", "Cổng sạc USB", "Rèm cửa"],
+            available: false
+        },
+        {
+            id: "4",
+            name: "Mercedes Sprinter",
+            type: "Van",
+            capacity: 16,
+            price: 950000,
+            image: "/images/mercedes-sprinter.jpg",
+            features: ["Màn hình giải trí", "Máy lạnh tự động", "Hệ thống an toàn ABS"],
+            available: true
+        }
+    ];
+
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="w-full px-4 py-8">
