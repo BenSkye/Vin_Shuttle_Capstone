@@ -1,12 +1,14 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ExecutionContext, Inject, UseGuards } from '@nestjs/common';
+import { ExecutionContext, HttpException, HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from 'src/modules/auth/wsAuth.guard';
 import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
-import { TOKEN_PROVIDER } from 'src/share/di-token';
+import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
-import { ITokenProvider } from 'src/share/interface';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
+import { IRedisService, ITokenProvider } from 'src/share/interface';
+
+
 
 @WebSocketGateway({
     namespace: `/${SOCKET_NAMESPACE.TRIPS}`,
@@ -21,13 +23,12 @@ import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 @UseGuards(WsAuthGuard)
 export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() server: Server;
-
     constructor(
         @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
         @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
+        @Inject(REDIS_PROVIDER) private readonly redisService: IRedisService,
     ) { }
 
-    private userRooms = new Map<string, string>(); // userId -> socketId
     afterInit(server: Server) {
         server.use(async (socket: Socket, next) => {
             try {
@@ -44,7 +45,14 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
                 if (canActivate) {
                     next();
                 } else {
-                    next(new Error('Unauthorized'));
+                    throw new HttpException(
+                        {
+                            statusCode: HttpStatus.UNAUTHORIZED,
+                            message: 'Unauthorized',
+                            vnMesage: 'Không có quyền truy cập',
+                        },
+                        HttpStatus.UNAUTHORIZED,
+                    );
                 }
             } catch (error) {
                 console.log('error50', error)
@@ -54,37 +62,36 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     async handleConnection(client: Socket) {
-        console.log('client', client)
-        console.log('user', (client as any).user);
         try {
             const payload = (client as any).user;
-
-            // Join user-specific room
             client.join(`user_${payload._id}`);
-            this.userRooms.set(payload._id, client.id);
-
+            this.redisService.setUserSocket(SOCKET_NAMESPACE.TRIPS, payload._id, client.id);
             console.log(`Client connected: ${client.id}, User: ${payload._id}`);
         } catch (error) {
             client.disconnect(true);
-            console.error('Unauthorized connection attempt:', error.message);
+            console.error('Connection error:', error);
         }
     }
 
     handleDisconnect(client: Socket) {
-        const [userId] = [...this.userRooms.entries()]
-            .find(([, socketId]) => socketId === client.id) || [];
+        this.redisService.deleteUserSocket(SOCKET_NAMESPACE.TRIPS, client.id);
+        console.log(`Client disconnected: ${client.id}`);
+    }
 
-        if (userId) {
-            this.userRooms.delete(userId);
-            console.log(`Client disconnected: ${client.id}, User: ${userId}`);
+    async emitTripUpdate(userId: string, tripData: any) {
+        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
+        if (socketId) {
+            this.server.to(socketId).emit('trip_updated', tripData);
         }
     }
 
-    emitTripUpdate(userId: string, tripData: any) {
-        this.server.to(`user_${userId}`).emit('trip_updated', tripData);
-    }
-
-    emitDriverUpdate(tripId: string, driverData: any) {
-        this.server.to(`trip_${tripId}`).emit('driver_updated', driverData);
+    async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
+        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
+        console.log('socketId', socketId)
+        console.log('trip_updated_detail_', tripId)
+        if (socketId) {
+            ``
+            this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData);
+        }
     }
 }

@@ -15,7 +15,7 @@ export interface IUpdateBooking {
     trips?: string[]
     totalAmount?: number
     paymentMethod?: string
-    InvoiceId?: string
+    //InvoiceId?: string
     cancellationTime?: string
     cancellationReason?: string,
     statusHistory?: object

@@ -37,3 +37,75 @@
     --radius: 0.5rem;
   }
 }
+
+/* Add these styles for the DateTimeSelection component */
+
+/* Card styles */
+.ant-card {
+  @apply border border-gray-200 rounded-lg overflow-hidden;
+}
+
+.ant-card-head {
+  @apply bg-gray-50 border-b border-gray-200 px-6 py-3;
+}
+
+.ant-card-head-title {
+  @apply text-base font-medium;
+}
+
+.ant-card-body {
+  @apply p-6;
+}
+
+/* Input styles */
+.ant-picker {
+  @apply border border-gray-300 rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+}
+
+.ant-select-selector {
+  @apply border border-gray-300 rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+}
+
+/* Time summary box */
+.bg-blue-50 {
+  @apply rounded-lg border border-blue-100;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ant-card-body {
+    @apply p-4;
+  }
+
+  .ant-card-head {
+    @apply px-4;
+  }
+}
+
+/* Animation */
+.hover\:shadow-md {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Custom date picker styles */
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  @apply bg-blue-500;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  @apply border-blue-500;
+}
+
+/* Custom time picker styles */
+.ant-picker-time-panel-column>li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  @apply bg-blue-500 text-white;
+}
+
+/* Custom select styles */
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  @apply bg-blue-50;
+}
+
+.ant-select-focused .ant-select-selector {
+  @apply border-blue-500 ring-1 ring-blue-500;
+}

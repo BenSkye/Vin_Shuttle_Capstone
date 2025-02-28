@@ -1,9 +1,38 @@
-import Login from '@/views/Auth/Login'
+'use client';
 
+import { useRouter } from 'next/navigation';
+import { LoginForm } from '@/components/form/LoginForm';
+import { loginUser } from '@/services/api/user';
 
-const LoginPage = () => {
+export default function LoginPage() {
+    const router = useRouter();
+
+    const handleLogin = async (email: string, password: string) => {
+        try {
+            const response = await loginUser(email, password);
+            console.log("Response:", response);
+
+            localStorage.setItem('accessToken', response.token.accessToken);
+            localStorage.setItem('refreshToken', response.token.refreshToken);
+            localStorage.setItem('userId', response.userId);
+
+            router.push('/');
+        } catch (error) {
+            throw error;
+        }
+    };
+
     return (
-        <Login />
-    )
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-24 px-8 sm:px-12 lg:px-16">
+            <div className="max-w-lg w-full space-y-10">
+                <div>
+                    <h2 className="mt-8 text-center text-4xl font-extrabold text-gray-900">
+                        Sign in to your account
+                    </h2>
+                </div>
+
+                <LoginForm onSubmit={handleLogin} />
+            </div>
+        </div>
+    );
 }
-export default LoginPage

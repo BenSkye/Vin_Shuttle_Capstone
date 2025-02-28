@@ -11,6 +11,7 @@ export interface Trip {
         name: string
     },
     vehicleId: {
+        _id: string,
         name: string,
         licensePlate: string
     },

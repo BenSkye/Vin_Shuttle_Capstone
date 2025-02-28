@@ -1,5 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
@@ -150,5 +150,32 @@ export class BookingController {
             data
         )
     }
+
+    @Get('customer-personal-booking')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.CUSTOMER)
+    @ApiBearerAuth('authorization')
+    async getCustomerPersonalBooking(
+        @Request() req,
+    ) {
+        return await this.bookingService.getCustomerPersonalBooking(req.user._id)
+    }
+
+
+    @Get('customer-personal-booking/:id')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.CUSTOMER)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'get customer booking by id' })
+    async getCustomerPersonalBookingById(
+        @Param('id') id: string,
+        @Request() req,
+    ) {
+        return await this.bookingService.getCustomerPersonalBookingById(req.user._id, id)
+    }
+
+
 
 }

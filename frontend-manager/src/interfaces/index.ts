@@ -29,6 +29,7 @@ export interface Appointment {
 }
 
 export interface Driver {
+    _id: string;
     id: number;
     teacherId: string;
     name: string;
@@ -38,4 +39,12 @@ export interface Driver {
     subjects: string[];
     classes: string[];
     address: string;
+    action: string;
 };
+
+export interface Customer {
+    id: number;
+    name: string;
+    phone: string;
+    email: string;
+}

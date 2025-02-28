@@ -39,7 +39,7 @@ export class SearchService implements ISearchService {
     private readonly pricingService: IPricingService,
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly scenicRouteRepository: IScenicRouteRepository,
-  ) {}
+  ) { }
 
   async findAvailableVehicleBookingHour(
     date: string,
@@ -76,13 +76,19 @@ export class SearchService implements ISearchService {
     //check available schedule in DB
     let schedules = await this.getAvailableSchedules(scheduleDate.toDate(), matchingShifts);
     if (scheduleDate.isSame(now, 'day')) {
-      console.log('now', now);
-      // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
-      schedules = schedules.filter(
-        schedule =>
-          matchingShifts.includes(schedule.shift as Shift) &&
-          schedule.status === DriverSchedulesStatus.IN_PROGRESS,
-      );
+      const currentHour = now.hour();
+      console.log('currentHour', currentHour)
+      schedules = schedules.filter(schedule => {
+        const shift = schedule.shift as Shift;
+        const shiftStartHour = ShiftHours[shift].start;
+
+        // If current time is after shift start, only include IN_PROGRESS schedules
+        // Otherwise, include all schedules for shifts that haven't started yet
+        if (currentHour >= shiftStartHour) {
+          return schedule.status === DriverSchedulesStatus.IN_PROGRESS;
+        }
+        return true;
+      });
     }
 
     //check not conflict time with Trip in that uniqueSchedules
@@ -238,9 +244,8 @@ export class SearchService implements ISearchService {
       const shiftEnd = bookingStartTime.startOf('day').add(ShiftHours[shift].end, 'hour');
 
       return (
-        bookingStartTime.isAfter(shiftStart) ||
-        (bookingStartTime.isSame(shiftStart) && bookingEndTime.isBefore(shiftEnd)) ||
-        bookingEndTime.isSame(shiftEnd)
+        (bookingStartTime.isAfter(shiftStart) || bookingStartTime.isSame(shiftStart)) &&
+        (bookingEndTime.isBefore(shiftEnd) || bookingEndTime.isSame(shiftEnd))
       );
     });
     if (matchingShifts.length == 0) {

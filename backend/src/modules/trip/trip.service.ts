@@ -204,7 +204,7 @@ export class TripService implements ITripService {
     return await this.tripRepository.find({ driverId }, []);
   }
 
-  async getTripById(customerId: string, id: string): Promise<TripDocument> {
+  async getPersonalCustomerTripById(customerId: string, id: string): Promise<TripDocument> {
     return await this.tripRepository.findOne({
       _id: id,
       customerId: customerId
@@ -264,6 +264,11 @@ export class TripService implements ITripService {
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.customerId.toString(),
+      updatedTrip._id.toString(),
+      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
     );
     return updatedTrip;
   }
