@@ -224,6 +224,10 @@ export class TripService implements ITripService {
     const distance = toStop.distanceFromStart - fromStop.distanceFromStart;
     const baseFare = (distance / route.totalDistance) * route.basePrice;
 
+    console.log('====================================');
+    console.log(baseFare * numberOfSeats);
+    console.log('====================================');
+
     return Math.round(baseFare * numberOfSeats);
   }
 
