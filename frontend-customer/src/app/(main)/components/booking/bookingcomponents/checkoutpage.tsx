@@ -14,6 +14,26 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     const [paymentUrl, setPaymentUrl] = useState("");
     const [showPaymentDialog, setShowPaymentDialog] = useState(false);
     const [iframeLoading, setIframeLoading] = useState(true);
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
+    useEffect(() => {
+        if (shouldRedirect) {
+            window.location.href = '/booking';
+        }
+    }, [shouldRedirect]);
+
+    useEffect(() => {
+        if (paymentUrl) {
+            const handleMessage = (event: MessageEvent) => {
+                if (event.data === 'PAYMENT_SUCCESS') {
+                    setShouldRedirect(true);
+                }
+            };
+
+            window.addEventListener('message', handleMessage);
+            return () => window.removeEventListener('message', handleMessage);
+        }
+    }, [paymentUrl]);
 
     useEffect(() => {
         setBooking(bookingResponse.newBooking);
@@ -136,6 +156,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                         onLoad={handleIframeLoad}
                         title="Payment Gateway"
                         referrerPolicy="strict-origin-when-cross-origin"
+                        allow="payment *"
                     />
                 </div>
             }
