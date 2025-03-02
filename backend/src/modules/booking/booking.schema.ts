@@ -73,6 +73,7 @@ BookingSchema.index({ customerId: 1, status: 1 });
 // Middleware tự động cập nhật lịch sử trạng thái
 BookingSchema.pre<Booking>('save', function (next) {
     const modifiedPaths = (this as any).modifiedPaths();
+    console.log('modifiedPaths', modifiedPaths)
     // Kiểm tra cả trường hợp tạo mới và cập nhật
     if ((this as any).isNew || modifiedPaths.includes('status')) {
         const currentStatus = this.status;

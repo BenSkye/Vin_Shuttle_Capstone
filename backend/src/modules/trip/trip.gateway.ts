@@ -90,7 +90,6 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         console.log('socketId', socketId)
         console.log('trip_updated_detail_', tripId)
         if (socketId) {
-            ``
             this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData);
         }
     }

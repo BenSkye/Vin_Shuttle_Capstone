@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ICreateTripDto, IUpdateTripDto } from 'src/modules/trip/trip.dto';
@@ -33,7 +33,17 @@ export class TripRepository implements ITripRepository {
   }
 
   async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {
-    return await this.tripModel.findByIdAndUpdate(id, { status }, { new: true })
+    const trip = await this.tripModel.findById(id);
+    if (!trip) {
+      throw new HttpException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `Trip not found ${id}`,
+        vnMesage: `Không thấy chuyến đi ${id}`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+
+    trip.status = status;
+    return await trip.save();
   }
 
   async updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument> {

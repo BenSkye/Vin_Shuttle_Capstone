@@ -12,8 +12,21 @@ export class CheckoutController {
   @Get('return-booking-payment')
   async getPayOsReturn(@Request() req, @Res() res) {
     await this.checkoutService.getPayOsReturn(req.query);
-    const redirectUrl = new URL(process.env.FRONTEND_URL + '/booking');
-    return res.redirect(redirectUrl.toString());
+    const redirectUrl = process.env.FRONTEND_URL + '/booking';
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirecting...</title>
+        </head>
+        <body>
+          <script>
+            // Chuyển hướng trang cha đến URL đích
+            window.top.location.href = '${redirectUrl}';
+          </script>
+        </body>
+      </html>
+    `);
   }
   @Get('cancel-booking-payment')
   async getPayOsCancel(@Request() req) {
