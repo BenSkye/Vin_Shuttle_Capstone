@@ -14,6 +14,7 @@ import NotificationScreen from '../screens/NotificationScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
+import TripTrackingScreen from '~/screens/TripTrackingScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,6 +112,7 @@ export default function AppNavigator() {
         </Stack.Screen>
         <Stack.Screen name="Home" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="TripTracking" component={TripTrackingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

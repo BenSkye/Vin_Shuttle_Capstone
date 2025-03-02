@@ -3,16 +3,21 @@ export enum BookingStatus {
     CONFIRMED = 'CONFIRMED',
     COMPLETED = 'COMPLETED',
     CANCELLED = 'CANCELLED',
-    PAYMENT_FAILED = 'PAYMENT_FAILED',
 }
+
 
 export const bookingStatusColor: Record<BookingStatus, string> = {
     [BookingStatus.PENDING]: 'gold',
     [BookingStatus.CONFIRMED]: 'blue',
     [BookingStatus.COMPLETED]: 'green',
     [BookingStatus.CANCELLED]: 'red',
-    [BookingStatus.PAYMENT_FAILED]: 'error',
 };
+export const bookingStatusText: Record<BookingStatus, string> = {
+    [BookingStatus.PENDING]: 'Đang chờ',
+    [BookingStatus.CONFIRMED]: 'Đã thanh toán',
+    [BookingStatus.COMPLETED]: 'Đã hoàn thành',
+    [BookingStatus.CANCELLED]: 'Đã hủy',
+}
 
 export const BookingHourDuration = {
     MAX: 300,

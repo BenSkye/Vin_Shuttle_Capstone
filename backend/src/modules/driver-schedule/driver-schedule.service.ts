@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
+import { DRIVERSCHEDULE_GATEWAY, DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
 import { ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
+import { DriverScheduleGateway } from "src/modules/driver-schedule/driver-schedule.gateway";
 import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
@@ -19,7 +20,9 @@ export class DriverScheduleService implements IDriverScheduleService {
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
     @Inject(VEHICLE_REPOSITORY)
-    private readonly vehicleRepository: IVehiclesRepository
+    private readonly vehicleRepository: IVehiclesRepository,
+    @Inject(DRIVERSCHEDULE_GATEWAY)
+    private readonly driverScheduleGateway: DriverScheduleGateway
   ) { }
 
 
@@ -243,6 +246,7 @@ export class DriverScheduleService implements IDriverScheduleService {
       isLate: driverSchedule.isLate
     });
 
+    await this.driverScheduleGateway.handleDriverCheckin(driverId, scheduleUpdate.vehicle.toString());
     return scheduleUpdate;
   }
 

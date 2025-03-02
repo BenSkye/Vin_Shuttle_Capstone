@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DriverScheduleController } from 'src/modules/driver-schedule/driver-schedule.controller';
 import {
+  DRIVERSCHEDULE_GATEWAY,
   DRIVERSCHEDULE_REPOSITORY,
   DRIVERSCHEDULE_SERVICE,
 } from 'src/modules/driver-schedule/driver-schedule.di-token';
+import { DriverScheduleGateway } from 'src/modules/driver-schedule/driver-schedule.gateway';
 import { DriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.repo';
 import {
   DriverSchedule,
@@ -25,6 +27,10 @@ const dependencies = [
     provide: DRIVERSCHEDULE_SERVICE,
     useClass: DriverScheduleService,
   },
+  {
+    provide: DRIVERSCHEDULE_GATEWAY,
+    useClass: DriverScheduleGateway,
+  }
 ];
 @Module({
   imports: [
@@ -43,4 +49,4 @@ const dependencies = [
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class DriverScheduleModule {}
+export class DriverScheduleModule { }

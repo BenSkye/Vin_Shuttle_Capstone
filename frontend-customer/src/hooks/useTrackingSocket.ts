@@ -8,7 +8,7 @@ const useTrackingSocket = (vehicleId?: string) => {
 
     useEffect(() => {
 
-        const socket = initSocket(SOCKET_NAMESPACE.TRIPS);
+        const socket = initSocket(SOCKET_NAMESPACE.TRACKING);
 
         const handleConnect = () => {
             console.log('Socket connected:', socket.id);
