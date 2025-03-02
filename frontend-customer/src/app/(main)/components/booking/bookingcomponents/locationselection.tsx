@@ -1,259 +1,201 @@
-import { useState, useEffect } from 'react';
-import { Input, Button, Spin, Card, Divider, Alert } from 'antd';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    EnvironmentOutlined,
-    AimOutlined,
-    LoadingOutlined,
-    SearchOutlined,
-    ClockCircleOutlined,
-    StarOutlined
-} from '@ant-design/icons';
-import Image from 'next/image';
-interface LocationSelectionProps {
-    startPoint: any;
-    onLocationChange: (location: any) => void;
-    loading: boolean;
-    detectUserLocation: () => void;
+import React, { useState, useEffect } from "react";
+import 'leaflet/dist/leaflet.css';
+import dynamic from "next/dynamic";
+import '../../../../../styles/locationselection.css';
+import L from 'leaflet';
+import { useMap } from 'react-leaflet';
+
+// Dynamic imports
+const MapContainer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.MapContainer),
+    { ssr: false }
+);
+const TileLayer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.TileLayer),
+    { ssr: false }
+);
+const Marker = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Marker),
+    { ssr: false }
+);
+const Popup = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Popup),
+    { ssr: false }
+);
+
+// Fix icon chỉ ở phía client
+if (typeof window !== 'undefined') {
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    });
 }
 
-interface SavedLocation {
-    id: string;
-    name: string;
-    address: string;
-    type: 'home' | 'work' | 'favorite';
+interface LocationSelectionProps {
+    startPoint: {
+        position: { lat: number; lng: number };
+        address: string;
+    };
+    onLocationChange: (position: { lat: number; lng: number }, address: string) => void;
+    detectUserLocation: () => void;
+    loading: boolean;
 }
+
+const MapClickHandler = ({ onMapClick }: { onMapClick: (latlng: L.LatLng) => void }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!map) return;
+
+        const handleClick = (e: L.LeafletMouseEvent) => {
+            onMapClick(e.latlng);
+        };
+
+        map.on('click', handleClick);
+        return () => {
+            map.off('click', handleClick);
+        };
+    }, [map, onMapClick]);
+
+    return null;
+};
+
+// Hàm geocode để tìm kiếm địa chỉ
+const geocode = async (query: string): Promise<[number, number]> => {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`
+        );
+        const data = await response.json();
+
+        if (!data || data.length === 0) throw new Error("Không tìm thấy địa chỉ");
+
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+    } catch (error) {
+        console.error('Geocoding error:', error);
+        throw new Error('Không thể tìm tọa độ từ địa chỉ');
+    }
+};
+
+// Hàm reverse geocode
+const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
+        );
+        console.log(`https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`);
+        const data = await response.json();
+        console.log('data', data);
+        return data.display_name || 'Không xác định được địa chỉ';
+    } catch (error) {
+        console.error('Reverse geocoding error:', error);
+        throw new Error('Không thể lấy địa chỉ từ tọa độ');
+    }
+};
+
 const LocationSelection = ({
     startPoint,
     onLocationChange,
-    loading,
     detectUserLocation,
+    loading,
 }: LocationSelectionProps) => {
-    const [searchValue, setSearchValue] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [searchLoading, setSearchLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [isFetching, setIsFetching] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(startPoint.address);
 
-    // Mock saved locations (replace with actual data from backend)
-    const savedLocations: SavedLocation[] = [
-        {
-            id: '1',
-            name: 'Nhà',
-            address: 'S1.03, Vinhomes Grand Park, Quận 9',
-            type: 'home'
-        },
-        {
-            id: '2',
-            name: 'Công ty',
-            address: 'S2.05, Vinhomes Grand Park, Quận 9',
-            type: 'work'
-        },
-        {
-            id: '3',
-            name: 'Công viên',
-            address: 'Central Park, Vinhomes Grand Park, Quận 9',
-            type: 'favorite'
-        }
-    ];
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
-    const handleSearch = async (value: string) => {
-        setSearchValue(value);
-        if (value.length < 2) {
-            setSearchResults([]);
-            return;
-        }
-        setSearchLoading(true);
+    const handleSearch = async (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (!searchQuery) return;
+
         try {
-            // Mock API call - replace with actual API call
-            const results = await mockSearchLocations(value);
-            setSearchResults(results);
-            setError(null);
-        } catch (err) {
-            setError('Không thể tìm kiếm địa điểm. Vui lòng thử lại.');
-            setSearchResults([]);
+            setIsFetching(true);
+            const [newLat, newLng] = await geocode(searchQuery);
+            onLocationChange({ lat: newLat, lng: newLng }, searchQuery);
+        } catch (error) {
+            console.error('Search error:', error);
         } finally {
-            setSearchLoading(false);
+            setIsFetching(false);
         }
     };
 
-    const handleLocationSelect = (location: any) => {
-        onLocationChange(location);
-        setSearchValue(location.address);
-        setSearchResults([]);
+    const handleMapClick = async (latlng: L.LatLng) => {
+        try {
+            setIsFetching(true);
+            const address = await reverseGeocodeOSM(latlng.lat, latlng.lng);
+            onLocationChange({ lat: latlng.lat, lng: latlng.lng }, address);
+            setSearchQuery(address);
+
+            // Force update map view
+            const map = L.map('map');
+            map.setView(latlng, 15);
+        } catch (error) {
+            console.error('Map click error:', error);
+        } finally {
+            setIsFetching(false);
+        }
     };
+
+    if (!isClient) return null;
 
     return (
-        <div className="max-w-2xl mx-auto">
-            {/* Location Search Section */}
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-                <div className="space-y-4">
-                    {/* Search Input */}
-                    <div className="relative">
-                        <Input
-                            size="large"
-                            placeholder="Nhập địa điểm đón..."
-                            value={searchValue}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            prefix={<EnvironmentOutlined className="text-blue-500" />}
-                            className="w-full rounded-lg"
-                            suffix={searchLoading && <LoadingOutlined spin />}
-                        />
-
-                        {/* Current Location Button */}
-                        <Button
-                            type="primary"
-                            icon={<AimOutlined />}
-                            onClick={detectUserLocation}
-                            loading={loading}
-                            className="absolute right-0 top-0 h-full rounded-r-lg"
-                        >
-                            Vị trí hiện tại
-                        </Button>
-                    </div>
-
-                    {/* Error Message */}
-                    <AnimatePresence>
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <Alert
-                                    type="error"
-                                    message={error}
-                                    closable
-                                    onClose={() => setError(null)}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Search Results */}
-                    <AnimatePresence>
-                        {searchResults.length > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="mt-2 space-y-2"
-                            >
-                                {searchResults.map((location: any) => (
-                                    <div
-                                        key={location.id}
-                                        onClick={() => handleLocationSelect(location)}
-                                        className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors duration-200"
-                                    >
-                                        <div className="flex items-start">
-                                            <EnvironmentOutlined className="text-blue-500 mt-1 mr-3" />
-                                            <div>
-                                                <p className="font-medium text-gray-800">{location.name}</p>
-                                                <p className="text-sm text-gray-500">{location.address}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </Card>
-
-            {/* Saved Locations Section */}
-            <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Địa điểm đã lưu</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {savedLocations.map((location) => (
-                        <motion.div
-                            key={location.id}
-                            whileHover={{ scale: 1.02 }}
-                            className="bg-white rounded-lg shadow-md p-4 cursor-pointer"
-                            onClick={() => handleLocationSelect(location)}
-                        >
-                            <div className="flex items-start">
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                    {location.type === 'home' && <HomeIcon />}
-                                    {location.type === 'work' && <WorkIcon />}
-                                    {location.type === 'favorite' && <StarOutlined className="text-blue-500" />}
-                                </div>
-                                <div>
-                                    <p className="font-medium text-gray-800">{location.name}</p>
-                                    <p className="text-sm text-gray-500">{location.address}</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+        <div className="w-full space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                <form onSubmit={handleSearch} className="flex gap-2">
+                    <input
+                        type="text"
+                        className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nhập địa điểm đón"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button
+                        type="submit"
+                        className="px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
+                        disabled={isFetching || loading}
+                    >
+                        {isFetching ? '...' : 'Tìm'}
+                    </button>
+                </form>
+                <button
+                    className="bg-blue-500 text-white p-3 rounded-lg shadow-md hover:bg-blue-600 transition-all"
+                    onClick={detectUserLocation}
+                    disabled={isFetching || loading}
+                >
+                    {isFetching ? "Đang tìm..." : "Vị trí hiện tại"}
+                </button>
             </div>
 
-            {/* Recent Locations Section */}
-            <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Địa điểm gần đây</h3>
-                <div className="space-y-3">
-                    {recentLocations.map((location) => (
-                        <motion.div
-                            key={location.id}
-                            whileHover={{ x: 5 }}
-                            className="flex items-center p-3 bg-white rounded-lg shadow-sm cursor-pointer"
-                            onClick={() => handleLocationSelect(location)}
-                        >
-                            <ClockCircleOutlined className="text-gray-400 mr-3" />
-                            <div>
-                                <p className="font-medium text-gray-800">{location.name}</p>
-                                <p className="text-sm text-gray-500">{location.address}</p>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+            <div className="map-container">
+                <MapContainer
+                    id="map"
+                    center={[startPoint.position.lat || 10.840405, startPoint.position.lng || 106.843424]}
+                    zoom={startPoint.position.lat && startPoint.position.lng ? 15 : 13}
+                    scrollWheelZoom={true}
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    {startPoint.position.lat && startPoint.position.lng && (
+                        <Marker position={[startPoint.position.lat, startPoint.position.lng]}>
+                            <Popup className="font-semibold">
+                                📍 Điểm đón của bạn
+                            </Popup>
+                        </Marker>
+                    )}
+
+                    <MapClickHandler onMapClick={handleMapClick} />
+                </MapContainer>
             </div>
         </div>
     );
 };
-
-// Mock data and functions
-const recentLocations = [
-    {
-        id: '1',
-        name: 'Trung tâm thương mại Vincom',
-        address: 'Vinhomes Grand Park, Quận 9'
-    },
-    {
-        id: '2',
-        name: 'Công viên ánh sáng',
-        address: 'Vinhomes Grand Park, Quận 9'
-    }
-];
-
-const mockSearchLocations = async (query: string) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Mock results
-    return [
-        {
-            id: '1',
-            name: 'Vinhomes Grand Park S1',
-            address: 'Phường Long Thạnh Mỹ, Quận 9'
-        },
-        {
-            id: '2',
-            name: 'Vinhomes Grand Park S2',
-            address: 'Phường Long Thạnh Mỹ, Quận 9'
-        }
-    ];
-};
-
-// Custom Icons
-const HomeIcon = () => (
-    <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-);
-
-const WorkIcon = () => (
-    <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-);
 
 export default LocationSelection;
