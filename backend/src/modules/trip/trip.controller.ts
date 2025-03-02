@@ -15,7 +15,7 @@ export class TripController {
     private readonly tripService: ITripService,
   ) { }
 
-  
+
 
   @Get('customer-personal-trip')
   @HttpCode(HttpStatus.OK)
@@ -72,6 +72,50 @@ export class TripController {
     return await this.tripService.driverPickupCustomer(data.tripId, req.user._id)
   }
 
+  @Post('driver-start-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Driver start trip' })
+  @ApiBody({
+    type: String,
+    description: 'Driver start trip',
+    examples: {
+      'Driver start trip': {
+        value: {
+          tripId: '67b6c79187febb73be4b3f09',
+        },
+      },
+    },
+
+  })
+  async driverStartTrip(@Body() data: { tripId: string }, @Request() req) {
+    return await this.tripService.driverStartTrip(data.tripId, req.user._id)
+  }
+
+  @Post('driver-complete-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Driver complete trip' })
+  @ApiBody({
+    type: String,
+    description: 'Driver complete trip',
+    examples: {
+      'Driver complete trip': {
+        value: {
+          tripId: '67b6c79187febb73be4b3f09',
+        },
+      },
+    },
+
+  })
+  async driverCompleteTrip(@Body() data: { tripId: string }, @Request() req) {
+    return await this.tripService.driverCompleteTrip(data.tripId, req.user._id)
+  }
+
   @Post('calculate-bus-route-fare')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -88,5 +132,5 @@ export class TripController {
     );
   }
 
-  
+
 }
