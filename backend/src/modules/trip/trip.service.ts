@@ -12,6 +12,8 @@ import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } fro
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
+import { REDIS_PROVIDER } from 'src/share/di-token';
+import { IRedisService } from 'src/share/interface';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -24,6 +26,8 @@ export class TripService implements ITripService {
     private readonly busRouteRepository: IBusRouteRepository,
     @Inject(TRIP_GATEWAY)
     private readonly tripGateway: TripGateway,
+    @Inject(REDIS_PROVIDER)
+    private readonly redisService: IRedisService,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -270,6 +274,7 @@ export class TripService implements ITripService {
       updatedTrip._id.toString(),
       await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
     );
+    this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
   }
 }
