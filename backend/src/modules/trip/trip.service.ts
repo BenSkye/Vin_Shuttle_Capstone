@@ -281,6 +281,98 @@ export class TripService implements ITripService {
     this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
   }
+
+  async driverStartTrip(tripId: string, driverId: string): Promise<TripDocument> {
+    const trip = await this.tripRepository.findOne({ _id: tripId }, []);
+    if (!trip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip not found',
+          vnMessage: 'Chuyến đi không tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (trip.driverId._id.toString() !== driverId.toString()) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver is not this trip driver',
+          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.IN_PROGRESS);
+    if (!updatedTrip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip update failed',
+          vnMessage: 'Cập nhật chuyến đi thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.customerId.toString(),
+      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.customerId.toString(),
+      updatedTrip._id.toString(),
+      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
+    );
+    this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
+    return updatedTrip;
+  }
+
+  async driverCompleteTrip(tripId: string, driverId: string): Promise<TripDocument> {
+    const trip = await this.tripRepository.findOne({ _id: tripId }, []);
+    if (!trip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip not found',
+          vnMessage: 'Chuyến đi không tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (trip.driverId._id.toString() !== driverId.toString()) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver is not this trip driver',
+          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.COMPLETED);
+    if (!updatedTrip) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip update failed',
+          vnMessage: 'Cập nhật chuyến đi thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.customerId.toString(),
+      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.customerId.toString(),
+      updatedTrip._id.toString(),
+      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
+    );
+    this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
+    return updatedTrip;
+  }
 }
 // if (createTripDto.serviceType == ServiceType.BOOKING_HOUR) {
 //     const totalMinutes = (createTripDto.servicePayload as BookingHourPayloadDto).totalTime;
