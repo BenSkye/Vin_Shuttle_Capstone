@@ -15,6 +15,8 @@ export class TripController {
     private readonly tripService: ITripService,
   ) { }
 
+  
+
   @Get('customer-personal-trip')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
@@ -85,4 +87,6 @@ export class TripController {
       data.numberOfSeats,
     );
   }
+
+  
 }

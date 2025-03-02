@@ -15,17 +15,6 @@ interface Vehicle {
   updatedAt: string;
 }
 
-interface Vehicle2 {
-  _id: string;
-  name: string;
-  categoryId: string;
-  licensePlate: string;
-  vehicleCondition: 'available' | 'in-use' | 'maintenance';
-  operationStatus: 'pending' | 'running' | 'charging';
-  image: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 // Interface cho request data
 interface AddVehicleRequest {
@@ -39,7 +28,7 @@ interface AddVehicleRequest {
 
 export const vehiclesService = {
   // Lấy danh sách vehicles
-  async getVehicles(): Promise<Vehicle2[]> {
+  async getVehicles(): Promise<Vehicle[]> {
     try {
       const response = await axios.get(`${API_URL}/vehicles`, {
         headers: {
