@@ -1,9 +1,10 @@
 'use client';
+
 import React, { useState } from "react";
 import { FaCar, FaClock, FaCreditCard } from "react-icons/fa";
 import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
 import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
-import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+// import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 
 const steps = [
     { title: "Chọn số người", icon: <FaClock className="text-blue-500" /> },
