@@ -1,9 +1,10 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useState } from "react";
 import { FaCar, FaClock, FaCreditCard } from "react-icons/fa";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
-import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
+const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
+const TripTypeSelection = dynamic(() => import('../../components/booking/bookingcomponents/triptypeselection'), { ssr: false });
 // import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 
 const steps = [
