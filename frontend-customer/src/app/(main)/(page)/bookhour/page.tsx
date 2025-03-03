@@ -1,4 +1,6 @@
 'use client'
+
+import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from "react";
 import {
     Steps,
@@ -13,7 +15,7 @@ import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined, CreditCardOutlin
 import dayjs from "dayjs";
 import DateTimeSelection from "../../components/booking/bookingcomponents/datetimeselection";
 import VehicleSelection from "../../components/booking/bookingcomponents/vehicleselection";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
+const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
 import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 import { vehicleSearchHour } from "@/service/search.service";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
