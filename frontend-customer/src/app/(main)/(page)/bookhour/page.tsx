@@ -63,6 +63,7 @@ const HourlyBookingPage = () => {
 
     // Define detectUserLocation function 
     const detectUserLocation = () => {
+        if (typeof window === "undefined") return;
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const { latitude, longitude } = position.coords;
