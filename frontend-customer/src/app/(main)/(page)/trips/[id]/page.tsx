@@ -109,6 +109,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         {renderServiceDetails(data as Trip)}
                     </div>
 
+
                     <Link href="/trips" className="text-blue-600 hover:underline">
                         ← Quay lại danh sách
                     </Link>

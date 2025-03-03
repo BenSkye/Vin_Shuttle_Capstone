@@ -65,6 +65,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     async handleConnection(client: Socket) {
         try {
             const payload = (client as any).user;
+            console.log('payload', payload);
             if (payload.role === UserRole.CUSTOMER) {
                 client.join(`user_${payload._id}`);
             }
@@ -89,6 +90,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         const payload = (client as any).user;
         const driverId = payload._id
         const vehicleId = await this.redisService.get(`${SOCKET_NAMESPACE.DRIVER_SCHEDULE}-vehicle-${driverId}`);
+        console.log('driver_location_update', driverId, vehicleId, location);
         const ListUserIdTrackingVehicle = await this.redisService.getListUserTrackingVehicle(vehicleId);
         ListUserIdTrackingVehicle.forEach(userId => {
             this.emitLocationUpdate(userId, vehicleId, location);
@@ -98,6 +100,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     async emitLocationUpdate(userId: string, vehicleId: string, location: Position) {
         const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRACKING, userId);
         if (socketId) {
+            console.log(`Emitting location update to: ${socketId} for vehicle: ${vehicleId} - ${location.lat}, ${location.lng}`);
             this.server.to(socketId).emit(`update_location_${vehicleId}`, location);
         }
     }

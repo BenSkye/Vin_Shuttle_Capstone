@@ -7,7 +7,6 @@ export enum TripStatus {
   CANCELLED = 'cancelled',
 }
 
-
 export const tripStatusColor: Record<TripStatus, string> = {
   [TripStatus.BOOKING]: 'gold',
   [TripStatus.PAYED]: 'blue',
