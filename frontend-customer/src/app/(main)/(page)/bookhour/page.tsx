@@ -132,7 +132,7 @@ const HourlyBookingPage = () => {
             console.log('error127', error)
             notification.error({
                 message: 'Không tìm thấy xe',
-                description: error.message || 'Không thể tải danh sách xe',
+                description: error instanceof Error ? error.message : 'Không thể tải danh sách xe',
             });
             setAvailableVehicles([]);
             return false;
@@ -180,7 +180,7 @@ const HourlyBookingPage = () => {
         } catch (error: unknown) {
             notification.error({
                 message: 'Lỗi đặt xe',
-                description: error.message || 'Không thể đặt xe',
+                description: error instanceof Error ? error.message : 'Không thể đặt xe',
             });
             console.log("Error", error);
             throw error;
