@@ -6,6 +6,8 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 interface Customer {
   _id: string;
   name: string;
+  phone: string;
+  email: string
 }
 
 interface Driver {
@@ -69,6 +71,25 @@ export const getPersonalTrips = async (): Promise<Trip[]> => {
     return response.data;
   } catch (error) {
     console.error('Error fetching personal trips:', error);
+    throw error;
+  }
+};
+
+export const pickUp = async (tripId: string): Promise<Trip> => {
+  try {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const response = await axios.post(
+      `${API_URL}/trip/driver-pickup-customer`,
+      { tripId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating to pickup status:', error);
     throw error;
   }
 };
