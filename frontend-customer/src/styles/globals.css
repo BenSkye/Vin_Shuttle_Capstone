@@ -109,3 +109,74 @@
 .ant-select-focused .ant-select-selector {
   @apply border-blue-500 ring-1 ring-blue-500;
 }
+
+/* Add these styles for the VehicleSelection component */
+
+/* Card hover effects */
+.vehicle-card {
+  transition: all 0.3s ease;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Badge customization */
+.ant-badge-count {
+  @apply px-3 py-1 text-sm font-medium;
+}
+
+/* Tooltip customization */
+.ant-tooltip {
+  @apply max-w-xs;
+}
+
+.ant-tooltip-inner {
+  @apply text-sm;
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .vehicle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Selected state styles */
+.selected-vehicle {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Disabled state styles */
+.disabled-vehicle {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+/* Feature list styles */
+.feature-list {
+  @apply space-y-2 text-sm text-gray-600;
+}
+
+/* Price tag styles */
+.price-tag {
+  @apply text-lg font-semibold text-blue-600;
+}
