@@ -44,9 +44,9 @@ export default function Navbar() {
 
     const navItems = [
         { label: "Trang Chủ", href: "/" },
-        { label: "Đặt xe", href: "/booking" },
-        { label: "Về chúng tôi", href: "/aboutus" },
-        { label: "Liên Hệ", href: "/contact" },
+        { label: "Đặt xe theo giờ", href: "/bookhour" },
+        { label: "Đặt xe theo tuyến cố định", href: "/bookroute" },
+        { label: "Đặt xe điểm đến", href: "/bookdes" },
         { label: "Tính năng", href: "/features" },
         { label: "Blog", href: "/blog" },
         { label: "Fanpage", href: "/page" },

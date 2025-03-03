@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { getPersonalTrips, Trip } from '../services/tripServices';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 
-export default function TripHistoryScreen() {
+export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,66 +33,53 @@ export default function TripHistoryScreen() {
     fetchTrips();
   }, []);
 
-  const getStatusText = (status: string): string => {
-    switch (status) {
-      case 'booking':
-        return 'Đang đặt';
-      case 'confirmed':
-        return 'Đã xác nhận';
-      case 'in_progress':
-        return 'Đang thực hiện';
-      case 'completed':
-        return 'Đã hoàn thành';
-      case 'cancelled':
-        return 'Đã hủy';
-      case 'payed':
-        return 'Đã thanh toán';
-      default:
-        return 'Không xác định';
+  const handleNavigate = (status: TripStatus, vehicleId: string) => {
+    if (status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS) {
+      navigation.navigate('TripTracking', { vehicleId: vehicleId })
     }
+  }
+
+
+
+  const getStatusText = (status: TripStatus): string => {
+    return tripStatusText[status] || 'Không xác định';
   };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'booking':
+  const getStatusColor = (status: TripStatus): string => {
+    const color = tripStatusColor[status];
+    switch (color) {
+      case 'gold':
+        return 'text-yellow-500';
+      case 'blue':
         return 'text-blue-600';
-      case 'confirmed':
-        return 'text-purple-600';
-      case 'in_progress':
-        return 'text-amber-500';
-      case 'completed':
+      case 'green':
         return 'text-green-600';
-      case 'cancelled':
+      case 'red':
         return 'text-red-600';
-      case 'payed':
-        return 'text-green-600';
       default:
         return 'text-gray-600';
     }
   };
 
-  const getStatusIconColor = (status: string): string => {
-    switch (status) {
-      case 'booking':
-        return '#2563eb'; // blue
-      case 'confirmed':
-        return '#9333ea'; // purple
-      case 'in_progress':
-        return '#f59e0b'; // amber
-      case 'completed':
-        return '#16a34a'; // green
-      case 'cancelled':
-        return '#dc2626'; // red
-      case 'payed':
-        return '#16a34a'; // green
+  const getStatusIconColor = (status: TripStatus): string => {
+    const color = tripStatusColor[status];
+    switch (color) {
+      case 'gold':
+        return '#d97706'; // amber-600
+      case 'blue':
+        return '#2563eb'; // blue-600
+      case 'green':
+        return '#16a34a'; // green-600
+      case 'red':
+        return '#dc2626'; // red-600
       default:
-        return '#4b5563'; // gray
+        return '#4b5563'; // gray-600
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <ScrollView 
+      <ScrollView
         className="flex-1"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -106,54 +94,60 @@ export default function TripHistoryScreen() {
             <ActivityIndicator size="large" color="#2563eb" />
           ) : trips.length > 0 ? (
             trips.map((trip) => (
-              <View 
-                key={trip._id} 
-                className="mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-100"
+              <TouchableOpacity
+                key={trip._id}
+                onPress={() => handleNavigate((trip.status as TripStatus), trip.vehicleId._id)}
+                className="mt-2 p-2 bg-blue-500 rounded-md"
               >
-                <View className="flex-row items-center mb-2">
-                  <Icon name="account" size={20} color="#4b5563" />
-                  <Text className="font-semibold ml-2">Khách hàng: {trip.customerId.name}</Text>
-                </View>
-                
-                <View className="flex-row items-center mb-2">
-                  <Icon name="clock-start" size={20} color="#4b5563" />
-                  <Text className="ml-2">Bắt đầu: {format(new Date(trip.timeStartEstimate), 'HH:mm dd/MM/yyyy')}</Text>
-                </View>
-
-                <View className="flex-row items-center mb-2">
-                  <Icon name="clock-end" size={20} color="#4b5563" />
-                  <Text className="ml-2">Kết thúc: {format(new Date(trip.timeEndEstimate), 'HH:mm dd/MM/yyyy')}</Text>
-                </View>
-
-                <View className="flex-row items-center mb-2">
-                  <Icon name="car" size={20} color="#4b5563" />
-                  <Text className="ml-2">Xe: {trip.vehicleId.name} ({trip.vehicleId.licensePlate})</Text>
-                </View>
-
-                <View className="flex-row items-center mb-2">
-                  <Icon name="clipboard-list" size={20} color="#4b5563" />
-                  <Text className="ml-2">Loại dịch vụ: {trip.serviceType === 'booking_hour' ? 'Đặt theo giờ' : 'Khác'}</Text>
-                </View>
-
-                {trip.serviceType === 'booking_hour' && (
+                <View
+                  key={trip._id}
+                  className="mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-100"
+                >
                   <View className="flex-row items-center mb-2">
-                    <Icon name="timer" size={20} color="#4b5563" />
-                    <Text className="ml-2">Thời gian đặt: {trip.servicePayload.bookingHour.totalTime} phút</Text>
+                    <Icon name="account" size={20} color="#4b5563" />
+                    <Text className="font-semibold ml-2">Khách hàng: {trip.customerId.name}</Text>
                   </View>
-                )}
 
-                <View className="flex-row items-center mb-2">
-                  <Icon name="cash" size={20} color="#4b5563" />
-                  <Text className="ml-2">Số tiền: {trip.amount.toLocaleString('vi-VN')} VNĐ</Text>
-                </View>
+                  <View className="flex-row items-center mb-2">
+                    <Icon name="clock-start" size={20} color="#4b5563" />
+                    <Text className="ml-2">Bắt đầu: {format(new Date(trip.timeStartEstimate), 'HH:mm dd/MM/yyyy')}</Text>
+                  </View>
 
-                <View className="flex-row items-center">
-                  <Icon name="information" size={20} color={getStatusIconColor(trip.status)} />
-                  <Text className={`font-semibold ml-2 ${getStatusColor(trip.status)}`}>
-                    Trạng thái: {getStatusText(trip.status)}
-                  </Text>
+                  <View className="flex-row items-center mb-2">
+                    <Icon name="clock-end" size={20} color="#4b5563" />
+                    <Text className="ml-2">Kết thúc: {format(new Date(trip.timeEndEstimate), 'HH:mm dd/MM/yyyy')}</Text>
+                  </View>
+
+                  <View className="flex-row items-center mb-2">
+                    <Icon name="car" size={20} color="#4b5563" />
+                    <Text className="ml-2">Xe: {trip.vehicleId.name} ({trip.vehicleId.licensePlate})</Text>
+                  </View>
+
+                  <View className="flex-row items-center mb-2">
+                    <Icon name="clipboard-list" size={20} color="#4b5563" />
+                    <Text className="ml-2">Loại dịch vụ: {trip.serviceType === 'booking_hour' ? 'Đặt theo giờ' : 'Khác'}</Text>
+                  </View>
+
+                  {trip.serviceType === 'booking_hour' && (
+                    <View className="flex-row items-center mb-2">
+                      <Icon name="timer" size={20} color="#4b5563" />
+                      <Text className="ml-2">Thời gian đặt: {trip.servicePayload.bookingHour.totalTime} phút</Text>
+                    </View>
+                  )}
+
+                  <View className="flex-row items-center mb-2">
+                    <Icon name="cash" size={20} color="#4b5563" />
+                    <Text className="ml-2">Số tiền: {trip.amount.toLocaleString('vi-VN')} VNĐ</Text>
+                  </View>
+
+                  <View className="flex-row items-center">
+                    <Icon name="information" size={20} color={getStatusIconColor(trip.status)} />
+                    <Text className={`font-semibold ml-2 ${getStatusColor(trip.status)}`}>
+                      Trạng thái: {getStatusText(trip.status)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           ) : (
             <View className="flex-row items-center justify-center p-4">

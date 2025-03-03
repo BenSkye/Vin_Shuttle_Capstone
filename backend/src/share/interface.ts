@@ -1,5 +1,4 @@
 import { CheckoutResponseDataType } from '@payos/node/lib/type';
-import { Redis } from 'ioredis';
 
 export interface tokenDTO {
   accessToken: string;
@@ -54,6 +53,9 @@ export interface IRedisService {
   setUserSocket(namespace: string, userId: string, socketId: string): Promise<void>;
   deleteUserSocket(namespace: string, socketId: string): Promise<void>;
   getUserSocket(namespace: string, userId: string): Promise<string[]>;
+  setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
+  deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
+  getListUserTrackingVehicle(vehicleId: string): Promise<string[]>;
 }
 
 export const HEADER = {

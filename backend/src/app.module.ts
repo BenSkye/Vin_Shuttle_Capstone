@@ -20,6 +20,7 @@ import { SearchModule } from 'src/modules/search/search.module';
 import { CheckoutModule } from 'src/modules/checkout/checkout.module';
 import { BusStopModule } from './modules/bus-stop/bus-stop.module';
 import { BusRouteModule } from './modules/bus-route/bus-route.module';
+import { TrackingModule } from 'src/modules/tracking/tracking.module';
 
 @Module({
   imports: [
@@ -49,8 +50,9 @@ import { BusRouteModule } from './modules/bus-route/bus-route.module';
     CheckoutModule,
     BusStopModule,
     BusRouteModule,
+    TrackingModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule {}
+export class AppModule { }

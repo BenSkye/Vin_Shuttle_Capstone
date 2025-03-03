@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { IRedisService } from './interface';
 import { REDIS_CLIENT } from 'src/share/di-token';
+import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 
 @Injectable()
 export class RedisService implements IRedisService {
@@ -46,5 +47,26 @@ export class RedisService implements IRedisService {
 
     async getUserSocket(namespace: string, userId: string): Promise<string[]> {
         return this.redisClient.smembers(`${namespace}-${userId}`);
+    }
+
+    async setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
+        const namespace = SOCKET_NAMESPACE.TRACKING;
+        const pipeline = this.redisClient.pipeline();
+        const vehicleIds = await this.redisClient.smembers(`${namespace}-${vehicleId}`);
+        if (vehicleIds.includes(userId)) return;
+        pipeline.sadd(`${namespace}-${vehicleId}`, userId);
+        await pipeline.exec();
+    }
+
+    async deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
+        const namespace = SOCKET_NAMESPACE.TRACKING;
+        const pipeline = this.redisClient.pipeline();
+        pipeline.srem(`${namespace}-${vehicleId}`, userId);
+        await pipeline.exec();
+    }
+
+    async getListUserTrackingVehicle(vehicleId: string): Promise<string[]> {
+        const namespace = SOCKET_NAMESPACE.TRACKING;
+        return this.redisClient.smembers(`${namespace}-${vehicleId}`);
     }
 }
