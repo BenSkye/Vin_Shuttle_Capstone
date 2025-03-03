@@ -51,7 +51,7 @@ const LineBookingPage = () => {
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
                     );
                     const data = await response.json();
-                    setPickup(data.display_name);
+                    // setPickup(data.display_name);
                 },
                 () => alert("Không thể xác định vị trí của bạn")
             );
