@@ -95,6 +95,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
           ) : trips.length > 0 ? (
             trips.map((trip) => (
               <TouchableOpacity
+                key={trip._id}
                 onPress={() => handleNavigate((trip.status as TripStatus), trip.vehicleId._id)}
                 className="mt-2 p-2 bg-blue-500 rounded-md"
               >

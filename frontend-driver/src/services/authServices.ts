@@ -21,8 +21,9 @@ interface LoginCredentials {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
+      console.log('API_URL:', API_URL);
       const response = await axios.post(`${API_URL}/auth/login-by-password`, credentials);
-      
+
       // Store tokens and userId in AsyncStorage
       if (response.data.isValid) {
         await AsyncStorage.multiSet([
@@ -31,7 +32,7 @@ export const authService = {
           ['userId', response.data.userId]
         ]);
       }
-      
+
       return response.data;
     } catch (error) {
       throw error;

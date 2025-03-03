@@ -2,32 +2,41 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
+import useTrackingSocket from '~/hook/useTrackingSocket';
 
 const MapComponent = () => {
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const { emitLocationUpdate } = useTrackingSocket();
 
     useEffect(() => {
-        const getLocation = async () => {
+        let subscription: Location.LocationSubscription;
+        const subscribeToLocation = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 setErrorMsg('Quyền truy cập vị trí bị từ chối!');
                 return;
             }
-
-            const location = await Location.getCurrentPositionAsync({});
-            setLocation({
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-            });
+            subscription = await Location.watchPositionAsync(
+                { accuracy: Location.Accuracy.High, timeInterval: 3000, distanceInterval: 1 },
+                (location) => {
+                    console.log('location:', location);
+                    const newLocation = {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                    };
+                    setLocation(newLocation);
+                    emitLocationUpdate(newLocation); // Emit the location update event
+                }
+            );
         };
 
-        getLocation();
+        subscribeToLocation();
 
-        // Cập nhật vị trí mỗi 3 giây
-        const interval = setInterval(getLocation, 3000);
-        return () => clearInterval(interval);
-    }, []);
+        return () => {
+            subscription && subscription.remove();
+        };
+    }, [emitLocationUpdate]);
 
     useEffect(() => {
         console.log('Location:', location);
@@ -46,18 +55,23 @@ const MapComponent = () => {
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     }}
-                    region={location ? {
+                    region={{
                         latitude: location.latitude,
                         longitude: location.longitude,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
-                    } : undefined}
-                    mapType="none"
+                    }}
+                    provider={undefined}
+                    rotateEnabled={false}
                 >
-                    <UrlTile urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    <UrlTile
+                        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        shouldReplaceMapContent={true}
                         maximumZ={19}
+                        tileSize={512}
+                        flipY={false}
                     />
-                    (location? <Marker coordinate={location} title="Vị trí tài xế" />:<></>)
+                    {location && <Marker coordinate={location} title="Vị trí tài xế" />}
                 </MapView>
             ) : (
                 <Text style={styles.loadingText}>Đang tải vị trí...</Text>
