@@ -38,6 +38,8 @@ const LineBookingPage = () => {
     const handleFinish = () => alert("Đặt xe thành công!");
 
     const detectUserLocation = async () => {
+        if (typeof window === "undefined") return;
+
         setLoading(true);
         try {
             if (!navigator.geolocation) {
