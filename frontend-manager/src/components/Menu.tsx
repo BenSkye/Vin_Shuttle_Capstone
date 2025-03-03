@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { role } from '../libs/data'
-import { TbSteeringWheel } from "react-icons/tb";
 
 const menuItems = [
     {
