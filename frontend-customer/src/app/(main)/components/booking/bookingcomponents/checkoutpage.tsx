@@ -17,9 +17,8 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     const [shouldRedirect, setShouldRedirect] = useState(false);
 
     useEffect(() => {
-        if (shouldRedirect) {
+        if (shouldRedirect && typeof window !== "undefined")
             window.location.href = '/booking';
-        }
     }, [shouldRedirect]);
 
     useEffect(() => {
@@ -30,8 +29,10 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                 }
             };
 
-            window.addEventListener('message', handleMessage);
-            return () => window.removeEventListener('message', handleMessage);
+            if (typeof window !== "undefined") {
+                window.addEventListener('message', handleMessage);
+                return () => window.removeEventListener('message', handleMessage);
+            }
         }
     }, [paymentUrl]);
 

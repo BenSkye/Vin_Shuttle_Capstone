@@ -1,9 +1,11 @@
 'use client';
+
+import dynamic from 'next/dynamic';
 import React, { useState } from "react";
 import { FaCar, FaClock, FaCreditCard } from "react-icons/fa";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
-import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
-import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
+const TripTypeSelection = dynamic(() => import('../../components/booking/bookingcomponents/triptypeselection'), { ssr: false });
+// import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 
 const steps = [
     { title: "Chọn số người", icon: <FaClock className="text-blue-500" /> },
@@ -38,6 +40,8 @@ const LineBookingPage = () => {
     const handleFinish = () => alert("Đặt xe thành công!");
 
     const detectUserLocation = async () => {
+        if (typeof window === "undefined") return;
+
         setLoading(true);
         try {
             if (!navigator.geolocation) {
@@ -51,7 +55,7 @@ const LineBookingPage = () => {
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
                     );
                     const data = await response.json();
-                    setPickup(data.display_name);
+                    // setPickup(data.display_name);
                 },
                 () => alert("Không thể xác định vị trí của bạn")
             );
@@ -91,7 +95,7 @@ const LineBookingPage = () => {
                             detectUserLocation={detectUserLocation}
                         />
                     )}
-                    {current === 2 && <CheckoutPage />}
+                    {/* {current === 2 && <CheckoutPage />} */}
                 </div>
 
                 <div className="flex justify-between mt-8">

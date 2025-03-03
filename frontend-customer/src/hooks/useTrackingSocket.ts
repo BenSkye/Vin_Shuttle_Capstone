@@ -4,6 +4,7 @@ import { SOCKET_NAMESPACE } from '@/constants/socket.enum';
 
 const useTrackingSocket = (vehicleId?: string) => {
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
