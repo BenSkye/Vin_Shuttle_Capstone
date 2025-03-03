@@ -91,7 +91,7 @@ const LineBookingPage = () => {
                             detectUserLocation={detectUserLocation}
                         />
                     )}
-                    {current === 2 && <CheckoutPage />}
+                    {/* {current === 2 && <CheckoutPage />} */}
                 </div>
 
                 <div className="flex justify-between mt-8">
