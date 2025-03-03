@@ -48,7 +48,7 @@ const MapClickHandler = ({ onMapClick }: { onMapClick: (latlng: L.LatLng) => voi
     const map = useMap();
 
     useEffect(() => {
-        if (!map) return;
+        if (!map || typeof window === "undefined") return;
 
         const handleClick = (e: L.LeafletMouseEvent) => {
             onMapClick(e.latlng);

@@ -17,9 +17,8 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     const [shouldRedirect, setShouldRedirect] = useState(false);
 
     useEffect(() => {
-        if (shouldRedirect) {
+        if (shouldRedirect && typeof window !== "undefined")
             window.location.href = '/booking';
-        }
     }, [shouldRedirect]);
 
     useEffect(() => {
