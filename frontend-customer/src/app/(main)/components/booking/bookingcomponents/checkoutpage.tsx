@@ -29,8 +29,10 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                 }
             };
 
-            window.addEventListener('message', handleMessage);
-            return () => window.removeEventListener('message', handleMessage);
+            if (typeof window !== "undefined") {
+                window.addEventListener('message', handleMessage);
+                return () => window.removeEventListener('message', handleMessage);
+            }
         }
     }, [paymentUrl]);
 
