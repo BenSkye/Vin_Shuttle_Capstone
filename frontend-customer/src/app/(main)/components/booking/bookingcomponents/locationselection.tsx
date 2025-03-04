@@ -25,6 +25,7 @@ const Popup = dynamic(
 
 // Fix icon chỉ ở phía client
 if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -47,7 +48,7 @@ const MapClickHandler = ({ onMapClick }: { onMapClick: (latlng: L.LatLng) => voi
     const map = useMap();
 
     useEffect(() => {
-        if (!map) return;
+        if (!map || typeof window === "undefined") return;
 
         const handleClick = (e: L.LeafletMouseEvent) => {
             onMapClick(e.latlng);
@@ -107,7 +108,19 @@ const LocationSelection = ({
 
     useEffect(() => {
         setIsClient(true);
+        if (typeof window !== 'undefined') {
+            delete (L.Icon.Default.prototype as any)._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+            });
+        }
     }, []);
+
+    // useEffect(() => {
+    //     setIsClient(true);
+    // }, []);
 
     const handleSearch = async (e?: React.FormEvent) => {
         e?.preventDefault();

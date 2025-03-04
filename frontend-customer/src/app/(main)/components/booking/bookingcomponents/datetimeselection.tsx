@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { DatePicker, TimePicker, Select, Card } from 'antd';
 import { ClockCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -7,6 +6,7 @@ import locale from 'antd/es/date-picker/locale/vi_VN';
 import { InputNumber } from 'antd';
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { Option } = Select;
 interface DateTimeSelectionProps {
     selectedDate: dayjs.Dayjs | null;
