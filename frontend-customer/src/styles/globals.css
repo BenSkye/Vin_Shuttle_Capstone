@@ -45,138 +45,74 @@
   @apply border border-gray-200 rounded-lg overflow-hidden;
 }
 
-.ant-card-head {
-  @apply bg-gray-50 border-b border-gray-200 px-6 py-3;
-}
-
-.ant-card-head-title {
-  @apply text-base font-medium;
-}
-
 .ant-card-body {
   @apply p-6;
 }
 
-/* Input styles */
-.ant-picker {
-  @apply border border-gray-300 rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+/* Tab styles */
+.ant-tabs-nav {
+  @apply mb-6;
 }
 
-.ant-select-selector {
-  @apply border border-gray-300 rounded-lg hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+.ant-tabs-tab {
+  @apply text-gray-600 text-base py-3 px-4;
 }
 
-/* Time summary box */
-.bg-blue-50 {
-  @apply rounded-lg border border-blue-100;
+.ant-tabs-tab-active {
+  @apply text-blue-500 font-medium;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .ant-card-body {
-    @apply p-4;
-  }
-
-  .ant-card-head {
-    @apply px-4;
-  }
-}
-
-/* Animation */
-.hover\:shadow-md {
-  transition: box-shadow 0.2s ease-in-out;
-}
-
-/* Custom date picker styles */
-.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+.ant-tabs-ink-bar {
   @apply bg-blue-500;
 }
 
-.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
-  @apply border-blue-500;
+/* Badge styles */
+.ant-badge-status-success {
+  @apply text-green-500;
 }
 
-/* Custom time picker styles */
-.ant-picker-time-panel-column>li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
-  @apply bg-blue-500 text-white;
+/* Button styles */
+.ant-btn-primary {
+  @apply bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600;
 }
 
-/* Custom select styles */
-.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-  @apply bg-blue-50;
+/* Info item hover effect */
+.bg-gray-50:hover {
+  @apply bg-gray-100 transition-colors duration-200;
 }
 
-.ant-select-focused .ant-select-selector {
-  @apply border-blue-500 ring-1 ring-blue-500;
+/* Trip history card hover effect */
+.trip-card:hover {
+  @apply shadow-md transition-shadow duration-200;
 }
 
-/* Add these styles for the VehicleSelection component */
-
-/* Card hover effects */
-.vehicle-card {
-  transition: all 0.3s ease;
+/* Favorite location card styles */
+.location-card {
+  @apply hover:shadow-md transition-shadow duration-200;
 }
 
-.vehicle-card:hover {
-  transform: translateY(-4px);
+/* Notification item styles */
+.notification-item {
+  @apply hover:bg-gray-50 transition-colors duration-200;
 }
 
-/* Badge customization */
-.ant-badge-count {
-  @apply px-3 py-1 text-sm font-medium;
+/* Profile stats */
+.profile-stat {
+  @apply flex justify-between items-center py-2;
 }
 
-/* Tooltip customization */
-.ant-tooltip {
-  @apply max-w-xs;
-}
-
-.ant-tooltip-inner {
-  @apply text-sm;
-}
-
-/* Animation keyframes */
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-  }
-
-  70% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
-}
-
-.pulse {
-  animation: pulse 2s infinite;
+/* Avatar badge */
+.avatar-badge {
+  @apply absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1;
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
-  .vehicle-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+  .profile-layout {
+    @apply flex-col;
   }
-}
 
-/* Selected state styles */
-.selected-vehicle {
-  @apply ring-2 ring-blue-500 ring-offset-2;
-}
-
-/* Disabled state styles */
-.disabled-vehicle {
-  @apply opacity-60 cursor-not-allowed;
-}
-
-/* Feature list styles */
-.feature-list {
-  @apply space-y-2 text-sm text-gray-600;
-}
-
-/* Price tag styles */
-.price-tag {
-  @apply text-lg font-semibold text-blue-600;
+  .profile-sidebar {
+    @apply w-full mb-6;
+  }
 }
