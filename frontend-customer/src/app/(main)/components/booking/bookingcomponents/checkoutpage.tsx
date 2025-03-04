@@ -49,7 +49,11 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                     const trip = await getPersonalTripById(tripId);
                     trips.push(trip);
                 } catch (error: unknown) {
-                    setError(error.message || "Lỗi không xác định");
+                    if (error instanceof Error) {
+                        setError(error.message || "Lỗi không xác định");
+                    } else {
+                        setError("Lỗi không xác định");
+                    }
                 }
             }
         }

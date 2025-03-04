@@ -67,11 +67,13 @@ export default function LoginPage() {
                     localStorage.setItem('authorization', data.token.accessToken);
                     localStorage.setItem('refreshToken', data.token.refreshToken);
                     localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('accessToken', data.userId);
 
                     //Store tokens in cookies in 2 days
                     Cookies.set('authorization', data.token.accessToken, { expires: 2 });
                     Cookies.set('refreshToken', data.token.refreshToken, { expires: 2 });
                     Cookies.set('userId', data.userId, { expires: 2 });
+                    Cookies.set('accessToken', data.userId, { expires: 2 });
 
                     // Clear any existing errors
 
