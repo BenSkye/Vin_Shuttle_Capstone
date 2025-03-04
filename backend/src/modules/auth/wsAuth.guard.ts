@@ -13,7 +13,6 @@ export class WsAuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const client = context.switchToWs().getClient();
         let token = client.handshake.auth[HEADER.AUTHORIZATION];
-        console.log('token', token)
         if (!token) {
             return false;
         }
@@ -24,7 +23,6 @@ export class WsAuthGuard implements CanActivate {
             return false;
         }
         const decode = await this.tokenProvider.verifyToken(token, keystore.publicKey);
-        console.log('decode 25', decode);
         if (!decode) {
             return false;
         }

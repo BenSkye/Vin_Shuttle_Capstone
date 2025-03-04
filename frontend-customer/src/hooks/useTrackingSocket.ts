@@ -24,6 +24,10 @@ const useTrackingSocket = (vehicleId?: string) => {
             console.error('Connection error:', err.message);
         });
 
+        const requestLocation = async () => {
+
+        }
+
         if (vehicleId) {
             const eventKey = `update_location_${vehicleId}`;
             console.log(`Listening for: ${eventKey}`);
