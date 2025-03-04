@@ -1,6 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
-import { FaCar, FaRoute, FaClock, FaUsers } from 'react-icons/fa';
+import { FaCar, FaRoute, FaUsers } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -22,6 +21,7 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
         try {
             await onSubmit(email, password);
         } catch (err) {
+            console.log(err);
             setError('Invalid email or password');
         } finally {
             setIsLoading(false);

@@ -8,7 +8,7 @@ import BusRoutes from '../../components/booking/bookingcomponents/busroutes';
 import CheckoutPage from '../../components/booking/bookingcomponents/checkoutpage';
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
-import { BookingResponse } from "@/interface/booking";
+import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
 import VehicleSelection from '../../components/booking/bookingcomponents/vehicleselection';
 
 
@@ -25,6 +25,7 @@ const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
     const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([]);
     const [duration, setDuration] = useState<number>(60);
@@ -35,6 +36,7 @@ const RouteBooking = () => {
         position: { lat: 10.840405, lng: 106.843424 },
         address: ''
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
 
     const [loading, setLoading] = useState(false);
@@ -83,48 +85,6 @@ const RouteBooking = () => {
         // Add logic to handle booking completion
     };
 
-    const hardcodedVehicles = [
-        {
-            id: "1",
-            name: "Toyota Innova",
-            type: "SUV",
-            capacity: 7,
-            price: 500000,
-            image: "/images/toyota-innova.jpg",
-            features: ["Máy lạnh", "Hệ thống âm thanh", "Cửa sổ trời"],
-            available: true
-        },
-        {
-            id: "2",
-            name: "Hyundai County",
-            type: "Mini Bus",
-            capacity: 29,
-            price: 1200000,
-            image: "/images/hyundai-county.jpg",
-            features: ["Ghế ngả", "WiFi miễn phí", "Hệ thống loa"],
-            available: true
-        },
-        {
-            id: "3",
-            name: "Ford Transit",
-            type: "Van",
-            capacity: 16,
-            price: 800000,
-            image: "/images/ford-transit.jpg",
-            features: ["Ghế da", "Cổng sạc USB", "Rèm cửa"],
-            available: false
-        },
-        {
-            id: "4",
-            name: "Mercedes Sprinter",
-            type: "Van",
-            capacity: 16,
-            price: 950000,
-            image: "/images/mercedes-sprinter.jpg",
-            features: ["Màn hình giải trí", "Máy lạnh tự động", "Hệ thống an toàn ABS"],
-            available: true
-        }
-    ];
 
 
     return (

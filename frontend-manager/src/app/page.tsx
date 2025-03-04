@@ -1,5 +1,3 @@
-import Dashboard from '@/views/Dashboard'
-import AdminPage from './(dashboard)/admin/page'
 import UserCard from '@/components/UserCard'
 import CountChart from '@/components/CountChart'
 import AttendanceChart from '@/components/AttendanceChart'
