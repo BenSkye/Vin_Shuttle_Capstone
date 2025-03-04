@@ -1,16 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { Steps } from 'antd';
-import DateTimeSelection from '../../components/booking/bookingcomponents/datetimeselection';
-import LocationSelection from '../../components/booking/bookingcomponents/locationselection';
+
 // import { AvailableVehicle } from "@/interface/booking";
-import BusRoutes from '../../components/booking/bookingcomponents/busroutes';
-import CheckoutPage from '../../components/booking/bookingcomponents/checkoutpage';
+
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
-import VehicleSelection from '../../components/booking/bookingcomponents/vehicleselection';
 
+import dynamic from "next/dynamic";
 
 
 const steps = [
@@ -20,6 +18,13 @@ const steps = [
     { title: "Chọn địa điểm đón", icon: <FaMapMarkerAlt /> },
     { title: "Thanh toán", icon: <FaMoneyBillWave /> },
 ];
+
+
+const DateTimeSelection = dynamic(() => import("../../components/booking/bookingcomponents/datetimeselection"), { ssr: false });
+const LocationSelection = dynamic(() => import("../../components/booking/bookingcomponents/locationselection"), { ssr: false });
+const BusRoutes = dynamic(() => import("../../components/booking/bookingcomponents/busroutes"), { ssr: false });
+const CheckoutPage = dynamic(() => import("../../components/booking/bookingcomponents/checkoutpage"), { ssr: false });
+const VehicleSelection = dynamic(() => import("../../components/booking/bookingcomponents/vehicleselection"), { ssr: false });
 
 const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
