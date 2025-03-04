@@ -1,47 +1,64 @@
 import { useEffect, useState, useCallback } from 'react';
 import { SOCKET_NAMESPACE } from '~/constants/socket.enum';
+import { useAuth } from '~/context/AuthContext';
 import { initSocket } from '~/services/socket';
 
 const useTrackingSocket = () => {
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [loading, setLoading] = useState(true);
-
+    const [isConnected, setIsConnected] = useState(false);
+    const [socket, setSocket] = useState<any>(null); // Lưu trữ socket instance
+    const { isLogin } = useAuth();
     useEffect(() => {
         const initializeSocket = async () => {
-            const socket = await initSocket(SOCKET_NAMESPACE.TRACKING);
-
-            const handleConnect = () => {
-                console.log('Socket connected:', socket.id);
-            };
-
-            console.log('Attempting to connect to socket...');
-            if (!socket.connected) {
-                socket.connect();
+            const socketInstance = await initSocket(SOCKET_NAMESPACE.TRACKING);
+            if (!socketInstance) {
+                console.error('Không thể khởi tạo socket');
+                return;
             }
-
-            socket.on('connect', handleConnect);
-            socket.on('connect_error', (err) => {
-                console.error('Connection error:', err.message);
-            });
-
-            return () => {
-                socket.disconnect();
-            };
+            setSocket(socketInstance);
+            setIsConnected(socketInstance.connected);
         };
 
-        initializeSocket();
-    }, []);
+        if (isLogin) {
+            initializeSocket();
+        }
+    }, [isLogin]);
 
-    const emitLocationUpdate = useCallback(async (location: { latitude: number; longitude: number }) => {
-        const socket = await initSocket(SOCKET_NAMESPACE.TRACKING);
-        console.log('Emitting location update:', location);
-        socket.emit('driver_location_update', {
-            lat: location.latitude,
-            lng: location.longitude,
-        });
-    }, []);
+    const connect = useCallback(() => {
+        if (socket && !socket.connected) {
+            socket.connect();
+            setIsConnected(true);
+            console.log('Socket connected');
+        }
+    }, [socket]);
 
-    return { data: location, isLoading: loading, emitLocationUpdate };
+    const disconnect = useCallback(() => {
+        if (socket && socket.connected) {
+            socket.disconnect();
+            setIsConnected(false);
+            console.log('Socket disconnected');
+        }
+    }, [socket]);
+
+    const emitLocationUpdate = useCallback((location: { latitude: number; longitude: number }) => {
+        if (socket && socket.connected) {
+            console.log('Emitting location update:', location);
+            socket.emit('driver_location_update', {
+                lat: location.latitude,
+                lng: location.longitude,
+            });
+        } else {
+            console.warn('Socket chưa sẵn sàng để gửi vị trí');
+        }
+    }, [socket]); // Dependency là socket để cập nhật khi socket thay đổi
+
+    const disconnectTracking = useCallback(() => {
+        console.log('Disconnecting socket...');
+        if (socket && socket.connected) {
+            socket.disconnect();
+        }
+    });
+
+    return { emitLocationUpdate, connect, disconnect, isConnected };
 };
 
 export default useTrackingSocket;

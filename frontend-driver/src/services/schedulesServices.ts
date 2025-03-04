@@ -98,6 +98,34 @@ export const driverCheckout = async (driverScheduleId: string): Promise<Schedule
   }
 };
 
+export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => {
+  try {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
+
+    if (!userId) {
+      throw new Error('User ID not found');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    //today have type 2025-30-03
+    console.log('today', today);
+    const response = await axios.get(
+      `${API_URL}/driver-schedules/get-personal-schedules-from-start-to-end/${today}/${today}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching today schedule:', error);
+    throw error;
+  }
+}
+
 
 
 

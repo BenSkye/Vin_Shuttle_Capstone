@@ -19,17 +19,17 @@ export class TripRepository implements ITripRepository {
     return await newTrip.save();
   }
   async findById(id: string): Promise<TripDocument> {
-    return await this.tripModel.findById(id).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+    return await this.tripModel.findById(id).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
   async findByDriverId(driverId: string): Promise<TripDocument[]> {
-    return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+    return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
   async find(query: any, select: string[]): Promise<TripDocument[]> {
-    return await this.tripModel.find(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+    return await this.tripModel.find(query).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
 
   async findOne(query: any, select: string[]): Promise<TripDocument> {
-    return await this.tripModel.findOne(query).select(getSelectData(select)).populate('customerId', 'name').populate('driverId', 'name').populate('vehicleId')
+    return await this.tripModel.findOne(query).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
 
   async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {

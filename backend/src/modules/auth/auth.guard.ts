@@ -9,7 +9,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -29,7 +29,6 @@ export class AuthGuard implements CanActivate {
       return false;
     }
     const decode = await this.tokenProvider.verifyToken(token, keystore.publicKey);
-    console.log('decode', decode);
     if (!decode) {
       return false;
     }
