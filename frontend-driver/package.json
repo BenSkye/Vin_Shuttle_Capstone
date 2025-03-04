@@ -23,6 +23,7 @@
     "expo": "^52.0.35",
     "expo-location": "~18.0.7",
     "expo-status-bar": "~2.0.1",
+    "jwt-decode": "^4.0.0",
     "my-expo-app": "file:",
     "nativewind": "latest",
     "react": "18.3.1",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.3.12",
+    "@types/react-native-vector-icons": "^6.4.18",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "eslint": "^8.57.0",

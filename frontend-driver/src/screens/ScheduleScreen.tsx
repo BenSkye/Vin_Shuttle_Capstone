@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DateData } from 'react-native-calendars';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { getPersonalSchedules, driverCheckin, driverCheckout } from '../services/schedulesServices';
+import { useSchedule } from '~/context/ScheduleContext';
 
 interface Schedule {
   _id: string;
@@ -64,6 +65,7 @@ export default function ScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState('');
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
   const [isLoading, setIsLoading] = useState(false);
+  const { updateIsInProgress } = useSchedule();
 
   const fetchSchedules = async (date: Date) => {
     try {
@@ -72,7 +74,7 @@ export default function ScheduleScreen() {
       const end = format(endOfMonth(date), 'yyyy-MM-dd');
       const data = await getPersonalSchedules(start, end);
       setSchedules(data);
-      
+
       // Create marked dates object
       const marked: MarkedDates = {};
       data.forEach((schedule) => {
@@ -123,7 +125,7 @@ export default function ScheduleScreen() {
   const handleDayPress = (day: DateData) => {
     // Clear previous selection and set new one
     const newMarkedDates: MarkedDates = {};
-    
+
     // Preserve the dots for all scheduled dates
     schedules.forEach((schedule) => {
       const scheduleDate = format(new Date(schedule.date), 'yyyy-MM-dd');
@@ -155,8 +157,9 @@ export default function ScheduleScreen() {
     try {
       setIsLoading(true);
       const updatedSchedule = await driverCheckin(scheduleId);
+      updateIsInProgress(true);
       // Cập nhật danh sách lịch
-      setSchedules(schedules.map(schedule => 
+      setSchedules(schedules.map(schedule =>
         schedule._id === updatedSchedule._id ? updatedSchedule : schedule
       ));
     } catch (error) {
@@ -172,7 +175,8 @@ export default function ScheduleScreen() {
       setIsLoading(true);
       const updatedSchedule = await driverCheckout(scheduleId);
       // Cập nhật danh sách lịch
-      setSchedules(schedules.map(schedule => 
+      updateIsInProgress(false);
+      setSchedules(schedules.map(schedule =>
         schedule._id === updatedSchedule._id ? updatedSchedule : schedule
       ));
     } catch (error) {
@@ -223,7 +227,7 @@ export default function ScheduleScreen() {
       <ScrollView className="flex-1">
         <View className="p-4">
           <Text className="text-xl font-bold mb-4">Lịch làm việc</Text>
-          
+
           <Calendar
             onDayPress={handleDayPress}
             markedDates={markedDates}
@@ -245,14 +249,14 @@ export default function ScheduleScreen() {
               <Text>Ca: {selectedSchedule.shift} ({getShiftTimeText(selectedSchedule.shift)})</Text>
               <Text>Xe: {selectedSchedule.vehicle.name}</Text>
               <Text>Trạng thái: {getStatusText(selectedSchedule.status)}</Text>
-              
+
               {selectedSchedule.checkinTime && (
                 <Text>Giờ check-in: {format(new Date(selectedSchedule.checkinTime), 'HH:mm:ss')}</Text>
               )}
               {selectedSchedule.checkoutTime && (
                 <Text>Giờ check-out: {format(new Date(selectedSchedule.checkoutTime), 'HH:mm:ss')}</Text>
               )}
-              
+
               <View className="mt-4">
                 {renderActionButtons(selectedSchedule)}
               </View>

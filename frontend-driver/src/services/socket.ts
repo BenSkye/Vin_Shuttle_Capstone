@@ -6,7 +6,10 @@ export const initSocket = async (namespace: string) => {
     const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:2028';
     const accessToken = await AsyncStorage.getItem('accessToken');
     const token = `Bearer ${accessToken}`;
-    console.log('Socket token:', token);
+    console.log('accessToken', accessToken);
+    if (!accessToken) {
+        return null;
+    }
     return io(`${SOCKET_URL}/${namespace}`, {
         auth: {
             authorization: token

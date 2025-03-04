@@ -33,9 +33,9 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     fetchTrips();
   }, []);
 
-  const handleNavigate = (status: TripStatus, vehicleId: string) => {
+  const handleNavigate = (status: TripStatus, trip: Trip) => {
     if (status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS) {
-      navigation.navigate('TripTracking', { vehicleId: vehicleId })
+      navigation.navigate('TripTracking', { trip: trip })
     }
   }
 
@@ -96,7 +96,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
             trips.map((trip) => (
               <TouchableOpacity
                 key={trip._id}
-                onPress={() => handleNavigate((trip.status as TripStatus), trip.vehicleId._id)}
+                onPress={() => handleNavigate((trip.status as TripStatus), trip)}
                 className="mt-2 p-2 bg-blue-500 rounded-md"
               >
                 <View

@@ -68,6 +68,7 @@ const useTripSocket = (id?: string) => {
             } else {
                 socket.off('trip_updated');
             }
+            console.log('socket disconnected');
             socket.disconnect();
         };
     }, [id]);

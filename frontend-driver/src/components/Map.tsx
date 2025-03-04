@@ -1,47 +1,30 @@
-import React, { useEffect, useState } from 'react';
+// src/components/MapComponent.tsx
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import * as Location from 'expo-location';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
-import useTrackingSocket from '~/hook/useTrackingSocket';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const MapComponent = () => {
-    const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { emitLocationUpdate } = useTrackingSocket();
+import { useLocation } from '~/context/LocationContext';
+import { Position } from '~/interface/trip';
 
+const MapComponent = ({
+    pickupLocation,
+    detinateLocation
+}: {
+    pickupLocation: Position,
+    detinateLocation?: Position
+}) => {
+    const { location, errorMsg } = useLocation(); // Lấy vị trí từ context
+    const [pickup, setPickup] = React.useState<any | null>(null);
+    const [detinate, setDetinate] = React.useState<any | null>(null);
     useEffect(() => {
-        let subscription: Location.LocationSubscription;
-        const subscribeToLocation = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                setErrorMsg('Quyền truy cập vị trí bị từ chối!');
-                return;
-            }
-            subscription = await Location.watchPositionAsync(
-                { accuracy: Location.Accuracy.High, timeInterval: 3000, distanceInterval: 1 },
-                (location) => {
-                    console.log('location:', location);
-                    const newLocation = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    };
-                    setLocation(newLocation);
-                    emitLocationUpdate(newLocation); // Emit the location update event
-                }
-            );
-        };
-
-        subscribeToLocation();
-
-        return () => {
-            subscription && subscription.remove();
-        };
-    }, [emitLocationUpdate]);
-
-    useEffect(() => {
-        console.log('Location:', location);
-    }, [location]);
-
+        if (pickupLocation) {
+            setPickup({ latitude: pickupLocation.lat, longitude: pickupLocation.lng });
+        }
+        if (detinateLocation) {
+            setDetinate({ latitude: detinateLocation?.lat, longitude: detinateLocation?.lng });
+        }
+    }, [pickupLocation, detinateLocation]);
     return (
         <View style={styles.container}>
             {errorMsg ? (
@@ -50,7 +33,7 @@ const MapComponent = () => {
                 <MapView
                     style={styles.map}
                     initialRegion={{
-                        latitude: 10.8418, // Giá trị mặc định, ví dụ TP.HCM
+                        latitude: 10.8418, // Giá trị mặc định
                         longitude: 106.8370,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
@@ -71,7 +54,12 @@ const MapComponent = () => {
                         tileSize={512}
                         flipY={false}
                     />
-                    {location && <Marker coordinate={location} title="Vị trí tài xế" />}
+                    <Marker coordinate={location} title="Vị trí tài xế" >
+                    </Marker>
+                    <Marker coordinate={pickup} title="Điểm đón" />
+                    {detinate != null && (
+                        <Marker coordinate={detinate} title="Điểm đến" />
+                    )}
                 </MapView>
             ) : (
                 <Text style={styles.loadingText}>Đang tải vị trí...</Text>
