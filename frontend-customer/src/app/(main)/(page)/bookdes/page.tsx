@@ -1,10 +1,11 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaCar, FaClock, FaCreditCard } from "react-icons/fa";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
+
 import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
 import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 import { BookingResponse } from "@/interface/booking";
+import dynamic from 'next/dynamic';
 
 const steps = [
     { title: "Chọn số người", icon: <FaClock className="text-blue-500" /> },
@@ -26,6 +27,18 @@ const LineBookingPage = () => {
     const [loading, setLoading] = useState(false);
     const [pickup, setPickup] = useState<string>('');
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
+    const [isBrowser, setIsBrowser] = useState(false);
+
+
+    const LocationSelection = dynamic(
+        () => import('../../components/booking/bookingcomponents/locationselection'),
+        { ssr: false } // This disables server-side rendering for this component
+    );
+
+    // Check if code is running in browser
+    useEffect(() => {
+        setIsBrowser(true);
+    }, []);
 
     const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
         setStartPoint({
@@ -45,16 +58,12 @@ const LineBookingPage = () => {
         const mockBookingResponse: BookingResponse = {
             newBooking: {
                 _id: "mockid123",
-
-
-
                 totalAmount: 150000,
                 status: "pending",
                 paymentMethod: "pay_os",
                 bookingCode: 123,
                 trips: ["trip123"],
                 createdAt: new Date().toISOString(),
-
             },
             paymentUrl: "https://pay.example.com/checkout"
         };
@@ -64,6 +73,8 @@ const LineBookingPage = () => {
     };
 
     const detectUserLocation = async () => {
+        if (!isBrowser) return; // Only run in browser
+
         setLoading(true);
         try {
             if (!navigator.geolocation) {
@@ -109,7 +120,7 @@ const LineBookingPage = () => {
                             onPassengerCountChange={setPassengerCount}
                         />
                     )}
-                    {current === 1 && (
+                    {current === 1 && isBrowser && (
                         <LocationSelection
                             startPoint={startPoint}
                             onLocationChange={handleLocationChange}
