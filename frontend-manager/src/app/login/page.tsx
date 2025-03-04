@@ -16,6 +16,8 @@ export default function LoginPage() {
             localStorage.setItem('refreshToken', response.token.refreshToken);
             localStorage.setItem('userId', response.userId);
 
+            document.cookie = `accessToken=${response.token.accessToken}; path=/; max-age=${60 * 60 * 24}; secure`;
+
             router.push('/');
         } catch (error) {
             throw error;
@@ -27,7 +29,7 @@ export default function LoginPage() {
             <div className="max-w-lg w-full space-y-10">
                 <div>
                     <h2 className="mt-8 text-center text-4xl font-extrabold text-gray-900">
-                        Sign in to your account
+                        Đăng nhập
                     </h2>
                 </div>
 

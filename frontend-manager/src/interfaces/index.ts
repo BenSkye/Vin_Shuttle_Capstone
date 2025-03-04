@@ -8,12 +8,15 @@ export interface DriverScheduleEvent {
 
 export interface Activity {
     id: string;
+    driverId: string;
     title: string;
     description?: string;
     startTime: string;
     endTime: string;
     day: number;
     color?: string;
+    date?: string;
+    originalDate?: Date;
 };
 
 export interface Column<T> {

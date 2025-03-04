@@ -1,24 +1,14 @@
 'use client'
 import React, { useState } from 'react';
-import { format, addDays, startOfWeek } from 'date-fns';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-
-interface Activity {
-    id: string;
-    title: string;
-    description?: string;
-    startTime: string;
-    endTime: string;
-    day: number;
-    color?: string;
-}
+import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek } from 'date-fns';
+import { Button } from 'antd';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Activity } from '@/interfaces';
 
 interface ScheduleCalendarProps {
     activities?: Activity[];
     onActivityClick?: (activity: Activity) => void;
-    onSlotClick?: (time: string, day: number) => void;
+    onSlotClick?: (time: string, day: number, date: Date) => void; // Date parameter is crucial
 }
 
 export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
@@ -28,8 +18,8 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 }) => {
     const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
-    // Generate time slots from 8 AM to 8 PM
-    const timeSlots = Array.from({ length: 4 }, (_, i) => String.fromCharCode(65 + i));
+    // Generate time slots
+    const timeSlots = ['A', 'B', 'C', 'D']; // Shift codes
 
     const timeRanges: Record<string, string> = {
         A: '06:00 - 14:00',
@@ -38,117 +28,113 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         D: '15:00 - 23:00',
     };
 
+    // Generate the days of the current week
     const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
 
-    const getActivitiesForSlot = (time: string, day: number) => {
-        return activities.filter(
-            activity => activity.startTime === time && activity.day === day
-        );
-    };
+    const prevWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
+    const nextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
+    const today = () => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
-    const navigateWeek = (direction: 'prev' | 'next') => {
-        setCurrentWeek(prev => {
-            const days = direction === 'prev' ? -7 : 7;
-            return addDays(prev, days);
+    // Filter activities for the current week view
+    const filteredActivities = activities.filter(activity => {
+        if (activity.date) {
+            // If the activity has a date, check if it falls within this week
+            const activityDate = activity.originalDate || new Date(activity.date);
+
+            // Use isSameWeek to check if the activity is in the current week view
+            return isSameWeek(activityDate, currentWeek, { weekStartsOn: 1 });
+        }
+
+        // If no date, we'll use the day index (legacy support)
+        return true;
+    });
+
+    const getActivitiesForTimeAndDay = (time: string, dayIndex: number) => {
+        const dayDate = days[dayIndex]; // Current date for this column
+
+        return filteredActivities.filter(activity => {
+            if (activity.date) {
+                // If activity has a specific date, check if it matches this exact day and time
+                const activityDate = activity.originalDate || new Date(activity.date);
+                return isSameDay(activityDate, dayDate) && activity.startTime === time;
+            }
+
+            // Fallback to using day index (0-6)
+            return activity.day === dayIndex && activity.startTime === time;
         });
     };
 
+    // Handle click on a time slot
+    const handleSlotClick = (time: string, dayIndex: number) => {
+        if (onSlotClick) {
+            const actualDate = days[dayIndex]; // This is the actual date for the clicked cell
+            console.log(`Clicked on: ${format(actualDate, 'yyyy-MM-dd')} - Shift ${time}`);
+            onSlotClick(time, dayIndex, actualDate);
+        }
+    };
+
+    // Handle activity click
+    const handleActivityClick = (e: React.MouseEvent, activity: Activity) => {
+        e.stopPropagation(); // Stop event bubbling
+        if (onActivityClick) {
+            onActivityClick(activity);
+        }
+    };
+
     return (
-        <Card className="p-4 overflow-x-auto">
-            {/* Calendar Header */}
-            <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold">
-                    {format(currentWeek, 'MMMM yyyy')}
-                </h2>
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigateWeek('prev')}
-                    >
-                        Previous Week
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => navigateWeek('next')}
-                    >
-                        Next Week
-                    </Button>
+        <div className="bg-white rounded-lg shadow">
+            <div className="flex justify-between items-center p-4 border-b">
+                <h2 className="text-lg font-semibold">Driver Schedule</h2>
+                <div className="flex items-center space-x-4">
+                    <span className="text-sm">
+                        Week of {format(currentWeek, 'MMMM d, yyyy')}
+                    </span>
+                    <div className="flex space-x-2">
+                        <Button size="small" icon={<LeftOutlined />} onClick={prevWeek} />
+                        <Button onClick={today}>Today</Button>
+                        <Button size="small" icon={<RightOutlined />} onClick={nextWeek} />
+                    </div>
                 </div>
             </div>
 
-            {/* Schedule Grid */}
-            <div className="grid grid-cols-[100px_repeat(7,1fr)] min-w-[800px]">
-                {/* Empty corner cell */}
-                <div className="border-b border-r p-2 bg-gray-50"></div>
+            <div className="overflow-x-auto">
+                <div className="grid grid-cols-8 bg-gray-100 text-gray-700">
+                    <div className="p-3 border font-medium">Shift</div>
+                    {days.map((day, i) => (
+                        <div key={i} className="p-3 border text-center font-medium">
+                            <div>{format(day, 'EEEE')}</div>
+                            <div className="text-xs text-gray-500">{format(day, 'MMM d')}</div>
+                        </div>
+                    ))}
+                </div>
 
-                {/* Day headers */}
-                {days.map((day, index) => (
-                    <div
-                        key={index}
-                        className="border-b border-r p-2 bg-gray-50 text-center font-semibold"
-                    >
-                        <div>{format(day, 'EEE')}</div>
-                        <div className="text-sm text-gray-600">{format(day, 'MMM d')}</div>
+                {timeSlots.map(time => (
+                    <div key={time} className="grid grid-cols-8 min-h-[120px]">
+                        <div className="p-2 border bg-gray-50">
+                            <div className="font-medium">Shift {time}</div>
+                            <div className="text-xs text-gray-500">{timeRanges[time]}</div>
+                        </div>
+                        {days.map((day, dayIndex) => (
+                            <div
+                                key={`${time}-${dayIndex}`}
+                                className="relative p-2 border hover:bg-gray-50 cursor-pointer min-h-[120px]"
+                                onClick={() => handleSlotClick(time, dayIndex)}
+                            >
+                                {getActivitiesForTimeAndDay(time, dayIndex).map(activity => (
+                                    <div
+                                        key={activity.id}
+                                        className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
+                                        onClick={(e) => handleActivityClick(e, activity)}
+                                    >
+                                        <div className="font-medium truncate">{activity.title}</div>
+                                        <div className="text-xs truncate text-gray-600">{activity.description}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 ))}
-
-                {/* Time slots and activity cells */}
-                {timeSlots.map((time) => (
-                    <React.Fragment key={time}>
-                        {/* Time slot */}
-                        <div className="border-b border-r p-2 bg-gray-50 text-sm">
-                            {time}<span className="text-gray-500 text-xs">({timeRanges[time]})</span>
-                        </div>
-
-                        {/* Activity cells for each day */}
-                        {Array.from({ length: 7 }, (_, dayIndex) => {
-                            const cellActivities = getActivitiesForSlot(time, dayIndex);
-
-                            return (
-                                <div
-                                    key={`${time}-${dayIndex}`}
-                                    className="border-b border-r p-1 min-h-[60px] relative hover:bg-gray-50 cursor-pointer"
-                                    onClick={() => onSlotClick?.(time, dayIndex)}
-                                >
-                                    {cellActivities.map(activity => (
-                                        <Popover key={activity.id}>
-                                            <PopoverTrigger asChild>
-                                                <div
-                                                    className={`
-                            mb-1 p-1 rounded text-sm cursor-pointer
-                            ${activity.color || 'bg-blue-100 hover:bg-blue-200'}
-                          `}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onActivityClick?.(activity);
-                                                    }}
-                                                >
-                                                    <div className="font-medium">{activity.title}</div>
-
-                                                </div>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-64">
-                                                <div className="p-2">
-                                                    <h3 className="font-bold">{activity.title}</h3>
-                                                    {activity.description && (
-                                                        <p className="text-sm text-gray-600 mt-1">
-                                                            {activity.description}
-                                                        </p>
-                                                    )}
-                                                    <div className="text-xs text-gray-500 mt-2">
-                                                        {format(days[activity.day], 'MMMM d')} •{' '}
-                                                        {activity.startTime} - {activity.endTime}
-                                                    </div>
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                    ))}
-                                </div>
-                            );
-                        })}
-                    </React.Fragment>
-                ))}
             </div>
-        </Card>
+        </div>
     );
 };

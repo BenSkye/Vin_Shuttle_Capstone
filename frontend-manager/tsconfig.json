@@ -6,7 +6,9 @@
       "dom.iterable",
       "esnext"
     ],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -34,7 +36,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "../Map2.tsx"
+    "../Map2.tsx",
+    "src/middleware.js"
   ],
   "exclude": [
     "node_modules"
