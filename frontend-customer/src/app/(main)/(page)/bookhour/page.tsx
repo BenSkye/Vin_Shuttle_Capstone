@@ -1,4 +1,6 @@
 'use client'
+
+import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from "react";
 import {
     Steps,
@@ -13,7 +15,7 @@ import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined, CreditCardOutlin
 import dayjs from "dayjs";
 import DateTimeSelection from "../../components/booking/bookingcomponents/datetimeselection";
 import VehicleSelection from "../../components/booking/bookingcomponents/vehicleselection";
-import LocationSelection from "../../components/booking/bookingcomponents/locationselection";
+const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
 import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
 import { vehicleSearchHour } from "@/service/search.service";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
@@ -63,6 +65,7 @@ const HourlyBookingPage = () => {
 
     // Define detectUserLocation function 
     const detectUserLocation = () => {
+        if (typeof window === "undefined") return;
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const { latitude, longitude } = position.coords;
@@ -132,7 +135,7 @@ const HourlyBookingPage = () => {
             console.log('error127', error)
             notification.error({
                 message: 'Không tìm thấy xe',
-                description: error.message || 'Không thể tải danh sách xe',
+                description: error instanceof Error ? error.message : 'Không thể tải danh sách xe',
             });
             setAvailableVehicles([]);
             return false;
@@ -180,7 +183,7 @@ const HourlyBookingPage = () => {
         } catch (error: unknown) {
             notification.error({
                 message: 'Lỗi đặt xe',
-                description: error.message || 'Không thể đặt xe',
+                description: error instanceof Error ? error.message : 'Không thể đặt xe',
             });
             console.log("Error", error);
             throw error;
