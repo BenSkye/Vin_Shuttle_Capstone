@@ -5,6 +5,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import dynamic from 'next/dynamic';
 import useTrackingSocket from '@/hooks/useTrackingSocket';
+import Image from 'next/image';
+import { imgAccess } from '@/constants/imgAccess';
 
 // Dynamic imports để tránh lỗi SSR
 const DynamicMapContainer = dynamic(
@@ -37,11 +39,31 @@ const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) =>
     useEffect(() => {
         console.log('vehicleLocation', vehicleLocation)
         if (vehicleLocation && markerRef.current) {
-            const newLatLng = L.latLng(vehicleLocation.latitude, vehicleLocation.longitude);
+            const { latitude, longitude, heading } = vehicleLocation;
+            const newLatLng = L.latLng(latitude, longitude);
             markerRef.current.setLatLng(newLatLng);
-            mapRef.current?.setView(newLatLng);
+            // mapRef.current?.flyTo(newLatLng, mapRef.current.getZoom(), {
+            //     animate: true,
+            //     duration: 1,
+            // });
+            markerRef.current.setIcon(createVehicleIcon(heading));
         }
     }, [vehicleLocation]);
+
+    const createVehicleIcon = (heading: number) => {
+        return L.divIcon({
+            className: '',
+            html: `<div style="
+                width: 14px;
+                height: 40px;
+                background-image: url('/images/bus-top-view.png');
+                background-size: cover;
+                transform: rotate(${heading || 0}deg);
+            "></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [7, 20],
+        });
+    };
 
     return (
         <div className="h-96 w-full rounded-lg shadow-lg">
@@ -74,8 +96,8 @@ const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) =>
                                 markerRef.current = marker;
                             }
                         }}
+                        icon={createVehicleIcon(vehicleLocation.heading)}
                     >
-                        <Popup>🚗 Xe đang di chuyển</Popup>
                     </Marker>
                 )}
             </DynamicMapContainer>
