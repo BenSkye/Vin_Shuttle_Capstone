@@ -268,6 +268,15 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    if (trip.status !== TripStatus.PAYED) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip is not ready to pickup or had been picked up',
+          vnMessage: 'Chuyến đi chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
+        },
+        HttpStatus.BAD_REQUEST)
+    }
     const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.PICKUP);
     if (!updatedTrip) {
       throw new HttpException(
@@ -313,6 +322,15 @@ export class TripService implements ITripService {
         },
         HttpStatus.BAD_REQUEST,
       );
+    }
+    if (trip.status !== TripStatus.PICKUP) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip is not ready to start or had been started',
+          vnMessage: 'Chuyến đi chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
+        },
+        HttpStatus.BAD_REQUEST)
     }
     //update timeStart to current time
     const timeStart = dayjs();
@@ -365,6 +383,15 @@ export class TripService implements ITripService {
         },
         HttpStatus.BAD_REQUEST,
       );
+    }
+    if (trip.status !== TripStatus.IN_PROGRESS) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip is not ready to complete or had been completed',
+          vnMessage: 'Chuyến đi chưa sẵn sàng để hoàn thành hoặc đã được hoàn thành',
+        },
+        HttpStatus.BAD_REQUEST)
     }
     //update timeEnd to current time
     const timeEnd = dayjs();
