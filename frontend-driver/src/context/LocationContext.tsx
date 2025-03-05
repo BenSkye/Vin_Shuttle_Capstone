@@ -2,31 +2,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import useTrackingSocket from '~/hook/useTrackingSocket';
 import { useSchedule } from '~/context/ScheduleContext';
+import { LocationData } from '~/interface/trip';
+import { MIN_DISTANCE_CHANGE } from '~/constants/tracking.enum';
 
 interface LocationContextType {
-    location: { latitude: number; longitude: number } | null;
+    location: LocationData | null;
     errorMsg: string | null;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [location, setLocation] = useState<LocationData | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { emitLocationUpdate, connect, disconnect, isConnected } = useTrackingSocket();
     const { isInProgress } = useSchedule();
 
     useEffect(() => {
-        if (isInProgress && !isConnected) {
-            connect();
-        } else if (!isInProgress && isConnected) {
-            disconnect();
-        }
-    }, [isInProgress, isConnected, connect, disconnect]);
-
-    // Theo dõi và cập nhật vị trí liên tục
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout | null = null;
+        let locationSubscription: Location.LocationSubscription | null = null;
 
         const requestPermissionAndStartTracking = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -35,37 +28,45 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 return;
             }
 
-            await updateLocation();
-
-            // Cập nhật vị trí mỗi 5 giây
-            intervalId = setInterval(updateLocation, 5000);
+            locationSubscription = await Location.watchPositionAsync(
+                { accuracy: Location.Accuracy.High, timeInterval: 1000, distanceInterval: MIN_DISTANCE_CHANGE },
+                (locationData) => {
+                    const newLocation = {
+                        latitude: locationData.coords.latitude,
+                        longitude: locationData.coords.longitude,
+                        heading: locationData.coords.heading,
+                        speed: locationData.coords.speed
+                    };
+                    // Chỉ cập nhật và gửi nếu vị trí thực sự thay đổi
+                    console.log('New location:', isConnected, newLocation);
+                    setLocation(newLocation);
+                    // console.log('New location:', isConnected, newLocation);
+                    if (isInProgress && isConnected) {
+                        emitLocationUpdate(newLocation);
+                    }
+                }
+            );
         };
 
-        const updateLocation = async () => {
-            try {
-                const locationData = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-                const newLocation = {
-                    latitude: locationData.coords.latitude,
-                    longitude: locationData.coords.longitude,
-                };
-                setLocation(newLocation);
-                // Chỉ gửi vị trí về server nếu đang trong ca làm và socket đã kết nối
-                if (isInProgress && isConnected) {
-                    emitLocationUpdate(newLocation);
-                }
-            } catch (error) {
-                console.error('Lỗi khi lấy vị trí:', error);
+
+        if (isInProgress) {
+            requestPermissionAndStartTracking();
+        }
+
+        return () => {
+            if (locationSubscription) {
+                locationSubscription.remove();
             }
         };
-
-        // Bắt đầu theo dõi vị trí ngay khi LocationProvider mount
-        requestPermissionAndStartTracking();
-
-        // Cleanup interval khi component unmount (dù điều này không xảy ra vì Context bao toàn app)
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
     }, [isInProgress, isConnected, emitLocationUpdate]);
+
+    useEffect(() => {
+        if (isInProgress) {
+            connect();
+        } else {
+            disconnect();
+        }
+    }, [isInProgress, connect, disconnect]);
 
     return (
         <LocationContext.Provider value={{ location, errorMsg }}>

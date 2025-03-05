@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { IRedisService } from './interface';
+import { IRedisService, LocationData } from './interface';
 import { REDIS_CLIENT } from 'src/share/di-token';
 import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 
@@ -69,4 +69,6 @@ export class RedisService implements IRedisService {
         const namespace = SOCKET_NAMESPACE.TRACKING;
         return this.redisClient.smembers(`${namespace}-${vehicleId}`);
     }
+
+
 }

@@ -1,4 +1,11 @@
 
+export interface LocationData {
+    latitude: number;
+    longitude: number;
+    heading: number | null;
+    speed: number | null;
+}
+
 export interface Position {
     lat: number;
     lng: number;
