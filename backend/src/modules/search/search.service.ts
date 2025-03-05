@@ -49,9 +49,11 @@ export class SearchService implements ISearchService {
     const scheduleDate = DateUtils.parseDate(date);
     const bookingStartTime = DateUtils.parseDate(date, startTime);
     const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
-
+    console.log(' bookingStartTime', bookingStartTime.toDate())
     const now = dayjs();
+    console.log('now', now.toDate())
     const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+    console.log('minAllowedTime', minAllowedTime.toDate())
     if (bookingStartTime.isBefore(minAllowedTime)) {
       throw new HttpException(
         {
@@ -71,7 +73,7 @@ export class SearchService implements ISearchService {
 
     console.log('matchingShifts', matchingShifts);
     console.log('date', date);
-    console.log('scheduleDate', scheduleDate.utc().format('YYYY-MM-DD'));
+    console.log('scheduleDate', scheduleDate.toDate());
 
     //check available schedule in DB
     let schedules = await this.getAvailableSchedules(scheduleDate.toDate(), matchingShifts);
@@ -154,15 +156,24 @@ export class SearchService implements ISearchService {
     //check available schedule in DB
     let schedules = await this.getAvailableSchedules(scheduleDate.toDate(), matchingShifts);
 
+
     if (scheduleDate.isSame(now, 'day')) {
-      console.log('now', now);
-      // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
-      schedules = schedules.filter(
-        schedule =>
-          matchingShifts.includes(schedule.shift as Shift) &&
-          schedule.status === DriverSchedulesStatus.IN_PROGRESS,
-      );
+      const currentHour = now.hour();
+      console.log('currentHour', currentHour)
+      schedules = schedules.filter(schedule => {
+        const shift = schedule.shift as Shift;
+        const shiftStartHour = ShiftHours[shift].start;
+
+        // If current time is after shift start, only include IN_PROGRESS schedules
+        // Otherwise, include all schedules for shifts that haven't started yet
+        if (currentHour >= shiftStartHour) {
+          return schedule.status === DriverSchedulesStatus.IN_PROGRESS;
+        }
+        return true;
+      });
     }
+
+
     //check not conflict time with Trip in that uniqueSchedules
     const validSchedules = await this.filterSchedulesWithoutConflicts(
       schedules,
@@ -219,6 +230,7 @@ export class SearchService implements ISearchService {
     const shiftHoursStart = ShiftHours[Shift.A].start;
     const shiftHourEnd = ShiftHours[Shift.D].end;
     const expectedStartTime = bookingStartTime.startOf('day').add(shiftHoursStart, 'hour');
+    console.log('expectedStartTime', expectedStartTime.toDate())
     const expectedEndTime = bookingStartTime.startOf('day').add(shiftHourEnd, 'hour');
 
     if (
@@ -266,14 +278,15 @@ export class SearchService implements ISearchService {
     shifts: Shift[],
     status?: DriverSchedulesStatus,
   ): Promise<DriverScheduleDocument[]> {
-    console.log('date', date.toISOString());
+    console.log('date before', date);
+    console.log('date', DateUtils.toUTCDate(date).toDate());
 
     let schedulePromises: Promise<DriverScheduleDocument[]>[];
     if (status) {
       schedulePromises = shifts.map(shift =>
         this.driverScheduleRepository.getDriverSchedules(
           {
-            date: date.toISOString(),
+            date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
             status: status,
           },
@@ -284,7 +297,7 @@ export class SearchService implements ISearchService {
       schedulePromises = shifts.map(shift =>
         this.driverScheduleRepository.getDriverSchedules(
           {
-            date: date.toISOString(),
+            date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
           },
           [],

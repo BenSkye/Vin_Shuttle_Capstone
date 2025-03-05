@@ -21,6 +21,7 @@ import { CheckoutModule } from 'src/modules/checkout/checkout.module';
 import { BusStopModule } from './modules/bus-stop/bus-stop.module';
 import { BusRouteModule } from './modules/bus-route/bus-route.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
+import { RatingModule } from 'src/modules/rating/rating.module';
 
 @Module({
   imports: [
@@ -50,7 +51,8 @@ import { TrackingModule } from 'src/modules/tracking/tracking.module';
     CheckoutModule,
     BusStopModule,
     BusRouteModule,
-    TrackingModule
+    TrackingModule,
+    RatingModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

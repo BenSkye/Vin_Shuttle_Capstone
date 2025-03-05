@@ -47,7 +47,16 @@ export class TripRepository implements ITripRepository {
   }
 
   async updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument> {
-    return await this.tripModel.findByIdAndUpdate(id, updateTripDto);
+    const trip = await this.tripModel.findById(id);
+    if (!trip) {
+      throw new HttpException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `Trip not found ${id}`,
+        vnMessage: `Không tìm thấy chuyến đi ${id}`,
+      }, HttpStatus.NOT_FOUND);
+    }
+    trip.set(updateTripDto);
+    return await trip.save();
   }
 
   async deleteTrip(id: string): Promise<void> {

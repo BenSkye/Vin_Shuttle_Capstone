@@ -21,11 +21,20 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault('Asia/Ho_Chi_Minh');
 
+export const timeUtc = 7;
+
 export const DateUtils = {
   parseDate: (dateStr: string, timeStr?: string): dayjs.Dayjs => {
     const format = timeStr ? 'YYYY-MM-DD HH:mm' : 'YYYY-MM-DD';
-    return dayjs.utc(`${dateStr}${timeStr ? ` ${timeStr}` : ''}`, format);
+    return dayjs.tz(`${dateStr}${timeStr ? ` ${timeStr}` : ''}`, format, 'Asia/Ho_Chi_Minh');
+    // return dayjs.utc(`${dateStr}${timeStr ? ` ${timeStr}` : ''}`, format);
   },
+
+  toUTCDate: (date: Date): dayjs.Dayjs => {
+    return dayjs(date).add(timeUtc, 'hour');
+  },
+
+
   parseTime: (timeStr: string): dayjs.Dayjs => {
     return dayjs.utc(timeStr, 'HH:mm');
   },
