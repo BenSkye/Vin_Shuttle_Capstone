@@ -15,7 +15,7 @@ export class Rating {
     @Prop({ required: true, type: Number, min: 1, max: 5 })
     rate: number;
 
-    @Prop({ required: true, type: String })
+    @Prop({ type: String, default: '' })
     feedback: string;
 }
 

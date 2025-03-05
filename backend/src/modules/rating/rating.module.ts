@@ -1,7 +1,5 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { BookingModule } from "src/modules/booking/booking.module";
-import { BookingRepository } from "src/modules/booking/booking.repo";
 import { KeytokenModule } from "src/modules/keytoken/keytoken.module";
 import { RatingController } from "src/modules/rating/rating.controller";
 import { RATING_REPOSITORY, RATING_SERVICE } from "src/modules/rating/rating.di-token";

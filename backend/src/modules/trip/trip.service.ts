@@ -14,6 +14,8 @@ import { IBusRouteRepository } from '../bus-route/bus-route.port';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
 import { REDIS_PROVIDER } from 'src/share/di-token';
 import { IRedisService } from 'src/share/interface';
+import dayjs from 'dayjs';
+import { DateUtils } from 'src/share/utils';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -122,8 +124,13 @@ export class TripService implements ITripService {
     createTripDto: ICreateTripDto,
     driverSchedule: DriverSchedule,
   ): { timeStart: Date; timeEnd: Date } {
-    const timeStart = new Date(createTripDto.timeStartEstimate);
-    const timeEnd = new Date(createTripDto.timeEndEstimate);
+    console.log('estimateStart', createTripDto.timeStartEstimate);
+    console.log('estimateEnd', createTripDto.timeEndEstimate);
+    const timeStart = DateUtils.toUTCDate(new Date(createTripDto.timeStartEstimate)).toDate();
+    const timeEnd = DateUtils.toUTCDate(new Date(createTripDto.timeEndEstimate)).toDate();;
+
+    console.log('estimateStartTime', timeStart);
+    console.log('estimateEndTime', timeStart);
 
     // Lấy khung giờ làm việc từ shift
     const shiftHours = ShiftHours[driverSchedule.shift as Shift];
@@ -150,6 +157,9 @@ export class TripService implements ITripService {
         0,
       ),
     );
+
+    console.log('expectedStartTime', expectedStartTime);
+    console.log('expectedEndTime', expectedEndTime);
 
     if (timeStart < expectedStartTime || timeEnd > expectedEndTime) {
       throw new HttpException(
@@ -304,7 +314,13 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.IN_PROGRESS);
+    //update timeStart to current time
+    const timeStart = dayjs();
+    console.log('start trip', timeStart.toDate());
+    const updatedTrip = await this.tripRepository.updateTrip(
+      tripId,
+      { timeStart: timeStart.toDate(), status: TripStatus.IN_PROGRESS }
+    );
     if (!updatedTrip) {
       throw new HttpException(
         {
@@ -350,7 +366,13 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const updatedTrip = await this.tripRepository.updateStatus(tripId, TripStatus.COMPLETED);
+    //update timeEnd to current time
+    const timeEnd = dayjs();
+    console.log('end trip', timeEnd.toDate());
+    const updatedTrip = await this.tripRepository.updateTrip(
+      tripId,
+      { timeEnd: timeEnd.toDate(), status: TripStatus.COMPLETED }
+    );
     if (!updatedTrip) {
       throw new HttpException(
         {
@@ -374,30 +396,3 @@ export class TripService implements ITripService {
     return updatedTrip;
   }
 }
-// if (createTripDto.serviceType == ServiceType.BOOKING_HOUR) {
-//     const totalMinutes = (createTripDto.servicePayload as BookingHourPayloadDto).totalTime;
-//     // Chuyển đổi phút sang milliseconds
-//     const durationMs = totalMinutes * 60 * 1000;
-//     timeEnd = new Date(timeStart.getTime() + durationMs);
-
-//     if (timeStart < expectedStartTime || timeEnd > expectedEndTime) {
-//         throw new HttpException({
-//             statusCode: HttpStatus.BAD_REQUEST,
-//             message: 'Time is not valid'
-//         }, HttpStatus.BAD_REQUEST);
-//     }
-// }
-
-// if (createTripDto.serviceType == ServiceType.BOOKING_SCENIC_ROUTE) {
-//     const scenicRoute = await
-//         this.scenicRouteRepository.findById((createTripDto.servicePayload as BookingScenicRoutePayloadDto).routeId);
-//     timeEnd = new Date(timeStart.getTime() +
-//         scenicRoute.estimatedDuration * 60 * 1000);
-
-//     if (timeStart < expectedStartTime || timeEnd > expectedEndTime) {
-//         throw new HttpException({
-//             statusCode: HttpStatus.BAD_REQUEST,
-//             message: 'Time is not valid'
-//         }, HttpStatus.BAD_REQUEST);
-//     }
-// }

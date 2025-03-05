@@ -28,8 +28,8 @@ export class RatingController {
             'Create a Rating for customer': {
                 value: {
                     tripId: '67873bb9cf95c847fe62ba5f',
-                    rating: 5,
-                    comment: 'Great'
+                    rate: 5,
+                    feedback: 'Great'
                 }
             }
         }

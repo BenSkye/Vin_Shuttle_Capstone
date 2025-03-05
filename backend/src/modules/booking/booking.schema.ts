@@ -29,7 +29,7 @@ export class Booking {
     @Prop({ type: Number, required: true })
     totalAmount: number;
 
-    @Prop({ type: String, enum: PaymentMethod })
+    @Prop({ type: String, enum: PaymentMethod, default: PaymentMethod.PAY_OS })
     paymentMethod: string;
 
     // @Prop({ type: String })
@@ -50,19 +50,6 @@ export class Booking {
         changedAt: Date;
         reason?: string;
     }>;
-
-    // @Prop({
-    //     type: {
-    //         couponCode: String,
-    //         discountAmount: Number,
-    //         loyaltyPointsUsed: Number
-    //     }
-    // })
-    // discountDetails: {
-    //     couponCode?: string;
-    //     discountAmount?: number;
-    //     loyaltyPointsUsed?: number;
-    // };
 }
 
 export const BookingSchema = SchemaFactory.createForClass(Booking);
