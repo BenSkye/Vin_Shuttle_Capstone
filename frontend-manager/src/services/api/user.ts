@@ -33,3 +33,25 @@ export const loginUser = async (email: string, password: string) => {
         console.error("Error:", error)
     }
 }
+
+
+export const profileUser = async () => {
+    try {
+        const response = await axiosInstance.get('users/profile');
+        console.log('Profile:', response.data);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const editProfile = async (data: { name: string, email: string, phone: string }) => {
+    try {
+        const response = await axiosInstance.put('users/profile', data);
+        console.log('Profile:', response.data);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
