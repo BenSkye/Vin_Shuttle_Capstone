@@ -1,18 +1,35 @@
 import { useEffect, useState } from 'react';
 import { initSocket } from '@/service/socket';
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum';
+import { getLastVehicleLocation } from '@/service/tracking.service';
+import { LocationData } from '@/interface/trip';
 
 const useTrackingSocket = (vehicleId?: string) => {
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [location, setLocation] = useState<LocationData>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
-
+    const [error, setError] = useState<Error | null>(null);
     useEffect(() => {
 
         const socket = initSocket(SOCKET_NAMESPACE.TRACKING);
 
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                if (vehicleId) {
+                    const LastVehicleLocation = await getLastVehicleLocation(vehicleId);
+                    setLocation(LastVehicleLocation);
+                }
+                setLoading(false);
+            } catch (err) {
+                setError(err as Error);
+                setLoading(false);
+            }
+        };
+
         const handleConnect = () => {
             console.log('Socket connected:', socket.id);
+            fetchInitialData();
         };
 
         console.log('Attempting to connect to socket...');
@@ -25,14 +42,12 @@ const useTrackingSocket = (vehicleId?: string) => {
             console.error('Connection error:', err.message);
         });
 
-        const requestLocation = async () => {
 
-        }
 
         if (vehicleId) {
             const eventKey = `update_location_${vehicleId}`;
             console.log(`Listening for: ${eventKey}`);
-            socket.on(eventKey, (updatedLocation: { lat: number; lng: number }) => {
+            socket.on(eventKey, (updatedLocation: LocationData) => {
                 setLocation(updatedLocation);
             })
         }
@@ -45,7 +60,7 @@ const useTrackingSocket = (vehicleId?: string) => {
         };
     }, [vehicleId]);
 
-    return { data: location, isLoading: loading };
+    return { data: location, isLoading: loading, error };
 };
 
 export default useTrackingSocket;

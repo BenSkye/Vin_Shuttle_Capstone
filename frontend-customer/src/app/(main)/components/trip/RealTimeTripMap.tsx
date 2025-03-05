@@ -37,7 +37,7 @@ const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) =>
     useEffect(() => {
         console.log('vehicleLocation', vehicleLocation)
         if (vehicleLocation && markerRef.current) {
-            const newLatLng = L.latLng(vehicleLocation.lat, vehicleLocation.lng);
+            const newLatLng = L.latLng(vehicleLocation.latitude, vehicleLocation.longitude);
             markerRef.current.setLatLng(newLatLng);
             mapRef.current?.setView(newLatLng);
         }
@@ -68,7 +68,7 @@ const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) =>
                 {/* Vị trí xe */}
                 {vehicleLocation && (
                     <Marker
-                        position={[vehicleLocation.lat, vehicleLocation.lng]}
+                        position={[vehicleLocation.latitude, vehicleLocation.longitude]}
                         ref={(marker) => {
                             if (marker) {
                                 markerRef.current = marker;
