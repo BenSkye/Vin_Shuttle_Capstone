@@ -36,7 +36,7 @@ export class BookingRepository implements IBookingRepository {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
                 message: `Booking not found ${id}`,
-                vnMesage: `Không thấy đặt xe ${id}`,
+                vnMessage: `Không thấy đặt xe ${id}`,
             }, HttpStatus.BAD_REQUEST);
         }
 

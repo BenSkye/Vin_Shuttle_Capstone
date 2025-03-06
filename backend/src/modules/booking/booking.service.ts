@@ -111,14 +111,14 @@ export class BookingService implements IBookingService {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
                     message: `Insufficient availability for category ${requestedCategory.name}`,
-                    vnMesage: `Không đủ số lượng xe`
+                    vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
                     message: `Not enough quantity for ${availableCategory.name}`,
-                    vnMesage: `Không đủ số lượng xe`
+                    vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -178,7 +178,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'fail to create booking',
-                vnMesage: 'Lỗi tạo booking',
+                vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
@@ -207,7 +207,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
                 message: `Scenic Route not found`,
-                vnMesage: `Không tìm thấy tuyến đường`
+                vnMessage: `Không tìm thấy tuyến đường`
             }, HttpStatus.NOT_FOUND);
         }
 
@@ -280,14 +280,14 @@ export class BookingService implements IBookingService {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
                     message: `Insufficient availability for category ${requestedCategory.name}`,
-                    vnMesage: `Không đủ số lượng xe`
+                    vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
                     message: `Not enough quantity for ${availableCategory.name}`,
-                    vnMesage: `Không đủ số lượng xe`
+                    vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -356,7 +356,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'fail to create booking',
-                vnMesage: 'Lỗi tạo booking',
+                vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
@@ -384,7 +384,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'Invalid distance',
-                vnMesage: 'Lỗi khoảng cách đoạn đường'
+                vnMessage: 'Lỗi khoảng cách đoạn đường'
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -433,7 +433,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: `Insufficient vehicles for category ${vehicleCategories.name}`,
-                vnMesage: `Không đủ số lượng xe`
+                vnMessage: `Không đủ số lượng xe`
             }, HttpStatus.BAD_REQUEST);
         }
 
@@ -501,7 +501,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'fail to create booking',
-                vnMesage: 'Lỗi tạo booking',
+                vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
@@ -527,7 +527,7 @@ export class BookingService implements IBookingService {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
                     message: `Failed to update trip ${tripId}`,
-                    vnMesage: `Lỗi cập nhật trip ${tripId}`,
+                    vnMessage: `Lỗi cập nhật trip ${tripId}`,
                 }, HttpStatus.BAD_REQUEST);
             }
         }
@@ -539,7 +539,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: `Failed to update booking ${booking._id}`,
-                vnMesage: `Lỗi cập nhật booking ${booking._id}`,
+                vnMessage: `Lỗi cập nhật booking ${booking._id}`,
             }, HttpStatus.BAD_REQUEST);
         }
         return updateBooking
@@ -575,7 +575,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
                 message: `Not found booking ${id}`,
-                vnMesage: `Không tìm thấy đặt xe ${id}`,
+                vnMessage: `Không tìm thấy đặt xe ${id}`,
             }, HttpStatus.NOT_FOUND);
         }
         return booking

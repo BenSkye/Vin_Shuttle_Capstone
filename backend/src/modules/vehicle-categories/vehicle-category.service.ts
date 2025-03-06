@@ -16,7 +16,7 @@ export class VehicleCategoryService implements IVehicleCategoryService {
   constructor(
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
-  ) {}
+  ) { }
 
   async list(): Promise<VehicleCategoryDocument[]> {
     const listVehicleCategory = await this.vehicleCategoryRepository.list();
@@ -38,7 +38,7 @@ export class VehicleCategoryService implements IVehicleCategoryService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: `Vehicle category with ID ${id} not found`,
-          vnMesage: `Loại xe ${id} không tìm thấy`,
+          vnMessage: `Loại xe ${id} không tìm thấy`,
         },
         HttpStatus.NOT_FOUND,
       );
@@ -53,7 +53,7 @@ export class VehicleCategoryService implements IVehicleCategoryService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `can not insert vehicle category`,
-          vnMesage: 'Lỗi tạo loại xe',
+          vnMessage: 'Lỗi tạo loại xe',
         },
         HttpStatus.BAD_REQUEST,
       );

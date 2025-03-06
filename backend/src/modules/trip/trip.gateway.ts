@@ -49,7 +49,7 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
                         {
                             statusCode: HttpStatus.UNAUTHORIZED,
                             message: 'Unauthorized',
-                            vnMesage: 'Không có quyền truy cập',
+                            vnMessage: 'Không có quyền truy cập',
                         },
                         HttpStatus.UNAUTHORIZED,
                     );
