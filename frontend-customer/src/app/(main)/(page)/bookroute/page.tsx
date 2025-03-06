@@ -7,8 +7,9 @@ import { Steps } from 'antd';
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
-
 import dynamic from "next/dynamic";
+
+
 
 
 const steps = [
@@ -43,8 +44,9 @@ const RouteBooking = () => {
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
-
     const [loading, setLoading] = useState(false);
+
+
 
     const next = () => setCurrent((prev) => prev + 1);
     const prev = () => setCurrent((prev) => prev - 1);

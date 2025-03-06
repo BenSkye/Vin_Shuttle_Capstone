@@ -17,3 +17,13 @@ export interface MapState {
     map: L.Map | null;
     error: string | null;
 }
+
+export interface DestinationSelectionProps {
+    endPoint: {
+        position: { lat: number; lng: number };
+        address: string;
+    };
+    onLocationChange: (position: { lat: number; lng: number }, address: string) => void;
+    detectUserLocation: () => void;
+    loading: boolean;
+}
