@@ -16,7 +16,7 @@ export class CheckoutService implements ICheckoutService {
     private readonly bookingService: IBookingService,
     @Inject(PAYOS_PROVIDER)
     private readonly payosService: IPayosService,
-  ) {}
+  ) { }
 
   async CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType> {
     const booking = await this.bookingRepository.getBookingById(bookingId);
@@ -25,7 +25,7 @@ export class CheckoutService implements ICheckoutService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'booking is not exist',
-          vnMesage: 'Không tìm thấy đặt xe',
+          vnMessage: 'Không tìm thấy đặt xe',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -52,7 +52,7 @@ export class CheckoutService implements ICheckoutService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Payment failed`,
-          vnMesage: `Thanh toán thất bại`,
+          vnMessage: `Thanh toán thất bại`,
         },
         HttpStatus.BAD_REQUEST,
       );

@@ -135,7 +135,7 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: `Scenic Route not found`,
-          vnMesage: 'Không tìm thấy tuyến đường ngăm cảnh',
+          vnMessage: 'Không tìm thấy tuyến đường ngăm cảnh',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -244,7 +244,7 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Booking time is not within working hours`,
-          vnMesage: 'Thời gian đặt xe không nằm trong thời gian hoạt động',
+          vnMessage: 'Thời gian đặt xe không nằm trong thời gian hoạt động',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -266,7 +266,7 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Booking time is not match any shift`,
-          vnMesage: 'Không có ca phù hợp',
+          vnMessage: 'Không có ca phù hợp',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -316,7 +316,7 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `No more Schedule valid`,
-          vnMesage: 'Không có lịch phù hợp',
+          vnMessage: 'Không có lịch phù hợp',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -367,7 +367,7 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `No more Schedule valid`,
-          vnMesage: 'Không có lịch phù hợp',
+          vnMessage: 'Không có lịch phù hợp',
         },
         HttpStatus.BAD_REQUEST,
       );

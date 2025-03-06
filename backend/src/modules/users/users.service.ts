@@ -7,7 +7,7 @@ import { UserRole } from 'src/share/enums';
 
 @Injectable()
 export class UsersService implements IUserService {
-  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) {}
+  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) { }
 
   async listUsers(): Promise<UserDocument[]> {
     const select = ['name', 'phone', 'email', 'role', 'status', 'avatar'];
@@ -34,7 +34,7 @@ export class UsersService implements IUserService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'User Not Found',
-          vnMesage: 'Không tìm thấy người dùng',
+          vnMessage: 'Không tìm thấy người dùng',
         },
         HttpStatus.NOT_FOUND,
       );

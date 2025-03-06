@@ -38,7 +38,7 @@ export class TripRepository implements ITripRepository {
       throw new HttpException({
         statusCode: HttpStatus.NOT_FOUND,
         message: `Trip not found ${id}`,
-        vnMesage: `Không thấy chuyến đi ${id}`,
+        vnMessage: `Không thấy chuyến đi ${id}`,
       }, HttpStatus.BAD_REQUEST);
     }
 

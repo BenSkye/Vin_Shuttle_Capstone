@@ -23,7 +23,7 @@ export class PricingService implements IPricingService {
     private readonly vehiclePricingRepo: IVehiclePricingRepository,
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepo: IVehicleCategoryRepository,
-  ) {}
+  ) { }
 
   async createServiceConfig(config: ICreateServiceConfigDto) {
     const exists = await this.configRepo.findByServiceType(config.service_type);
@@ -32,7 +32,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Service config already exists',
-          vnMesage: 'Cấu hình dịch vụ đã tồn tại',
+          vnMessage: 'Cấu hình dịch vụ đã tồn tại',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -49,7 +49,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Vehicle category not found',
-          vnMesage: 'Không tìm thấy loại xe',
+          vnMessage: 'Không tìm thấy loại xe',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -61,7 +61,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Service config not found',
-          vnMesage: 'Không tìm thấy cấu hình dịch vụ',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -76,7 +76,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Vehicle pricing already exists',
-          vnMesage: 'Cấu hình giá đã tồn tại',
+          vnMessage: 'Cấu hình giá đã tồn tại',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -92,7 +92,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Service config not found',
-          vnMesage: 'Không tìm thấy cấu hình dịch vụ',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -107,7 +107,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Vehicle pricing not found',
-          vnMesage: 'Không tìm thấy cấu hình giá',
+          vnMessage: 'Không tìm thấy cấu hình giá',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -130,7 +130,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Service config not found',
-          vnMesage: 'Không tìm thấy cấu hình dịch vụ',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -148,7 +148,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Vehicle pricing not found',
-          vnMesage: 'Không tìm thấy cấu hình giá',
+          vnMessage: 'Không tìm thấy cấu hình giá',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -164,7 +164,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Service config not found',
-          vnMesage: 'Không tìm thấy cấu hình dịch vụ',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -179,7 +179,7 @@ export class PricingService implements IPricingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Vehicle pricing not found',
-          vnMesage: 'Không tìm thấy cấu hình giá',
+          vnMessage: 'Không tìm thấy cấu hình giá',
         },
         HttpStatus.NOT_FOUND,
       );

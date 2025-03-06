@@ -15,7 +15,7 @@ export class ScenicRouteService implements IScenicRouteService {
   constructor(
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly routeRepository: IScenicRouteRepository,
-  ) {}
+  ) { }
 
   async createScenicRoute(route: ICreateScenicRouteDto): Promise<ScenicRouteDocument> {
     const newScenicRoute = await this.routeRepository.create(route);
@@ -24,7 +24,7 @@ export class ScenicRouteService implements IScenicRouteService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Failed to create scenic route',
-          vnMesage: 'Không thể tạo tuyến đường ngăm cảnh',
+          vnMessage: 'Không thể tạo tuyến đường ngăm cảnh',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -39,7 +39,7 @@ export class ScenicRouteService implements IScenicRouteService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'ScenicRoute not found',
-          vnMesage: 'Không tìm thấy tuyến đường ngắm cảnh',
+          vnMessage: 'Không tìm thấy tuyến đường ngắm cảnh',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -58,7 +58,7 @@ export class ScenicRouteService implements IScenicRouteService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Failed to update scenic route',
-          vnMesage: 'Không thể sửa tuyến đường ngăm cảnh',
+          vnMessage: 'Không thể sửa tuyến đường ngăm cảnh',
         },
         HttpStatus.BAD_REQUEST,
       );
