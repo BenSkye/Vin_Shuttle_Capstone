@@ -15,6 +15,7 @@ import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
 import TripTrackingScreen from '~/screens/TripTrackingScreen';
+import { useAuth } from '~/context/AuthContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -74,23 +75,16 @@ function TabNavigator() {
 }
 
 export default function AppNavigator() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isLogin, isLoading } = useAuth();
 
-  useEffect(() => {
-    checkAuthState();
-  }, []);
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#00C000" />
+      </View>
+    );
+  }
 
-  const checkAuthState = async () => {
-    try {
-      const isAuth = await authService.checkAuthState();
-      setIsAuthenticated(isAuth);
-    } catch (error) {
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -103,12 +97,13 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName={isLogin ? "Home" : "Login"}
         screenOptions={{
           headerShown: false,
         }}
       >
         <Stack.Screen name="Login">
-          {(props) => <LoginScreen {...props} setAuthenticated={setIsAuthenticated} />}
+          {(props) => <LoginScreen {...props} />}
         </Stack.Screen>
         <Stack.Screen name="Home" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />

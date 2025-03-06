@@ -1,0 +1,1 @@
+export const MIN_DISTANCE_CHANGE = 10;

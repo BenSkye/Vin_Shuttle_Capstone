@@ -1,5 +1,6 @@
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Trip } from "~/interface/trip";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -39,23 +40,7 @@ interface StatusHistory {
   _id: string;
 }
 
-export interface Trip {
-  _id: string;
-  customerId: Customer;
-  driverId: Driver;
-  timeStartEstimate: string;
-  timeEndEstimate: string;
-  vehicleId: Vehicle;
-  scheduleId: string;
-  serviceType: string;
-  servicePayload: ServicePayload;
-  amount: number;
-  status: string;
-  tripCoordinates: any[];
-  statusHistory: StatusHistory[];
-  createdAt: string;
-  updatedAt: string;
-}
+
 
 export const getPersonalTrips = async (): Promise<Trip[]> => {
   try {

@@ -1,46 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
-import * as Location from 'expo-location';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
-import useTrackingSocket from '~/hook/useTrackingSocket';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Text, Image } from 'react-native';
+import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import { useLocation } from '~/context/LocationContext';
+import { Position } from '~/interface/trip';
+import { imgAccess } from '~/constants/imgAccess';
 
-const MapComponent = () => {
-    const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { emitLocationUpdate } = useTrackingSocket();
+const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
 
-    useEffect(() => {
-        let subscription: Location.LocationSubscription;
-        const subscribeToLocation = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                setErrorMsg('Quyền truy cập vị trí bị từ chối!');
-                return;
-            }
-            subscription = await Location.watchPositionAsync(
-                { accuracy: Location.Accuracy.High, timeInterval: 3000, distanceInterval: 1 },
-                (location) => {
-                    console.log('location:', location);
-                    const newLocation = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    };
-                    setLocation(newLocation);
-                    emitLocationUpdate(newLocation); // Emit the location update event
-                }
-            );
-        };
-
-        subscribeToLocation();
-
-        return () => {
-            subscription && subscription.remove();
-        };
-    }, [emitLocationUpdate]);
+const MapComponent = ({
+    pickupLocation,
+    detinateLocation
+}: {
+    pickupLocation: Position,
+    detinateLocation?: Position
+}) => {
+    const { location, errorMsg } = useLocation();
+    const mapRef = useRef<MapView | null>(null);
+    const [pickup, setPickup] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [detinate, setDetinate] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [routeCoordinates, setRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
 
     useEffect(() => {
-        console.log('Location:', location);
+        if (pickupLocation) {
+            setPickup({ latitude: pickupLocation.lat, longitude: pickupLocation.lng });
+        }
+        if (detinateLocation) {
+            setDetinate({ latitude: detinateLocation.lat, longitude: detinateLocation.lng });
+        }
+    }, [pickupLocation, detinateLocation]);
+
+    useEffect(() => {
+        if (location && mapRef.current) {
+            mapRef.current.animateToRegion({
+                latitude: location.latitude,
+                longitude: location.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            }, 1000);
+        }
     }, [location]);
+
+    // Gọi OSRM API để lấy tuyến đường từ vị trí hiện tại đến điểm đón
+    useEffect(() => {
+        if (location && pickup) {
+            const url = `${OSRM_API}/${location.longitude},${location.latitude};${pickup.longitude},${pickup.latitude}?geometries=geojson`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.routes.length > 0) {
+                        const coordinates = data.routes[0].geometry.coordinates.map((coord: number[]) => ({
+                            latitude: coord[1],
+                            longitude: coord[0],
+                        }));
+                        setRouteCoordinates(coordinates);
+                    }
+                })
+                .catch(error => console.error("Lỗi lấy dữ liệu tuyến đường:", error));
+        }
+    }, [location, pickup]);
 
     return (
         <View style={styles.container}>
@@ -50,28 +68,53 @@ const MapComponent = () => {
                 <MapView
                     style={styles.map}
                     initialRegion={{
-                        latitude: 10.8418, // Giá trị mặc định, ví dụ TP.HCM
+                        latitude: 10.8418,
                         longitude: 106.8370,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     }}
-                    region={{
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                        latitudeDelta: 0.01,
-                        longitudeDelta: 0.01,
-                    }}
+                    ref={mapRef}
                     provider={undefined}
-                    rotateEnabled={false}
+                    rotateEnabled={true}
                 >
                     <UrlTile
                         urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         shouldReplaceMapContent={true}
-                        maximumZ={19}
+                        maximumZ={25}
                         tileSize={512}
                         flipY={false}
                     />
-                    {location && <Marker coordinate={location} title="Vị trí tài xế" />}
+                    {/* Vẽ tuyến đường với Polyline */}
+                    {routeCoordinates.length > 0 && (
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeWidth={4}
+                            strokeColor="blue"
+                        />
+                    )}
+
+                    {/* Marker cho vị trí hiện tại */}
+                    <Marker.Animated
+                        coordinate={{ latitude: location.latitude, longitude: location.longitude }}
+                        title="Vị trí tài xế"
+                        anchor={{ x: 0.5, y: 0.5 }}
+                    >
+                        <Image
+                            source={imgAccess.busTopView}
+                            style={{
+                                width: 40,
+                                height: 40,
+                                transform: [{ rotate: `${location.heading !== null ? location.heading : 0}deg` }]
+                            }}
+                            resizeMode='contain'
+                        />
+                    </Marker.Animated>
+
+                    {/* Marker cho điểm đón */}
+                    {pickup && <Marker coordinate={pickup} title="Điểm đón" />}
+
+                    {/* Marker cho điểm đến */}
+                    {detinate && <Marker coordinate={detinate} title="Điểm đến" />}
                 </MapView>
             ) : (
                 <Text style={styles.loadingText}>Đang tải vị trí...</Text>

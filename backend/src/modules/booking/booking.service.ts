@@ -53,6 +53,7 @@ export class BookingService implements IBookingService {
 
         const now = dayjs();
         const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+
         if (bookingStartTime.isBefore(minAllowedTime)) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
@@ -121,21 +122,7 @@ export class BookingService implements IBookingService {
                 }, HttpStatus.BAD_REQUEST);
             }
         }
-
         const vehicleSelected = []
-
-        // for (const requestedCategory of vehicleCategories) {
-        //     let vehicleChooseByCategory = vehicles.filter(v => v.categoryId.toString() === requestedCategory.categoryVehicleId.toString())
-        //     for (let i = 0; i < requestedCategory.quantity; i++) {
-        //         console.log('vehicleChooseByCategory', vehicleChooseByCategory)
-        //         const vehicleChoose = vehicleChooseByCategory[0]
-        //         console.log('vehicleChoose', vehicleChoose)
-        //         vehicleSelected.push(vehicleChoose)
-        //         vehicleChooseByCategory = vehicleChooseByCategory.filter(
-        //             v => v._id.toString() !== vehicleChoose._id.toString()
-        //         );
-        //     }
-        // }
         for (const requestedCategory of vehicleCategories) {
             const categoryVehicles = vehicles.filter(
                 v => v.categoryId.toString() === requestedCategory.categoryVehicleId

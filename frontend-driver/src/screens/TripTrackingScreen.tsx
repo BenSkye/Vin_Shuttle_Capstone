@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 // import useTrackingSocket from '@/hooks/useTrackingSocket';
 import MapComponent from '~/components/Map';
+import { ServiceType } from '~/constants/service-type.enum';
+import { BookingHourPayloadDto, Position, Trip } from '~/interface/trip';
 
 // interface TripTrackingProps {
 //     vehicleId: string;
@@ -10,7 +12,14 @@ import MapComponent from '~/components/Map';
 
 const TripTrackingScreen = () => {
     const route = useRoute();
-    const vehicleId = route.params?.vehicleId;
+    const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({ lat: 0, lng: 0 });
+    const trip = route.params?.trip as Trip;
+
+    useEffect(() => {
+        if (trip.serviceType = ServiceType.BOOKING_HOUR) {
+            setCustomerPickupLocation((trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.position)
+        }
+    }, [trip]);
 
     if (!route.params) {
         return (
@@ -21,8 +30,8 @@ const TripTrackingScreen = () => {
     }
     return (
         <View style={styles.container}>
-            <Text className="p-2 text-gray-800">Đang theo dõi phương tiện: {vehicleId}</Text>
-            <MapComponent />
+            <Text className="p-2 text-gray-800">chuyến xe: {trip._id}</Text>
+            <MapComponent pickupLocation={customerPickupLocation} />
         </View>
     );
 };

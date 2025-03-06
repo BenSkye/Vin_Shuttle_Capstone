@@ -13,17 +13,24 @@ const menuItems = [
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
-                icon: "/icons/driver.png",
+                icon: '/icons/car-solid.svg',
                 label: "Tài xế",
                 href: "/drivers",
                 visible: ["admin", "teacher"],
             },
             {
-                icon: "/teacher.png",
+                icon: "/icons/driver.png",
                 label: "Khách hàng",
                 href: "/customers",
                 visible: ["admin", "teacher"],
             },
+            {
+                icon: "/icons/calendar-solid.svg",
+                label: "Lịch trình",
+                href: "/schedule",
+                visible: ["admin", "teacher"],
+            },
+
 
 
 

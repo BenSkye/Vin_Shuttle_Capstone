@@ -24,7 +24,7 @@ export const getDriver = async () => {
 
 export const loginUser = async (email: string, password: string) => {
     try {
-        const response = await axiosInstance.post("http://localhost:2028/auth/login-by-password", {
+        const response = await axiosInstance.post("/auth/login-by-password", {
             email, password
         })
         console.log("Login:", response.data)

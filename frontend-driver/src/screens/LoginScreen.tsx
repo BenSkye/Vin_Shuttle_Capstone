@@ -3,16 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ImageBackground, StyleS
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authService } from '../services/authServices';
 import { styles } from '../styles/LoginStyle'
+import { useAuth } from '~/context/AuthContext';
 export default function LoginScreen({
   navigation,
-  setAuthenticated
 }: {
   navigation: any;
-  setAuthenticated: (value: boolean) => void;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { userHaslogin } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -25,7 +25,7 @@ export default function LoginScreen({
       const response = await authService.login({ email, password });
 
       if (response.isValid) {
-        setAuthenticated(true); // Cập nhật trạng thái đăng nhập
+        userHaslogin();
         navigation.reset({
           index: 0,
           routes: [{ name: 'Home' }],

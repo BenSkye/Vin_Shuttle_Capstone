@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/authServices';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useAuth } from '~/context/AuthContext';
 
 // Định nghĩa type cho navigation
 type RootStackParamList = {
@@ -24,7 +25,7 @@ export default function ProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const navigation = useNavigation<NavigationProp>();
-
+  const { userHaslogout } = useAuth();
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -48,6 +49,7 @@ export default function ProfileScreen() {
     try {
       await authService.logout();
       // Điều hướng về Login bằng cách thay thế stack hiện tại
+      await userHaslogout();
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
@@ -73,9 +75,9 @@ export default function ProfileScreen() {
           <Text className="text-2xl font-bold text-gray-800 mb-6">Thông tin cá nhân</Text>
           <View className="items-center">
             <View className="relative">
-              <Image 
+              <Image
                 source={
-                  imageError || !profile?.avatar 
+                  imageError || !profile?.avatar
                     ? require('../assets/default-avatar.png')
                     : { uri: profile.avatar }
                 }

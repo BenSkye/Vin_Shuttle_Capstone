@@ -1,11 +1,11 @@
 'use client';
-
-import dynamic from 'next/dynamic';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaCar, FaClock, FaCreditCard } from "react-icons/fa";
-const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
-const TripTypeSelection = dynamic(() => import('../../components/booking/bookingcomponents/triptypeselection'), { ssr: false });
-// import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+
+import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
+import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+import { BookingResponse } from "@/interface/booking";
+import dynamic from 'next/dynamic';
 
 const steps = [
     { title: "Chọn số người", icon: <FaClock className="text-blue-500" /> },
@@ -15,7 +15,6 @@ const steps = [
 
 const LineBookingPage = () => {
     const [tripType, setTripType] = useState<"alone" | "shared">("alone");
-
     const [passengerCount, setPassengerCount] = useState(1);
     const [current, setCurrent] = useState(0);
     const [startPoint, setStartPoint] = useState<{
@@ -25,8 +24,21 @@ const LineBookingPage = () => {
         position: { lat: 10.840405, lng: 106.843424 },
         address: ''
     });
-
     const [loading, setLoading] = useState(false);
+    const [pickup, setPickup] = useState<string>('');
+    const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
+    const [isBrowser, setIsBrowser] = useState(false);
+
+
+    const LocationSelection = dynamic(
+        () => import('../../components/booking/bookingcomponents/locationselection'),
+        { ssr: false } // This disables server-side rendering for this component
+    );
+
+    // Check if code is running in browser
+    useEffect(() => {
+        setIsBrowser(true);
+    }, []);
 
     const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
         setStartPoint({
@@ -37,10 +49,31 @@ const LineBookingPage = () => {
 
     const next = () => setCurrent(current + 1);
     const prev = () => setCurrent(current - 1);
-    const handleFinish = () => alert("Đặt xe thành công!");
+
+    const handleFinish = async () => {
+        // Here you would normally send the booking data to your backend
+        // and get a booking response
+
+        // Mock booking response for demonstration
+        const mockBookingResponse: BookingResponse = {
+            newBooking: {
+                _id: "mockid123",
+                totalAmount: 150000,
+                status: "pending",
+                paymentMethod: "pay_os",
+                bookingCode: 123,
+                trips: ["trip123"],
+                createdAt: new Date().toISOString(),
+            },
+            paymentUrl: "https://pay.example.com/checkout"
+        };
+
+        setBookingResponse(mockBookingResponse);
+        next(); // Move to checkout page
+    };
 
     const detectUserLocation = async () => {
-        if (typeof window === "undefined") return;
+        if (!isBrowser) return; // Only run in browser
 
         setLoading(true);
         try {
@@ -55,7 +88,7 @@ const LineBookingPage = () => {
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
                     );
                     const data = await response.json();
-                    // setPickup(data.display_name);
+                    setPickup(data.display_name);
                 },
                 () => alert("Không thể xác định vị trí của bạn")
             );
@@ -87,7 +120,7 @@ const LineBookingPage = () => {
                             onPassengerCountChange={setPassengerCount}
                         />
                     )}
-                    {current === 1 && (
+                    {current === 1 && isBrowser && (
                         <LocationSelection
                             startPoint={startPoint}
                             onLocationChange={handleLocationChange}
@@ -95,7 +128,7 @@ const LineBookingPage = () => {
                             detectUserLocation={detectUserLocation}
                         />
                     )}
-                    {/* {current === 2 && <CheckoutPage />} */}
+                    {current === 2 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
                 </div>
 
                 <div className="flex justify-between mt-8">
@@ -104,10 +137,12 @@ const LineBookingPage = () => {
                     )}
                     <div>
                         {current < steps.length - 1 && (
-                            <button onClick={next} className="px-6 py-2 bg-blue-500 text-white rounded ml-2">Tiếp theo</button>
-                        )}
-                        {current === steps.length - 1 && (
-                            <button onClick={handleFinish} className="px-6 py-2 bg-green-500 text-white rounded ml-2">Xác nhận đặt xe</button>
+                            <button
+                                onClick={current === 1 ? handleFinish : next}
+                                className="px-6 py-2 bg-blue-500 text-white rounded ml-2"
+                            >
+                                {current === 1 ? "Xác nhận" : "Tiếp theo"}
+                            </button>
                         )}
                     </div>
                 </div>
