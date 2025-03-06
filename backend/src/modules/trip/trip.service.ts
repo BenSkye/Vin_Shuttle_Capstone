@@ -54,7 +54,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'driver Schedule is not valid',
-          vnMesage: 'Không có lịch phù hợp',
+          vnMessage: 'Không có lịch phù hợp',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -166,7 +166,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Time has between shift: ${shiftHours.start}:00 - ${shiftHours.end}:00`,
-          vnMesage: `Thời gian đặt phải từ ${shiftHours.start}:00 - ${shiftHours.end}:00`,
+          vnMessage: `Thời gian đặt phải từ ${shiftHours.start}:00 - ${shiftHours.end}:00`,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -203,7 +203,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Time has duplicate with some trip',
-          vnMesage: 'Trùng lịch với chuyến đi khác',
+          vnMessage: 'Trùng lịch với chuyến đi khác',
         },
         HttpStatus.BAD_REQUEST,
       );

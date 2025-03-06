@@ -53,7 +53,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
                         {
                             statusCode: HttpStatus.UNAUTHORIZED,
                             message: 'Unauthorized',
-                            vnMesage: 'Không có quyền truy cập',
+                            vnMessage: 'Không có quyền truy cập',
                         },
                         HttpStatus.UNAUTHORIZED,
                     );

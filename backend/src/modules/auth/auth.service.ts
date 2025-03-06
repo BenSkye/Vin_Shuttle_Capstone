@@ -45,7 +45,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Failed to create user',
-          vnMesage: 'Lỗi khi tạo tài khoản',
+          vnMessage: 'Lỗi khi tạo tài khoản',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -61,7 +61,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Phone number not exist',
-          vnMesage: 'Số điện thoại không tồn tại',
+          vnMessage: 'Số điện thoại không tồn tại',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -83,7 +83,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'email not exist',
-          vnMesage: 'Email không tồn tại',
+          vnMessage: 'Email không tồn tại',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -94,7 +94,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Password not true',
-          vnMesage: 'Mật khẩu sai',
+          vnMessage: 'Mật khẩu sai',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -115,7 +115,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'user not exist',
-          vnMesage: 'Người dùng không tồn tại',
+          vnMessage: 'Người dùng không tồn tại',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -126,7 +126,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: 'Old Password not true',
-          vnMesage: 'Mật khẩu cũ không đúng',
+          vnMessage: 'Mật khẩu cũ không đúng',
         },
         HttpStatus.NOT_FOUND,
       );
@@ -140,7 +140,7 @@ export class AuthService implements IAuthService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Change password fail',
-          vnMesage: 'Đổi mật khẩu thất bại',
+          vnMessage: 'Đổi mật khẩu thất bại',
         },
         HttpStatus.BAD_REQUEST,
       );

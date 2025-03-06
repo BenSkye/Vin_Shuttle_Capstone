@@ -12,7 +12,7 @@ export class VehiclesService {
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
     @Inject(VEHICLE_REPOSITORY) private readonly vehicleRepository: IVehiclesRepository,
-  ) {}
+  ) { }
 
   async list(): Promise<VehicleDocument[]> {
     const listVehicle = await this.vehicleRepository.list();
@@ -31,7 +31,7 @@ export class VehiclesService {
           {
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Invalid Vehicle Category ID ',
-            vnMesage: 'Không tìm thấy loại xe',
+            vnMessage: 'Không tìm thấy loại xe',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -58,7 +58,7 @@ export class VehiclesService {
           {
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Invalid Vehicle Category ID',
-            vnMesage: 'Không tìm thấy loại xe',
+            vnMessage: 'Không tìm thấy loại xe',
           },
           HttpStatus.BAD_REQUEST,
         );
