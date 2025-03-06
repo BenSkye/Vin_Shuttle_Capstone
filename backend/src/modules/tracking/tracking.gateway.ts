@@ -6,8 +6,10 @@ import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
-import { IRedisService, ITokenProvider, Position } from 'src/share/interface';
+import { IRedisService, ITokenProvider, LocationData, Position } from 'src/share/interface';
 import { UserRole } from 'src/share/enums';
+import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
+import { ITrackingService } from 'src/modules/tracking/tracking.port';
 
 
 
@@ -28,6 +30,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
         @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
         @Inject(REDIS_PROVIDER) private readonly redisService: IRedisService,
+        @Inject(TRACKING_SERVICE) private readonly trackingService: ITrackingService,
     ) { }
 
     afterInit(server: Server) {
@@ -86,21 +89,24 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
 
     @SubscribeMessage('driver_location_update')
-    async onDriverLocationUpdate(client: Socket, location: Position) {
+    async onDriverLocationUpdate(client: Socket, location: LocationData) {
         const payload = (client as any).user;
         const driverId = payload._id
         const vehicleId = await this.redisService.get(`${SOCKET_NAMESPACE.DRIVER_SCHEDULE}-vehicle-${driverId}`);
         console.log('driver_location_update', driverId, vehicleId, location);
+        if (vehicleId) {
+            await this.trackingService.updateLastVehicleLocation(vehicleId, location);
+        }
         const ListUserIdTrackingVehicle = await this.redisService.getListUserTrackingVehicle(vehicleId);
         ListUserIdTrackingVehicle.forEach(userId => {
             this.emitLocationUpdate(userId, vehicleId, location);
         });
     }
 
-    async emitLocationUpdate(userId: string, vehicleId: string, location: Position) {
+    async emitLocationUpdate(userId: string, vehicleId: string, location: LocationData) {
         const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRACKING, userId);
         if (socketId) {
-            console.log(`Emitting location update to: ${socketId} for vehicle: ${vehicleId} - ${location.lat}, ${location.lng}`);
+            console.log(`Emitting location update to: ${socketId} for vehicle: ${vehicleId} - ${location.latitude}, ${location.longitude}`);
             this.server.to(socketId).emit(`update_location_${vehicleId}`, location);
         }
     }

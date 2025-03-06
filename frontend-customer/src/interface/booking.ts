@@ -61,4 +61,29 @@ export interface IBooking {
     }>;
 }
 
+// Interface for booking destination request
+export interface BookingDestinationRequest {
+    startPoint: {
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
+    };
+    endPoint: {
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
+    };
+    estimatedDuration: number;
+    distanceEstimate: number;
+    vehicleCategories: {
+        categoryVehicleId: string;
+        name: string;
+    };
+    paymentMethod: 'pay_os' | 'cash' | 'momo';
+}
+
 

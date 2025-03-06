@@ -7,8 +7,9 @@ import { Steps } from 'antd';
 import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa";
 import dayjs from "dayjs";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
-
 import dynamic from "next/dynamic";
+import { getSenicRoute } from "@/service/senics";
+
 
 
 const steps = [

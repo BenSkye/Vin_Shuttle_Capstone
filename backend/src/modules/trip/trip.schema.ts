@@ -32,16 +32,16 @@ export class Trip {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     driverId: Types.ObjectId;
 
-    @Prop({ type: Date })
+    @Prop({ type: Date, default: null })
     timeStart: Date;
 
-    @Prop({ type: Date })
+    @Prop({ type: Date, default: null })
     timeEnd: Date;
 
     @Prop({ type: Date, required: true })
     timeStartEstimate: Date;
 
-    @Prop({ type: Date })
+    @Prop({ type: Date, required: true })
     timeEndEstimate: Date;
 
     @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
