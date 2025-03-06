@@ -206,8 +206,6 @@ export class SearchService implements ISearchService {
     const matchingShifts = this.getMatchingShifts(bookingStartTime, bookingEndTime);
     const midnightUTC = now.startOf('day');
     console.log('midnightUTC', midnightUTC.toISOString());
-
-    // const scheduleDate = DateUtils.parseDate(date);
     const schedules = await this.getAvailableSchedules(
       midnightUTC.toDate(),
       matchingShifts,
