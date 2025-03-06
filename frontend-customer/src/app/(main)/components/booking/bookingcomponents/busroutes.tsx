@@ -2,7 +2,8 @@ import { Search } from "lucide-react"
 import { Bus, Train, Menu } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getSenicRoute } from "@/service/senics"
 
 export default function BusRoutes() {
     const [showRoutes, setShowRoutes] = useState(false)
