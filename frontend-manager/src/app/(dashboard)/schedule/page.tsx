@@ -10,6 +10,9 @@ import { getDriver } from '@/services/api/user';
 import { Driver } from '@/interfaces/index';
 import { getDriverSchedule, DriverSchedule } from '@/services/api/schedule';
 import { format } from 'date-fns';
+import { getVehicles } from '@/services/api/vehicles';
+import { Vehicle } from '@/interfaces/index';
+
 
 const SchedulePage = () => {
     // State definitions
@@ -21,6 +24,7 @@ const SchedulePage = () => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
     const [form] = Form.useForm();
 
@@ -41,7 +45,20 @@ const SchedulePage = () => {
         fetchDriverSchedules();
     }, []);
 
-    // Update selected date when day changes
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                const response = await getVehicles();
+                console.log("Vehicles:", response);
+                setVehicles(response);
+
+            } catch (error) {
+                console.error("Error fetching vehicles:", error);
+                message.error("Failed to load vehicles");
+            }
+        };
+        fetchVehicles();
+    }, []);
 
 
     // Fetch available drivers
@@ -209,9 +226,11 @@ const SchedulePage = () => {
                     rules={[{ required: true, message: 'Please select a vehicle' }]}
                 >
                     <Select placeholder="Choose a vehicle">
-                        <Select.Option value="67878002048da981c9778455">xe 6 chỗ A34</Select.Option>
-                        <Select.Option value="6787801c048da981c9778458">xe 7 chỗ B45</Select.Option>
-                        <Select.Option value="67a2f142e7e80dd43a68e5ea">xe 16 chỗ C56</Select.Option>
+                        {vehicles.map(vehicle => (
+                            <Select.Option value={vehicle._id} key={vehicle._id}>{vehicle.name}</Select.Option>
+                        ))}
+
+
                     </Select>
                 </Form.Item>
             </Form>

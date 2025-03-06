@@ -51,3 +51,12 @@ export interface Customer {
     phone: string;
     email: string;
 }
+
+export interface Vehicle {
+    _id: string;
+    name: string;
+    categoryId: string;
+    description: string;
+    vehicleCondition: string;
+    operationStatus: string;
+}

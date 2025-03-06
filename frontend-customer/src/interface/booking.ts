@@ -31,6 +31,7 @@ export interface BookingHourRequest {
         name: string;
         categoryVehicleId: string;
         quantity: number;
+        name: string;
     }[];
     paymentMethod: 'pay_os' | 'cash' | 'momo'; // Các phương thức thanh toán hỗ trợ
 }
@@ -60,6 +61,31 @@ export interface IBooking {
         changedAt: Date;
         reason?: string;
     }>;
+}
+
+// Interface for booking destination request
+export interface BookingDestinationRequest {
+    startPoint: {
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
+    };
+    endPoint: {
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
+    };
+    estimatedDuration: number;
+    distanceEstimate: number;
+    vehicleCategories: {
+        categoryVehicleId: string;
+        name: string;
+    };
+    paymentMethod: string;
 }
 
 

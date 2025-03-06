@@ -50,8 +50,8 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
                             <Card
                                 key={vehicle.vehicleCategory._id}
                                 className={`transform transition-all duration-200 hover:shadow-lg ${isSelected
-                                        ? "border-2 border-blue-500 bg-blue-50"
-                                        : "border border-gray-200"
+                                    ? "border-2 border-blue-500 bg-blue-50"
+                                    : "border border-gray-200"
                                     }`}
                                 bodyStyle={{ padding: '1.5rem' }}
                             >
