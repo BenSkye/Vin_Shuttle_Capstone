@@ -20,7 +20,7 @@ export class AuthService implements IAuthService {
     @Inject(OTP_SERVICE) private readonly otpService: IOTPService,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(SMS_PROVIDER) private readonly smsService: ISMSProvider,
-  ) {}
+  ) { }
 
   async registerCustomer(data: ICreateUserDto): Promise<object> {
     //check if phone allready exist
@@ -72,7 +72,7 @@ export class AuthService implements IAuthService {
       name: userExist.name,
       _id: userExist._id.toString(),
     });
-    // await this.smsService.sendOTP(phone, otp);
+    await this.smsService.sendSms(phone, `Mã OTP của bạn là: ${otp}`);
     return otp;
   }
 

@@ -40,7 +40,7 @@ export interface ITokenProvider {
 }
 
 export interface ISMSProvider {
-  sendOTP(phone: string, OTP: string): Promise<any>;
+  sendSms(phone: string, content: string): Promise<any>;
 }
 
 export interface IPayosService {

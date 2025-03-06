@@ -238,12 +238,19 @@ export class BookingService implements IBookingService {
             matchingShifts
         );
         if (scheduleDate.isSame(now, 'day')) {
-            console.log('now', now)
-            // Lọc schedules chỉ trong ca hiện tại và status IN_PROGRESS
-            schedules = schedules.filter(schedule =>
-                matchingShifts.includes(schedule.shift as Shift) &&
-                schedule.status === DriverSchedulesStatus.IN_PROGRESS
-            );
+            const currentHour = now.hour();
+            console.log('currentHour', currentHour)
+            schedules = schedules.filter(schedule => {
+                const shift = schedule.shift as Shift;
+                const shiftStartHour = ShiftHours[shift].start;
+
+                // If current time is after shift start, only include IN_PROGRESS schedules
+                // Otherwise, include all schedules for shifts that haven't started yet
+                if (currentHour >= shiftStartHour) {
+                    return schedule.status === DriverSchedulesStatus.IN_PROGRESS;
+                }
+                return true;
+            });
         }
 
         // Lọc schedules không xung đột
@@ -392,7 +399,7 @@ export class BookingService implements IBookingService {
         ]);
 
         // Lấy schedules khả dụng
-        const midnightUTC = now.utc().startOf('day');
+        const midnightUTC = now.startOf('day');
 
         const schedules = await this.searchService.getAvailableSchedules(
             midnightUTC.toDate(),

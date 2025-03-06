@@ -1,29 +1,37 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
 import { ISMSProvider } from 'src/share/interface';
-import { Twilio } from 'twilio';
 
 @Injectable()
 export class SmsService implements ISMSProvider {
-  private readonly client: Twilio;
-
-  constructor() {
-    this.client = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  private readonly eSMS_DOMAIN = process.env.ESMS_DOMAIN;
+  private readonly eSMS_API_KEY = process.env.ESMS_API_KEY;
+  private readonly eSMS_SECRET_KEY = process.env.ESMS_SECRET_KEY;
+  constructor(private readonly httpService: HttpService) {
   }
 
-  async sendOTP(phone: string, OTP: string): Promise<any> {
-    // Gửi SMS qua Twilio
-    phone = '+84' + phone.slice(1); // Định dạng E.164: +84123456789
-    console.log('phone', phone);
-    await this.client.messages.create({
-      body: `Mã OTP của bạn cho hệ thống VinShuttle là: ${OTP} - Hiệu lực 2 phút`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: phone, // Định dạng E.164: +84123456789
-    });
 
-    return { success: true, phone };
-  }
-  catch(error) {
-    console.error('Lỗi gửi OTP:', error);
-    return { success: false, error: error.message };
+  async sendSms(phone: string, content: string) {
+    const payload = {
+      ApiKey: this.eSMS_API_KEY,
+      Content: content,
+      Phone: phone,
+      SecretKey: this.eSMS_SECRET_KEY,
+      Brandname: 'Baotrixemay',
+      SmsType: '2',
+      Sandbox: '1',
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(this.eSMS_DOMAIN, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+      console.log('respone for esms', response.data);
+    } catch (error) {
+      throw new Error(`Failed to send SMS: ${error.message}`);
+    }
   }
 }
