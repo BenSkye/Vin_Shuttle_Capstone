@@ -18,6 +18,7 @@ export interface Trip {
     customerId: {
         _id: string,
         name: string
+        phone:string
     }
     vehicleId: {
         _id: string,
