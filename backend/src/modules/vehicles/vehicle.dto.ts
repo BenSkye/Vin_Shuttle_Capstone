@@ -58,3 +58,11 @@ export class UpdateVehicleDto {
   @ApiPropertyOptional({ example: VehicleCondition.AVAILABLE })
   vehicleCondition: string;
 }
+
+
+export interface vehicleParams {
+  name?: string;
+  categoryId?: string;
+  operationStatus?: VehicleOperationStatus
+  vehicleCondition?: VehicleCondition
+}

@@ -64,6 +64,7 @@ function RoutingMachine({ stops, onRouteFound, savedRoute }: {
         estimatedDuration: number;
         totalDistance: number;
     };
+    // setIsRoutingLoading: (loading: boolean) => void;
 }) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
@@ -103,6 +104,9 @@ function RoutingMachine({ stops, onRouteFound, savedRoute }: {
 
         routingControlRef.current = L.Routing.control({
             waypoints: waypoints,
+            router: L.routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1'
+            }),
             routeWhileDragging: true,
             addWaypoints: true,
             fitSelectedRoutes: false,
@@ -115,8 +119,13 @@ function RoutingMachine({ stops, onRouteFound, savedRoute }: {
             }
         }).addTo(map);
 
+        // routingControlRef.current.on('routingstart', () => {
+        //     console.log('Routing started');
+        //     setIsRoutingLoading(true);
+        // });
 
         routingControlRef.current.on('routesfound', (e) => {
+            // setIsRoutingLoading(false);
             const routes = e.routes;
             if (routes && routes.length > 0) {
                 const coordinates = routes[0].coordinates;
@@ -125,6 +134,11 @@ function RoutingMachine({ stops, onRouteFound, savedRoute }: {
                 onRouteFound(coordinates, estimatedDuration, totalDistance);
             }
         });
+
+        // routingControlRef.current.on('routingerror', () => {
+        //     setIsRoutingLoading(false);
+        //     console.error('Lỗi khi ghép tuyến đường');
+        // });
 
         return () => {
             if (routingControlRef.current && map) {
@@ -196,6 +210,7 @@ export default function CreateRoute() {
     const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
     const [isCreatingRoute, setIsCreatingRoute] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    // const [isRoutingLoading, setIsRoutingLoading] = useState(false);
     const [estimatedDuration, setEstimatedDuration] = useState(0);
     const [totalDistance, setTotalDistance] = useState(0);
     const [routeName, setRouteName] = useState('');
@@ -622,8 +637,14 @@ export default function CreateRoute() {
                     </>
                 )}
             </div>
-
+            {/* <div className="flex-grow relative"> */}
+            {/* {isRoutingLoading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="text-white text-xl font-semibold">Đang ghép tuyến đường...</div>
+                    </div>
+                )} */}
             <div className="flex-grow">
+
                 <MapContainer
                     center={mapCenter}
                     zoom={15.5}
@@ -640,7 +661,13 @@ export default function CreateRoute() {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-
+                    {/* {isRoutingLoading && (
+                        <div className="loading-overlay">
+                            <div className="loading-content">
+                                <div className="text-black text-xl font-semibold">Đang ghép tuyến đường...</div>
+                            </div>
+                        </div>
+                    )} */}
                     {isCreatingRoute ? (
                         isEditing ? (
                             selectedRoute && (
@@ -663,6 +690,7 @@ export default function CreateRoute() {
                                         <RoutingMachine
                                             stops={stops}
                                             onRouteFound={handleRouteFound}
+                                        // setIsRoutingLoading={setIsRoutingLoading}
                                         />
                                     )}
                                     <MapClickHandler onMapClick={handleMapClick} />
@@ -684,6 +712,7 @@ export default function CreateRoute() {
                                         <RoutingMachine
                                             stops={stops}
                                             onRouteFound={handleRouteFound}
+                                        // setIsRoutingLoading={setIsRoutingLoading}
                                         />
                                     )}
                                     <MapClickHandler onMapClick={handleMapClick} />
@@ -712,6 +741,7 @@ export default function CreateRoute() {
                     }
                 </MapContainer>
             </div>
+            {/* </div> */}
         </div >
     );
 }

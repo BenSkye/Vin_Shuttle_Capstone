@@ -9,7 +9,7 @@ import { IUserRepository } from "src/modules/users/users.port";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
-import { VehicleCondition } from "src/share/enums/vehicle.enum";
+import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 
 
 @Injectable()
@@ -22,7 +22,9 @@ export class DriverScheduleService implements IDriverScheduleService {
     @Inject(VEHICLE_REPOSITORY)
     private readonly vehicleRepository: IVehiclesRepository,
     @Inject(DRIVERSCHEDULE_GATEWAY)
-    private readonly driverScheduleGateway: DriverScheduleGateway
+    private readonly driverScheduleGateway: DriverScheduleGateway,
+
+
   ) { }
 
 
@@ -234,17 +236,26 @@ export class DriverScheduleService implements IDriverScheduleService {
       }, HttpStatus.BAD_REQUEST);
     }
 
+    await this.vehicleRepository.updateOperationStatus(
+      driverSchedule.vehicle._id.toString(),
+      VehicleOperationStatus.RUNNING
+    )
+
     driverSchedule.status = DriverSchedulesStatus.IN_PROGRESS;
     driverSchedule.checkinTime = currentTime;
     if (currentTime.getTime() > expectedCheckin.getTime() - ShiftDifference.IN) {
       driverSchedule.isLate = true
     }
 
-    const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(driverScheduleId, {
-      status: driverSchedule.status,
-      checkinTime: driverSchedule.checkinTime,
-      isLate: driverSchedule.isLate
-    });
+    const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(
+      driverScheduleId,
+      {
+        status: driverSchedule.status,
+        checkinTime: driverSchedule.checkinTime,
+        isLate: driverSchedule.isLate
+      }
+    );
+
 
     await this.driverScheduleGateway.handleDriverCheckin(driverId, scheduleUpdate.vehicle.toString());
     return scheduleUpdate;
@@ -273,6 +284,10 @@ export class DriverScheduleService implements IDriverScheduleService {
         vnMessage: 'Không thể kết ca',
       }, HttpStatus.BAD_REQUEST);
     }
+    await this.vehicleRepository.updateOperationStatus(
+      driverSchedule.vehicle._id.toString(),
+      VehicleOperationStatus.PENDING
+    )
 
     // Calculate expected checkout time
     const shift = driverSchedule.shift as Shift;
@@ -297,8 +312,49 @@ export class DriverScheduleService implements IDriverScheduleService {
         isEarlyCheckout: driverSchedule.isEarlyCheckout
       }
     );
+
+    await this.driverScheduleGateway.handleDriverCheckout(driverId);
+
     return scheduleUpdate
   }
 
+  async autoCheckoutPendingSchedules() {
+    const currentTime = new Date();
 
+    // Lấy tất cả các ca đang trong trạng thái IN_PROGRESS
+    const pendingSchedules = await this.driverScheduleRepository.getDriverSchedules({
+      status: DriverSchedulesStatus.IN_PROGRESS,
+    }, []);
+
+    for (const schedule of pendingSchedules) {
+      const shift = schedule.shift as Shift;
+      const shiftEndHour = ShiftHours[shift].end;
+      const expectedCheckout = new Date(schedule.date);
+      expectedCheckout.setHours(shiftEndHour, 0, 0, 0);
+
+      // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, thực hiện checkout
+      if (currentTime > expectedCheckout) {
+        await this.vehicleRepository.updateOperationStatus(
+          schedule.vehicle._id.toString(),
+          VehicleOperationStatus.PENDING
+        );
+
+        schedule.status = DriverSchedulesStatus.COMPLETED;
+        schedule.checkoutTime = currentTime;
+        schedule.isEarlyCheckout = false; // Không phải là checkout sớm vì đã quá giờ
+
+        await this.driverScheduleRepository.updateDriverSchedule(
+          schedule._id.toString(),
+          {
+            status: schedule.status,
+            checkoutTime: schedule.checkoutTime,
+            isEarlyCheckout: schedule.isEarlyCheckout,
+          });
+
+        await this.driverScheduleGateway.handleDriverCheckout(schedule.driver._id.toString());
+
+        console.log(`Auto checkout for schedule ${schedule._id} completed.`);
+      }
+    }
+  }
 }
