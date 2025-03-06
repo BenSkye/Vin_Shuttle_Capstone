@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent, 
-  CardFooter 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
 
   useEffect(() => {
     // Try to fetch from API first, fall back to localStorage if API fails
@@ -49,7 +49,7 @@ export default function ProfilePage() {
         const response = await profileUser();
         const apiProfile = response.data;
         console.log('API Profile:', apiProfile);
-        
+
         setProfile({
           id: apiProfile.id || '',
           name: apiProfile.name || '',
@@ -61,7 +61,7 @@ export default function ProfilePage() {
         });
       } catch (error) {
         console.error('Error fetching profile from API, trying localStorage:', error);
-        
+
         // Fall back to localStorage
         try {
           const storedUser = localStorage.getItem('user');
@@ -94,7 +94,7 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       // Send update request to API using editProfile instead of updateUserProfile
       await editProfile({
@@ -102,14 +102,14 @@ export default function ProfilePage() {
         email: profile.email,
         phone: profile.phone,
       });
-      
+
       // Also update address separately if needed
       if (profile.address) {
         await updateUserProfile({
           address: profile.address,
         });
       }
-      
+
       // Update localStorage for redundancy
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
@@ -119,7 +119,7 @@ export default function ProfilePage() {
           ...profile
         }));
       }
-      
+
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       setIsEditing(false);
     } catch (error) {
@@ -127,7 +127,7 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
     } finally {
       setIsLoading(false);
-      
+
       // Clear message after 3 seconds
       setTimeout(() => {
         setMessage({ type: '', text: '' });
@@ -147,7 +147,7 @@ export default function ProfilePage() {
     try {
       // Upload image first
       const uploadResult = await uploadProfileImage(file);
-      
+
       // Then update profile with new avatar URL
       await updateUserProfile({
         avatar: uploadResult.url,
@@ -165,7 +165,7 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: 'Failed to update profile photo. Please try again.' });
     } finally {
       setIsLoading(false);
-      
+
       setTimeout(() => {
         setMessage({ type: '', text: '' });
       }, 3000);
@@ -181,9 +181,9 @@ export default function ProfilePage() {
               <div className="relative mb-4">
                 <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 mx-auto">
                   {profile.avatar ? (
-                    <Image 
-                      src={profile.avatar} 
-                      alt={profile.name} 
+                    <Image
+                      src={profile.avatar}
+                      alt={profile.name}
                       width={128}
                       height={128}
                       className="w-full h-full object-cover"
@@ -195,7 +195,7 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {isEditing && (
-                  <button 
+                  <button
                     className="absolute bottom-0 right-1/3 p-2 rounded-full bg-white shadow-md border border-gray-200"
                     onClick={handleAvatarClick}
                     type="button"
@@ -207,8 +207,8 @@ export default function ProfilePage() {
                     </svg>
                   </button>
                 )}
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   accept="image/*"
@@ -271,7 +271,7 @@ export default function ProfilePage() {
                 {message.text}
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -288,7 +288,7 @@ export default function ProfilePage() {
                     placeholder="Enter your full name"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium">
                     Email Address
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                     placeholder="Enter your email"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label htmlFor="phone" className="block text-sm font-medium">
                     Phone Number
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                     placeholder="Enter your phone number"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label htmlFor="role" className="block text-sm font-medium">
                     Role
@@ -332,7 +332,7 @@ export default function ProfilePage() {
                     readOnly
                   />
                 </div>
-                
+
                 <div className="space-y-2 md:col-span-2">
                   <label htmlFor="address" className="block text-sm font-medium">
                     Address
@@ -347,7 +347,7 @@ export default function ProfilePage() {
                     placeholder="Enter your address"
                   />
                 </div>
-                
+
                 {isEditing && (
                   <div className="md:col-span-2 flex gap-4 justify-end mt-4">
                     <Button

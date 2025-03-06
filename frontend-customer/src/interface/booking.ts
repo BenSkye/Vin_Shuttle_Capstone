@@ -30,6 +30,7 @@ export interface BookingHourRequest {
     vehicleCategories: {
         categoryVehicleId: string;
         quantity: number;
+        name: string;
     }[];
     paymentMethod: 'pay_os' | 'cash' | 'momo'; // Các phương thức thanh toán hỗ trợ
 }
@@ -83,7 +84,7 @@ export interface BookingDestinationRequest {
         categoryVehicleId: string;
         name: string;
     };
-    paymentMethod: 'pay_os' | 'cash' | 'momo';
+    paymentMethod: string;
 }
 
 

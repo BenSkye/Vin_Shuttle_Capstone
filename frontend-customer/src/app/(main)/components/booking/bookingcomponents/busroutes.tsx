@@ -4,9 +4,44 @@ import { Input } from "@/components/ui/input"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { getSenicRoute } from "@/service/senics"
+import dynamic from "next/dynamic"
+import 'leaflet/dist/leaflet.css'
+
+// Dynamic import to avoid SSR issues with Leaflet
+const MapContainer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.MapContainer),
+    { ssr: false }
+)
+const TileLayer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.TileLayer),
+    { ssr: false }
+)
+const Marker = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Marker),
+    { ssr: false }
+)
+const Popup = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Popup),
+    { ssr: false }
+)
 
 export default function BusRoutes() {
     const [showRoutes, setShowRoutes] = useState(false)
+    const position: [number, number] = [10.7769, 106.7009] // Ho Chi Minh City coordinates
+
+    useEffect(() => {
+        // Fix for default marker icons in Leaflet with Next.js
+        if (typeof window !== 'undefined') {
+            // @ts-ignore
+            delete L.Icon.Default.prototype._getIconUrl
+            // @ts-ignore
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+            })
+        }
+    }, [])
 
     return (
         <div className="flex flex-col h-screen">
@@ -80,8 +115,24 @@ export default function BusRoutes() {
                 </div>
 
                 {/* Map Area */}
-                <div className="flex-1 bg-gray-100 flex items-center justify-center">
-                    <span className="text-muted-foreground">Khu vực bản đồ</span>
+                <div className="flex-1 relative">
+                    {typeof window !== 'undefined' && (
+                        <MapContainer
+                            center={position}
+                            zoom={13}
+                            style={{ height: '100%', width: '100%' }}
+                        >
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            />
+                            <Marker position={position}>
+                                <Popup>
+                                    Thành phố Hồ Chí Minh
+                                </Popup>
+                            </Marker>
+                        </MapContainer>
+                    )}
                 </div>
             </div>
         </div>

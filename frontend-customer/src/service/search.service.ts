@@ -22,13 +22,14 @@ export const vehicleSearchHour = async (date: string, startTime: string, duratio
 export const vehicleSearchDestination = async (
     estimatedDuration: number,
     estimatedDistance: number,
-    endPoint: Coordinates,
-    startPoint: Coordinates
+    endPoint: Object,
+    startPoint: Object
 ): Promise<AvailableVehicle> => {
     try {
         const response = await apiClient.get(
-            `/search/available-vehicle-search-scenic-route/${estimatedDuration}/${estimatedDistance}/${endPoint.lat},${endPoint.lng}/${startPoint.lat},${startPoint.lng}`
+            `/search/available-vehicle-search-scenic-route/${startPoint}/${endPoint}/${estimatedDuration}/${estimatedDistance}`
         );
+        console.log('responseDestination', response.data);
         return response.data;
     } catch (error: any) {
         if (error.response) {
