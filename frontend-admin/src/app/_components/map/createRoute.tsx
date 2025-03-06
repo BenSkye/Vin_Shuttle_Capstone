@@ -56,7 +56,7 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-function RoutingMachine({ stops, onRouteFound, savedRoute, setIsRoutingLoading }: {
+function RoutingMachine({ stops, onRouteFound, savedRoute }: {
     stops: BusStop[];
     onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
     savedRoute?: {
@@ -64,7 +64,7 @@ function RoutingMachine({ stops, onRouteFound, savedRoute, setIsRoutingLoading }
         estimatedDuration: number;
         totalDistance: number;
     };
-    setIsRoutingLoading: (loading: boolean) => void;
+    // setIsRoutingLoading: (loading: boolean) => void;
 }) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
@@ -119,12 +119,13 @@ function RoutingMachine({ stops, onRouteFound, savedRoute, setIsRoutingLoading }
             }
         }).addTo(map);
 
-        routingControlRef.current.on('routingstart', () => {
-            setIsRoutingLoading(true);
-        });
+        // routingControlRef.current.on('routingstart', () => {
+        //     console.log('Routing started');
+        //     setIsRoutingLoading(true);
+        // });
 
         routingControlRef.current.on('routesfound', (e) => {
-            setIsRoutingLoading(false);
+            // setIsRoutingLoading(false);
             const routes = e.routes;
             if (routes && routes.length > 0) {
                 const coordinates = routes[0].coordinates;
@@ -134,10 +135,10 @@ function RoutingMachine({ stops, onRouteFound, savedRoute, setIsRoutingLoading }
             }
         });
 
-        routingControlRef.current.on('routingerror', () => {
-            setIsRoutingLoading(false);
-            console.error('Lỗi khi ghép tuyến đường');
-        });
+        // routingControlRef.current.on('routingerror', () => {
+        //     setIsRoutingLoading(false);
+        //     console.error('Lỗi khi ghép tuyến đường');
+        // });
 
         return () => {
             if (routingControlRef.current && map) {
@@ -209,7 +210,7 @@ export default function CreateRoute() {
     const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
     const [isCreatingRoute, setIsCreatingRoute] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const [isRoutingLoading, setIsRoutingLoading] = useState(false);
+    // const [isRoutingLoading, setIsRoutingLoading] = useState(false);
     const [estimatedDuration, setEstimatedDuration] = useState(0);
     const [totalDistance, setTotalDistance] = useState(0);
     const [routeName, setRouteName] = useState('');
@@ -229,10 +230,6 @@ export default function CreateRoute() {
         };
         fetchRoutes();
     }, []);
-
-    useEffect(() => {
-        console.log('isRoutingLoading', isRoutingLoading)
-    }, [isRoutingLoading])
 
     const handleRouteFound = useCallback((coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => {
         setRouteCoordinates(coordinates);
@@ -640,103 +637,111 @@ export default function CreateRoute() {
                     </>
                 )}
             </div>
-            <div className="flex-grow relative">
-                {isRoutingLoading && (
+            {/* <div className="flex-grow relative"> */}
+            {/* {isRoutingLoading && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="text-white text-xl font-semibold">Đang ghép tuyến đường...</div>
                     </div>
-                )}
-                <div className="flex-grow">
-                    <MapContainer
-                        center={mapCenter}
-                        zoom={15.5}
-                        style={{ height: '100%', width: '100%' }}
-                        maxBounds={[
-                            [10.830000, 106.830000], // Tọa độ góc dưới bên trái
-                            [10.850000, 106.860000]  // Tọa độ góc trên bên phải
-                        ]}
-                        maxBoundsViscosity={1.0} // Tăng độ nhạy của giới hạn
-                        minZoom={16} // Giới hạn mức zoom tối thiểu
-                        maxZoom={19} // Giới hạn mức zoom tối đa
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
+                )} */}
+            <div className="flex-grow">
 
-                        {isCreatingRoute ? (
-                            isEditing ? (
-                                selectedRoute && (
-                                    <>
-                                        <SavedRouteDisplay
-                                            coordinates={routeCoordinates.map(coord =>
-                                                L.latLng(coord.lat, coord.lng)
-                                            )}
-                                        />
-                                        {stops.map((stop) => (
-                                            <Marker
-                                                key={stop.id}
-                                                position={stop.position}
-                                                icon={createCustomIcon({ color: stop.color })}
-                                            >
-                                                <Popup>{stop.name}</Popup>
-                                            </Marker>
-                                        ))}
-                                        {stops.length >= 2 && (
-                                            <RoutingMachine
-                                                stops={stops}
-                                                onRouteFound={handleRouteFound}
-                                                setIsRoutingLoading={setIsRoutingLoading}
-                                            />
-                                        )}
-                                        <MapClickHandler onMapClick={handleMapClick} />
-                                    </>
-                                )
-                            ) :
-                                (
-                                    <>
-                                        {stops.map((stop) => (
-                                            <Marker
-                                                key={stop.id}
-                                                position={stop.position}
-                                                icon={createCustomIcon({ color: stop.color })}
-                                            >
-                                                <Popup>{stop.name}</Popup>
-                                            </Marker>
-                                        ))}
-                                        {stops.length >= 2 && (
-                                            <RoutingMachine
-                                                stops={stops}
-                                                onRouteFound={handleRouteFound}
-                                            />
-                                        )}
-                                        <MapClickHandler onMapClick={handleMapClick} />
-                                    </>
-                                )
-                        ) : (
+                <MapContainer
+                    center={mapCenter}
+                    zoom={15.5}
+                    style={{ height: '100%', width: '100%' }}
+                    maxBounds={[
+                        [10.830000, 106.830000], // Tọa độ góc dưới bên trái
+                        [10.850000, 106.860000]  // Tọa độ góc trên bên phải
+                    ]}
+                    maxBoundsViscosity={1.0} // Tăng độ nhạy của giới hạn
+                    minZoom={16} // Giới hạn mức zoom tối thiểu
+                    maxZoom={19} // Giới hạn mức zoom tối đa
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {/* {isRoutingLoading && (
+                        <div className="loading-overlay">
+                            <div className="loading-content">
+                                <div className="text-black text-xl font-semibold">Đang ghép tuyến đường...</div>
+                            </div>
+                        </div>
+                    )} */}
+                    {isCreatingRoute ? (
+                        isEditing ? (
                             selectedRoute && (
                                 <>
                                     <SavedRouteDisplay
-                                        coordinates={selectedRoute.scenicRouteCoordinates.map(coord =>
+                                        coordinates={routeCoordinates.map(coord =>
                                             L.latLng(coord.lat, coord.lng)
                                         )}
                                     />
-                                    {selectedRoute.waypoints.map((waypoint, index) => (
+                                    {stops.map((stop) => (
                                         <Marker
-                                            key={waypoint.id}
-                                            position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
-                                            icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
                                         >
-                                            <Popup>{waypoint.name}</Popup>
+                                            <Popup>{stop.name}</Popup>
                                         </Marker>
                                     ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        // setIsRoutingLoading={setIsRoutingLoading}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
                                 </>
                             )
+                        ) :
+                            (
+                                <>
+                                    {stops.map((stop) => (
+                                        <Marker
+                                            key={stop.id}
+                                            position={stop.position}
+                                            icon={createCustomIcon({ color: stop.color })}
+                                        >
+                                            <Popup>{stop.name}</Popup>
+                                        </Marker>
+                                    ))}
+                                    {stops.length >= 2 && (
+                                        <RoutingMachine
+                                            stops={stops}
+                                            onRouteFound={handleRouteFound}
+                                        // setIsRoutingLoading={setIsRoutingLoading}
+                                        />
+                                    )}
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                </>
+                            )
+                    ) : (
+                        selectedRoute && (
+                            <>
+                                <SavedRouteDisplay
+                                    coordinates={selectedRoute.scenicRouteCoordinates.map(coord =>
+                                        L.latLng(coord.lat, coord.lng)
+                                    )}
+                                />
+                                {selectedRoute.waypoints.map((waypoint, index) => (
+                                    <Marker
+                                        key={waypoint.id}
+                                        position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                                        icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
+                                    >
+                                        <Popup>{waypoint.name}</Popup>
+                                    </Marker>
+                                ))}
+                            </>
                         )
-                        }
-                    </MapContainer>
-                </div>
+                    )
+                    }
+                </MapContainer>
             </div>
+            {/* </div> */}
         </div >
     );
 }
