@@ -5,6 +5,7 @@ import { PayosService } from 'src/share/payos';
 import { RedisService } from 'src/share/redis';
 import { SmsService } from 'src/share/sms';
 import { Redis } from 'ioredis';
+import { HttpModule } from '@nestjs/axios';
 
 
 export const tokenJWTProvider = new JwtTokenService('2d', '7d');
@@ -54,6 +55,6 @@ const dependencies = [
 @Module({
   providers: [...dependencies],
   exports: [...dependencies],
-  imports: [],
+  imports: [HttpModule],
 })
 export class ShareModule { }

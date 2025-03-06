@@ -204,14 +204,17 @@ export class SearchService implements ISearchService {
     await this.validateBookingTime(bookingStartTime, bookingEndTime);
 
     const matchingShifts = this.getMatchingShifts(bookingStartTime, bookingEndTime);
-    console.log('matchingShifts', matchingShifts);
-    const midnightUTC = now.utc().startOf('day');
+    const midnightUTC = now.startOf('day');
+    console.log('midnightUTC', midnightUTC.toISOString());
 
+    // const scheduleDate = DateUtils.parseDate(date);
     const schedules = await this.getAvailableSchedules(
       midnightUTC.toDate(),
       matchingShifts,
       DriverSchedulesStatus.IN_PROGRESS,
     );
+
+    console.log('schedules', schedules);
 
     const validSchedules = await this.filterSchedulesWithoutConflicts(
       schedules,
