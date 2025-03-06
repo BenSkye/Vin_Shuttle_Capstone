@@ -80,4 +80,9 @@ export class DriverScheduleGateway implements OnGatewayInit, OnGatewayConnection
         await this.redisService.set(`${SOCKET_NAMESPACE.DRIVER_SCHEDULE}-vehicle-${driverId}`, vehicleId, 86400);
         console.log(`Driver ${driverId} checked in with vehicle ${vehicleId}`);
     }
+
+    async handleDriverCheckout(driverId: string) {
+        await this.redisService.del(`${SOCKET_NAMESPACE.DRIVER_SCHEDULE}-vehicle-${driverId}`);
+        console.log(`Driver ${driverId} checked out`);
+    }
 }

@@ -3,11 +3,11 @@ import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehi
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
 import { ICreateVehicle, IUpdateVehicle } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
-import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
+import { IVehiclesRepository, IVehiclesService } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 
 @Injectable()
-export class VehiclesService {
+export class VehiclesService implements IVehiclesService {
   constructor(
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
@@ -66,5 +66,25 @@ export class VehiclesService {
     }
     const updatedVehicle = await this.vehicleRepository.update(id, data);
     return updatedVehicle;
+  }
+
+  async getListVehicles(query: any): Promise<VehicleDocument[] | null> {
+    console.log('query', query);
+
+    const filter: any = {};
+    if (query.name) {
+      filter.name = { $regex: query.name, $options: 'i' };
+    }
+    if (query.categoryId) {
+      filter.categoryId = query.categoryId;
+    }
+    if (query.operationStatus) {
+      filter.operationStatus = query.operationStatus;
+    }
+    if (query.vehicleCondition) {
+      filter.vehicleCondition = query.vehicleCondition;
+    }
+    const result = await this.vehicleRepository.getListVehicles(filter, []);
+    return result;
   }
 }
