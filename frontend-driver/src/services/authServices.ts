@@ -23,7 +23,7 @@ export const authService = {
     try {
       console.log('API_URL:', API_URL);
       const response = await axios.post(`${API_URL}/auth/login-by-password`, credentials);
-      console.log('response:', response.data);
+      console.log('acessstokennnn:', response.data.token.accessToken);
       // Store tokens and userId in AsyncStorage
       if (response.data.isValid) {
         await AsyncStorage.multiSet([

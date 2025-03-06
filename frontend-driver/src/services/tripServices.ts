@@ -40,8 +40,6 @@ interface StatusHistory {
   _id: string;
 }
 
-
-
 export const getPersonalTrips = async (): Promise<Trip[]> => {
   try {
     const accessToken = await AsyncStorage.getItem('accessToken');
@@ -78,3 +76,43 @@ export const pickUp = async (tripId: string): Promise<Trip> => {
     throw error;
   }
 };
+
+export const startTrip = async (tripId: string): Promise<Trip> => {
+  try {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const response = await axios.post(
+      `${API_URL}/trip/driver-start-trip`,
+      { tripId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error starting trip:', error);
+    throw error;
+  }
+};
+
+export const completeTrip = async (tripId: string): Promise<Trip> => {
+  try {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const response = await axios.post(
+      `${API_URL}/trip/driver-complete-trip`,
+      { tripId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error completing trip:', error);
+    throw error;
+  }
+};
+
+export { Trip };
