@@ -13,9 +13,15 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         padding: 10,
+        paddingTop: 10, // To account for safe area
     },
     backButton: {
-        padding: 10,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     bottomCard: {
         position: 'absolute',
@@ -26,17 +32,18 @@ export const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
+        paddingBottom: 20, // Extra padding at bottom for safe area
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 2,
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
         elevation: 5,
     },
     tripHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 15,
     },
     tripTypeContainer: {
         flexDirection: 'row',
@@ -49,15 +56,15 @@ export const styles = StyleSheet.create({
         color: '#1E88E5',
     },
     tripId: {
-        fontSize: 14,
-        color: '#333',
+        fontSize: 12,
+        color: '#757575',
     },
     customerRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#f0f0f0',
     },
     customerAvatarContainer: {
         marginRight: 10,
@@ -72,7 +79,7 @@ export const styles = StyleSheet.create({
     },
     customerInitial: {
         color: 'white',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     customerInfo: {
@@ -81,49 +88,67 @@ export const styles = StyleSheet.create({
     customerName: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#333',
     },
     customerPhone: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#666',
+        marginTop: 2,
     },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+    customerTime: {
+        fontSize: 13,
+        color: '#4CAF50',
+        marginTop: 2,
     },
-    modalContent: {
-        width: '80%',
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
+    customerAddress: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 2,
+        flexShrink: 1,
     },
-    modalHeader: {
+    // Enhanced destination styles
+    destinationContainer: {
+        backgroundColor: '#FFF8E1',
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 12,
+        borderLeftWidth: 3,
+        borderLeftColor: '#FF9800',
+    },
+    activeDestination: {
+        backgroundColor: '#FFF3E0',
+        borderLeftColor: '#FF5722',
+    },
+    destinationHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 6,
     },
-    modalTitle: {
-        fontSize: 18,
+    destinationTitle: {
+        fontSize: 14,
         fontWeight: 'bold',
+        color: '#FF5722',
+        marginLeft: 4,
     },
-    modalBody: {
-        maxHeight: 300,
+    destinationAddress: {
+        fontSize: 13,
+        color: '#333',
+        marginLeft: 22,
     },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
+    destinationDistance: {
+        fontSize: 12,
+        color: '#757575',
+        marginTop: 4,
+        marginLeft: 22,
     },
-    infoLabel: {
-        fontWeight: 'bold',
+    routeToggle: {
+        marginLeft: 'auto',
     },
-    infoValue: {
-        flex: 1,
-        textAlign: 'right',
+    routeToggleText: {
+        fontSize: 11,
+        color: '#FF5722',
+        fontStyle: 'italic',
     },
-    // New styles for action buttons
     actionButtonContainer: {
         height: 48,
         justifyContent: 'center',
@@ -143,5 +168,87 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 8,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '80%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    modalBody: {
+        padding: 20,
+        paddingBottom: 30, // Add additional padding at bottom
+        flexGrow: 1, // Allow content to grow
+    },
+    infoRow: {
+        flexDirection: 'row',
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    infoLabel: {
+        width: '30%',
+        fontWeight: '500',
+        color: '#666',
+        flexShrink: 0, // Prevent label from shrinking
+    },
+    infoValue: {
+        width: '70%',
+        color: '#333',
+        flexShrink: 1, // Allow value to shrink if necessary
+    },
+    // Add this new style for the scroll view container
+    modalScrollContainer: {
+        maxHeight: '70%', // Control max height of scroll area
+    },
+    customerContainer: {
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        marginBottom: 8,
+    },
+    customerRowHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+    },
+    customerHeaderInfo: {
+        flex: 1,
+    },
+    customerDetails: {
+        paddingHorizontal: 12,
+        paddingBottom: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+        marginTop: 0,
+        paddingTop: 8,
+    },
+    viewMoreButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+    },
+    viewMoreText: {
+        color: '#1E88E5',
+        fontSize: 13,
+        fontWeight: '500',
     },
 });
