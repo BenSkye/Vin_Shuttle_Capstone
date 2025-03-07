@@ -98,7 +98,7 @@ export class BookingService implements IBookingService {
         );
 
 
-        const vehicles = await this.searchService.getVehiclesFromSchedules(validSchedules); \
+        const vehicles = await this.searchService.getVehiclesFromSchedules(validSchedules);
 
         const availableVehicles = await this.searchService.groupByVehicleType(vehicles, ServiceType.BOOKING_HOUR, durationMinutes)
         console.log('availableVehicles', availableVehicles)
