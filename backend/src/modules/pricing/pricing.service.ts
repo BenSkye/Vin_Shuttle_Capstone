@@ -74,15 +74,26 @@ export class PricingService implements IPricingService {
     if (exists) {
       throw new HttpException(
         {
-          statusCode: HttpStatus.NOT_FOUND,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: 'Vehicle pricing already exists',
           vnMessage: 'Cấu hình giá đã tồn tại',
         },
-        HttpStatus.NOT_FOUND,
+        HttpStatus.BAD_REQUEST,
       );
     }
     //make sure that the tire_pricing is not empty and sorted by range
-    return this.vehiclePricingRepo.create(pricing);
+    const newVehiclePricing = await this.vehiclePricingRepo.create(pricing);
+    if (!newVehiclePricing) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Vehicle pricing create failed',
+          vnMessage: 'Tạo cấu hình giá thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return newVehiclePricing;
   }
 
   async getServiceConfig(serviceType: string) {
@@ -153,7 +164,18 @@ export class PricingService implements IPricingService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return await this.vehiclePricingRepo.update(pricing);
+    const updatedVehiclePricing = await this.vehiclePricingRepo.update(pricing);
+    if (!updatedVehiclePricing) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Vehicle pricing update failed',
+          vnMessage: 'Cập nhật cấu hình giá thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return updatedVehiclePricing
   }
 
   //function to calculate price by hour or distance
