@@ -8,22 +8,25 @@ import { FaClock, FaCar, FaMapMarkerAlt, FaMoneyBillWave } from "react-icons/fa"
 import dayjs from "dayjs";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
 import dynamic from "next/dynamic";
-
-
+import { vehicleSearchRoute } from "@/service/search.service";
+import { RouteResponse } from "@/service/mapScenic";
+import { bookingRoute } from '@/service/booking.service';
 
 
 const steps = [
     { title: "Chọn ngày & giờ", icon: <FaClock /> },
-    { title: "Chọn loại xe", icon: <FaCar /> },
+
     { title: "Chọn lộ trình", icon: <FaClock /> },
+    { title: "Chọn loại xe", icon: <FaCar /> },
     { title: "Chọn địa điểm đón", icon: <FaMapMarkerAlt /> },
+
     { title: "Thanh toán", icon: <FaMoneyBillWave /> },
 ];
 
 
 const DateTimeSelection = dynamic(() => import("../../components/booking/bookingcomponents/datetimeselection"), { ssr: false });
 const LocationSelection = dynamic(() => import("../../components/booking/bookingcomponents/locationselection"), { ssr: false });
-const BusRoutes = dynamic(() => import("../../components/booking/bookingcomponents/busroutes"), { ssr: false });
+const CreateRoute = dynamic(() => import("../../components/map/createRoute"), { ssr: false });
 const CheckoutPage = dynamic(() => import("../../components/booking/bookingcomponents/checkoutpage"), { ssr: false });
 const VehicleSelection = dynamic(() => import("../../components/booking/bookingcomponents/vehicleselection"), { ssr: false });
 
@@ -31,7 +34,7 @@ const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
     const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
     const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([]);
     const [duration, setDuration] = useState<number>(60);
@@ -45,11 +48,84 @@ const RouteBooking = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
     const [loading, setLoading] = useState(false);
+    const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
 
 
+    const next = async () => {
+        // Log date selection information when moving from step 0 (date selection) to step 1
+        if (current === 0) {
+            // Validate date and time selection before proceeding
+            if (!selectedDate || !startTime) {
+                alert('Vui lòng chọn ngày và giờ đặt xe');
+                return;
+            }
 
-    const next = () => setCurrent((prev) => prev + 1);
+            console.log("Selected booking information:");
+            console.log("Date:", selectedDate ? selectedDate.format('YYYY-MM-DD') : 'Not selected');
+            console.log("Start time:", startTime ? startTime.format('HH:mm') : 'Not selected');
+            console.log("Duration:", duration, "minutes");
+
+            // Calculate estimated end time if both start time and duration are available
+            if (startTime) {
+                const endTime = startTime.add(duration, 'minute');
+                console.log("Estimated end time:", endTime.format('HH:mm'));
+            }
+        }
+
+        // If moving from route selection to vehicle selection, fetch available vehicles
+        if (current === 1) {
+            // Validate route selection before proceeding
+            if (!selectedRoute) {
+                alert('Vui lòng chọn lộ trình');
+                return;
+            }
+
+            // Fetch vehicles immediately before advancing to next step
+            await fetchAvailableVehicles();
+        }
+
+        // If moving from vehicle selection to location selection, check if vehicles are selected
+        if (current === 2 && selectedVehicles.length === 0) {
+            alert('Vui lòng chọn ít nhất một loại xe');
+            return;
+        }
+
+        // If moving from location selection to checkout page, call handleFinish
+        if (current === 3) {
+            if (!startPoint.address) {
+                alert('Vui lòng chọn địa điểm đón');
+                return;
+            }
+            await handleFinish();
+            return; // Don't increment current here as handleFinish will call next() if successful
+        }
+
+        setCurrent((prev) => prev + 1);
+    };
+
     const prev = () => setCurrent((prev) => prev - 1);
+
+    // You can also add logging when the date or time changes directly
+    const handleDateChange = (date: dayjs.Dayjs | null) => {
+        setSelectedDate(date);
+        console.log("Date changed to:", date ? date.format('YYYY-MM-DD') : 'None');
+    };
+
+    const handleStartTimeChange = (time: dayjs.Dayjs | null) => {
+        setStartTime(time);
+        console.log("Start time changed to:", time ? time.format('HH:mm') : 'None');
+    };
+
+    const handleDurationChange = (newDuration: number) => {
+        setDuration(newDuration);
+        console.log("Duration changed to:", newDuration, "minutes");
+
+        // Calculate and log the end time whenever duration changes
+        if (startTime) {
+            const endTime = startTime.add(newDuration, 'minute');
+            console.log("Updated end time:", endTime.format('HH:mm'));
+        }
+    };
 
     const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
         setLoading(true);
@@ -88,11 +164,67 @@ const RouteBooking = () => {
         }
     };
 
-    const handleFinish = () => {
-        // Add logic to handle booking completion
+
+
+    const handleRouteSelection = (route: RouteResponse) => {
+        setSelectedRoute(route);
+        console.log("Selected route in parent component:", route._id);
     };
 
+    const fetchAvailableVehicles = async () => {
+        if (!selectedDate || !startTime || !selectedRoute) {
+            console.warn("Cannot fetch vehicles: Missing date, time, or selected route");
 
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await vehicleSearchRoute(
+                selectedDate.format('YYYY-MM-DD'),
+                startTime.format('HH:mm'),
+                selectedRoute._id
+            );
+
+            // Ensure vehicles is always an array
+
+            console.log("Available vehicles:", response);
+            setAvailableVehicles(response);
+        } catch (error: unknown) {
+            console.error("Error fetching available vehicles:", error);
+            setAvailableVehicles([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFinish = async () => {
+        try {
+            setLoading(true);
+            const response = await bookingRoute({
+                date: selectedDate ? selectedDate.format('YYYY-MM-DD') : '',
+                startTime: startTime ? startTime.format('HH:mm') : '',
+                scenicRouteId: selectedRoute ? selectedRoute._id : '',
+                startPoint: {
+                    position: {
+                        lat: startPoint.position.lat,
+                        lng: startPoint.position.lng,
+                    },
+                    address: startPoint.address
+                },
+                vehicleCategories: selectedVehicles,
+                paymentMethod: 'pay_os'
+            });
+            console.log("Booking response:", response);
+            setBookingResponse(response);
+            setLoading(false);
+            next(); // This will move to step 4 (checkout)
+        }
+        catch (e) {
+            console.error("Error booking route:", e);
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -125,19 +257,22 @@ const RouteBooking = () => {
                                         selectedDate={selectedDate}
                                         startTime={startTime}
                                         duration={duration}
-                                        onDateChange={setSelectedDate}
-                                        onStartTimeChange={setStartTime}
-                                        onDurationChange={setDuration}
+                                        onDateChange={handleDateChange} // Use the new handler with logging
+                                        onStartTimeChange={handleStartTimeChange} // Use the new handler with logging
+                                        onDurationChange={handleDurationChange} // Use the new handler with logging
                                     />
                                 )}
                                 {current === 1 && (
-                                    <VehicleSelection
-                                        availableVehicles={availableVehicles}
-                                        selectedVehicles={selectedVehicles}
-                                        onSelectionChange={handleVehicleSelection}
+                                    <CreateRoute
+                                        onRouteSelect={handleRouteSelection}
+                                        selectedRoute={selectedRoute}
                                     />
                                 )}
-                                {current === 2 && <BusRoutes />}
+                                {current === 2 && (<VehicleSelection
+                                    availableVehicles={availableVehicles}
+                                    selectedVehicles={selectedVehicles}
+                                    onSelectionChange={handleVehicleSelection}
+                                />)}
                                 {current === 3 && (
                                     <LocationSelection
                                         startPoint={startPoint}
@@ -145,6 +280,7 @@ const RouteBooking = () => {
                                         loading={loading}
                                         detectUserLocation={detectUserLocation}
                                     />
+
                                 )}
                                 {current === 4 && bookingResponse && (
                                     <CheckoutPage bookingResponse={bookingResponse} />
@@ -163,39 +299,27 @@ const RouteBooking = () => {
                                         Quay lại
                                     </button>
                                 )}
-                                {current < steps.length - 1 ? (
-                                    <button
-                                        onClick={next}
-                                        className="px-6 py-3 bg-blue-500 text-white rounded-lg 
+                                <button
+                                    onClick={current < steps.length - 1 ? next : () => { }}
+                                    className="px-6 py-3 bg-blue-500 text-white rounded-lg 
                                     hover:bg-blue-600 transition-colors duration-200 ease-in-out
                                     focus:outline-none focus:ring-2 focus:ring-blue-300
                                         disabled:bg-blue-300 disabled:cursor-not-allowed
                                         min-w-[120px]"
-                                        disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <span className="flex items-center justify-center">
-                                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                </svg>
-                                                Đang xử lý...
-                                            </span>
-                                        ) : (
-                                            'Tiếp theo'
-                                        )}
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleFinish}
-                                        className="px-6 py-3 bg-green-500 text-white rounded-lg 
-                                    hover:bg-green-600 transition-colors duration-200 ease-in-out
-                                        focus:outline-none focus:ring-2 focus:ring-green-300
-                                        min-w-[120px]"
-                                    >
-                                        Xác nhận đặt xe
-                                    </button>
-                                )}
+                                    disabled={loading || current === steps.length - 1}
+                                >
+                                    {loading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Đang xử lý...
+                                        </span>
+                                    ) : (
+                                        current === 3 ? 'Xác nhận đặt xe' : 'Tiếp theo'
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>
