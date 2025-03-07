@@ -473,8 +473,8 @@ export class BookingService implements IBookingService {
                             address: startPoint.address
                         },
                         endPoint: {
-                            position: startPoint.position,
-                            address: startPoint.address
+                            position: endPoint.position,
+                            address: endPoint.address
                         },
                         distanceEstimate,
                         distance: distanceEstimate
