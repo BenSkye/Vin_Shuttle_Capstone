@@ -55,6 +55,7 @@ export class RedisService implements IRedisService {
         const vehicleIds = await this.redisClient.smembers(`${namespace}-${vehicleId}`);
         if (vehicleIds.includes(userId)) return;
         pipeline.sadd(`${namespace}-${vehicleId}`, userId);
+        pipeline.expire(`${namespace}-${vehicleId}`, 86400);
         await pipeline.exec();
     }
 

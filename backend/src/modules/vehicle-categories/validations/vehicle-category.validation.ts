@@ -13,7 +13,7 @@ export const VehicleCategoryValidation = {
         'string.min': ValidationMessages.string.min,
         'string.max': ValidationMessages.string.max,
       })
-      .label('Tên danh mục'),
+      .label('Tên danh mục xe'),
 
     description: Joi.string()
       .allow('')
@@ -21,7 +21,7 @@ export const VehicleCategoryValidation = {
       .messages({
         'string.max': ValidationMessages.string.max,
       })
-      .label('Mô tả'),
+      .label('Mô tả xe'),
 
     numberOfSeat: Joi.number()
       .required()
@@ -33,7 +33,7 @@ export const VehicleCategoryValidation = {
         'number.min': 'Số ghế phải lớn hơn {#limit}',
         'number.max': 'Số ghế không được vượt quá {#limit}',
       })
-      .label('Số ghế'),
+      .label('Số ghế xe'),
   }),
 
   update: Joi.object({

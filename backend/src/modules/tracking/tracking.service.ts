@@ -11,7 +11,7 @@ export class TrackingService implements ITrackingService {
     ) { }
 
     async updateLastVehicleLocation(vehicleId: string, location: LocationData) {
-        await this.redisClient.set(`lastLocation_${vehicleId}`, JSON.stringify(location));
+        await this.redisClient.set(`lastLocation_${vehicleId}`, JSON.stringify(location), 'EX', 86400);
     }
 
     async getLastVehicleLocation(vehicleId: string): Promise<LocationData> {
