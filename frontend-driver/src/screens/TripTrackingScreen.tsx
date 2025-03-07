@@ -13,6 +13,7 @@ const TripTrackingScreen = () => {
     const navigation = useNavigation();
     const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({ lat: 0, lng: 0 });
     const [customerDestination, setCustomerDestination] = useState<Position | null>(null);
+    const [showDestination, setShowDestination] = useState(false);
     const [trip, setTrip] = useState<Trip>(route.params?.trip as Trip);
     const [showCustomerInfo, setShowCustomerInfo] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -26,7 +27,12 @@ const TripTrackingScreen = () => {
             } else if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
                 const payload = trip.servicePayload as BookingDestinationPayloadDto;
                 setCustomerPickupLocation(payload.bookingDestination.startPoint.position);
+                
+                // Store destination but don't show it until trip is started
                 setCustomerDestination(payload.bookingDestination.endPoint.position);
+                
+                // Only show destination if trip is in progress
+                setShowDestination(trip.status.toLowerCase() === 'in_progress');
             }
             
             // Log the trip details for debugging
@@ -34,7 +40,9 @@ const TripTrackingScreen = () => {
                 id: trip._id,
                 status: trip.status,
                 serviceType: trip.serviceType,
-                pickupLocation: customerPickupLocation
+                pickupLocation: customerPickupLocation,
+                destinationLocation: customerDestination,
+                showDestination: showDestination
             });
         }
     }, [trip]);
@@ -66,6 +74,12 @@ const TripTrackingScreen = () => {
             setLoading(true);
             const updatedTrip = await startTrip(trip._id);
             setTrip(updatedTrip);
+            
+            // Set showDestination to true when trip starts if this is a destination booking
+            if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
+                setShowDestination(true);
+            }
+            
             Alert.alert('Success', 'Trip started successfully');
         } catch (error) {
             console.error('Start trip error:', error);
@@ -122,19 +136,43 @@ const TripTrackingScreen = () => {
                 return (
                     <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#FF5722' }]} onPress={handleCompleteTrip}>
                         <MaterialIcons name="done" size={20} color="#fff" />
-                        <Text style={styles.actionButtonText}>Complete Trip</Text>
+                        <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
                     </TouchableOpacity>
                 );
             case 'completed':
                 return (
                     <View style={[styles.actionButton, { backgroundColor: '#8BC34A' }]}>
                         <MaterialIcons name="check-circle" size={20} color="#fff" />
-                        <Text style={styles.actionButtonText}>Trip Completed</Text>
+                        <Text style={styles.actionButtonText}>Chuyến đi đã hoàn thành</Text>
                     </View>
                 );
             default:
                 return null;
         }
+    };
+
+    // Display destination information for BOOKING_DESTINATION when in progress
+    const renderDestinationInfo = () => {
+        if (trip.serviceType === ServiceType.BOOKING_DESTINATION && showDestination) {
+            const payload = trip.servicePayload as BookingDestinationPayloadDto;
+            return (
+                <View style={styles.destinationContainer}>
+                    <View style={styles.destinationHeader}>
+                        <MaterialIcons name="location-on" size={18} color="#FF5722" />
+                        <Text style={styles.destinationTitle}>Điểm đến</Text>
+                    </View>
+                    <Text style={styles.destinationAddress}>
+                        {payload.bookingDestination.endPoint.address}
+                    </Text>
+                    {payload.bookingDestination.distanceEstimate && (
+                        <Text style={styles.destinationDistance}>
+                            Khoảng cách: {(payload.bookingDestination.distanceEstimate / 1000).toFixed(1)} km
+                        </Text>
+                    )}
+                </View>
+            );
+        }
+        return null;
     };
 
     if (!route.params) {
@@ -150,7 +188,7 @@ const TripTrackingScreen = () => {
             {/* Map takes full screen */}
             <MapComponent 
                 pickupLocation={customerPickupLocation} 
-                detinateLocation={customerDestination} 
+                detinateLocation={showDestination ? customerDestination : null} 
             />
             
             {/* Header bar with back button and semi-transparent background */}
@@ -169,10 +207,13 @@ const TripTrackingScreen = () => {
                     <View style={styles.tripTypeContainer}>
                         <FontAwesome5 name="car" size={16} color="#1E88E5" />
                         <Text style={styles.tripTypeText}>
-                            {trip.serviceType === ServiceType.BOOKING_HOUR ? 'Hourly Booking (Đặt xe theo giờ)' : 'Trip Service'}
+                            {trip.serviceType === ServiceType.BOOKING_HOUR 
+                                ? 'Hourly Booking (Đặt xe theo giờ)' 
+                                : trip.serviceType === ServiceType.BOOKING_DESTINATION 
+                                    ? 'Destination Booking (Đặt xe theo điểm đến)'
+                                    : 'Trip Service'}
                         </Text>
                     </View>
-                    {/* <Text style={styles.tripId}>ID: {trip._id.substring(0, 8)}...</Text> */}
                 </View>
                 
                 <TouchableOpacity style={styles.customerRow} onPress={toggleCustomerInfo}>
@@ -186,21 +227,24 @@ const TripTrackingScreen = () => {
                     <View style={styles.customerInfo}>
                         <Text style={styles.customerName}>{trip.customerId?.name || 'N/A'}</Text>
                         <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
-                        <Text style={styles.customerTime}>
-                            {trip.serviceType === ServiceType.BOOKING_HOUR 
-                                ? `Thời gian thuê xe: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút` 
-                                : ''}
-                        </Text>
+                        {trip.serviceType === ServiceType.BOOKING_HOUR && (
+                            <Text style={styles.customerTime}>
+                                Thời gian thuê xe: {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
+                            </Text>
+                        )}
                         <Text style={styles.customerAddress}>
                             {trip.serviceType === ServiceType.BOOKING_HOUR 
                                 ? `Địa chỉ đón: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}` 
                                 : trip.serviceType === ServiceType.BOOKING_DESTINATION
-                                    ? `Pickup: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}` 
+                                    ? `Điểm đón: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}` 
                                     : 'N/A'}
                         </Text>
                     </View>
                     <MaterialIcons name="keyboard-arrow-right" size={24} color="#333" />
                 </TouchableOpacity>
+                
+                {/* Destination information - only show for destination booking when in progress */}
+                {renderDestinationInfo()}
                 
                 {/* Action button section */}
                 <View style={{ marginTop: 15 }}>
@@ -256,6 +300,38 @@ const TripTrackingScreen = () => {
                                 <Text style={styles.infoLabel}>Trạng thái:</Text>
                                 <Text style={styles.infoValue}>{trip.status}</Text>
                             </View>
+
+                            {trip.serviceType === ServiceType.BOOKING_DESTINATION && (
+                                <>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Điểm đón:</Text>
+                                        <Text style={styles.infoValue}>
+                                            {(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Điểm đến:</Text>
+                                        <Text style={styles.infoValue}>
+                                            {(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.endPoint.address}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Khoảng cách:</Text>
+                                        <Text style={styles.infoValue}>
+                                            {((trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.distanceEstimate / 1000).toFixed(1)} km
+                                        </Text>
+                                    </View>
+                                </>
+                            )}
+
+                            {trip.serviceType === ServiceType.BOOKING_HOUR && (
+                                <View style={styles.infoRow}>
+                                    <Text style={styles.infoLabel}>Thời gian thuê:</Text>
+                                    <Text style={styles.infoValue}>
+                                        {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
+                                    </Text>
+                                </View>
+                            )}
                         </ScrollView>
                     </View>
                 </View>
