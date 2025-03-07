@@ -134,12 +134,17 @@ const LineBookingPage = () => {
     };
 
     const handleVehicleSelection = (categoryId: string, name: string, selected: boolean) => {
+        console.log('Vehicle selection event:', { categoryId, name, selected });
+        console.log('Current selection before update:', selectedVehicle);
+
         if (selected) {
             // Set this as the only selected vehicle
             setSelectedVehicle({ categoryVehicleId: categoryId, name });
+            console.log('Setting selection to:', { categoryVehicleId: categoryId, name });
         } else if (selectedVehicle?.categoryVehicleId === categoryId) {
             // If deselecting the currently selected vehicle, clear selection
             setSelectedVehicle(null);
+            console.log('Clearing selection');
         }
     };
 
@@ -218,12 +223,11 @@ const LineBookingPage = () => {
                 endPoint: endPoint,
                 estimatedDuration: estimatedDuration,
                 distanceEstimate: estimatedDistance,
-                vehicleCategories: selectedVehicle, // Single vehicle object, not an array
+                vehicleCategories: selectedVehicle,
                 paymentMethod: "pay_os"
             };
 
-            console.log('Payment Method:', payload.paymentMethod);
-            console.log('Full payload with payment method:', JSON.stringify(payload, null, 2));
+
             console.log('Calling bookingDestination with payload:', payload);
 
             const response = await bookingDestination(payload);

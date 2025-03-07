@@ -36,16 +36,17 @@ const DesVehicleSelection: React.FC<VehicleSelectionProps> = ({
                         return (
                             <Card
                                 key={vehicle.vehicleCategory._id}
-                                className={`transform transition-all duration-200 hover:shadow-lg ${isSelected ? "bg-blue-100" : "border border-gray-200"
+                                className={`transform transition-all duration-200 hover:shadow-lg cursor-pointer ${isSelected ? "bg-blue-100" : "border border-gray-200"
                                     }`}
                                 bodyStyle={{ padding: "1.5rem" }}
-                                onClick={() =>
+                                onClick={() => {
+                                    console.log('Card clicked:', vehicle.vehicleCategory._id);
                                     onSelectionChange(
                                         vehicle.vehicleCategory._id,
                                         vehicle.vehicleCategory.name,
                                         !isSelected // Toggle selection
-                                    )
-                                }
+                                    );
+                                }}
                             >
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="bg-blue-100 p-3 rounded-full">
@@ -70,11 +71,27 @@ const DesVehicleSelection: React.FC<VehicleSelectionProps> = ({
                                         {formatVndPrice(vehicle.price)}/Xe
                                     </p>
                                 </div>
+
+                                {/* Add visual indicator for selection */}
+                                {isSelected && (
+                                    <div className="absolute top-3 right-3">
+                                        <div className="bg-blue-500 text-white rounded-full p-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                )}
                             </Card>
                         );
                     })}
                 </div>
             )}
+
+            {/* Debug info */}
+            <div className="mt-6 p-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500">Currently selected: {selectedVehicle ? `${selectedVehicle.name} (${selectedVehicle.categoryVehicleId})` : 'None'}</p>
+            </div>
         </div>
     );
 };
