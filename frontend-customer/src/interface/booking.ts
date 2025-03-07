@@ -28,6 +28,7 @@ export interface BookingHourRequest {
     startTime: string;
     durationMinutes: number;
     vehicleCategories: {
+        name: string;
         categoryVehicleId: string;
         quantity: number;
         name: string;
