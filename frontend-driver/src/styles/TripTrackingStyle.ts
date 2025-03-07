@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         padding: 10,
-        paddingTop: 40, // To account for safe area
+        paddingTop: 10, // To account for safe area
     },
     backButton: {
         width: 36,
@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
-        paddingBottom: 30, // Extra padding at bottom for safe area
+        paddingBottom: 20, // Extra padding at bottom for safe area
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.2,
@@ -106,13 +106,17 @@ export const styles = StyleSheet.create({
         marginTop: 2,
         flexShrink: 1,
     },
-    // New styles for destination info
+    // Enhanced destination styles
     destinationContainer: {
         backgroundColor: '#FFF8E1',
         borderRadius: 8,
         padding: 12,
         marginTop: 12,
         borderLeftWidth: 3,
+        borderLeftColor: '#FF9800',
+    },
+    activeDestination: {
+        backgroundColor: '#FFF3E0',
         borderLeftColor: '#FF5722',
     },
     destinationHeader: {
@@ -136,6 +140,14 @@ export const styles = StyleSheet.create({
         color: '#757575',
         marginTop: 4,
         marginLeft: 22,
+    },
+    routeToggle: {
+        marginLeft: 'auto',
+    },
+    routeToggleText: {
+        fontSize: 11,
+        color: '#FF5722',
+        fontStyle: 'italic',
     },
     actionButtonContainer: {
         height: 48,
@@ -183,6 +195,8 @@ export const styles = StyleSheet.create({
     },
     modalBody: {
         padding: 20,
+        paddingBottom: 30, // Add additional padding at bottom
+        flexGrow: 1, // Allow content to grow
     },
     infoRow: {
         flexDirection: 'row',
@@ -194,9 +208,47 @@ export const styles = StyleSheet.create({
         width: '30%',
         fontWeight: '500',
         color: '#666',
+        flexShrink: 0, // Prevent label from shrinking
     },
     infoValue: {
         width: '70%',
         color: '#333',
+        flexShrink: 1, // Allow value to shrink if necessary
+    },
+    // Add this new style for the scroll view container
+    modalScrollContainer: {
+        maxHeight: '70%', // Control max height of scroll area
+    },
+    customerContainer: {
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        marginBottom: 8,
+    },
+    customerRowHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+    },
+    customerHeaderInfo: {
+        flex: 1,
+    },
+    customerDetails: {
+        paddingHorizontal: 12,
+        paddingBottom: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+        marginTop: 0,
+        paddingTop: 8,
+    },
+    viewMoreButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+    },
+    viewMoreText: {
+        color: '#1E88E5',
+        fontSize: 13,
+        fontWeight: '500',
     },
 });
