@@ -31,7 +31,7 @@ export interface BookingHourRequest {
         name: string;
         categoryVehicleId: string;
         quantity: number;
-        name: string;
+
     }[];
     paymentMethod: 'pay_os' | 'cash' | 'momo'; // Các phương thức thanh toán hỗ trợ
 }
@@ -89,3 +89,21 @@ export interface BookingDestinationRequest {
 }
 
 
+export interface BookingRouteRequest {
+    startPoint: {
+        position: {
+            lat: number;
+            lng: number;
+        };
+        address: string;
+    };
+    scenicRouteId: string;
+    date: string;
+    startTime: string;
+    vehicleCategories: {
+        categoryVehicleId: string;
+        name: string;
+        quantity: number;
+    }[];
+    paymentMethod: 'pay_os' | 'cash' | 'momo';
+}

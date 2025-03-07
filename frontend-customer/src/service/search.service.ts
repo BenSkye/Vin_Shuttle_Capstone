@@ -37,5 +37,22 @@ export const vehicleSearchDestination = async (
             throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định');
         }
         throw new Error('Lỗi kết nối máy chủ');
+
+
     }
 };
+
+
+export const vehicleSearchRoute = async (date: string, startTime: string, scenicRouteId: string) => {
+
+    try {
+        const response = await apiClient.get(`/search/available-vehicle-search-scenic-route/${date}/${startTime}/${scenicRouteId}`);
+        return response.data;
+    } catch (e) {
+        console.log("Error", e)
+        return { vehicles: [] };
+    }
+
+
+}
+

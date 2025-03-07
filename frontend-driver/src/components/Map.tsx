@@ -9,85 +9,150 @@ const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
 
 const MapComponent = ({
     pickupLocation,
-    detinateLocation
+    detinateLocation,
+    showRouteToDestination = false
 }: {
     pickupLocation: Position,
-    detinateLocation?: Position
+    detinateLocation?: Position | null,
+    showRouteToDestination?: boolean
 }) => {
     const { location, errorMsg } = useLocation();
     const mapRef = useRef<MapView | null>(null);
     const [pickup, setPickup] = useState<{ latitude: number; longitude: number } | null>(null);
     const [detinate, setDetinate] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [routeCoordinates, setRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [routeToPickupCoordinates, setRouteToPickupCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [routeToDestinationCoordinates, setRouteToDestinationCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
     const [routeError, setRouteError] = useState<string | null>(null);
 
     useEffect(() => {
         if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
             setPickup({ latitude: pickupLocation.lat, longitude: pickupLocation.lng });
+            
+            // Log pickup location
+            console.log("Set pickup location:", {
+                lat: pickupLocation.lat,
+                lng: pickupLocation.lng
+            });
         }
         if (detinateLocation && detinateLocation.lat && detinateLocation.lng) {
             setDetinate({ latitude: detinateLocation.lat, longitude: detinateLocation.lng });
+            
+            // Log destination location
+            console.log("Set destination location:", {
+                lat: detinateLocation.lat,
+                lng: detinateLocation.lng
+            });
+        } else {
+            setDetinate(null);
         }
     }, [pickupLocation, detinateLocation]);
 
+    // Fit map to include all relevant points (driver, pickup, and destination if available)
     useEffect(() => {
         if (location && mapRef.current) {
-            mapRef.current.animateToRegion({
-                latitude: location.latitude,
-                longitude: location.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-            }, 1000);
-        }
-    }, [location]);
-
-    // Gọi OSRM API để lấy tuyến đường từ vị trí hiện tại đến điểm đón
-    useEffect(() => {
-        if (location && pickup && pickup.latitude && pickup.longitude) {
-            // Reset errors
-            setRouteError(null);
+            const points = [
+                { latitude: location.latitude, longitude: location.longitude }
+            ];
             
-            // Validate coordinates
-            if (!isValidCoordinate(location.latitude, location.longitude) || 
-                !isValidCoordinate(pickup.latitude, pickup.longitude)) {
-                setRouteError("Invalid coordinates");
+            if (pickup) points.push(pickup);
+            if (detinate) points.push(detinate);
+            
+            // Only fit bounds if we have multiple points
+            if (points.length > 1) {
+                mapRef.current.fitToCoordinates(points, {
+                    edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
+                    animated: true,
+                });
+            } else {
+                // If only driver location, center on that
+                mapRef.current.animateToRegion({
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                }, 1000);
+            }
+        }
+    }, [location, pickup, detinate]);
+
+    // Get route from driver to pickup
+    useEffect(() => {
+        if (location && pickup && pickup.latitude && pickup.longitude && !showRouteToDestination) {
+            fetchRoute(
+                { latitude: location.latitude, longitude: location.longitude },
+                pickup,
+                setRouteToPickupCoordinates
+            );
+        }
+    }, [location, pickup, showRouteToDestination]);
+
+    // Get route from driver to destination when in destination mode
+    useEffect(() => {
+        if (location && detinate && detinate.latitude && detinate.longitude && showRouteToDestination) {
+            fetchRoute(
+                { latitude: location.latitude, longitude: location.longitude },
+                detinate,
+                setRouteToDestinationCoordinates
+            );
+            
+            // Clear the pickup route when showing route to destination
+            setRouteToPickupCoordinates([]);
+        }
+    }, [location, detinate, showRouteToDestination]);
+
+    // Helper function to fetch routes
+    const fetchRoute = async (
+        from: { latitude: number; longitude: number },
+        to: { latitude: number; longitude: number },
+        setRouteCoordinates: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number }[]>>
+    ) => {
+        // Reset errors
+        setRouteError(null);
+        
+        // Validate coordinates
+        if (!isValidCoordinate(from.latitude, from.longitude) || 
+            !isValidCoordinate(to.latitude, to.longitude)) {
+            console.log("Invalid coordinates:", { from, to });
+            setRouteError("Invalid coordinates");
+            return;
+        }
+        
+        const url = `${OSRM_API}/${from.longitude},${from.latitude};${to.longitude},${to.latitude}?geometries=geojson`;
+        
+        console.log("Fetching route:", url);
+        
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data || !data.routes) {
+                console.log("Invalid OSRM response data:", data);
+                setRouteError("Invalid route data received");
                 return;
             }
             
-            const url = `${OSRM_API}/${location.longitude},${location.latitude};${pickup.longitude},${pickup.latitude}?geometries=geojson`;
-            
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Validate response data
-                    if (!data || !data.routes) {
-                        console.log("Invalid OSRM response data:", data);
-                        setRouteError("Invalid route data received");
-                        return;
-                    }
-                    
-                    if (data.routes.length > 0 && data.routes[0].geometry && data.routes[0].geometry.coordinates) {
-                        const coordinates = data.routes[0].geometry.coordinates.map((coord: number[]) => ({
-                            latitude: coord[1],
-                            longitude: coord[0],
-                        }));
-                        setRouteCoordinates(coordinates);
-                    } else {
-                        console.log("No route found in data:", data);
-                        setRouteError("No route found");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching route data:", error);
-                    setRouteError("Failed to load route");
-                });
+            if (data.routes.length > 0 && data.routes[0].geometry && data.routes[0].geometry.coordinates) {
+                const coordinates = data.routes[0].geometry.coordinates.map((coord: number[]) => ({
+                    latitude: coord[1],
+                    longitude: coord[0],
+                }));
+                
+                console.log(`Route found with ${coordinates.length} points`);
+                setRouteCoordinates(coordinates);
+            } else {
+                console.log("No route found in data:", data);
+                setRouteError("No route found");
+            }
+        } catch (error) {
+            console.error("Error fetching route data:", error);
+            setRouteError(`Failed to load route: ${error instanceof Error ? error.message : String(error)}`);
         }
-    }, [location, pickup]);
+    };
 
     // Helper to validate coordinates
     const isValidCoordinate = (lat: number, lng: number): boolean => {
@@ -121,12 +186,23 @@ const MapComponent = ({
                             tileSize={512}
                             flipY={false}
                         />
-                        {/* Vẽ tuyến đường với Polyline */}
-                        {routeCoordinates.length > 0 && (
+                        
+                        {/* Route to pickup point - blue */}
+                        {routeToPickupCoordinates.length > 0 && !showRouteToDestination && (
                             <Polyline
-                                coordinates={routeCoordinates}
+                                coordinates={routeToPickupCoordinates}
                                 strokeWidth={4}
                                 strokeColor="#1E88E5"
+                                lineDashPattern={[0]}
+                            />
+                        )}
+                        
+                        {/* Route to destination - orange */}
+                        {routeToDestinationCoordinates.length > 0 && showRouteToDestination && (
+                            <Polyline
+                                coordinates={routeToDestinationCoordinates}
+                                strokeWidth={4}
+                                strokeColor="#FF5722"
                                 lineDashPattern={[0]}
                             />
                         )}
@@ -151,8 +227,8 @@ const MapComponent = ({
                             />
                         </Marker.Animated>
 
-                        {/* Marker cho điểm đón */}
-                        {pickup && isValidCoordinate(pickup.latitude, pickup.longitude) && (
+                        {/* Marker cho điểm đón - only show if not in destination routing mode */}
+                        {pickup && isValidCoordinate(pickup.latitude, pickup.longitude) && (!showRouteToDestination) && (
                             <Marker 
                                 coordinate={pickup} 
                                 title="Điểm đón"
@@ -175,6 +251,15 @@ const MapComponent = ({
                             <Text style={styles.errorBannerText}>{routeError}</Text>
                         </View>
                     )}
+                    
+                    {/* Route indicator */}
+                    {/* {(showRouteToDestination && detinate) ? (
+                        <View style={styles.routeIndicator}>
+                            <Text style={styles.routeIndicatorText}>
+                                Đang hiển thị lộ trình đến điểm đến
+                            </Text>
+                        </View>
+                    ) : null} */}
                 </View>
             ) : (
                 <Text style={styles.loadingText}>Đang tải vị trí...</Text>
@@ -211,6 +296,19 @@ const styles = StyleSheet.create({
     errorBannerText: {
         color: 'white',
         textAlign: 'center',
+    },
+    routeIndicator: {
+        position: 'absolute',
+        top: 60,
+        alignSelf: 'center',
+        backgroundColor: 'rgba(255, 87, 34, 0.9)',
+        padding: 8,
+        borderRadius: 20,
+    },
+    routeIndicatorText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
     }
 });
 
