@@ -86,6 +86,17 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
     },
+    customerTime: {
+        fontSize: 13,
+        color: '#4CAF50',
+        marginTop: 2,
+    },
+    customerAddress: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 2,
+        flexShrink: 1,
+    },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',

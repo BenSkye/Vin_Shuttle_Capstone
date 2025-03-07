@@ -115,7 +115,7 @@ const TripTrackingScreen = () => {
                 return (
                     <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#4CAF50' }]} onPress={handleStartTrip}>
                         <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                        <Text style={styles.actionButtonText}>Start Trip</Text>
+                        <Text style={styles.actionButtonText}>Bắt đầu chuyến đi</Text>
                     </TouchableOpacity>
                 );
             case 'in_progress':
@@ -169,10 +169,10 @@ const TripTrackingScreen = () => {
                     <View style={styles.tripTypeContainer}>
                         <FontAwesome5 name="car" size={16} color="#1E88E5" />
                         <Text style={styles.tripTypeText}>
-                            {trip.serviceType === ServiceType.BOOKING_HOUR ? 'Hourly Booking' : 'Trip Service'}
+                            {trip.serviceType === ServiceType.BOOKING_HOUR ? 'Hourly Booking (Đặt xe theo giờ)' : 'Trip Service'}
                         </Text>
                     </View>
-                    <Text style={styles.tripId}>ID: {trip._id.substring(0, 8)}...</Text>
+                    {/* <Text style={styles.tripId}>ID: {trip._id.substring(0, 8)}...</Text> */}
                 </View>
                 
                 <TouchableOpacity style={styles.customerRow} onPress={toggleCustomerInfo}>
@@ -186,6 +186,18 @@ const TripTrackingScreen = () => {
                     <View style={styles.customerInfo}>
                         <Text style={styles.customerName}>{trip.customerId?.name || 'N/A'}</Text>
                         <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
+                        <Text style={styles.customerTime}>
+                            {trip.serviceType === ServiceType.BOOKING_HOUR 
+                                ? `Thời gian thuê xe: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút` 
+                                : ''}
+                        </Text>
+                        <Text style={styles.customerAddress}>
+                            {trip.serviceType === ServiceType.BOOKING_HOUR 
+                                ? `Địa chỉ đón: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}` 
+                                : trip.serviceType === ServiceType.BOOKING_DESTINATION
+                                    ? `Pickup: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}` 
+                                    : 'N/A'}
+                        </Text>
                     </View>
                     <MaterialIcons name="keyboard-arrow-right" size={24} color="#333" />
                 </TouchableOpacity>
@@ -206,7 +218,7 @@ const TripTrackingScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Customer Information</Text>
+                            <Text style={styles.modalTitle}>Thông tin khách hàng</Text>
                             <TouchableOpacity onPress={toggleCustomerInfo}>
                                 <Ionicons name="close" size={24} color="#333" />
                             </TouchableOpacity>
@@ -214,34 +226,34 @@ const TripTrackingScreen = () => {
                         
                         <ScrollView style={styles.modalBody}>
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Name:</Text>
+                                <Text style={styles.infoLabel}>Tên:</Text>
                                 <Text style={styles.infoValue}>{trip.customerId?.name || 'N/A'}</Text>
                             </View>
                             
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Phone:</Text>
+                                <Text style={styles.infoLabel}>Số điện thoại:</Text>
                                 <Text style={styles.infoValue}>{trip.customerId?.phone || 'N/A'}</Text>
                             </View>
                             
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Trip ID:</Text>
+                                <Text style={styles.infoLabel}>Mã chuyến đi:</Text>
                                 <Text style={styles.infoValue}>{trip._id}</Text>
                             </View>
                             
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Vehicle:</Text>
+                                <Text style={styles.infoLabel}>Phương tiện:</Text>
                                 <Text style={styles.infoValue}>
                                     {trip.vehicleId?.name} ({trip.vehicleId?.licensePlate})
                                 </Text>
                             </View>
                             
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Amount:</Text>
+                                <Text style={styles.infoLabel}>Số tiền đã thanh toán:</Text>
                                 <Text style={styles.infoValue}>{trip.amount} VND</Text>
                             </View>
                             
                             <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Status:</Text>
+                                <Text style={styles.infoLabel}>Trạng thái:</Text>
                                 <Text style={styles.infoValue}>{trip.status}</Text>
                             </View>
                         </ScrollView>
