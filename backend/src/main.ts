@@ -26,6 +26,6 @@ async function bootstrap() {
   });
   //log link to swagger
   console.log(`Swagger UI is running on http://localhost:${process.env.PORT ?? 26202}/api-docs`); // thêm chữ s vào nếu muốn sài https
-  await app.listen(process.env.PORT ?? 26202);
+  await app.listen(process.env.PORT ?? 26202, '0.0.0.0');
 }
 bootstrap();
