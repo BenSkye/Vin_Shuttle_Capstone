@@ -315,8 +315,8 @@ export class SearchService implements ISearchService {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `No more Schedule valid`,
-          vnMessage: 'Không có lịch phù hợp',
+          message: `No more Schedule valid for shift ${shifts.join(', ')} in date ${date}`,
+          vnMessage: 'Không có lịch phù hợp cho ca làm việc ' + shifts.join(', ') + ' vào ngày ' + date,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -366,8 +366,8 @@ export class SearchService implements ISearchService {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `No more Schedule valid`,
-          vnMessage: 'Không có lịch phù hợp',
+          message: `All schedules are busy ${schedules.join(', ')}`,
+          vnMessage: 'Tất cả lịch phục vụ đã bận',
         },
         HttpStatus.BAD_REQUEST,
       );
