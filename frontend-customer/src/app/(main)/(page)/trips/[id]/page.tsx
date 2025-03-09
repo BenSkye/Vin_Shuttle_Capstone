@@ -50,22 +50,52 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             case ServiceType.BOOKING_SCENIC_ROUTE:
                 const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto;
                 return (
-                    <div className="space-y-2">
-                        <p>Điểm đón: {scenicPayload.bookingScenicRoute.startPoint.address}</p>
-                        <p>Tuyến đường: {scenicPayload.bookingScenicRoute.routeId}</p>
-                        <p>Khoảng cách ước tính: {scenicPayload.bookingScenicRoute.distanceEstimate} km</p>
-                        <p>Khoảng cách thực tế: {scenicPayload.bookingScenicRoute.distance} km</p>
-                    </div>
+                    <>
+                        <div className="space-y-2">
+                            <p>Điểm đón: {scenicPayload.bookingScenicRoute.startPoint.address}</p>
+                            <p>Tuyến đường: {scenicPayload.bookingScenicRoute.routeId}</p>
+                            <p>Khoảng cách ước tính: {scenicPayload.bookingScenicRoute.distanceEstimate} km</p>
+                            <p>Khoảng cách thực tế: {scenicPayload.bookingScenicRoute.distance} km</p>
+                        </div>
+                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
+                            <div className="space-y-4">
+                                <RealTimeTripMap
+                                    pickupLocation={[
+                                        hourPayload.bookingHour.startPoint.position.lat,
+                                        hourPayload.bookingHour.startPoint.position.lng
+                                    ]}
+                                    vehicleId={trip.vehicleId._id}
+                                />
+                            </div>
+                        ) : (
+                            <></>
+                        )}
+                    </>
                 );
             case ServiceType.BOOKING_DESTINATION:
                 const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto;
                 return (
-                    <div className="space-y-2">
-                        <p>Điểm đón: {destinationPayload.bookingDestination.startPoint.address}</p>
-                        <p>Điểm đến: {destinationPayload.bookingDestination.endPoint.address}</p>
-                        <p>Khoảng cách ước tính: {destinationPayload.bookingDestination.distanceEstimate} km</p>
-                        <p>Khoảng cách thực tế: {destinationPayload.bookingDestination.distance} km</p>
-                    </div>
+                    <>
+                        <div className="space-y-2">
+                            <p>Điểm đón: {destinationPayload.bookingDestination.startPoint.address}</p>
+                            <p>Điểm đến: {destinationPayload.bookingDestination.endPoint.address}</p>
+                            <p>Khoảng cách ước tính: {destinationPayload.bookingDestination.distanceEstimate} km</p>
+                            <p>Khoảng cách thực tế: {destinationPayload.bookingDestination.distance} km</p>
+                        </div>
+                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
+                            <div className="space-y-4">
+                                <RealTimeTripMap
+                                    pickupLocation={[
+                                        hourPayload.bookingHour.startPoint.position.lat,
+                                        hourPayload.bookingHour.startPoint.position.lng
+                                    ]}
+                                    vehicleId={trip.vehicleId._id}
+                                />
+                            </div>
+                        ) : (
+                            <></>
+                        )}
+                    </>
                 );
             case ServiceType.BOOKING_SHARE:
                 const sharePayload = trip.servicePayload as BookingSharePayloadDto;
