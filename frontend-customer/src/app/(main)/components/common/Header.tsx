@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserCheck, FiClock } from "react-icons/fi"
 import { useRouter } from "next/navigation"
+import { Logo } from './Logo'
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
@@ -71,8 +72,8 @@ export default function Navbar() {
         { label: "Đặt xe theo tuyến cố định", href: "/bookroute" },
         { label: "Đặt xe điểm đến", href: "/bookdes" },
         { label: "Tính năng", href: "/features" },
-        { label: "Blog", href: "/blog" },
-        { label: "Fanpage", href: "/page" },
+        // { label: "Blog", href: "/blog" },
+        // { label: "Fanpage", href: "/page" },
     ]
 
     const AuthButtons = () => {
@@ -152,10 +153,7 @@ export default function Navbar() {
     return (
         <nav className="flex items-center justify-between px-4 py-4 bg-white shadow-sm">
             {/* Logo */}
-            <Link href="/" className="flex items-center">
-                <Image src="/favicon.svg" alt="VinShuttle" width={40} height={40} className="object-contain" />
-                <span className="ml-3 text-black text-2xl font-bold">VinShuttle</span>
-            </Link>
+            <Logo size='large' />
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex justify-center items-center space-x-12 ml-24 mr-auto pl-72">
