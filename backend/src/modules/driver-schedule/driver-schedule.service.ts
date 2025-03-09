@@ -73,26 +73,26 @@ export class DriverScheduleService implements IDriverScheduleService {
       const isExistScheduleWithDriver = await this.driverScheduleRepository.findOneDriverSchedule({
         date: schedule.date,
         driver: schedule.driver
-      }, []
+      }, ['driver', 'date']
       );
       if (isExistScheduleWithDriver) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `Duplicate date shift with driver ${schedule.date}-${schedule.driver} in database`,
-          vnMessage: `Trùng lịch ${schedule.date}-${schedule.driver}`
+          message: `Duplicate date shift with driver ${isExistScheduleWithDriver.date.toISOString().split('T')[0]}-${isExistScheduleWithDriver.driver.name} in database`,
+          vnMessage: `Trùng lịch ${isExistScheduleWithDriver.date.toISOString().split('T')[0]}-${isExistScheduleWithDriver.driver.name}`
         }, HttpStatus.BAD_REQUEST);
       }
 
       const isExistScheduleWithVehicle = await this.driverScheduleRepository.findOneDriverSchedule({
         date: schedule.date,
         vehicle: schedule.vehicle
-      }, []
+      }, ['vehicle', 'date']
       );
       if (isExistScheduleWithVehicle) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `Duplicate date shift with vehicle ${schedule.date}-${schedule.vehicle} in database`,
-          vnMessage: `Trùng lịch ${schedule.date}-${schedule.vehicle}`
+          message: `Duplicate date shift with vehicle ${isExistScheduleWithVehicle.date.toISOString().split('T')[0]}-${isExistScheduleWithVehicle.vehicle.name} in database`,
+          vnMessage: `Trùng lịch ${isExistScheduleWithVehicle.date.toISOString().split('T')[0]}-${isExistScheduleWithVehicle.vehicle.name}`
         }, HttpStatus.BAD_REQUEST);
       }
     }
@@ -124,8 +124,79 @@ export class DriverScheduleService implements IDriverScheduleService {
   }
 
   async createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument> {
+    const listDriverSchedule = [driverSchedule];
+    await this.checkListDriverSchedule(listDriverSchedule);
     const newDriverSchedule = await this.driverScheduleRepository.createDriverSchedule(driverSchedule);
+    if (!newDriverSchedule) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Create driver schedule failed',
+        vnMessage: 'Tạo lịch không thành công'
+      }, HttpStatus.BAD_REQUEST);
+    }
     return newDriverSchedule;
+  }
+
+  async updateDriverSchedule(id: string, driverScheduledto: IUpdateDriverSchedule): Promise<DriverScheduleDocument> {
+    const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(id);
+    if (!driverSchedule) {
+      throw new HttpException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Driver Schedule not found',
+        vnMessage: `Không tìm thấy lịch`,
+      }, HttpStatus.NOT_FOUND);
+    }
+
+    const driver = await this.userRepository.getUserById(driverScheduledto.driver, ['status', 'role', 'name']);
+    if (!driver || driver.status !== UserStatus.ACTIVE || driver.role !== UserRole.DRIVER) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Driver ${driver?.name || driverScheduledto.driver} is not active or not a driver`,
+        vnMessage: `Tài xế ${driver?.name || driverScheduledto.driver} không sẵn sàng hoặc không phải là tài xế`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+    const vehicle = await this.vehicleRepository.getById(driverScheduledto.vehicle);
+    if (!vehicle) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Vehicle ${driverScheduledto.vehicle} not found`,
+        vnMessage: `Không tìm thấy xe ${driverScheduledto.vehicle}`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+    if (vehicle.vehicleCondition !== VehicleCondition.AVAILABLE) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Vehicle ${driverScheduledto.vehicle} is not available`,
+        vnMessage: `Xe ${driverScheduledto.vehicle} không sẵn sàng`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+
+    const isExistScheduleWithDriver = await this.driverScheduleRepository.findOneDriverSchedule({
+      date: driverScheduledto.date,
+      driver: driverScheduledto.driver,
+      _id: { $ne: id },
+    }, ['driver', 'date']);
+    if (isExistScheduleWithDriver) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Duplicate date shift with driver ${isExistScheduleWithDriver.date.toISOString().split('T')[0]}-${isExistScheduleWithDriver.driver.name} in database`,
+        vnMessage: `Trùng lịch ${isExistScheduleWithDriver.date.toISOString().split('T')[0]}-${isExistScheduleWithDriver.driver.name}`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+    const isExistScheduleWithVehicle = await this.driverScheduleRepository.findOneDriverSchedule({
+      date: driverScheduledto.date,
+      vehicle: driverScheduledto.vehicle,
+      _id: { $ne: id }, // Loại trừ lịch hiện tại
+    }, []);
+    if (isExistScheduleWithVehicle) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: `Duplicate date shift with vehicle ${isExistScheduleWithVehicle.date.toISOString().split('T')[0]}-${isExistScheduleWithVehicle.vehicle.name} in database`,
+        vnMessage: `Trùng lịch ${isExistScheduleWithVehicle.date.toISOString().split('T')[0]}-${isExistScheduleWithVehicle.vehicle.name}`,
+      }, HttpStatus.BAD_REQUEST);
+    }
+    const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(id, driverScheduledto);
+    return updatedDriverSchedule;
   }
 
   async getDriverScheduleById(id: string): Promise<DriverScheduleDocument> {
@@ -183,12 +254,6 @@ export class DriverScheduleService implements IDriverScheduleService {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(query, []);
     return driverSchedules;
   }
-
-  async updateDriverSchedule(id: string, driverSchedule: IUpdateDriverSchedule): Promise<DriverScheduleDocument> {
-    const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(id, driverSchedule);
-    return updatedDriverSchedule;
-  }
-
 
   async driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
     // get current time,
@@ -256,6 +321,13 @@ export class DriverScheduleService implements IDriverScheduleService {
       }
     );
 
+    if (!scheduleUpdate) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Update driver schedule failed',
+        vnMessage: 'Cập nhật lịch không thành công'
+      }, HttpStatus.BAD_REQUEST);
+    }
 
     await this.driverScheduleGateway.handleDriverCheckin(driverId, scheduleUpdate.vehicle.toString());
     return scheduleUpdate;
