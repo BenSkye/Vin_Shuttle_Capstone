@@ -32,7 +32,9 @@ export class RatingService implements IRatingService {
             }, HttpStatus.BAD_REQUEST)
         }
         data.customerId = customerId
-        return await this.ratingRepository.create(data)
+        const rating = await this.ratingRepository.create(data)
+        await this.tripRepository.updateTrip(data.tripId, { isRating: true })
+        return rating
 
     }
     async getRatingByTripId(tripId: string): Promise<RatingDocument> {

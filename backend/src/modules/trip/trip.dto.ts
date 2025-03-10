@@ -31,6 +31,7 @@ export interface IUpdateTripDto {
   tripCoordinates?: Position[];
   amount?: number;
   status?: TripStatus;
+  isRating?: boolean;
   cancellationTime?: Date;
   cancellationReason?: string;
   refundAmount?: number;
@@ -86,3 +87,11 @@ export class BookingBusRoutePayloadDto {
   };
 }
 
+
+export interface tripParams {
+  customerPhone?: string;
+  driverName?: string;
+  vehicleName?: string;
+  status?: TripStatus;
+  serviceType?: ServiceType;
+}

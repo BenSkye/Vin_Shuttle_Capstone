@@ -1,4 +1,5 @@
 import {
+  bookingParams,
   IBookingDestinationBody,
   IBookingHourBody,
   IBookingScenicRouteBody,
@@ -36,4 +37,9 @@ export interface IBookingService {
 
   getCustomerPersonalBooking(customerId: string): Promise<BookingDocument[]>
   getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument>
+
+  getListBookingByQuery(query: bookingParams): Promise<BookingDocument[]>
+  getBookingById(id: string): Promise<BookingDocument>
+
+  totalTransaction(): Promise<number>
 }

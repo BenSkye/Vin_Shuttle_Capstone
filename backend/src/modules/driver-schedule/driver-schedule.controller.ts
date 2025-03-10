@@ -8,17 +8,18 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/modules/auth/role.guard';
 import { DRIVERSCHEDULE_SERVICE } from 'src/modules/driver-schedule/driver-schedule.di-token';
-import { CreateDriverScheduleDto } from 'src/modules/driver-schedule/driver-schedule.dto';
+import { CreateDriverScheduleDto, driverScheduleParams, ICreateDriverSchedule } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.port';
-import { UserRole } from 'src/share/enums';
+import { DriverSchedulesStatus, Shift, UserRole } from 'src/share/enums';
 
 @ApiTags('driver-schedules')
 @Controller('driver-schedules')
@@ -68,9 +69,11 @@ export class DriverScheduleController {
       },
     },
   })
-  async createListDriverSchedule(@Body() driverSchedules: CreateDriverScheduleDto[]) {
+  async createListDriverSchedule(@Body() driverSchedules: ICreateDriverSchedule[]) {
     return await this.driverScheduleService.createListDriverSchedule(driverSchedules);
   }
+
+
 
   @Put('update-driver-schedule/:driverScheduleId')
   @HttpCode(HttpStatus.OK)
@@ -100,9 +103,40 @@ export class DriverScheduleController {
   })
   async updateDriverSchedule(
     @Param('driverScheduleId') driverScheduleId: string,
-    @Body() driverSchedule: CreateDriverScheduleDto,
+    @Body() driverSchedule: ICreateDriverSchedule,
   ) {
     return await this.driverScheduleService.updateDriverSchedule(driverScheduleId, driverSchedule);
+  }
+
+
+  @Get('driver-not-scheduled/:date')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Get driver not scheduled in date' })
+  @ApiParam({
+    name: 'date',
+    description: 'The date',
+    example: '2025-03-11',
+  })
+  async getDriverNotScheduledInDate(@Param('date') date: Date) {
+    return await this.driverScheduleService.getDriverNotScheduledInDate(date);
+  }
+
+  @Get('vehicle-not-scheduled/:date')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Get vehicle not scheduled in date' })
+  @ApiParam({
+    name: 'date',
+    description: 'The date',
+    example: '2025-03-11',
+  })
+  async getVehicleNotScheduledInDate(@Param('date') date: Date) {
+    return await this.driverScheduleService.getVehicleNotScheduledInDate(date);
   }
 
   @Get('get-schedule-from-start-to-end/:startDate/:endDate')
@@ -126,6 +160,62 @@ export class DriverScheduleController {
     @Param('endDate') endDate: Date,
   ) {
     return await this.driverScheduleService.getScheduleFromStartToEnd(startDate, endDate);
+  }
+
+  @Get('get-driver-schedules-by-query')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Get driver schedules by query' })
+  @ApiQuery({
+    name: 'driver',
+    required: false,
+    type: String,
+    description: 'Filter by driver ID',
+  })
+  @ApiQuery({
+    name: 'vehicle',
+    required: false,
+    type: String,
+    description: 'Filter by vehicle ID',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    type: Date,
+    description: 'Filter by date',
+  })
+  @ApiQuery({
+    name: 'shift',
+    required: false,
+    enum: Shift,
+    description: 'Filter by shift',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: DriverSchedulesStatus,
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'isLate',
+    required: false,
+    type: Boolean,
+    description: 'Filter by isLate',
+  })
+  @ApiQuery({
+    name: 'isEarlyCheckout',
+    required: false,
+    type: Boolean,
+    description: 'Filter by isEarlyCheckout',
+  })
+
+
+  async getDriverSchedulesByQuery(
+    @Query() query: driverScheduleParams
+  ) {
+    return await this.driverScheduleService.getDriverSchedules(query);
   }
 
   @Get('get-personal-schedules-from-start-to-end/:startDate/:endDate')

@@ -6,6 +6,7 @@ import {
   IUpdateVehiclePricingDto,
 } from './pricing.dto';
 import { VehiclePricingDocument } from 'src/modules/pricing/pricing.vehicle.schema';
+import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-category.schema';
 
 export interface IPricingConfigRepository {
   create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument>;

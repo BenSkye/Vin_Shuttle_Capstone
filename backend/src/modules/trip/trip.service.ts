@@ -3,11 +3,11 @@ import { DRIVERSCHEDULE_REPOSITORY } from 'src/modules/driver-schedule/driver-sc
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverSchedule } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { TRIP_GATEWAY, TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
-import { BookingBusRoutePayloadDto, ICreateTripDto } from 'src/modules/trip/trip.dto';
+import { BookingBusRoutePayloadDto, ICreateTripDto, tripParams } from 'src/modules/trip/trip.dto';
 import { ITripRepository, ITripService } from 'src/modules/trip/trip.port';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 
-import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from 'src/share/enums';
+import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus, UserRole } from 'src/share/enums';
 
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
@@ -16,6 +16,10 @@ import { REDIS_PROVIDER } from 'src/share/di-token';
 import { IRedisService } from 'src/share/interface';
 import dayjs from 'dayjs';
 import { DateUtils } from 'src/share/utils';
+import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
+import { IUserRepository } from 'src/modules/users/users.port';
+import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
+import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -30,6 +34,10 @@ export class TripService implements ITripService {
     private readonly tripGateway: TripGateway,
     @Inject(REDIS_PROVIDER)
     private readonly redisService: IRedisService,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+    @Inject(VEHICLE_REPOSITORY)
+    private readonly vehicleRepository: IVehiclesRepository
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -47,7 +55,7 @@ export class TripService implements ITripService {
     // scheduleId: string;
 
     const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(
-      createTripDto.scheduleId,
+      createTripDto.scheduleId.toString(),
     );
     if (!driverSchedule || driverSchedule.status == DriverSchedulesStatus.COMPLETED) {
       throw new HttpException(
@@ -421,5 +429,77 @@ export class TripService implements ITripService {
     );
     this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
+  }
+
+  async totalAmount(): Promise<number> {
+    const Trips = await this.tripRepository.find({
+      status: {
+        $nin: [
+          TripStatus.BOOKING
+        ]
+      }
+    }, ['amount', 'refundAmount']);
+    return Trips.reduce((total, trip) => total + (trip.amount - (trip.refundAmount || 0)), 0);
+  }
+
+  async getTripByQuery(query: tripParams): Promise<TripDocument[]> {
+    const filter: any = query;
+    if (query.customerPhone) {
+      const customer = await this.userRepository.findUser({
+        phone: query.customerPhone,
+        role: UserRole.CUSTOMER
+      });
+      console.log('customer', customer);
+      if (!customer) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Customer not found',
+            vnMessage: 'Không tìm thấy khách hàng',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filter.customerId = customer._id.toString();
+      //loại bỏ field customerPhone
+      delete filter.customerPhone;
+    }
+    if (query.driverName) {
+      const driver = await this.userRepository.findUser({
+        name: { $regex: query.driverName, $options: 'i' },
+        role: UserRole.DRIVER
+      });
+      if (!driver) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Driver not found',
+            vnMessage: 'Không tìm thấy tài xế',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filter.driverId = driver._id.toString();
+      delete filter.driverName;
+    }
+    if (query.vehicleName) {
+      const vehicle = await this.vehicleRepository.getVehicle({
+        name: { $regex: query.vehicleName, $options: 'i' }
+      }, ['_id'])
+      if (!vehicle) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle not found',
+            vnMessage: 'Không tìm thấy xe',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filter.vehicleId = vehicle._id.toString();
+      delete filter.vehicleName;
+    }
+    console.log('filter', filter);
+    return await this.tripRepository.find(filter, []);
   }
 }
