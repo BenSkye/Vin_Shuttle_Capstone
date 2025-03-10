@@ -1,6 +1,7 @@
 import {
   ICreateDriverSchedule,
   IUpdateDriverSchedule,
+  PopulatedDriverScheduleDocument,
 } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
 
@@ -9,7 +10,7 @@ export interface IDriverScheduleRepository {
   getDriverScheduleById(id: string): Promise<DriverScheduleDocument>;
   getAllDriverSchedules(): Promise<DriverScheduleDocument[]>;
   getDriverSchedules(query: any, select: string[]): Promise<DriverScheduleDocument[]>;
-  findOneDriverSchedule(query: any, select: string[]): Promise<DriverScheduleDocument>;
+  findOneDriverSchedule(query: any, select: string[]): Promise<PopulatedDriverScheduleDocument>;
   updateDriverSchedule(
     id: string,
     driverSchedule: IUpdateDriverSchedule,
