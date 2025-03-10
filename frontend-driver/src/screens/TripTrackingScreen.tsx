@@ -101,15 +101,21 @@ const TripTrackingScreen = () => {
     try {
       setLoading(true);
       const updatedTrip = await startTrip(trip._id);
-      setTrip(updatedTrip);
-
+      
+      // Preserve customer information from the original trip object
+      setTrip({
+        ...updatedTrip,
+        customerId: trip.customerId || updatedTrip.customerId,
+        vehicleId: trip.vehicleId || updatedTrip.vehicleId
+      });
+  
       // Set showDestination to true when trip starts if this is a destination booking
       if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
         setShowDestination(true);
         // Also show route to destination
         setRouteToDestination(true);
       }
-
+  
       Alert.alert('Thành công', 'Đã bắt đầu chuyến đi');
     } catch (error) {
       console.error('Start trip error:', error);
