@@ -8,7 +8,7 @@ import EventCalendar from '@/components/EventCalendar';
 import Announcements from '@/components/Announcements';
 import { getDriver } from '@/services/api/user';
 import { Driver } from '@/interfaces/index';
-import { getDriverSchedule, DriverSchedule } from '@/services/api/schedule';
+import { getDriverSchedule, DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
 import { format } from 'date-fns';
 import { getVehicles } from '@/services/api/vehicles';
 import { Vehicle } from '@/interfaces/index';
@@ -25,6 +25,7 @@ const SchedulePage = () => {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [isEditing, setIsEditing] = useState(false);
 
     const [form] = Form.useForm();
 
@@ -129,12 +130,29 @@ const SchedulePage = () => {
     const handleActivityClick = (activity: Activity) => {
         setSelectedActivity(activity);
         setIsModalOpen(true);
+
+        // If the activity has a driver and vehicle ID, populate the form
+        if (activity.driverId) {
+            form.setFieldsValue({
+                driverId: activity.driverId,
+                vehicleId: activity.description.replace('Vehicle: ', '').trim() !== 'N/A'
+                    ? vehicles.find(v => v.name === (activity.description ?? '').replace('Vehicle: ', '').trim())?._id
+                    : undefined
+            });
+            setIsEditing(true);
+            setSelectedTime(activity.startTime);
+            setSelectedDay(activity.day);
+            if (activity.date) {
+                setSelectedDate(activity.date);
+            }
+        }
     };
 
     const handleSlotClick = (time: string, day: number, date: Date) => {
         setSelectedTime(time);
         setSelectedDay(day);
         setSelectedActivity(null);
+        setIsEditing(false);
 
         // Use the exact date from the calendar cell
         const formattedDate = format(date, 'yyyy-MM-dd');
@@ -174,9 +192,41 @@ const SchedulePage = () => {
         }
     };
 
+    const handleUpdateSchedule = async () => {
+        if (!selectedActivity) return;
+
+        try {
+            setLoading(true);
+            const values = await form.validateFields();
+
+            await updateDriverSchedule(
+                selectedActivity.id,
+                values.driverId,
+                selectedDate,
+                selectedTime,
+                values.vehicleId
+            );
+
+            message.success("Schedule updated successfully");
+            setIsModalOpen(false);
+            fetchDriverSchedules();
+        } catch (error) {
+            console.error("Error updating schedule:", error);
+            message.error("Failed to update schedule");
+        } finally {
+            setLoading(false);
+            setIsEditing(false);
+        }
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setIsEditing(false);
+    };
+
     // Render activity details or form
     const renderModalContent = () => {
-        if (selectedActivity) {
+        if (selectedActivity && !isEditing) {
             return (
                 <div>
                     <p><strong>Driver:</strong> {selectedActivity.title}</p>
@@ -185,6 +235,13 @@ const SchedulePage = () => {
                         <strong>Shift:</strong> {selectedActivity.endTime}
                         ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
                     </p>
+                    <Button
+                        type="primary"
+                        onClick={() => setIsEditing(true)}
+                        className="mt-4"
+                    >
+                        Edit Schedule
+                    </Button>
                 </div>
             );
         }
@@ -193,7 +250,7 @@ const SchedulePage = () => {
             <Form form={form} layout="vertical">
                 <div className="mb-4">
                     <p className="text-base font-medium">
-                        Assigning driver for:
+                        {isEditing ? "Updating" : "Assigning"} driver for:
                         <span className="font-bold ml-1">
                             {dayNames[selectedDay]} - Shift {selectedTime}
                             ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
@@ -229,8 +286,6 @@ const SchedulePage = () => {
                         {vehicles.map(vehicle => (
                             <Select.Option value={vehicle._id} key={vehicle._id}>{vehicle.name}</Select.Option>
                         ))}
-
-
                     </Select>
                 </Form.Item>
             </Form>
@@ -239,17 +294,17 @@ const SchedulePage = () => {
 
     // Modal footer buttons
     const renderModalFooter = () => [
-        <Button key="close" onClick={() => setIsModalOpen(false)}>
+        <Button key="close" onClick={handleModalClose}>
             Cancel
         </Button>,
-        !selectedActivity && (
+        (!selectedActivity || isEditing) && (
             <Button
                 key="submit"
                 type="primary"
-                onClick={handleAssignDriver}
+                onClick={isEditing ? handleUpdateSchedule : handleAssignDriver}
                 loading={loading}
             >
-                Assign
+                {isEditing ? "Update" : "Assign"}
             </Button>
         )
     ];
@@ -264,9 +319,9 @@ const SchedulePage = () => {
                 />
 
                 <Modal
-                    title={selectedActivity ? "Driver Schedule Details" : "Assign Driver"}
+                    title={selectedActivity && !isEditing ? "Driver Schedule Details" : isEditing ? "Update Schedule" : "Assign Driver"}
                     open={isModalOpen}
-                    onCancel={() => setIsModalOpen(false)}
+                    onCancel={handleModalClose}
                     footer={renderModalFooter()}
                 >
                     {renderModalContent()}

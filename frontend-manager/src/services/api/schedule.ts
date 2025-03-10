@@ -28,3 +28,19 @@ export const getDriverSchedule = async () => {
         throw error;
     }
 }
+
+export const updateDriverSchedule = async (driverScheduleID: string, driver: string, date: string, shift: string, vehicle: string) => {
+    try {
+        const response = await axiosInstance.put(`/driver-schedules/update-driver-schedule/${driverScheduleID}`, {
+            driver,
+            date,
+            shift,
+            vehicle
+        });
+        return response.data;
+    }
+    catch (e) {
+        console.log(e);
+    }
+
+}

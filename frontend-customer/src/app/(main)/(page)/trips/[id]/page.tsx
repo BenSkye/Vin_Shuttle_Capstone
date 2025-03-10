@@ -8,6 +8,7 @@ import { ServiceType } from '@/constants/service-type.enum';
 import RealTimeTripMap from '@/app/(main)/components/trip/RealTimeTripMap';
 import { TripStatus } from '@/constants/trip.enum';
 
+
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const id = use(params).id;
 
