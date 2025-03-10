@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Types } from 'mongoose';
+import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
 
 export interface ICreateDriverSchedule {
   driver: string;
@@ -50,4 +52,17 @@ export class UpdateDriverScheduleDto {
   isLate: boolean;
   @ApiPropertyOptional({ example: false })
   isEarlyCheckout: boolean;
+}
+
+
+export interface PopulatedDriverScheduleDocument
+  extends Omit<DriverScheduleDocument, 'driver' | 'vehicle'> {
+  driver: {
+    _id?: Types.ObjectId;
+    name?: string;
+  };
+  vehicle: {
+    _id?: Types.ObjectId;
+    name?: string;
+  };
 }

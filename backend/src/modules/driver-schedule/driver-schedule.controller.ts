@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -25,7 +26,7 @@ export class DriverScheduleController {
   constructor(
     @Inject(DRIVERSCHEDULE_SERVICE)
     private readonly driverScheduleService: IDriverScheduleService,
-  ) {}
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -69,6 +70,39 @@ export class DriverScheduleController {
   })
   async createListDriverSchedule(@Body() driverSchedules: CreateDriverScheduleDto[]) {
     return await this.driverScheduleService.createListDriverSchedule(driverSchedules);
+  }
+
+  @Put('update-driver-schedule/:driverScheduleId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Update driver schedule' })
+  @ApiParam({
+    name: 'driverScheduleId',
+    description: 'Driver Schedule Id',
+    example: '',
+  })
+  @ApiBody({
+    type: CreateDriverScheduleDto,
+    description: 'Update driver schedule',
+    examples:
+    {
+      'Update driver schedule': {
+        value: {
+          driver: '67b6c79187febb73be4b3f09', // khanhDriver
+          date: '2025-02-20',
+          shift: 'A',
+          vehicle: '67878002048da981c9778455', // xe 6 chỗ A34
+        },
+      },
+    },
+  })
+  async updateDriverSchedule(
+    @Param('driverScheduleId') driverScheduleId: string,
+    @Body() driverSchedule: CreateDriverScheduleDto,
+  ) {
+    return await this.driverScheduleService.updateDriverSchedule(driverScheduleId, driverSchedule);
   }
 
   @Get('get-schedule-from-start-to-end/:startDate/:endDate')
