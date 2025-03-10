@@ -25,8 +25,14 @@ export interface StartPoint {
 export interface LocationData {
   latitude: number;
   longitude: number;
-  heading: number | null;
-  speed: number | null;
+  heading?: number;
+  speed?: number;
+  timestamp?: number;
+}
+
+export interface TrackingData {
+  vehicleId: string;
+  location: LocationData;
 }
 
 export interface ITokenProvider {
@@ -63,7 +69,6 @@ export interface IRedisService {
   setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
   deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
   getListUserTrackingVehicle(vehicleId: string): Promise<string[]>;
-
 }
 
 export const HEADER = {

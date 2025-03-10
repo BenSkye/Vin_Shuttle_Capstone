@@ -1,5 +1,5 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,10 +21,14 @@ import {
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
 import { pickUp, startTrip, completeTrip } from '~/services/tripServices';
+import { useLocation } from '~/context/LocationContext';
+import { useSchedule } from '~/context/ScheduleContext';
 
 const TripTrackingScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const { location, isTracking } = useLocation();
+  const { updateIsInProgress } = useSchedule();
   const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({
     lat: 0,
     lng: 0,
@@ -56,6 +60,9 @@ const TripTrackingScreen = () => {
 
         // Also set route to destination if in progress
         setRouteToDestination(isInProgress);
+        
+        // Update global state for location tracking frequency
+        updateIsInProgress(isInProgress);
       }
 
       // Log the trip details for debugging
@@ -69,7 +76,12 @@ const TripTrackingScreen = () => {
         routeToDestination: routeToDestination,
       });
     }
-  }, [trip]);
+    
+    // When unmounting, reset isInProgress
+    return () => {
+      updateIsInProgress(false);
+    };
+  }, [trip, updateIsInProgress]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -109,6 +121,9 @@ const TripTrackingScreen = () => {
         // Also show route to destination
         setRouteToDestination(true);
       }
+      
+      // Update global state for location tracking frequency
+      updateIsInProgress(true);
 
       Alert.alert('Thành công', 'Đã bắt đầu chuyến đi');
     } catch (error) {
@@ -124,6 +139,10 @@ const TripTrackingScreen = () => {
       setLoading(true);
       const updatedTrip = await completeTrip(trip._id);
       setTrip(updatedTrip);
+      
+      // Update global state for location tracking frequency
+      updateIsInProgress(false);
+      
       Alert.alert('Thành công', 'Đã hoàn thành chuyến đi');
       // Navigate back after small delay to show the success message
       setTimeout(() => {
@@ -157,7 +176,11 @@ const TripTrackingScreen = () => {
     switch (trip.status.toLowerCase()) {
       case 'assigned':
         return (
-          <TouchableOpacity style={styles.actionButton} onPress={handlePickup}>
+          <TouchableOpacity 
+            style={styles.actionButton} 
+            onPress={handlePickup}
+            disabled={!isTracking}
+          >
             <MaterialIcons name="person" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Đón khách</Text>
           </TouchableOpacity>
@@ -166,7 +189,9 @@ const TripTrackingScreen = () => {
         return (
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={handleStartTrip}>
+            onPress={handleStartTrip}
+            disabled={!isTracking}
+          >
             <MaterialIcons name="play-arrow" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Bắt đầu chuyến đi</Text>
           </TouchableOpacity>
@@ -175,7 +200,9 @@ const TripTrackingScreen = () => {
         return (
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
-            onPress={handleCompleteTrip}>
+            onPress={handleCompleteTrip}
+            disabled={!isTracking}
+          >
             <MaterialIcons name="done" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
           </TouchableOpacity>
@@ -222,6 +249,21 @@ const TripTrackingScreen = () => {
     }
     return null;
   };
+  
+  // Show tracking status message
+  const renderTrackingStatus = useCallback(() => {
+    if (!isTracking) {
+      return (
+        <View style={styles.trackingWarning}>
+          <Ionicons name="warning" size={16} color="#FFA000" />
+          <Text style={styles.trackingWarningText}>
+            Vị trí không được cập nhật. Hãy đảm bảo GPS được bật.
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  }, [isTracking]);
 
   if (!route.params) {
     return (
@@ -252,6 +294,9 @@ const TripTrackingScreen = () => {
 
       {/* Bottom info card */}
       <View style={styles.bottomCard}>
+        {/* Tracking status warning if location not active */}
+        {renderTrackingStatus()}
+        
         <View style={styles.tripHeader}>
           <View style={styles.tripTypeContainer}>
             <FontAwesome5 name="car" size={16} color="#1E88E5" />

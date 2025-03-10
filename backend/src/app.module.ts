@@ -23,6 +23,7 @@ import { BusRouteModule } from './modules/bus-route/bus-route.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { RatingModule } from 'src/modules/rating/rating.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -52,7 +53,8 @@ import { RatingModule } from 'src/modules/rating/rating.module';
     BusStopModule,
     BusRouteModule,
     TrackingModule,
-    RatingModule
+    RatingModule,
+
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

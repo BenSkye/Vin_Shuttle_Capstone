@@ -27,7 +27,7 @@
     "@radix-ui/react-tabs": "^1.1.2",
     "@reduxjs/toolkit": "^2.5.0",
     "@tanstack/react-query": "^5.62.15",
-    "@types/leaflet": "^1.9.15",
+    "@types/leaflet": "^1.9.16",
     "@types/react-big-calendar": "^1.16.1",
     "antd": "^5.23.3",
     "axios": "^1.7.9",
