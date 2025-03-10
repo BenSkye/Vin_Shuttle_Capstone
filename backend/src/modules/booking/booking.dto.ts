@@ -1,5 +1,6 @@
+import { BookingStatus } from "src/share/enums"
 import { PaymentMethod } from "src/share/enums/payment.enum"
-import { Position, StartPoint } from "src/share/interface"
+import { StartPoint } from "src/share/interface"
 
 export interface ICreateBooking {
     bookingCode: number
@@ -45,4 +46,12 @@ export interface IBookingDestinationBody {
     distanceEstimate: number;
     vehicleCategories: { categoryVehicleId: string, name: string },
     paymentMethod: PaymentMethod
+}
+
+
+export interface bookingParams {
+    status?: BookingStatus
+    customerId?: string
+    bookingCode?: number
+    paymentMethod?: PaymentMethod
 }

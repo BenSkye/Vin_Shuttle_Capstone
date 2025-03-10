@@ -1,11 +1,12 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
+import { tripParams } from "src/modules/trip/trip.dto";
 import { ITripService } from "src/modules/trip/trip.port";
-import { UserRole } from "src/share/enums";
+import { ServiceType, TripStatus, UserRole } from "src/share/enums";
 
 @ApiTags('trip')
 @Controller('trip')
@@ -133,4 +134,54 @@ export class TripController {
   }
 
 
+  @Get('total-amount')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Get total amount' })
+  async totalAmount() {
+    return await this.tripService.totalAmount();
+  }
+
+
+  @Get('list-query')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Get list of trips with filters' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: TripStatus,
+    description: 'Filter by trip status'
+  })
+  @ApiQuery({
+    name: 'driverName',
+    required: false,
+    type: String,
+    description: 'Filter by driverName'
+  })
+  @ApiQuery({
+    name: 'customerPhone',
+    required: false,
+    type: String,
+    description: 'Filter by customer customerPhone'
+  })
+  @ApiQuery({
+    name: 'vehicleName',
+    required: false,
+    type: String,
+    description: 'Filter by vehicleName'
+  })
+  @ApiQuery({
+    name: 'serviceType',
+    required: false,
+    enum: ServiceType,
+    description: 'Filter by serviceType'
+  })
+  async listQuery(@Query() query: tripParams) {
+    return await this.tripService.getTripByQuery(query);
+  }
 }

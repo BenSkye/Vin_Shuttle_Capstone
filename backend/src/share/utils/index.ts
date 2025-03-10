@@ -17,6 +17,7 @@ export const generateBookingCode = (): number => {
   return parseInt(`${timestamp}${random.toString().padStart(3, '0')}`);
 };
 
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault('Asia/Ho_Chi_Minh');

@@ -158,6 +158,9 @@ export class Trip {
     })
     status: TripStatus;
 
+    @Prop({ type: Boolean, default: false })
+    isRating: boolean;
+
     @Prop({ type: Date })
     cancellationTime: Date;
 

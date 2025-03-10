@@ -1,4 +1,4 @@
-import { ICreateTripDto, IUpdateTripDto } from 'src/modules/trip/trip.dto';
+import { ICreateTripDto, IUpdateTripDto, tripParams } from 'src/modules/trip/trip.dto';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 import { TripStatus } from 'src/share/enums';
 
@@ -30,4 +30,7 @@ export interface ITripService {
   driverCompleteTrip(tripId: string, driverId: string): Promise<TripDocument>;
   // getTripById(id: string): Promise<Trip>;
   // getDriverTrips(driverId: string): Promise<Trip[]>;
+
+  totalAmount(): Promise<number>;
+  getTripByQuery(query: tripParams): Promise<TripDocument[]>;
 }
