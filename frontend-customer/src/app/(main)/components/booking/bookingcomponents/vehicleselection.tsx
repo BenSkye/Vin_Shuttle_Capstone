@@ -14,7 +14,7 @@ interface VehicleSelectionProps {
 }
 
 const VehicleSelection: React.FC<VehicleSelectionProps> = ({
-    availableVehicles,
+    availableVehicles ,
     selectedVehicles,
     onSelectionChange
 }) => {

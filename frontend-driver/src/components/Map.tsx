@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
+import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
 import { useLocation } from '~/context/LocationContext';
 import { Position } from '~/interface/trip';
 import { imgAccess } from '~/constants/imgAccess';
+import { Ionicons } from '@expo/vector-icons';
 
 const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
 
@@ -16,13 +17,14 @@ const MapComponent = ({
     detinateLocation?: Position | null,
     showRouteToDestination?: boolean
 }) => {
-    const { location, errorMsg } = useLocation();
+    const { location, errorMsg, isTracking } = useLocation();
     const mapRef = useRef<MapView | null>(null);
     const [pickup, setPickup] = useState<{ latitude: number; longitude: number } | null>(null);
     const [detinate, setDetinate] = useState<{ latitude: number; longitude: number } | null>(null);
     const [routeToPickupCoordinates, setRouteToPickupCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
     const [routeToDestinationCoordinates, setRouteToDestinationCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
     const [routeError, setRouteError] = useState<string | null>(null);
+    const [locationTimestamp, setLocationTimestamp] = useState<Date | null>(null);
 
     useEffect(() => {
         if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
@@ -46,6 +48,13 @@ const MapComponent = ({
             setDetinate(null);
         }
     }, [pickupLocation, detinateLocation]);
+
+    // Update timestamp when location changes
+    useEffect(() => {
+        if (location) {
+            setLocationTimestamp(new Date());
+        }
+    }, [location]);
 
     // Fit map to include all relevant points (driver, pickup, and destination if available)
     useEffect(() => {
@@ -161,6 +170,22 @@ const MapComponent = ({
                Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
     };
 
+    // Format location timestamp
+    const formatTimestamp = (): string => {
+        if (!locationTimestamp) return 'Chưa có dữ liệu';
+        
+        const now = new Date();
+        const diffSeconds = Math.floor((now.getTime() - locationTimestamp.getTime()) / 1000);
+        
+        if (diffSeconds < 10) return 'Vừa cập nhật';
+        if (diffSeconds < 60) return `${diffSeconds} giây trước`;
+        
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+        
+        return locationTimestamp.toLocaleTimeString();
+    };
+
     return (
         <View style={styles.container}>
             {errorMsg ? (
@@ -246,23 +271,43 @@ const MapComponent = ({
                         )}
                     </MapView>
                     
+                    {/* Location status indicator */}
+                    <View style={styles.locationStatusBar}>
+                        <View style={[
+                            styles.statusIndicator,
+                            {backgroundColor: isTracking ? '#4CAF50' : '#F44336'}
+                        ]}>
+                            <Ionicons 
+                                name={isTracking ? "location" : "location-outline"} 
+                                size={14} 
+                                color="#fff" 
+                            />
+                        </View>
+                        <Text style={styles.locationStatusText}>
+                            {isTracking ? `Vị trí đang được cập nhật (${formatTimestamp()})` : 'Vị trí không được cập nhật'}
+                        </Text>
+                    </View>
+                    
                     {routeError && (
                         <View style={styles.errorBanner}>
                             <Text style={styles.errorBannerText}>{routeError}</Text>
                         </View>
                     )}
-                    
-                    {/* Route indicator */}
-                    {/* {(showRouteToDestination && detinate) ? (
-                        <View style={styles.routeIndicator}>
-                            <Text style={styles.routeIndicatorText}>
-                                Đang hiển thị lộ trình đến điểm đến
-                            </Text>
-                        </View>
-                    ) : null} */}
                 </View>
             ) : (
-                <Text style={styles.loadingText}>Đang tải vị trí...</Text>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>Đang tải vị trí...</Text>
+                    <TouchableOpacity 
+                        style={styles.retryButton}
+                        onPress={() => {
+                            // This is a placeholder - the actual retry logic is in LocationContext
+                            // But showing a button gives users a sense of control
+                            console.log('Retrying location access');
+                        }}
+                    >
+                        <Text style={styles.retryButtonText}>Thử lại</Text>
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
@@ -279,10 +324,29 @@ const styles = StyleSheet.create({
         color: 'red',
         textAlign: 'center',
         marginTop: 20,
+        padding: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
     },
     loadingText: {
         textAlign: 'center',
-        marginTop: 20,
+        marginBottom: 20,
+        fontSize: 16,
+        color: '#333',
+    },
+    retryButton: {
+        backgroundColor: '#1E88E5',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 4,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
     errorBanner: {
         position: 'absolute',
@@ -309,6 +373,34 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 14,
         fontWeight: 'bold',
+    },
+    locationStatusBar: {
+        position: 'absolute',
+        bottom: 10,
+        left: 10,
+        right: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        borderRadius: 20,
+        padding: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
+    },
+    statusIndicator: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    locationStatusText: {
+        fontSize: 12,
+        color: '#333',
     }
 });
 

@@ -251,4 +251,20 @@ export const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
     },
+    // New tracking warning styles
+    trackingWarning: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF3CD',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 12,
+        borderLeftWidth: 3,
+        borderLeftColor: '#FFA000',
+    },
+    trackingWarningText: {
+        marginLeft: 6,
+        fontSize: 13,
+        color: '#856404',
+    },
 });
