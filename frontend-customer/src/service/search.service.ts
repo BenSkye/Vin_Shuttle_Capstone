@@ -10,10 +10,13 @@ interface Coordinates {
 export const vehicleSearchHour = async (date: string, startTime: string, durationMinutes: number): Promise<AvailableVehicle> => {
     try {
         const response = await apiClient.get(`/search/available-vehicle-search-hour/${date}/${startTime}/${durationMinutes}`);
+        console.log('✅ API Response:', response.data);
         return response.data;
     } catch (error) {
         if (error instanceof AxiosError && error.response?.data) {
             const serverError = error.response.data;
+            console.error('⚠ Server Error:', serverError);
+
             throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định');
         }
         throw new Error('Lỗi kết nối máy chủ');
