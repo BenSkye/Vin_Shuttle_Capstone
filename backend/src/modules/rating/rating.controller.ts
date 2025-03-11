@@ -1,12 +1,12 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { RATING_SERVICE } from "src/modules/rating/rating.di-token";
-import { ICreateRating } from "src/modules/rating/rating.dto";
+import { ICreateRating, IGetAverageRating } from "src/modules/rating/rating.dto";
 import { IRatingService } from "src/modules/rating/rating.port";
-import { UserRole } from "src/share/enums";
+import { ServiceType, UserRole } from "src/share/enums";
 
 @ApiTags('rating')
 @Controller('rating')
@@ -51,6 +51,33 @@ export class RatingController {
         @Param('tripId') tripId: string
     ) {
         return await this.ratingService.getRatingByTripId(tripId)
+    }
+
+    @Get('average-rating')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    @Roles(UserRole.ADMIN, UserRole.MANAGER)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'Get average rating of driver or customer' })
+    @ApiQuery({
+        name: 'serviceType',
+        enum: ServiceType,
+        required: true
+    })
+    @ApiQuery({
+        name: 'driverId',
+        type: String,
+        required: false
+    })
+    @ApiQuery({
+        name: 'customerId',
+        type: String,
+        required: false
+    })
+    async averageRating(
+        @Query() query: IGetAverageRating
+    ) {
+        return await this.ratingService.averageRating(query)
     }
 
 }
