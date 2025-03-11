@@ -43,7 +43,7 @@ export class PricingService implements IPricingService {
 
   async createVehiclePricing(pricing: ICreateVehiclePricingDto) {
     const vehicle_category = pricing.vehicle_category;
-    const vehicle_category_exists = await this.vehicleCategoryRepo.getById(vehicle_category);
+    const vehicle_category_exists = await this.vehicleCategoryRepo.getById(vehicle_category.toString());
     if (!vehicle_category_exists) {
       throw new HttpException(
         {
@@ -55,7 +55,7 @@ export class PricingService implements IPricingService {
       );
     }
     const service_config = pricing.service_config;
-    const service_config_exists = await this.configRepo.findById(service_config);
+    const service_config_exists = await this.configRepo.findById(service_config.toString());
     if (!service_config_exists) {
       throw new HttpException(
         {

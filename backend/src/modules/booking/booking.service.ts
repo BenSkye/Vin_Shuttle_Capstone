@@ -1,7 +1,7 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { BOOKING_REPOSITORY } from "src/modules/booking/booking.di-token";
-import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody } from "src/modules/booking/booking.dto";
+import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody, bookingParams } from "src/modules/booking/booking.dto";
 import { IBookingRepository, IBookingService } from "src/modules/booking/booking.port";
 import { BookingDocument } from "src/modules/booking/booking.schema";
 import { CHECKOUT_SERVICE } from "src/modules/checkout/checkout.di-token";
@@ -147,7 +147,7 @@ export class BookingService implements IBookingService {
                 driverId: driverSchedule[0].driver._id.toString(),
                 timeStartEstimate: bookingStartTime.toDate(),
                 timeEndEstimate: bookingEndTime.toDate(),
-                vehicleId: vehicle._id,
+                vehicleId: vehicle._id.toString(),
                 scheduleId: driverSchedule[0]._id.toString(),
                 serviceType: ServiceType.BOOKING_HOUR,
                 amount: Number(availableCategory.price),
@@ -321,7 +321,7 @@ export class BookingService implements IBookingService {
                 driverId: driverSchedule.driver._id.toString(),
                 timeStartEstimate: bookingStartTime.toDate(),
                 timeEndEstimate: bookingEndTime.toDate(),
-                vehicleId: vehicle._id,
+                vehicleId: vehicle._id.toString(),
                 scheduleId: driverSchedule._id.toString(),
                 serviceType: ServiceType.BOOKING_SCENIC_ROUTE,
                 amount: vehicleCategory.price,
@@ -463,7 +463,7 @@ export class BookingService implements IBookingService {
                 driverId: driverSchedule.driver._id.toString(),
                 timeStartEstimate: bookingStartTime.toDate(),
                 timeEndEstimate: bookingEndTime.toDate(),
-                vehicleId: vehicle._id,
+                vehicleId: vehicle._id.toString(),
                 scheduleId: driverSchedule._id.toString(),
                 serviceType: ServiceType.BOOKING_DESTINATION,
                 amount: vehicleCategory.price,
@@ -580,5 +580,30 @@ export class BookingService implements IBookingService {
             }, HttpStatus.NOT_FOUND);
         }
         return booking
+    }
+
+
+    async getListBookingByQuery(query: bookingParams): Promise<BookingDocument[]> {
+        return await this.bookingRepository.getBookings(query, [])
+    }
+
+    async getBookingById(id: string): Promise<BookingDocument> {
+        const booking = await this.bookingRepository.getBookingById(id)
+        if (!booking) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Not found booking ${id}`,
+                vnMessage: `Không tìm thấy đặt xe ${id}`,
+            }, HttpStatus.NOT_FOUND);
+        }
+        return booking
+    }
+
+    async totalTransaction(): Promise<number> {
+        const confirmedBookings = await this.bookingRepository.getBookings(
+            { status: BookingStatus.CONFIRMED },
+            ['_id']
+        );
+        return confirmedBookings.length
     }
 }

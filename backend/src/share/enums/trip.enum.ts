@@ -6,3 +6,5 @@ export enum TripStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
+
+export const GUARANTEED_TIME_BETWEEN_TRIPS = 5;

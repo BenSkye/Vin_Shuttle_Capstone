@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
-import { ICreateVehicle, IUpdateVehicle } from 'src/modules/vehicles/vehicle.dto';
+import { ICreateVehicle, IUpdateVehicle, vehicleParams } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository, IVehiclesService } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
@@ -68,21 +68,11 @@ export class VehiclesService implements IVehiclesService {
     return updatedVehicle;
   }
 
-  async getListVehicles(query: any): Promise<VehicleDocument[] | null> {
-    console.log('query', query);
+  async getListVehicles(query: vehicleParams): Promise<VehicleDocument[] | null> {
 
-    const filter: any = {};
+    const filter: any = query;
     if (query.name) {
       filter.name = { $regex: query.name, $options: 'i' };
-    }
-    if (query.categoryId) {
-      filter.categoryId = query.categoryId;
-    }
-    if (query.operationStatus) {
-      filter.operationStatus = query.operationStatus;
-    }
-    if (query.vehicleCondition) {
-      filter.vehicleCondition = query.vehicleCondition;
     }
     const result = await this.vehicleRepository.getListVehicles(filter, []);
     return result;

@@ -10,6 +10,8 @@ import { TripService } from 'src/modules/trip/trip.service';
 import { ShareModule } from 'src/share/share.module';
 import { BusRouteModule } from '../bus-route/bus-route.module';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
+import { UsersModule } from 'src/modules/users/users.module';
+import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 
 const dependencies = [
   {
@@ -35,6 +37,8 @@ const dependencies = [
       },
     ]),
     DriverScheduleModule,
+    UsersModule,
+    VehiclesModule,
     ShareModule,
     KeytokenModule,
     BusRouteModule,

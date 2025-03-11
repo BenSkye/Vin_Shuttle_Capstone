@@ -22,6 +22,7 @@ import { BusStopModule } from './modules/bus-stop/bus-stop.module';
 import { BusRouteModule } from './modules/bus-route/bus-route.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { RatingModule } from 'src/modules/rating/rating.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -37,6 +38,7 @@ import { RatingModule } from 'src/modules/rating/rating.module';
       }),
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
     VehicleCategoryModule,
     VehiclesModule,
     UsersModule,

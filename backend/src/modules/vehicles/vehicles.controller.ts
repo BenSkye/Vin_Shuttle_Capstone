@@ -46,7 +46,6 @@ export class VehiclesController {
     description: 'Filter by vehicle condition (available, in-use, maintenance)'
   })
   async getListVehicles(@Query() query: vehicleParams) {
-    console.log('query', query);
     return await this.vehicleService.getListVehicles(query);
   }
 

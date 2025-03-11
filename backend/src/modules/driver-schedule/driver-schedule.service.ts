@@ -1,15 +1,19 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
 import { DRIVERSCHEDULE_GATEWAY, DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
-import { ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
+import { driverScheduleParams, ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
 import { DriverScheduleGateway } from "src/modules/driver-schedule/driver-schedule.gateway";
 import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
+import { UserDocument } from "src/modules/users/users.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
+import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
 import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
+import { DateUtils } from "src/share/utils";
 
 
 @Injectable()
@@ -43,7 +47,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     // check not have same date and shift in array and in database
     for (const schedule of driverSchedules) {
       console.log('schedule.driver', schedule.driver)
-      const driver = await this.userRepository.getUserById(schedule.driver, ['status', 'role', 'name']);
+      const driver = await this.userRepository.getUserById(schedule.driver.toString(), ['status', 'role', 'name']);
       console.log('driver', driver);
       if (driver.status !== UserStatus.ACTIVE || !driver || driver.role !== UserRole.DRIVER) {
         throw new HttpException({
@@ -53,7 +57,7 @@ export class DriverScheduleService implements IDriverScheduleService {
         }, HttpStatus.BAD_REQUEST);
       }
 
-      const vehicle = await this.vehicleRepository.getById(schedule.vehicle);
+      const vehicle = await this.vehicleRepository.getById(schedule.vehicle.toString());
       if (!vehicle) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
@@ -146,8 +150,25 @@ export class DriverScheduleService implements IDriverScheduleService {
         vnMessage: `Không tìm thấy lịch`,
       }, HttpStatus.NOT_FOUND);
     }
-
-    const driver = await this.userRepository.getUserById(driverScheduledto.driver, ['status', 'role', 'name']);
+    if (driverSchedule.status !== DriverSchedulesStatus.NOT_STARTED) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Cannot update schedule that has started',
+        vnMessage: 'Không thể cập nhật lịch đã chấm công',
+      }, HttpStatus.BAD_REQUEST);
+    }
+    const currentDate = DateUtils.toUTCDate(new Date())
+      .utc()      // Ensure we're in UTC mode
+      .startOf('day')
+      .toDate();
+    if (driverSchedule.date < currentDate) {
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Cannot update schedule with past date',
+        vnMessage: 'Không thể cập nhật lịch với ngày trong quá khứ',
+      }, HttpStatus.BAD_REQUEST);
+    }
+    const driver = await this.userRepository.getUserById(driverScheduledto.driver.toString(), ['status', 'role', 'name']);
     if (!driver || driver.status !== UserStatus.ACTIVE || driver.role !== UserRole.DRIVER) {
       throw new HttpException({
         statusCode: HttpStatus.BAD_REQUEST,
@@ -155,7 +176,7 @@ export class DriverScheduleService implements IDriverScheduleService {
         vnMessage: `Tài xế ${driver?.name || driverScheduledto.driver} không sẵn sàng hoặc không phải là tài xế`,
       }, HttpStatus.BAD_REQUEST);
     }
-    const vehicle = await this.vehicleRepository.getById(driverScheduledto.vehicle);
+    const vehicle = await this.vehicleRepository.getById(driverScheduledto.vehicle.toString());
     if (!vehicle) {
       throw new HttpException({
         statusCode: HttpStatus.BAD_REQUEST,
@@ -197,6 +218,31 @@ export class DriverScheduleService implements IDriverScheduleService {
     }
     const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(id, driverScheduledto);
     return updatedDriverSchedule;
+  }
+
+  async getDriverNotScheduledInDate(date: Date): Promise<UserDocument[]> {
+    const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({
+      date: date
+    }, ['driver']);
+    const driverIds = driverSchedules.map(schedule => schedule.driver._id.toString());
+    const drivers = await this.userRepository.findManyUsers({
+      role: UserRole.DRIVER,
+      status: UserStatus.ACTIVE,
+      _id: { $nin: driverIds }
+    }, ['_id', 'name', 'phone']);
+    return drivers;
+  }
+
+  async getVehicleNotScheduledInDate(date: Date): Promise<VehicleDocument[]> {
+    const driverSchedules = await this.driverScheduleRepository.getDriverSchedules({
+      date: date
+    }, ['vehicle']);
+    const vehicleIds = driverSchedules.map(schedule => schedule.vehicle._id.toString());
+    const vehicles = await this.vehicleRepository.getListVehicles({
+      _id: { $nin: vehicleIds },
+      vehicleCondition: VehicleCondition.IN_USE
+    }, []);
+    return vehicles;
   }
 
   async getDriverScheduleById(id: string): Promise<DriverScheduleDocument> {
@@ -250,7 +296,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     return schedules;
   }
 
-  async getDriverSchedules(query: any): Promise<DriverScheduleDocument[]> {
+  async getDriverSchedules(query: driverScheduleParams): Promise<DriverScheduleDocument[]> {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(query, []);
     return driverSchedules;
   }
@@ -390,7 +436,11 @@ export class DriverScheduleService implements IDriverScheduleService {
     return scheduleUpdate
   }
 
+  @Cron('0 */15 * * * *', {
+    name: 'autoCheckoutPendingSchedules',
+  })
   async autoCheckoutPendingSchedules() {
+    console.log('Running auto checkout for pending schedules...');
     const currentTime = new Date();
 
     // Lấy tất cả các ca đang trong trạng thái IN_PROGRESS

@@ -1,12 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
-import { IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody } from "src/modules/booking/booking.dto";
+import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody } from "src/modules/booking/booking.dto";
 import { IBookingService } from "src/modules/booking/booking.port";
-import { UserRole } from "src/share/enums";
+import { BookingStatus, UserRole } from "src/share/enums";
+import { PaymentMethod } from "src/share/enums/payment.enum";
 
 @ApiTags('booking')
 @Controller('booking')
@@ -176,6 +177,49 @@ export class BookingController {
         return await this.bookingService.getCustomerPersonalBookingById(req.user._id, id)
     }
 
+    @Get('list-booking')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'get list booking by query' })
+    @ApiQuery({
+        name: 'status',
+        required: false,
+        enum: BookingStatus,
+        description: 'Filter by booking status'
+    })
+    @ApiQuery({
+        name: 'customerId',
+        required: false,
+        type: String,
+        description: 'Filter by customer ID'
+    })
+    @ApiQuery({
+        name: 'bookingCode',
+        required: false,
+        type: Number,
+        description: 'Filter by booking code'
+    })
+    @ApiQuery({
+        name: 'paymentMethod',
+        required: false,
+        enum: PaymentMethod,
+        description: 'Filter by payment method'
+    })
+    async getListBookingByQuery(
+        @Query() query: bookingParams
+    ) {
+        return await this.bookingService.getListBookingByQuery(query)
+    }
 
-
+    @Get('total-transaction')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @ApiBearerAuth('authorization')
+    @ApiOperation({ summary: 'get total transaction has confirm' })
+    async totalTransaction() {
+        return await this.bookingService.totalTransaction()
+    }
 }
