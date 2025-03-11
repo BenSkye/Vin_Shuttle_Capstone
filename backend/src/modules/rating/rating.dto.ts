@@ -1,3 +1,5 @@
+import { ServiceType } from "src/share/enums"
+
 export interface ICreateRating {
     tripId: string
     customerId?: string
@@ -12,3 +14,8 @@ export interface IUpdateRating {
     feedback?: string
 }
 
+export interface IGetAverageRating {
+    driverId?: string,
+    customerId?: string,
+    serviceType: ServiceType
+}

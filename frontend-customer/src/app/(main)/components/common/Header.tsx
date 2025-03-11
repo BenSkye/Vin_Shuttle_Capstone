@@ -111,12 +111,12 @@ export default function Navbar() {
                             </Link>
 
                             <Link
-                                href="/my-bookings"
+                                href="/trips"
                                 className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 transition-colors"
                                 onClick={() => setShowDropdown(false)}
                             >
                                 <FiClock className="text-green-500" />
-                                <span>Lịch sử đặt xe</span>
+                                <span>Lịch sử các chuyến đi</span>
                             </Link>
 
                             <button

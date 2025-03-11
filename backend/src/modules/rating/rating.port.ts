@@ -1,4 +1,4 @@
-import { ICreateRating } from "src/modules/rating/rating.dto"
+import { ICreateRating, IGetAverageRating } from "src/modules/rating/rating.dto"
 import { RatingDocument } from "src/modules/rating/rating.schema"
 
 export interface IRatingRepository {
@@ -11,4 +11,5 @@ export interface IRatingRepository {
 export interface IRatingService {
     getRatingByTripId(tripId: string): Promise<RatingDocument>
     createRating(customerId: string, data: ICreateRating): Promise<RatingDocument>
+    averageRating(query: IGetAverageRating): Promise<number>
 }
