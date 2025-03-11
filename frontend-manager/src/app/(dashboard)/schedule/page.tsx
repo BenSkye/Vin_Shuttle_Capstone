@@ -57,6 +57,7 @@ const SchedulePage = () => {
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : "Failed to load vehicles";
                 console.error("Error fetching vehicles:", error);
+                console.error("Error fetching vehicles:", error);
                 setError(errorMessage);
                 message.error(errorMessage);
             }
