@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 import { DRIVERSCHEDULE_REPOSITORY } from 'src/modules/driver-schedule/driver-schedule.di-token';
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
-import { PRICING_SERVICE } from 'src/modules/pricing/pricing.di-token';
-import { IPricingService } from 'src/modules/pricing/pricing.port';
+import { PRICING_SERVICE, VEHICLE_PRICING_REPOSITORY } from 'src/modules/pricing/pricing.di-token';
+import { IPricingService, IVehiclePricingRepository } from 'src/modules/pricing/pricing.port';
 import { SCENIC_ROUTE_REPOSITORY } from 'src/modules/scenic-route/scenic-route.di-token';
 import { IScenicRouteRepository } from 'src/modules/scenic-route/scenic-route.port';
 import { ISearchService } from 'src/modules/search/search.port';
@@ -389,10 +389,33 @@ export class SearchService implements ISearchService {
   }
 
   async groupByVehicleType(
-    vehicles: Vehicle[],
+    vehicles: VehicleDocument[],
     serviceType: string,
     totalUnit: number,
   ): Promise<any[]> {
+
+    //lọc các vehicle không có cấu hình giá
+    const validVehicles = [];
+    for (const vehicle of vehicles) {
+      const checkVehiclePrice = await this.pricingService.checkVehicleCategoryAndServiceType(
+        vehicle.categoryId.toString(),
+        serviceType,
+      );
+      if (checkVehiclePrice) {
+        validVehicles.push(vehicle);
+      }
+    }
+    vehicles = validVehicles;
+    if (vehicles.length == 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `No more vehicle available for this service`,
+          vnMessage: 'Không còn xe phù hợp cho dịch vụ này',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const categoryCounts = new Map<string, number>();
     const categoryPromises = vehicles.map(vehicle =>
       this.vehicleCategoryRepository.getById(vehicle.categoryId.toString()),

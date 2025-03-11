@@ -178,6 +178,39 @@ export class PricingService implements IPricingService {
     return updatedVehiclePricing
   }
 
+  async checkVehicleCategoryAndServiceType(vehicleCategoryId: string, serviceType: string): Promise<boolean> {
+    const vehicleCategory = await this.vehicleCategoryRepo.getById(vehicleCategoryId);
+    if (!vehicleCategory) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Vehicle category not found',
+          vnMessage: 'Không tìm thấy loại xe',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const serviceConfig = await this.configRepo.findByServiceType(serviceType);
+    if (!serviceConfig) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Service config not found',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const vehiclePricing = await this.vehiclePricingRepo.findVehiclePricing({
+      vehicle_category: vehicleCategory._id.toString(),
+      service_config: serviceConfig._id.toString(),
+    });
+    if (!vehiclePricing) {
+      return false;
+    }
+    return true;
+  }
+
   //function to calculate price by hour or distance
   async calculatePrice(serviceType: string, vehicleCategoryId: string, totalUnits: number) {
     const config = await this.configRepo.findByServiceType(serviceType);

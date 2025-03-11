@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:2028';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
 
 export interface RouteRequest {
     name: string;
@@ -32,29 +32,29 @@ export interface RouteResponse extends RouteRequest {
 
 export const routeService = {
     createRoute: async (data: RouteRequest) => {
-        const response = await axios.post<RouteResponse>(`${API_URL}/scenic-routes`, data,{
+        const response = await axios.post<RouteResponse>(`${API_URL}/scenic-routes`, data, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
-          });
+        });
         return response.data;
     },
 
     getAllRoutes: async () => {
-        const response = await axios.get<RouteResponse[]>(`${API_URL}/scenic-routes`,{
+        const response = await axios.get<RouteResponse[]>(`${API_URL}/scenic-routes`, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
-          });
+        });
         return response.data;
     },
 
     getRouteById: async (id: string) => {
         const response = await axios.get<RouteResponse>(`${API_URL}/scenic-routes/${id}`, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }
-          });
+        });
         return response.data;
     },
 
@@ -62,10 +62,10 @@ export const routeService = {
         if (!id) {
             throw new Error('Route ID is required for editing');
         }
-        
+
         console.log('Editing route with ID:', id);
         console.log('Edit data:', data);
-        
+
         const response = await axios.put<RouteResponse>(
             `${API_URL}/scenic-routes/${id}`,
             data,

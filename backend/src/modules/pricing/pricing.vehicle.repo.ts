@@ -4,13 +4,14 @@ import { Model } from 'mongoose';
 import { IVehiclePricingRepository } from './pricing.port';
 import { VehiclePricing, VehiclePricingDocument } from './pricing.vehicle.schema';
 import { ICreateVehiclePricingDto } from './pricing.dto';
+import { getSelectData } from 'src/share/utils';
 
 @Injectable()
 export class VehiclePricingRepository implements IVehiclePricingRepository {
   constructor(
     @InjectModel(VehiclePricing.name)
     private readonly pricingModel: Model<VehiclePricingDocument>,
-  ) {}
+  ) { }
 
   async create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument> {
     return await this.pricingModel.create(pricing);
@@ -18,6 +19,10 @@ export class VehiclePricingRepository implements IVehiclePricingRepository {
 
   async findVehiclePricing(query: any): Promise<VehiclePricingDocument> {
     return await this.pricingModel.findOne(query).exec();
+  }
+
+  async findMany(query: any, select: string[]): Promise<VehiclePricingDocument[]> {
+    return await this.pricingModel.find(query).select(getSelectData(select)).exec();
   }
 
   async findByVehicleCategory(vehicleCategoryId: string): Promise<VehiclePricingDocument> {
