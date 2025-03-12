@@ -68,11 +68,13 @@ export class BookingDestinationPayloadDto {
 }
 export class BookingSharePayloadDto {
   bookingShare: {
+    sharedRoute: string;
     numberOfSeat: number;
     startPoint: StartPoint;
     endPoint: StartPoint;
     distanceEstimate: number;
-    distance: number
+    distance: number,
+    isSharedRouteMain: boolean
   }
 }
 

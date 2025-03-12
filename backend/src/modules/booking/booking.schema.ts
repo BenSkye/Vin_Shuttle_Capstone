@@ -32,8 +32,8 @@ export class Booking {
     @Prop({ type: String, enum: PaymentMethod, default: PaymentMethod.PAY_OS })
     paymentMethod: string;
 
-    // @Prop({ type: String })
-    // InvoiceId: string;
+    @Prop({ type: Date })
+    expireAt: Date;
 
     @Prop({
         type: [
@@ -56,7 +56,7 @@ export const BookingSchema = SchemaFactory.createForClass(Booking);
 
 // Add indexes
 BookingSchema.index({ customerId: 1, status: 1 });
-
+BookingSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 // Middleware tự động cập nhật lịch sử trạng thái
 BookingSchema.pre<Booking>('save', function (next) {
     const modifiedPaths = (this as any).modifiedPaths();
@@ -64,6 +64,13 @@ BookingSchema.pre<Booking>('save', function (next) {
     // Kiểm tra cả trường hợp tạo mới và cập nhật
     if ((this as any).isNew || modifiedPaths.includes('status')) {
         const currentStatus = this.status;
+
+        if (currentStatus === BookingStatus.CONFIRMED) {
+            this.expireAt = null;
+        } else if ((this as any).isNew) {
+            // Nếu là bản ghi mới, đặt expireAt là 2 phút sau
+            this.expireAt = new Date(Date.now() + 1 * 60 * 1000);
+        }
 
         // Tránh trùng lặp entry đầu tiên khi tạo mới
         if (!(this as any).isNew) {

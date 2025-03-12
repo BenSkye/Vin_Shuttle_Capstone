@@ -28,6 +28,7 @@ export class PayosService implements IPayosService {
       description: createPaymentDto.description,
       cancelUrl: `${domain}/checkout${createPaymentDto.cancelUrl}`,
       returnUrl: `${domain}/checkout${createPaymentDto.returnUrl}`,
+      expiredAt: Math.floor((Date.now() + 1 * 60 * 1000) / 1000),
     };
 
     return this.payos.createPaymentLink(requestData);
