@@ -37,16 +37,16 @@ const LineBookingPage = () => {
         address: ''
     });
 
-
+    
     const [loading, setLoading] = useState(false);
     const [pickup, setPickup] = useState<string>('');
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
     const [isBrowser, setIsBrowser] = useState(false);
     const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
-    const [selectedVehicle, setSelectedVehicle] = useState<{
+    const [selectedVehicles, setSelectedVehicles] = useState<{
         categoryVehicleId: string;
-        name: string;
-    } | null>(null);
+        quantity: number;
+    }[]>([]);
     const [error, setError] = useState<string | null>(null);
     // Set default values for estimated distance and duration
     const [estimatedDistance, setEstimatedDistance] = useState<number>(2);
@@ -60,11 +60,11 @@ const LineBookingPage = () => {
         () => import('../../components/booking/bookingcomponents/destinationLocation'),
         { ssr: false }
     );
-    const DesVehicleSelection = dynamic(
-        () => import('../../components/booking/bookingcomponents/desvehicleselection'),
+    const VehicleSelection = dynamic(
+        () => import('../../components/booking/bookingcomponents/vehicleselection'),
         { ssr: false }
     );
-
+    
     // Check if code is running in browser
     useEffect(() => {
         setIsBrowser(true);
@@ -89,19 +89,19 @@ const LineBookingPage = () => {
         const R = 6371; // Radius of the Earth in km
         const dLat = (endPoint.position.lat - startPoint.position.lat) * Math.PI / 180;
         const dLon = (endPoint.position.lng - startPoint.position.lng) * Math.PI / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(startPoint.position.lat * Math.PI / 180) * Math.cos(endPoint.position.lat * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(startPoint.position.lat * Math.PI / 180) * Math.cos(endPoint.position.lat * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
-
+        
         // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
         const duration = Math.ceil(distance * 2);
-
+        
         setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2);
         setEstimatedDuration(duration || 5);
-
+        
         return { distance, duration };
     };
 
@@ -133,54 +133,54 @@ const LineBookingPage = () => {
         }
     };
 
-    const handleVehicleSelection = (categoryId: string, name: string, selected: boolean) => {
-        console.log('Vehicle selection event:', { categoryId, name, selected });
-        console.log('Current selection before update:', selectedVehicle);
-
-        if (selected) {
-            // Set this as the only selected vehicle
-            setSelectedVehicle({ categoryVehicleId: categoryId, name });
-            console.log('Setting selection to:', { categoryVehicleId: categoryId, name });
-        } else if (selectedVehicle?.categoryVehicleId === categoryId) {
-            // If deselecting the currently selected vehicle, clear selection
-            setSelectedVehicle(null);
-            console.log('Clearing selection');
-        }
+    const handleVehicleSelection = (categoryId: string, quantity: number) => {
+        setSelectedVehicles(prev => {
+            const existing = prev.find(v => v.categoryVehicleId === categoryId);
+            if (existing) {
+                if (quantity === 0) {
+                    return prev.filter(v => v.categoryVehicleId !== categoryId);
+                }
+                return prev.map(v =>
+                    v.categoryVehicleId === categoryId ? { ...v, quantity } : v
+                );
+            }
+            return quantity > 0
+                ? [...prev, { categoryVehicleId: categoryId, quantity }]
+                : prev;
+        });
     };
 
     const fetchAvailableVehicles = async () => {
         setLoading(true);
         setError(null);
-
+        
         try {
             // Use calculateDistance to update estimatedDistance and estimatedDuration
             calculateDistance();
-
+            
             if (!startPoint.address || !endPoint.address) {
                 setError("Vui lòng chọn địa điểm đón và trả khách");
                 setLoading(false);
                 return false;
             }
-
+            
             console.log('Calling vehicleSearchDestination with params:', {
-                startPoint: startPoint.position,
-
-                endPoint: endPoint.position,
                 estimatedDuration: estimatedDuration || 5,
                 estimatedDistance: estimatedDistance || 2,
-
+                endPoint: endPoint.position,
+                startPoint: startPoint.position
             });
-
+            
             // Call API to get available vehicles using vehicleSearchDestination
             const vehicles = await vehicleSearchDestination(
-                estimatedDuration || 5,
-                estimatedDistance || 2,
+                estimatedDuration || 5, // Use default value if not available
+                estimatedDistance || 2, // Use default value if not available
                 endPoint.position,
                 startPoint.position
             );
-
+            
             console.log('vehicleSearchDestination response:', vehicles);
-            setAvailableVehicles(vehicles);
+            setAvailableVehicles(Array.isArray(vehicles) ? vehicles : [vehicles]);
             next();
             return true;
         } catch (error) {
@@ -201,38 +201,37 @@ const LineBookingPage = () => {
             case 2:
                 return !!endPoint.address.trim();
             case 3:
-                return selectedVehicle !== null;
+                return selectedVehicles.length > 0;
             default:
                 return true;
         }
     };
 
     const handleFinish = async () => {
-        if (!selectedVehicle) {
+        if (selectedVehicles.length === 0) {
             setError("Vui lòng chọn loại xe");
             return;
         }
 
         setLoading(true);
         setError(null);
-
+        
         try {
             // Prepare the payload for booking destination
             const payload: BookingDestinationRequest = {
                 startPoint: startPoint,
                 endPoint: endPoint,
-                estimatedDuration: estimatedDuration,
-                distanceEstimate: estimatedDistance,
-                vehicleCategories: selectedVehicle,
+                estimatedDuration: estimatedDuration, 
+                distanceEstimate: estimatedDistance, 
+                vehicleCategories: selectedVehicles,
                 paymentMethod: "pay_os"
             };
-
-
+            
             console.log('Calling bookingDestination with payload:', payload);
-
+            
             const response = await bookingDestination(payload);
             console.log('bookingDestination response:', response);
-
+            
             setBookingResponse(response);
             next(); // Move to checkout page
         } catch (error) {
@@ -283,15 +282,15 @@ const LineBookingPage = () => {
                             endPoint={endPoint}
                             onLocationChange={handleEndLocationChange}
                             loading={loading}
-                            detectUserLocation={detectUserLocation}
+                            detectUserLocation={detectUserLocation} 
                         />
                     )}
                     {current === 3 && isBrowser && (
-                        <DesVehicleSelection
-                            availableVehicles={availableVehicles}
-                            selectedVehicle={selectedVehicle}
-                            onSelectionChange={handleVehicleSelection}
-                        />
+                      <VehicleSelection
+                        availableVehicles={availableVehicles}
+                        selectedVehicles={selectedVehicles}
+                        onSelectionChange={handleVehicleSelection}
+                      />
                     )}
                     {current === 4 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
                 </div>

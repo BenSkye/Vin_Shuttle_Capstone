@@ -24,6 +24,7 @@ import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { RatingModule } from 'src/modules/rating/rating.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -54,7 +55,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     BusStopModule,
     BusRouteModule,
     TrackingModule,
-    RatingModule
+    RatingModule,
+
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
