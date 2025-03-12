@@ -61,6 +61,7 @@ export class CheckoutService implements ICheckoutService {
   }
 
   async getPayOsCancel(reqQuery: any): Promise<void> {
+    console.log('reqQuery', reqQuery);
     await this.bookingService.payBookingFail(reqQuery.orderCode);
   }
 }
