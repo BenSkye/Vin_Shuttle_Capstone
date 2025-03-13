@@ -1,6 +1,6 @@
 import { Prop, Schema } from "@nestjs/mongoose";
 import { Types } from "mongoose";
-import { SharedRouteStatus } from "src/share/enums/shared-route.enum";
+import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 import { Position, PositionSchema } from "src/share/share.schema";
 
 @Schema({ collection: 'SharedRoutes', timestamps: true })
@@ -13,10 +13,10 @@ export class SharedRoute {
 
     @Prop({
         type: [{
-            order: { type: Number, required: true }, // Thứ tự thực hiện
-            pointType: { // Chỉ định điểm này là startPoint hay endPoint của Trip
+            order: { type: Number, required: true },
+            pointType: {
                 type: String,
-                enum: ['startPoint', 'endPoint'],
+                enum: SharedRouteStopsType,
                 required: true
             },
             trip: {
@@ -32,7 +32,7 @@ export class SharedRoute {
     })
     stops: Array<{
         order: number;
-        pointType: 'startPoint' | 'endPoint';
+        pointType: SharedRouteStopsType;
         trip: Types.ObjectId;
         position: Position;
         address: string;
@@ -62,7 +62,7 @@ export class SharedRoute {
         enum: SharedRouteStatus,
         default: SharedRouteStatus.PLANNED
     })
-    status: string;
+    status: SharedRouteStatus;
 
 }
 

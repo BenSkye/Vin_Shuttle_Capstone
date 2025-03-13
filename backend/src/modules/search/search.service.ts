@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 import { DRIVERSCHEDULE_REPOSITORY } from 'src/modules/driver-schedule/driver-schedule.di-token';
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
-import { PRICING_SERVICE, VEHICLE_PRICING_REPOSITORY } from 'src/modules/pricing/pricing.di-token';
-import { IPricingService, IVehiclePricingRepository } from 'src/modules/pricing/pricing.port';
+import { PRICING_SERVICE } from 'src/modules/pricing/pricing.di-token';
+import { IPricingService } from 'src/modules/pricing/pricing.port';
 import { SCENIC_ROUTE_REPOSITORY } from 'src/modules/scenic-route/scenic-route.di-token';
 import { IScenicRouteRepository } from 'src/modules/scenic-route/scenic-route.port';
 import { ISearchService } from 'src/modules/search/search.port';
@@ -14,7 +14,7 @@ import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehi
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
-import { Vehicle, VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
+import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import {
   BOOKING_BUFFER_MINUTES,
   DriverSchedulesStatus,

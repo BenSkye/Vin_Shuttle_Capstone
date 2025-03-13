@@ -6,10 +6,11 @@ import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
-import { IRedisService, ITokenProvider, LocationData, Position } from 'src/share/interface';
+import { LocationData } from 'src/share/interface';
 import { UserRole } from 'src/share/enums';
 import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
 import { ITrackingService } from 'src/modules/tracking/tracking.port';
+import { IRedisService, ITokenProvider } from 'src/share/share.port';
 
 
 

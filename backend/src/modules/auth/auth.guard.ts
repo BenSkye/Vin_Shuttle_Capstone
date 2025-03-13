@@ -2,7 +2,8 @@ import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/commo
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { TOKEN_PROVIDER } from 'src/share/di-token';
-import { HEADER, ITokenProvider } from 'src/share/interface';
+import { HEADER } from 'src/share/interface';
+import { ITokenProvider } from 'src/share/share.port';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -23,12 +24,17 @@ export class AuthGuard implements CanActivate {
       return false;
     }
     const token = authorization.split(' ')[1];
+    console.log('token26', token)
     const decodeInformation = await this.tokenProvider.decodeToken(token);
+    console.log('decodeInformation28', decodeInformation);
     const keystore = await this.keyTokenService.findByUserId(decodeInformation._id);
     if (!keystore) {
       return false;
     }
+    console.log('keystore33', keystore);
+
     const decode = await this.tokenProvider.verifyToken(token, keystore.publicKey);
+    console.log('decode31', decode);
     if (!decode) {
       return false;
     }

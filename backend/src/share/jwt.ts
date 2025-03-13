@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ITokenProvider, tokenDTO, TokenPayload } from 'src/share/interface';
+import { tokenDTO, TokenPayload } from 'src/share/interface';
 import * as jwt from 'jsonwebtoken';
+import { ITokenProvider } from 'src/share/share.port';
 
 @Injectable()
 export class JwtTokenService implements ITokenProvider {
@@ -20,7 +21,8 @@ export class JwtTokenService implements ITokenProvider {
     try {
       const accessToken = jwt.sign(payload, publicKey, { expiresIn: this.expiresInAccessToken });
       const refreshToken = jwt.sign(payload, privateKey, { expiresIn: this.expiresInRefreshToken });
-
+      console.log('accessToken', accessToken);
+      console.log('refreshToken', refreshToken);
       jwt.verify(accessToken, publicKey, (err: any, decoded: any) => {
         if (err) {
           console.error('error::', err);

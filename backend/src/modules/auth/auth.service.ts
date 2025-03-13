@@ -11,7 +11,7 @@ import { convertObjectId } from 'src/share/utils';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { SMS_PROVIDER } from 'src/share/di-token';
-import { ISMSProvider } from 'src/share/interface';
+import { ISMSProvider } from 'src/share/share.port';
 
 @Injectable()
 export class AuthService implements IAuthService {
