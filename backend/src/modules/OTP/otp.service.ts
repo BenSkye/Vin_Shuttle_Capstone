@@ -3,12 +3,12 @@ import { OTP_REPOSITORY } from 'src/modules/OTP/otp.di-token';
 import { IOTPRepository, IOTPService, OTPPayload, OTPVerifyDTO } from 'src/modules/OTP/otp.port';
 import * as otpGenerator from 'otp-generator';
 import * as bcrypt from 'bcrypt';
-import { ITokenProvider } from 'src/share/interface';
 
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { convertObjectId } from 'src/share/utils';
 import { TOKEN_PROVIDER } from 'src/share/di-token';
+import { ITokenProvider } from 'src/share/share.port';
 
 @Injectable()
 export class OTPService implements IOTPService {
@@ -16,7 +16,7 @@ export class OTPService implements IOTPService {
     @Inject(OTP_REPOSITORY) private readonly OTPRepository: IOTPRepository,
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-  ) {}
+  ) { }
 
   async create(data: OTPPayload): Promise<string> {
     const { phone, role, name, _id } = data;

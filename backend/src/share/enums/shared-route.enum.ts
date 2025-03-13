@@ -4,3 +4,8 @@ export enum SharedRouteStatus {
     COMPLETED = 'completed',
     CANCELLED = 'cancelled',
 }
+
+export enum SharedRouteStopsType {
+    START_POINT = 'startPoint',
+    END_POINT = 'endPoint',
+}

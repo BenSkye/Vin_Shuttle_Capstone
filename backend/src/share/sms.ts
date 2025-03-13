@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { ISMSProvider } from 'src/share/interface';
+import { ISMSProvider } from 'src/share/share.port';
 
 @Injectable()
 export class SmsService implements ISMSProvider {

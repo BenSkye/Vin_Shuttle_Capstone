@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import PayOS from '@payos/node';
-import { IPayosService } from 'src/share/interface';
+import { IPayosService } from 'src/share/share.port';
 
 @Injectable()
 export class PayosService implements IPayosService {
