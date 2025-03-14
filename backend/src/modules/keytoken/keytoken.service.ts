@@ -4,15 +4,15 @@ import { Model } from 'mongoose';
 import { IKeyTokenService, KeyTokenCreateDTO } from 'src/modules/keytoken/keytoken.port';
 import { KeyToken } from 'src/modules/keytoken/keytoken.schema';
 import { TOKEN_PROVIDER } from 'src/share/di-token';
-import { ITokenProvider } from 'src/share/interface';
 import * as crypto from 'crypto';
+import { ITokenProvider } from 'src/share/share.port';
 
 @Injectable()
 export class KeyTokenService implements IKeyTokenService {
   constructor(
     @InjectModel(KeyToken.name) private readonly keyTokenModel: Model<KeyToken>,
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
-  ) {}
+  ) { }
 
   async createKeyToken(data: KeyTokenCreateDTO): Promise<object> {
     try {

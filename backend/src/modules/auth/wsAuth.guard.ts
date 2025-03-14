@@ -2,7 +2,8 @@ import { CanActivate, ExecutionContext, Inject } from "@nestjs/common";
 import { KEYTOKEN_SERVICE } from "src/modules/keytoken/keytoken.di-token";
 import { IKeyTokenService } from "src/modules/keytoken/keytoken.port";
 import { TOKEN_PROVIDER } from "src/share/di-token";
-import { HEADER, ITokenProvider } from "src/share/interface";
+import { HEADER, } from "src/share/interface";
+import { ITokenProvider } from "src/share/share.port";
 
 export class WsAuthGuard implements CanActivate {
     constructor(

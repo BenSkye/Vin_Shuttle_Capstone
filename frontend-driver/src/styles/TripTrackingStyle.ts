@@ -267,4 +267,93 @@ export const styles = StyleSheet.create({
         fontSize: 13,
         color: '#856404',
     },
+    proximityContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderRadius: 8,
+        marginTop: 8,
+        borderLeftWidth: 3,
+    },
+    proximityText: {
+        marginLeft: 6,
+        fontSize: 13,
+        flexShrink: 1,
+    },
+    // Add these styles
+    timerActionContainer: {
+        marginTop: 10,
+    },
+    timerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+        backgroundColor: '#FFF3E0',
+        borderRadius: 8,
+        padding: 10,
+    },
+    timerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FF5722',
+        marginLeft: 8,
+    },
+    confirmationModal: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 20,
+        width: '90%',
+        alignSelf: 'center',
+        maxWidth: 400,
+    },
+    confirmationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    confirmationTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#FF5722',
+        marginLeft: 10,
+    },
+    confirmationBody: {
+        marginBottom: 20,
+    },
+    confirmationText: {
+        fontSize: 15,
+        color: '#333',
+        lineHeight: 22,
+    },
+    confirmationButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        marginRight: 10,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    confirmButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 6,
+        backgroundColor: '#FF5722',
+        alignItems: 'center',
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '500',
+    },
 });

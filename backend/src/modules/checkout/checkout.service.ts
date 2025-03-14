@@ -5,7 +5,7 @@ import { IBookingRepository, IBookingService } from 'src/modules/booking/booking
 import { BookingDocument } from 'src/modules/booking/booking.schema';
 import { ICheckoutService } from 'src/modules/checkout/checkout.port';
 import { PAYOS_PROVIDER } from 'src/share/di-token';
-import { IPayosService } from 'src/share/interface';
+import { IPayosService } from 'src/share/share.port';
 
 @Injectable()
 export class CheckoutService implements ICheckoutService {

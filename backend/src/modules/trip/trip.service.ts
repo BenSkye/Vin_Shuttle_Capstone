@@ -13,13 +13,13 @@ import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
 import { REDIS_PROVIDER } from 'src/share/di-token';
-import { IRedisService } from 'src/share/interface';
 import dayjs from 'dayjs';
 import { DateUtils } from 'src/share/utils';
 import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
 import { IUserRepository } from 'src/modules/users/users.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
+import { IRedisService } from 'src/share/share.port';
 
 @Injectable()
 export class TripService implements ITripService {
