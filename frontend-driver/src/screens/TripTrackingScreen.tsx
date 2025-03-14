@@ -40,7 +40,28 @@ const TripTrackingScreen = () => {
   const [loading, setLoading] = useState(false);
   const [routeToDestination, setRouteToDestination] = useState(false);
   const [isCustomerInfoCollapsed, setIsCustomerInfoCollapsed] = useState(false);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [timerActive, setTimerActive] = useState(false);
+  const [showEarlyEndConfirmation, setShowEarlyEndConfirmation] = useState(false);
 
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    // Haversine formula to calculate distance between two points on Earth
+    const R = 6371000; // Earth's radius in meters
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon1 - lon1) * Math.PI) / 180;
+  
+    const a = 
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+    return R * c; // Distance in meters
+  };
   // Get pickup and destination locations based on trip type
   useEffect(() => {
     if (trip) {
@@ -111,6 +132,32 @@ const TripTrackingScreen = () => {
 
   const handleStartTrip = async () => {
     try {
+      // Check if we have the driver's current location
+      if (!location) {
+        Alert.alert('Lỗi', 'Không thể xác định vị trí của bạn. Hãy đảm bảo GPS được bật.');
+        return;
+      }
+  
+      // Check if we're close enough to the customer pickup location
+      const distanceToPickup = calculateDistance(
+        location.latitude, 
+        location.longitude, 
+        customerPickupLocation.lat, 
+        customerPickupLocation.lng
+      );
+      
+      // Define the minimum required proximity (20 meters)
+      const MIN_PROXIMITY = 30; // meters
+      
+      if (distanceToPickup > MIN_PROXIMITY) {
+        Alert.alert(
+          'Quá xa điểm đón',
+          `Bạn cần ở gần khách hàng (trong vòng ${MIN_PROXIMITY}m) để bắt đầu chuyến đi. Hiện tại bạn cách ${Math.round(distanceToPickup)}m.`,
+          [{ text: 'Đã hiểu' }]
+        );
+        return;
+      }
+      
       setLoading(true);
       const updatedTrip = await startTrip(trip._id);
       
@@ -120,21 +167,24 @@ const TripTrackingScreen = () => {
         customerId: trip.customerId || updatedTrip.customerId,
         vehicleId: trip.vehicleId || updatedTrip.vehicleId
       });
-  
+
+      // Start timer if this is a booking_hour trip
+      if (trip.serviceType === ServiceType.BOOKING_HOUR) {
+        const payload = trip.servicePayload as BookingHourPayloadDto;
+        const totalMinutes = payload.bookingHour.totalTime;
+        const cleanupTimer = startCountdownTimer(totalMinutes);
+        
+        // Store the cleanup function to be called when component unmounts
+        return cleanupTimer;
+      }
+      
       // Set showDestination to true when trip starts if this is a destination booking
       if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
         setShowDestination(true);
         // Also show route to destination
         setRouteToDestination(true);
       }
-<<<<<<< HEAD
-      
-      // Update global state for location tracking frequency
-      updateIsInProgress(true);
-
-=======
   
->>>>>>> bb67455e41798c6b2099029eb173363c34f2c370
       Alert.alert('Thành công', 'Đã bắt đầu chuyến đi');
     } catch (error) {
       console.error('Start trip error:', error);
@@ -207,16 +257,35 @@ const TripTrackingScreen = () => {
           </TouchableOpacity>
         );
       case 'in_progress':
-        return (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
-            onPress={handleCompleteTrip}
-            disabled={!isTracking}
-          >
-            <MaterialIcons name="done" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
-          </TouchableOpacity>
-        );
+        if (trip.serviceType === ServiceType.BOOKING_HOUR && timerActive) {
+          return (
+            <View style={styles.timerActionContainer}>
+              <View style={styles.timerContainer}>
+                <MaterialIcons name="timer" size={20} color="#FF5722" />
+                <Text style={styles.timerText}>{formatRemainingTime()}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
+                onPress={handleEarlyEndRequest}
+                disabled={!isTracking}
+              >
+                <MaterialIcons name="done" size={20} color="#fff" />
+                <Text style={styles.actionButtonText}>Kết thúc sớm</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        } else {
+          return (
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
+              onPress={handleCompleteTrip}
+              disabled={!isTracking}
+            >
+              <MaterialIcons name="done" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
+            </TouchableOpacity>
+          );
+        }
       case 'completed':
         return (
           <View style={[styles.actionButton, { backgroundColor: '#8BC34A' }]}>
@@ -274,6 +343,104 @@ const TripTrackingScreen = () => {
     }
     return null;
   }, [isTracking]);
+
+  // Add this function to render the proximity information
+  const renderProximityInfo = () => {
+    if (trip.status.toLowerCase() === 'pickup' && location && customerPickupLocation) {
+      const distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        customerPickupLocation.lat,
+        customerPickupLocation.lng
+      );
+      
+      const MIN_PROXIMITY = 30; // meters
+      const isCloseEnough = distance <= MIN_PROXIMITY;
+      
+      return (
+        <View style={[
+          styles.proximityContainer,
+          { backgroundColor: isCloseEnough ? '#E8F5E9' : '#FFF3E0' }
+        ]}>
+          <MaterialIcons 
+            name={isCloseEnough ? "check-circle" : "info"} 
+            size={18} 
+            color={isCloseEnough ? "#4CAF50" : "#FF9800"} 
+          />
+          <Text style={[
+            styles.proximityText,
+            { color: isCloseEnough ? "#2E7D32" : "#E65100" }
+          ]}>
+            {isCloseEnough 
+              ? `Bạn đã ở gần khách hàng (${Math.round(distance)}m)` 
+              : `Bạn cần di chuyển gần khách hàng hơn (hiện tại cách ${Math.round(distance)}m, cần trong vòng ${MIN_PROXIMITY}m)`
+            }
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
+  // Start the countdown timer
+  const startCountdownTimer = (totalMinutes: number) => {
+    // Convert minutes to milliseconds
+    const totalTime = totalMinutes * 60 * 1000;
+    const targetEndTime = new Date().getTime() + totalTime;
+    
+    setRemainingTime(totalTime);
+    setTimerActive(true);
+    
+    // Store the target end time in state or local storage if needed
+    // for app restarts or background mode handling
+    
+    // Update the timer every second
+    const timerInterval = setInterval(() => {
+      const now = new Date().getTime();
+      const timeLeft = targetEndTime - now;
+      
+      if (timeLeft <= 0) {
+        // Time's up, end the trip
+        clearInterval(timerInterval);
+        setRemainingTime(0);
+        setTimerActive(false);
+        handleCompleteTrip();
+      } else {
+        setRemainingTime(timeLeft);
+      }
+    }, 1000);
+    
+    // Store the interval ID to clear it when component unmounts
+    return () => clearInterval(timerInterval);
+  };
+
+  // Format the remaining time for display
+  const formatRemainingTime = (): string => {
+    if (remainingTime === null) return '';
+    
+    // Convert milliseconds to minutes and seconds
+    const totalSeconds = Math.floor(remainingTime / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Format with leading zeros
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Handle early trip completion
+  const handleEarlyEndRequest = () => {
+    if (remainingTime && remainingTime > 60000) { // More than 1 minute left
+      setShowEarlyEndConfirmation(true);
+    } else {
+      // Less than a minute left, just end it without confirmation
+      handleCompleteTrip();
+    }
+  };
+
+  // Close the early end confirmation modal
+  const closeEarlyEndConfirmation = () => {
+    setShowEarlyEndConfirmation(false);
+  };
 
   if (!route.params) {
     return (
@@ -374,6 +541,9 @@ const TripTrackingScreen = () => {
         {/* Destination information - only show for destination booking when in progress */}
         {renderDestinationInfo()}
 
+        {/* Proximity information - only show in pickup status */}
+        {renderProximityInfo()}
+
         {/* Action button section */}
         <View style={{ marginTop: 15 }}>{renderActionButton()}</View>
       </View>
@@ -471,6 +641,48 @@ const TripTrackingScreen = () => {
                 </View>
               )}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Early End Confirmation Modal */}
+      <Modal
+        visible={showEarlyEndConfirmation}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeEarlyEndConfirmation}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmationModal}>
+            <View style={styles.confirmationHeader}>
+              <MaterialIcons name="warning" size={28} color="#FF9800" />
+              <Text style={styles.confirmationTitle}>Kết thúc chuyến sớm</Text>
+            </View>
+            
+            <View style={styles.confirmationBody}>
+              <Text style={styles.confirmationText}>
+                Bạn còn {formatRemainingTime()} phút trong thời gian thuê xe. 
+                Bạn có chắc chắn muốn kết thúc chuyến đi sớm không?
+              </Text>
+            </View>
+            
+            <View style={styles.confirmationButtons}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={closeEarlyEndConfirmation}
+              >
+                <Text style={styles.cancelButtonText}>Hủy</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.confirmButton}
+                onPress={() => {
+                  closeEarlyEndConfirmation();
+                  handleCompleteTrip();
+                }}
+              >
+                <Text style={styles.confirmButtonText}>Kết thúc</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
