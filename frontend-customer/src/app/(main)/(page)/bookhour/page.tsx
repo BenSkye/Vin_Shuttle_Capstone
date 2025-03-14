@@ -121,19 +121,19 @@ const HourlyBookingPage = () => {
             console.log("fetchAvailableVehicles");
             setLoading(true);
             setVehicleSearchError(null); // Xóa lỗi trước khi gọi API
-    
+
             if (!selectedDate || !startTime) {
                 throw new Error('Bạn cần chọn ngày và giờ trước khi tìm kiếm xe.');
             }
-    
+
             const date = selectedDate.format('YYYY-MM-DD');
             const startTimeString = dayjs(startTime).format('HH:mm');
             const response = await vehicleSearchHour(date, startTimeString, duration);
-    
+
             if (!response || (Array.isArray(response) && response.length === 0)) {
                 throw new Error('Không tìm thấy xe khả dụng cho thời gian đã chọn.');
             }
-    
+
             setAvailableVehicles(Array.isArray(response) ? response : [response]);
             return true;
         } catch (error: unknown) {
@@ -179,7 +179,9 @@ const HourlyBookingPage = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
+            console.log('response', booking);
             const response = await bookingHour(booking);
+            console.log('response', response);
             setBookingResponse(response); // Store response
             console.log('response', response);
             return response; // Return for next step
@@ -229,23 +231,23 @@ const HourlyBookingPage = () => {
                 </Steps>
 
                 <Card className="p-3 sm:p-4 md:p-6">
-                {current === 0 && (
-             <>
-                 <DateTimeSelection
-            selectedDate={selectedDate}
-            startTime={startTime}
-            duration={duration}
-            onDateChange={setSelectedDate}
-            onStartTimeChange={setStartTime}
-            onDurationChange={setDuration}
-        />
-        {vehicleSearchError && (
-            <div className="mt-3">
-                <Alert message="" description={vehicleSearchError} type="error" showIcon />
-            </div>
-        )}
-    </>
-)}
+                    {current === 0 && (
+                        <>
+                            <DateTimeSelection
+                                selectedDate={selectedDate}
+                                startTime={startTime}
+                                duration={duration}
+                                onDateChange={setSelectedDate}
+                                onStartTimeChange={setStartTime}
+                                onDurationChange={setDuration}
+                            />
+                            {vehicleSearchError && (
+                                <div className="mt-3">
+                                    <Alert message="" description={vehicleSearchError} type="error" showIcon />
+                                </div>
+                            )}
+                        </>
+                    )}
                     {current === 1 && (
                         <VehicleSelection
                             availableVehicles={availableVehicles}

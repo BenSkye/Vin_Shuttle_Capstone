@@ -28,7 +28,7 @@ export default function LoginPage() {
     const [error, setError] = useState("")
 
 
-    
+
 
     useEffect(() => {
         const fetchOTP = async () => {
@@ -62,23 +62,25 @@ export default function LoginPage() {
                     phone: formData.phone,
                     code: formData.otp  // Changed from 'otp' to 'code' to match API
                 });
-                 
+
                 console.log('OTP verification user:', response);
                 const data = response as OTPResponse;
+                console.log('Data:', data);
 
                 if (data.isValid) {
                     // Store tokens in localStorage
-                    localStorage.setItem('accessToken', data.token.accessToken);
-                  
-                    localStorage.setItem('refreshToken', data.token.refreshToken);
-                    localStorage.setItem('userId', data.userId);
-                  
+                    // localStorage.setItem('accessToken', data.token.accessToken);
+
+                    // localStorage.setItem('refreshToken', data.token.refreshToken);
+                    // localStorage.setItem('userId', data.userId);
+
+
 
                     //Store tokens in cookies in 2 days
-                    Cookies.set('accessToken', data.token.accessToken, { expires: 2 });
+                    Cookies.set('authorization', data.token.accessToken, { expires: 2 });
                     Cookies.set('refreshToken', data.token.refreshToken, { expires: 2 });
                     Cookies.set('userId', data.userId, { expires: 2 });
-               
+
 
                     // Clear any existing errors
 
