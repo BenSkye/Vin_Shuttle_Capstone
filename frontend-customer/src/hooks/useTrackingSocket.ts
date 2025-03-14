@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEffect, useState } from 'react';
 import { initSocket } from '@/service/socket';
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum';
@@ -6,7 +7,6 @@ import { LocationData } from '@/interface/trip';
 
 const useTrackingSocket = (vehicleId?: string) => {
     const [location, setLocation] = useState<LocationData>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     useEffect(() => {

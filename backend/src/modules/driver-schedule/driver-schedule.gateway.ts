@@ -4,9 +4,9 @@ import { ExecutionContext, HttpException, HttpStatus, Inject, UseGuards } from '
 import { WsAuthGuard } from 'src/modules/auth/wsAuth.guard';
 import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
-import { IRedisService, ITokenProvider } from 'src/share/interface';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
+import { IRedisService, ITokenProvider } from 'src/share/share.port';
 
 @WebSocketGateway({
     namespace: `/${SOCKET_NAMESPACE.DRIVER_SCHEDULE}`,

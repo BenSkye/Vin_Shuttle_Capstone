@@ -1,11 +1,15 @@
 "use client"
 
+
+import { jwtDecode } from "jwt-decode";
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
+import Cookies from "js-cookie"
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserCheck, FiClock } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { Logo } from './Logo'
+import { cookies } from "next/headers";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
@@ -15,40 +19,31 @@ export default function Navbar() {
     const router = useRouter()
     const dropdownRef = useRef<HTMLDivElement>(null)
 
+
+    
+
     useEffect(() => {
-        // Check if user is logged in
         const checkLoginStatus = () => {
             const accessToken = localStorage.getItem('accessToken')
             setIsLoggedIn(!!accessToken)
-
-            // Get user name if available
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}')
-                console.log("uerrrr", user)
-                setUserName(user.name || "Người dùng")
-            } catch (error) {
-                setUserName("Người dùng")
+    
+            if (accessToken) {
+                try {
+                    const decodedToken: any = jwtDecode(accessToken)
+                    console.log('Decoded token:', decodedToken)
+                    setUserName(decodedToken.name || "Người dùng")
+                } catch (error) {
+                    console.error("Lỗi giải mã token:", error)
+                    setUserName("Người dùng")
+                }
             }
         }
-
-        // Check on mount
+    
         checkLoginStatus()
-
-        // Add event listener for storage changes
         window.addEventListener('storage', checkLoginStatus)
-
-        // Close dropdown when clicking outside
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setShowDropdown(false)
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside)
-
+    
         return () => {
             window.removeEventListener('storage', checkLoginStatus)
-            document.removeEventListener('mousedown', handleClickOutside)
         }
     }, [])
 
@@ -57,6 +52,7 @@ export default function Navbar() {
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('userId')
         localStorage.removeItem('user')
+        Cookies.remove('accessToken')
         setIsLoggedIn(false)
         setShowDropdown(false)
         router.push('/login')
@@ -111,12 +107,12 @@ export default function Navbar() {
                             </Link>
 
                             <Link
-                                href="/my-bookings"
+                                href="/trips"
                                 className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 transition-colors"
                                 onClick={() => setShowDropdown(false)}
                             >
                                 <FiClock className="text-green-500" />
-                                <span>Lịch sử đặt xe</span>
+                                <span>Lịch sử các chuyến đi</span>
                             </Link>
 
                             <button

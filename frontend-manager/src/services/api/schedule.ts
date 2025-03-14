@@ -11,7 +11,7 @@ export const DriverSchedule = async (scheduleData: {
         console.log("Driver Schedule:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error:", error.response.data.vnMessage);
         throw error; // Re-throw to handle in the component
     }
 }
@@ -27,4 +27,20 @@ export const getDriverSchedule = async () => {
         console.error("Error:", error);
         throw error;
     }
+}
+
+export const updateDriverSchedule = async (driverScheduleID: string, driver: string, date: string, shift: string, vehicle: string) => {
+    try {
+        const response = await axiosInstance.put(`/driver-schedules/update-driver-schedule/${driverScheduleID}`, {
+            driver,
+            date,
+            shift,
+            vehicle
+        });
+        return response.data;
+    }
+    catch (e) {
+        console.log(e);
+    }
+
 }

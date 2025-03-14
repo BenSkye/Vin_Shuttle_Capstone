@@ -96,8 +96,9 @@ const RouteBooking = () => {
                 alert('Vui lòng chọn địa điểm đón');
                 return;
             }
-            await handleFinish();
+
             return; // Don't increment current here as handleFinish will call next() if successful
+       
         }
 
         setCurrent((prev) => prev + 1);
@@ -147,8 +148,13 @@ const RouteBooking = () => {
                     v.categoryVehicleId === categoryId ? { ...v, quantity } : v
                 );
             }
+            const vehicle = availableVehicles.find(v => v.vehicleCategory._id === categoryId);
             return quantity > 0
-                ? [...prev, { categoryVehicleId: categoryId, quantity }]
+                ? [...prev, { 
+                    categoryVehicleId: categoryId, 
+                    quantity,
+                    name: vehicle?.vehicleCategory.name || 'Unknown Vehicle'
+                }]
                 : prev;
         });
     };
@@ -179,7 +185,9 @@ const RouteBooking = () => {
         }
 
         setLoading(true);
+      
         try {
+          
             const response = await vehicleSearchRoute(
                 selectedDate.format('YYYY-MM-DD'),
                 startTime.format('HH:mm'),
@@ -217,11 +225,12 @@ const RouteBooking = () => {
             });
             console.log("Booking response:", response);
             setBookingResponse(response);
-            setLoading(false);
-            next(); // This will move to step 4 (checkout)
+            setCurrent(4); // Directly set to checkout page (step 4)
         }
         catch (e) {
             console.error("Error booking route:", e);
+            alert('Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.');
+        } finally {
             setLoading(false);
         }
     }
@@ -269,7 +278,7 @@ const RouteBooking = () => {
                                     />
                                 )}
                                 {current === 2 && (<VehicleSelection
-                                    availableVehicles={availableVehicles}
+                                    availableVehicles={availableVehicles || []}
                                     selectedVehicles={selectedVehicles}
                                     onSelectionChange={handleVehicleSelection}
                                 />)}
@@ -300,7 +309,7 @@ const RouteBooking = () => {
                                     </button>
                                 )}
                                 <button
-                                    onClick={current < steps.length - 1 ? next : () => { }}
+                                    onClick={current === 3 ? handleFinish : next}
                                     className="px-6 py-3 bg-blue-500 text-white rounded-lg 
                                     hover:bg-blue-600 transition-colors duration-200 ease-in-out
                                     focus:outline-none focus:ring-2 focus:ring-blue-300

@@ -21,6 +21,7 @@ import { vehicleSearchHour } from "@/service/search.service";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
 import { BookingHourDuration } from "@/constants/booking.constants";
 import { bookingHour } from "@/service/booking.service";
+import Alert from 'antd/es/alert/Alert';
 
 const { Step } = Steps;
 const { Title } = Typography;
@@ -41,6 +42,7 @@ const HourlyBookingPage = () => {
     const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([]);
     const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([]);
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
+    const [vehicleSearchError, setVehicleSearchError] = useState<string | null>(null);
     const [startPoint, setStartPoint] = useState<{
         position: { lat: number; lng: number };
         address: string;
@@ -118,25 +120,26 @@ const HourlyBookingPage = () => {
         try {
             console.log("fetchAvailableVehicles");
             setLoading(true);
-            // Gọi API backend với các tham số đã chọn
+            setVehicleSearchError(null); // Xóa lỗi trước khi gọi API
+    
             if (!selectedDate || !startTime) {
-                throw new Error('Date and time are required');
+                throw new Error('Bạn cần chọn ngày và giờ trước khi tìm kiếm xe.');
             }
+    
             const date = selectedDate.format('YYYY-MM-DD');
             const startTimeString = dayjs(startTime).format('HH:mm');
             const response = await vehicleSearchHour(date, startTimeString, duration);
-            if (!Array.isArray(response)) {
-                setAvailableVehicles([response] as AvailableVehicle[]);
-            } else {
-                setAvailableVehicles(response as AvailableVehicle[]);
+    
+            if (!response || (Array.isArray(response) && response.length === 0)) {
+                throw new Error('Không tìm thấy xe khả dụng cho thời gian đã chọn.');
             }
+    
+            setAvailableVehicles(Array.isArray(response) ? response : [response]);
             return true;
         } catch (error: unknown) {
-            console.log('error127', error)
-            notification.error({
-                message: 'Không tìm thấy xe',
-                description: error instanceof Error ? error.message : 'Không thể tải danh sách xe',
-            });
+            console.error('Lỗi khi tìm kiếm xe:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Không thể tải danh sách xe.';
+            setVehicleSearchError(errorMessage); // Lưu lỗi vào state
             setAvailableVehicles([]);
             return false;
         } finally {
@@ -226,16 +229,23 @@ const HourlyBookingPage = () => {
                 </Steps>
 
                 <Card className="p-3 sm:p-4 md:p-6">
-                    {current === 0 && (
-                        <DateTimeSelection
-                            selectedDate={selectedDate}
-                            startTime={startTime}
-                            duration={duration}
-                            onDateChange={setSelectedDate}
-                            onStartTimeChange={setStartTime}
-                            onDurationChange={setDuration}
-                        />
-                    )}
+                {current === 0 && (
+             <>
+                 <DateTimeSelection
+            selectedDate={selectedDate}
+            startTime={startTime}
+            duration={duration}
+            onDateChange={setSelectedDate}
+            onStartTimeChange={setStartTime}
+            onDurationChange={setDuration}
+        />
+        {vehicleSearchError && (
+            <div className="mt-3">
+                <Alert message="" description={vehicleSearchError} type="error" showIcon />
+            </div>
+        )}
+    </>
+)}
                     {current === 1 && (
                         <VehicleSelection
                             availableVehicles={availableVehicles}

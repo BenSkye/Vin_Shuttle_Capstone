@@ -6,6 +6,7 @@ import {
   IUpdateVehiclePricingDto,
 } from './pricing.dto';
 import { VehiclePricingDocument } from 'src/modules/pricing/pricing.vehicle.schema';
+import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-category.schema';
 
 export interface IPricingConfigRepository {
   create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument>;
@@ -18,6 +19,7 @@ export interface IPricingConfigRepository {
 export interface IVehiclePricingRepository {
   create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument>;
   findVehiclePricing(query: any): Promise<VehiclePricingDocument>;
+  findMany(query: any, select: string[]): Promise<VehiclePricingDocument[]>;
   findByVehicleCategory(vehicleCategoryId: string): Promise<VehiclePricingDocument>;
   findAll(): Promise<VehiclePricingDocument[]>;
   update(pricing: IUpdateVehiclePricingDto): Promise<VehiclePricingDocument>;
@@ -41,4 +43,5 @@ export interface IPricingService {
   getAllVehiclePricings(): Promise<VehiclePricingDocument[]>;
   updateServiceConfig(serviceType: string, config: IUpdateServiceConfigDto): Promise<any>;
   updateVehiclePricing(pricing: IUpdateVehiclePricingDto): Promise<any>;
+  checkVehicleCategoryAndServiceType(vehicleCategoryId: string, serviceType: string): Promise<boolean>;
 }

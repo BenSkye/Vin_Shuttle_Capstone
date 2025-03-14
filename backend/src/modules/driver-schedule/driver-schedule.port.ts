@@ -1,9 +1,12 @@
 import {
+  driverScheduleParams,
   ICreateDriverSchedule,
   IUpdateDriverSchedule,
   PopulatedDriverScheduleDocument,
 } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
+import { UserDocument } from 'src/modules/users/users.schema';
+import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 
 export interface IDriverScheduleRepository {
   createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument>;
@@ -23,6 +26,10 @@ export interface IDriverScheduleService {
     driverSchedules: ICreateDriverSchedule[],
   ): Promise<DriverScheduleDocument[]>;
   checkListDriverSchedule(driverSchedules: ICreateDriverSchedule[]): Promise<boolean>;
+
+  getDriverNotScheduledInDate(date: Date): Promise<UserDocument[]>
+  getVehicleNotScheduledInDate(date: Date): Promise<VehicleDocument[]>
+
   getDriverScheduleById(id: string): Promise<DriverScheduleDocument>;
   getPersonalSchedulesFromStartToEnd(
     driverId: string,
@@ -30,7 +37,7 @@ export interface IDriverScheduleService {
     end: Date,
   ): Promise<DriverScheduleDocument[]>;
   getAllDriverSchedules(): Promise<DriverScheduleDocument[]>;
-  getDriverSchedules(query: any): Promise<DriverScheduleDocument[]>;
+  getDriverSchedules(query: driverScheduleParams): Promise<DriverScheduleDocument[]>;
   getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]>;
   updateDriverSchedule(
     id: string,

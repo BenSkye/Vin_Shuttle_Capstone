@@ -2,17 +2,18 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
 import { TripStatus } from 'src/share/enums/trip.enum';
+import { Position, PositionSchema } from 'src/share/share.schema';
 
 export type TripDocument = HydratedDocument<Trip>;
-@Schema({ _id: false })
-class Position {
-    @Prop({ required: true, type: Number })
-    lat: number;
+// @Schema({ _id: false })
+// class Position {
+//     @Prop({ required: true, type: Number })
+//     lat: number;
 
-    @Prop({ required: true, type: Number })
-    lng: number;
-}
-const PositionSchema = SchemaFactory.createForClass(Position);
+//     @Prop({ required: true, type: Number })
+//     lng: number;
+// }
+// const PositionSchema = SchemaFactory.createForClass(Position);
 
 @Schema({ _id: false })
 class StartPoint {
@@ -79,11 +80,13 @@ export class Trip {
                 distance: Number
             },
             bookingShare: {
+                sharedRoute: Types.ObjectId,
                 numberOfSeat: Number,
                 startPoint: StartPointSchema,
                 endPoint: StartPointSchema,
                 distanceEstimate: Number,
-                distance: Number
+                distance: Number,
+                isSharedRouteMain: Boolean
             },
             bookingBusRoute: {
                 routeId: Types.ObjectId,
@@ -126,6 +129,7 @@ export class Trip {
             distance: number
         };
         bookingShare?: {
+            sharedRoute: Types.ObjectId;
             numberOfSeat: number;
             startPoint: {
                 position: Position;
@@ -136,7 +140,8 @@ export class Trip {
                 address: string;
             };
             distanceEstimate: number;
-            distance: number
+            distance: number,
+            isSharedRouteMain: boolean
         };
         bookingBusRoute?: {
             routeId: Types.ObjectId;
@@ -158,6 +163,9 @@ export class Trip {
     })
     status: TripStatus;
 
+    @Prop({ type: Boolean, default: false })
+    isRating: boolean;
+
     @Prop({ type: Date })
     cancellationTime: Date;
 
@@ -166,6 +174,9 @@ export class Trip {
 
     @Prop({ type: Number })
     refundAmount: number;
+
+    @Prop({ type: Date })
+    expireAt: Date;
 
     @Prop({
         type: [
@@ -183,6 +194,8 @@ export class Trip {
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
+
+TripSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 // Add validation middleware
 TripSchema.pre<Trip>('validate', function (next) {
@@ -228,6 +241,12 @@ TripSchema.pre<Trip>('validate', function (next) {
 TripSchema.pre<Document & Trip>('save', function (next) {
     if ((this as any).isNew || (this as any).isModified('status')) {
         const currentStatus = this.status;
+
+        if (currentStatus === TripStatus.PAYED) {
+            this.expireAt = null;
+        } else if ((this as any).isNew) {
+            this.expireAt = new Date(Date.now() + 1 * 60 * 1000);
+        }
 
         if (!(this as any).isNew) {
             const lastStatus = this.statusHistory.slice(-1)[0]?.status;

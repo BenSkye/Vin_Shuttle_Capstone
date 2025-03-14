@@ -1,18 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
+import { DriverSchedulesStatus, Shift } from 'src/share/enums';
 
 export interface ICreateDriverSchedule {
   driver: string;
   date: Date;
-  shift: string;
+  shift: Shift;
   vehicle: string;
 }
 
 export interface IUpdateDriverSchedule {
   driver?: string;
   date?: Date;
-  shift?: string;
+  shift?: Shift;
   vehicle?: string;
   status?: string;
   checkinTime?: Date;
@@ -65,4 +66,14 @@ export interface PopulatedDriverScheduleDocument
     _id?: Types.ObjectId;
     name?: string;
   };
+}
+
+export interface driverScheduleParams {
+  driver?: string;
+  date?: Date;
+  shift?: Shift;
+  vehicle?: string;
+  status?: DriverSchedulesStatus;
+  isLate?: boolean;
+  isEarlyCheckout?: boolean;
 }

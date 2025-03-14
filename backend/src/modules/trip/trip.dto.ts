@@ -31,6 +31,7 @@ export interface IUpdateTripDto {
   tripCoordinates?: Position[];
   amount?: number;
   status?: TripStatus;
+  isRating?: boolean;
   cancellationTime?: Date;
   cancellationReason?: string;
   refundAmount?: number;
@@ -67,11 +68,13 @@ export class BookingDestinationPayloadDto {
 }
 export class BookingSharePayloadDto {
   bookingShare: {
+    sharedRoute: string;
     numberOfSeat: number;
     startPoint: StartPoint;
     endPoint: StartPoint;
     distanceEstimate: number;
-    distance: number
+    distance: number,
+    isSharedRouteMain: boolean
   }
 }
 
@@ -86,3 +89,11 @@ export class BookingBusRoutePayloadDto {
   };
 }
 
+
+export interface tripParams {
+  customerPhone?: string;
+  driverName?: string;
+  vehicleName?: string;
+  status?: TripStatus;
+  serviceType?: ServiceType;
+}

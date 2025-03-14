@@ -6,7 +6,7 @@ import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
-import { IRedisService, ITokenProvider } from 'src/share/interface';
+import { IRedisService, ITokenProvider } from 'src/share/share.port';
 
 
 

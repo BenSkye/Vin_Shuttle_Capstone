@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import PayOS from '@payos/node';
-import { IPayosService } from 'src/share/interface';
+import { IPayosService } from 'src/share/share.port';
 
 @Injectable()
 export class PayosService implements IPayosService {
@@ -28,6 +28,7 @@ export class PayosService implements IPayosService {
       description: createPaymentDto.description,
       cancelUrl: `${domain}/checkout${createPaymentDto.cancelUrl}`,
       returnUrl: `${domain}/checkout${createPaymentDto.returnUrl}`,
+      expiredAt: Math.floor((Date.now() + 1 * 60 * 1000) / 1000),
     };
 
     return this.payos.createPaymentLink(requestData);

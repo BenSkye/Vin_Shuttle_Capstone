@@ -14,10 +14,11 @@ import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehi
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
-import { Vehicle, VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
+import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import {
   BOOKING_BUFFER_MINUTES,
   DriverSchedulesStatus,
+  GUARANTEED_TIME_BETWEEN_TRIPS,
   ServiceType,
   Shift,
   ShiftHours,
@@ -300,6 +301,7 @@ export class SearchService implements ISearchService {
           {
             date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
+            status: { $nin: [DriverSchedulesStatus.COMPLETED] }
           },
           [],
         ),
@@ -309,7 +311,9 @@ export class SearchService implements ISearchService {
     const scheduleResults = await Promise.all(schedulePromises);
     const uniqueSchedules = scheduleResults
       .flat()
-      .filter((schedule, index, self) => index === self.findIndex(s => s._id === schedule._id));
+      .filter((schedule, index, self) => index === self.findIndex(s => s._id === schedule._id))
+
+    console.log('uniqueSchedules', uniqueSchedules);
 
     if (uniqueSchedules.length == 0) {
       throw new HttpException(
@@ -336,12 +340,12 @@ export class SearchService implements ISearchService {
           scheduleId: schedule._id.toString(),
           $or: [
             {
-              timeStartEstimate: { $lt: bookingEndTime.toDate() },
-              timeEndEstimate: { $gt: bookingStartTime.toDate() },
+              timeStartEstimate: { $lt: bookingEndTime.add(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
+              timeEndEstimate: { $gt: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
             },
             {
-              timeStartEstimate: { $lte: bookingStartTime.toDate() },
-              timeEndEstimate: { $gte: bookingEndTime.toDate() },
+              timeStartEstimate: { $lte: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
+              timeEndEstimate: { $gte: bookingEndTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
             },
           ],
         },
@@ -385,10 +389,33 @@ export class SearchService implements ISearchService {
   }
 
   async groupByVehicleType(
-    vehicles: Vehicle[],
+    vehicles: VehicleDocument[],
     serviceType: string,
     totalUnit: number,
   ): Promise<any[]> {
+
+    //lọc các vehicle không có cấu hình giá
+    const validVehicles = [];
+    for (const vehicle of vehicles) {
+      const checkVehiclePrice = await this.pricingService.checkVehicleCategoryAndServiceType(
+        vehicle.categoryId.toString(),
+        serviceType,
+      );
+      if (checkVehiclePrice) {
+        validVehicles.push(vehicle);
+      }
+    }
+    vehicles = validVehicles;
+    if (vehicles.length == 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `No more vehicle available for this service`,
+          vnMessage: 'Không còn xe phù hợp cho dịch vụ này',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const categoryCounts = new Map<string, number>();
     const categoryPromises = vehicles.map(vehicle =>
       this.vehicleCategoryRepository.getById(vehicle.categoryId.toString()),
