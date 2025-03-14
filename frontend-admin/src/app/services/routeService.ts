@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:2028';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
 
 export interface RouteRequest {
     name: string;
