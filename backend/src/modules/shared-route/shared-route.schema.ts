@@ -1,7 +1,9 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import { Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { HydratedDocument, Types } from "mongoose";
 import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
-import { Position, PositionSchema } from "src/share/share.schema";
+import { Position, PositionSchema, StartOrEndPointSchema } from "src/share/share.schema";
+
+export type SharedRouteDocument = HydratedDocument<SharedRoute>;
 
 @Schema({ collection: 'SharedRoutes', timestamps: true })
 export class SharedRoute {
@@ -11,8 +13,12 @@ export class SharedRoute {
     @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
     vehicleId: Types.ObjectId;
 
+    @Prop({ type: Types.ObjectId, ref: 'DriverSchedule', required: true })
+    scheduleId: Types.ObjectId;
+
     @Prop({
         type: [{
+            _id: false,
             order: { type: Number, required: true },
             pointType: {
                 type: String,
@@ -20,30 +26,29 @@ export class SharedRoute {
                 required: true
             },
             trip: {
-                type: Types.ObjectId,
+                type: String,
                 ref: 'Trip',
                 required: true
             },
-            position: { type: PositionSchema, required: true },
-            address: { type: String, required: true },
+            point: { type: StartOrEndPointSchema, required: true },
             isPass: { type: Boolean, default: false }
         }],
+        default: [],
         required: true
     })
     stops: Array<{
         order: number;
         pointType: SharedRouteStopsType;
-        trip: Types.ObjectId;
-        position: Position;
-        address: string;
+        trip: string;
+        point: {
+            position: Position;
+            address: string;
+        };
         isPass: boolean;
     }>;
 
-    @Prop({ type: [PositionSchema], required: true })
+    @Prop({ type: [PositionSchema] })
     optimizedCoordinates: Position[];
-
-    @Prop({ type: Number, required: true })
-    numberOfSeatsUsed: number;
 
     @Prop({ type: Number, required: true })
     distanceEstimate: number;
@@ -66,7 +71,7 @@ export class SharedRoute {
 
 }
 
-
+export const SharedRouteSchema = SchemaFactory.createForClass(SharedRoute);
 
 // @Prop({ type: Date, required: true })
 // plannedStartTime: Date;

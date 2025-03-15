@@ -1,6 +1,6 @@
 import { BookingStatus } from "src/share/enums"
 import { PaymentMethod } from "src/share/enums/payment.enum"
-import { StartPoint } from "src/share/interface"
+import { StartOrEndPoint } from "src/share/interface"
 
 export interface ICreateBooking {
     bookingCode: number
@@ -23,7 +23,7 @@ export interface IUpdateBooking {
 }
 
 export interface IBookingHourBody {
-    startPoint: StartPoint,
+    startPoint: StartOrEndPoint,
     date: string,
     startTime: string,
     durationMinutes: number,
@@ -32,7 +32,7 @@ export interface IBookingHourBody {
 }
 
 export interface IBookingScenicRouteBody {
-    startPoint: StartPoint,
+    startPoint: StartOrEndPoint,
     scenicRouteId: string,
     date: string,
     startTime: string,
@@ -40,14 +40,22 @@ export interface IBookingScenicRouteBody {
     paymentMethod: PaymentMethod
 }
 export interface IBookingDestinationBody {
-    startPoint: StartPoint,
-    endPoint: StartPoint;
-    estimatedDuration: number
+    startPoint: StartOrEndPoint,
+    endPoint: StartOrEndPoint;
+    durationEstimate: number
     distanceEstimate: number;
     vehicleCategories: { categoryVehicleId: string, name: string },
     paymentMethod: PaymentMethod
 }
 
+export interface IBookingSharedRouteBody {
+    startPoint: StartOrEndPoint,
+    endPoint: StartOrEndPoint;
+    durationEstimate: number
+    distanceEstimate: number;
+    numberOfSeat: number;
+    paymentMethod: PaymentMethod
+}
 
 export interface bookingParams {
     status?: BookingStatus

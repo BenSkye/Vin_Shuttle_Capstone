@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
 import { TripStatus } from 'src/share/enums/trip.enum';
-import { Position, PositionSchema } from 'src/share/share.schema';
+import { Position, PositionSchema, StartOrEndPointSchema } from 'src/share/share.schema';
 
 export type TripDocument = HydratedDocument<Trip>;
 // @Schema({ _id: false })
@@ -15,15 +15,15 @@ export type TripDocument = HydratedDocument<Trip>;
 // }
 // const PositionSchema = SchemaFactory.createForClass(Position);
 
-@Schema({ _id: false })
-class StartPoint {
-    @Prop({ required: true, type: PositionSchema })
-    position: Position;
+// @Schema({ _id: false })
+// class StartPoint {
+//     @Prop({ required: true, type: PositionSchema })
+//     position: Position;
 
-    @Prop({ required: true, type: String })
-    address: string;
-}
-const StartPointSchema = SchemaFactory.createForClass(StartPoint);
+//     @Prop({ required: true, type: String })
+//     address: string;
+// }
+// const StartPointSchema = SchemaFactory.createForClass(StartPoint);
 
 @Schema({ collection: 'Trips', timestamps: true })
 export class Trip {
@@ -65,25 +65,25 @@ export class Trip {
         type: {
             bookingHour: {
                 totalTime: Number,
-                startPoint: StartPointSchema,
+                startPoint: StartOrEndPointSchema,
             },
             bookingScenicRoute: {
                 routeId: Types.ObjectId,
-                startPoint: StartPointSchema,
+                startPoint: StartOrEndPointSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingDestination: {
-                startPoint: StartPointSchema,
-                endPoint: StartPointSchema,
+                startPoint: StartOrEndPointSchema,
+                endPoint: StartOrEndPointSchema,
                 distanceEstimate: Number,
                 distance: Number
             },
             bookingShare: {
                 sharedRoute: Types.ObjectId,
                 numberOfSeat: Number,
-                startPoint: StartPointSchema,
-                endPoint: StartPointSchema,
+                startPoint: StartOrEndPointSchema,
+                endPoint: StartOrEndPointSchema,
                 distanceEstimate: Number,
                 distance: Number,
                 isSharedRouteMain: Boolean

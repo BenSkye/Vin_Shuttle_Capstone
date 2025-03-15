@@ -11,6 +11,7 @@ import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { PricingModule } from 'src/modules/pricing/pricing.module';
 import { ScenicRouteModule } from 'src/modules/scenic-route/scenic-route.module';
 import { SearchModule } from 'src/modules/search/search.module';
+import { ShareRouteModule } from 'src/modules/shared-route/shared-route.module';
 import { TripModule } from 'src/modules/trip/trip.module';
 import { VehicleCategoryModule } from 'src/modules/vehicle-categories/vehicle-category.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
@@ -45,9 +46,10 @@ const dependencies = [
     forwardRef(() => CheckoutModule),
     ShareModule,
     KeytokenModule,
+    ShareRouteModule
   ],
   controllers: [BookingController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class BookingModule {}
+export class BookingModule { }

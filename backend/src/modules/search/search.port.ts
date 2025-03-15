@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
+import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-category.schema';
 import { Vehicle, VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import { DriverSchedulesStatus, Shift } from 'src/share/enums';
 
@@ -39,5 +40,9 @@ export interface ISearchService {
 
   getVehiclesFromSchedules(schedules: DriverScheduleDocument[]): Promise<VehicleDocument[]>;
 
-  groupByVehicleType(vehicles: Vehicle[], serviceType: string, totalUnit: number): Promise<any[]>;
+  groupByVehicleType(vehicles: Vehicle[], serviceType: string, totalUnit: number): Promise<{
+    vehicleCategory: VehicleCategoryDocument;
+    availableCount: number;
+    price: number;
+  }[]>;
 }
