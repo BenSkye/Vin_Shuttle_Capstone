@@ -11,11 +11,14 @@ export class TrackingService implements ITrackingService {
     ) { }
 
     async updateLastVehicleLocation(vehicleId: string, location: LocationData) {
-        await this.redisClient.set(`lastLocation_${vehicleId}`, JSON.stringify(location), 'EX', 86400);
+        const key = `lastLocation:${vehicleId}`;
+        await this.redisClient.set(key, JSON.stringify(location), 'EX', 86400);
     }
 
     async getLastVehicleLocation(vehicleId: string): Promise<LocationData> {
-        const location = await this.redisClient.get(`lastLocation_${vehicleId}`);
+        console.log('vehicleId', vehicleId);
+        const key = `lastLocation:${vehicleId}`;
+        const location = await this.redisClient.get(key);
         return JSON.parse(location);
     }
 }

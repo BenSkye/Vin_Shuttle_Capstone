@@ -1,5 +1,4 @@
-import { CheckoutResponseDataType } from '@payos/node/lib/type';
-import { sharedRouteStop } from 'src/modules/shared-route/shared-route.dto';
+
 
 export interface tokenDTO {
   accessToken: string;
@@ -18,7 +17,7 @@ export interface Position {
   lng: number;
 }
 
-export interface StartPoint {
+export interface StartOrEndPoint {
   position: Position;
   address: string;
 }

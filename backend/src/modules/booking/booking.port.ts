@@ -3,6 +3,7 @@ import {
   IBookingDestinationBody,
   IBookingHourBody,
   IBookingScenicRouteBody,
+  IBookingSharedRouteBody,
   ICreateBooking,
   IUpdateBooking,
 } from 'src/modules/booking/booking.dto';
@@ -32,6 +33,12 @@ export interface IBookingService {
     customerId: string,
     data: IBookingDestinationBody,
   ): Promise<{ newBooking: BookingDocument; paymentUrl: string }>;
+
+  bookingSharedRoute(
+    customerId: string,
+    data: IBookingSharedRouteBody,
+  ): Promise<{ newBooking: BookingDocument; paymentUrl: string }>;
+
   payBookingSuccess(bookingCode: number): Promise<BookingDocument>;
   payBookingFail(bookingCode: number): Promise<void>;
 

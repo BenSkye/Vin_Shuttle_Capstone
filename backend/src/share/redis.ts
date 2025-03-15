@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { LocationData } from './interface';
 import { REDIS_CLIENT } from 'src/share/di-token';
 import { SOCKET_NAMESPACE } from 'src/share/enums/socket.enum';
 import { IRedisService } from 'src/share/share.port';

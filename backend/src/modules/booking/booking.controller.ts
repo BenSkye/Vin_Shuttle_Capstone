@@ -4,7 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
-import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody } from "src/modules/booking/booking.dto";
+import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody, IBookingSharedRouteBody } from "src/modules/booking/booking.dto";
 import { IBookingService } from "src/modules/booking/booking.port";
 import { BookingStatus, UserRole } from "src/share/enums";
 import { PaymentMethod } from "src/share/enums/payment.enum";
@@ -147,6 +147,50 @@ export class BookingController {
         @Body() data: IBookingDestinationBody,
     ) {
         return await this.bookingService.bookingDestination(
+            req.user._id,
+            data
+        )
+    }
+
+
+    @Post('create-booking-shared-route')
+    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.CUSTOMER)
+    @ApiBearerAuth('authorization')
+    @ApiBody({
+        type: Object,
+        description: 'Create a Booking for shared route',
+        examples: {
+            'Create a Booking for shared route': {
+                value: {
+                    startPoint: {
+                        position: {
+                            lat: 10.8376,
+                            lng: 106.84268,
+                        },
+                        address: 'Trường liên cấp VinSchool, Đường V3, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
+                    },
+                    endPoint: {
+                        position: {
+                            lat: 10.8468,
+                            lng: 106.8375,
+                        },
+                        address: 'Hồ bơi nội khu S9, Đường D7, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
+                    },
+                    durationEstimate: 7,
+                    distanceEstimate: 2.8,
+                    numberOfSeat: 2,
+                    paymentMethod: 'pay_os'
+                }
+            }
+        }
+    })
+    async bookingSharedRoute(
+        @Request() req,
+        @Body() data: IBookingSharedRouteBody,
+    ) {
+        return await this.bookingService.bookingSharedRoute(
             req.user._id,
             data
         )

@@ -12,6 +12,7 @@ import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
+import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-category.schema';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
@@ -392,10 +393,15 @@ export class SearchService implements ISearchService {
     vehicles: VehicleDocument[],
     serviceType: string,
     totalUnit: number,
-  ): Promise<any[]> {
+  ): Promise<{
+    vehicleCategory: VehicleCategoryDocument;
+    availableCount: number;
+    price: number;
+  }[]> {
 
     //lọc các vehicle không có cấu hình giá
     const validVehicles = [];
+    console.log('serviceType', serviceType);
     for (const vehicle of vehicles) {
       const checkVehiclePrice = await this.pricingService.checkVehicleCategoryAndServiceType(
         vehicle.categoryId.toString(),
@@ -406,6 +412,7 @@ export class SearchService implements ISearchService {
       }
     }
     vehicles = validVehicles;
+    console.log('vehicles', vehicles);
     if (vehicles.length == 0) {
       throw new HttpException(
         {

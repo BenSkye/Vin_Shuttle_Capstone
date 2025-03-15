@@ -33,8 +33,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
 
             // Configure tracking options based on whether a trip is in progress
-            const updateInterval = isInProgress 
-                ? FOREGROUND_UPDATE_INTERVAL 
+            const updateInterval = isInProgress
+                ? FOREGROUND_UPDATE_INTERVAL
                 : BACKGROUND_UPDATE_INTERVAL;
 
             // Stop existing subscription if any
@@ -44,23 +44,26 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
             // Start new subscription
             locationSubscription.current = await Location.watchPositionAsync(
-                { 
-                    accuracy: Location.Accuracy.High, 
-                    timeInterval: updateInterval, 
-                    distanceInterval: MIN_DISTANCE_CHANGE 
+                {
+                    accuracy: Location.Accuracy.High,
+                    timeInterval: updateInterval,
+                    distanceInterval: MIN_DISTANCE_CHANGE
                 },
                 (locationData) => {
+                    console.log('Location update:', locationData);
                     const newLocation = {
                         latitude: locationData.coords.latitude,
                         longitude: locationData.coords.longitude,
                         heading: locationData.coords.heading,
                         speed: locationData.coords.speed
                     };
-                    
+
                     setLocation(newLocation);
                     setIsTracking(true);
-                    
+
                     // Only emit location when a trip is in progress
+                    console.log('isInProgress', isInProgress);
+                    console.log('isConnected', isConnected);
                     if (isInProgress && isConnected) {
                         emitLocationUpdate(newLocation);
                     }
@@ -86,7 +89,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Handle app state changes
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
         if (
-            appState.current.match(/inactive|background/) && 
+            appState.current.match(/inactive|background/) &&
             nextAppState === 'active'
         ) {
             // App has come to the foreground
@@ -101,7 +104,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 stopLocationTracking();
             }
         }
-        
+
         appState.current = nextAppState;
     };
 
@@ -109,7 +112,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useEffect(() => {
         // Start tracking when component mounts (app starts)
         startLocationTracking();
-        
         // Set up AppState event listener
         const subscription = AppState.addEventListener('change', handleAppStateChange);
 
@@ -118,7 +120,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             stopLocationTracking();
             subscription.remove();
         };
-    }, []);
+    }, [isInProgress, isConnected]);
 
     // Handle changes to trip status
     useEffect(() => {
@@ -127,7 +129,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             // Restart tracking with new interval settings
             startLocationTracking();
         }
-        
+
         // Connect/disconnect socket based on trip status
         if (isInProgress) {
             connect();

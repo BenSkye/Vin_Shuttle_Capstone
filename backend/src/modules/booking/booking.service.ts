@@ -1,18 +1,28 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { BOOKING_REPOSITORY } from "src/modules/booking/booking.di-token";
-import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody, bookingParams } from "src/modules/booking/booking.dto";
+import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody, bookingParams, IBookingSharedRouteBody } from "src/modules/booking/booking.dto";
 import { IBookingRepository, IBookingService } from "src/modules/booking/booking.port";
 import { BookingDocument } from "src/modules/booking/booking.schema";
 import { CHECKOUT_SERVICE } from "src/modules/checkout/checkout.di-token";
 import { ICheckoutService } from "src/modules/checkout/checkout.port";
+import { PRICING_SERVICE } from "src/modules/pricing/pricing.di-token";
+import { IPricingService } from "src/modules/pricing/pricing.port";
 import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.di-token";
 import { IScenicRouteRepository } from "src/modules/scenic-route/scenic-route.port";
 import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
+import { SHARE_ROUTE_SERVICE } from "src/modules/shared-route/shared-route.di-token";
+import { ICreateSharedRouteDTO, searchSharedRouteDTO } from "src/modules/shared-route/shared-route.dto";
+import { ISharedRouteService } from "src/modules/shared-route/shared-route.port";
 import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
+import { ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
+import { TripDocument } from "src/modules/trip/trip.schema";
+import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
+import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from "src/share/enums";
+import { SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
 
@@ -30,7 +40,13 @@ export class BookingService implements IBookingService {
         @Inject(SCENIC_ROUTE_REPOSITORY)
         private readonly scenicRouteRepository: IScenicRouteRepository,
         @Inject(forwardRef(() => CHECKOUT_SERVICE))
-        private readonly checkoutService: ICheckoutService
+        private readonly checkoutService: ICheckoutService,
+        @Inject(SHARE_ROUTE_SERVICE)
+        private readonly sharedRouteService: ISharedRouteService,
+        @Inject(PRICING_SERVICE)
+        private readonly pricingService: IPricingService,
+        @Inject(VEHICLE_REPOSITORY)
+        private readonly vehicleRepository: IVehiclesRepository,
     ) { }
 
     async bookingHour(
@@ -118,7 +134,7 @@ export class BookingService implements IBookingService {
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Not enough quantity for ${availableCategory.name}`,
+                    message: `Not enough quantity for ${availableCategory.vehicleCategory.name}`,
                     vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
@@ -287,7 +303,7 @@ export class BookingService implements IBookingService {
             if (availableCategory.availableCount < requestedCategory.quantity) {
                 throw new HttpException({
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: `Not enough quantity for ${availableCategory.name}`,
+                    message: `Not enough quantity for ${availableCategory.vehicleCategory.name}`,
                     vnMessage: `Không đủ số lượng xe`
                 }, HttpStatus.BAD_REQUEST);
             }
@@ -374,7 +390,7 @@ export class BookingService implements IBookingService {
         const {
             startPoint,
             endPoint,
-            estimatedDuration,
+            durationEstimate,
             distanceEstimate,
             vehicleCategories,
             paymentMethod
@@ -391,7 +407,7 @@ export class BookingService implements IBookingService {
 
         const now = dayjs();
         const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
-        const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
+        const bookingEndTime = bookingStartTime.add(durationEstimate, 'minute');
 
         // Validate booking time và lấy shifts
         const [_, matchingShifts] = await Promise.all([
@@ -512,6 +528,267 @@ export class BookingService implements IBookingService {
         }
     }
 
+    async bookingSharedRoute(
+        customerId: string,
+        data: IBookingSharedRouteBody,
+    ): Promise<{ newBooking: BookingDocument; paymentUrl: string }> {
+        const {
+            startPoint,
+            endPoint,
+            durationEstimate,
+            distanceEstimate,
+            numberOfSeat,
+            paymentMethod
+        } = data;
+
+        //chặn 1 người đặt 2 chuyến xe cùng lúc
+        const trip = await this.tripRepository.findOne({
+            customerId: customerId,
+            status: {
+                $nin: [TripStatus.COMPLETED, TripStatus.CANCELLED]
+            },
+            serviceType: ServiceType.BOOKING_SHARE
+        }, [])
+        if (trip) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'You have a trip in progress',
+                vnMessage: 'Bạn đang có một chuyến đi đang diễn ra'
+            }, HttpStatus.BAD_REQUEST
+            )
+        }
+
+        const searchShareRouteDto: searchSharedRouteDTO = {
+            startPoint: startPoint,
+            endPoint: endPoint,
+            numberOfSeats: numberOfSeat
+        }
+        // Lấy thông tin shared route phù hợp nhất để ghép với trip
+        const sharedRouteFinded = await this.sharedRouteService.findBestRouteForNewTrip(searchShareRouteDto);
+        const ListTrip = [];
+        let totalAmount = 0;
+        let TripDto: ICreateTripDto = null
+        let newTrip: TripDocument = null
+        if (sharedRouteFinded) {
+            const now = dayjs();
+            console.log('durationToNewTripStart', sharedRouteFinded.durationToNewTripStart)
+            console.log('durationToNewTripEnd', sharedRouteFinded.durationToNewTripEnd)
+            const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripStart) / 60, 'minute');
+            const bookingEndTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripEnd / 60), 'minute');
+            console.log('distanceToNewTripEnd', sharedRouteFinded.distanceToNewTripEnd)
+            console.log('distanceToNewTripStart', sharedRouteFinded.distanceToNewTripStart)
+            const vehicle = await this.vehicleRepository.getById(sharedRouteFinded.SharedRouteDocument.vehicleId.toString())
+            const newTripPrice = await this.pricingService.calculatePrice(
+                ServiceType.BOOKING_SHARE,
+                vehicle.categoryId.toString(),
+                distanceEstimate
+            )
+            console.log('newTripPrice', newTripPrice)
+
+            TripDto = {
+                customerId,
+                driverId: sharedRouteFinded.SharedRouteDocument.driverId.toString(),
+                timeStartEstimate: bookingStartTime.toDate(),
+                timeEndEstimate: bookingEndTime.toDate(),
+                vehicleId: sharedRouteFinded.SharedRouteDocument.vehicleId.toString(),
+                scheduleId: sharedRouteFinded.SharedRouteDocument.scheduleId.toString(),
+                serviceType: ServiceType.BOOKING_SHARE,
+                amount: newTripPrice,
+                servicePayload: {
+                    bookingShare: {
+                        sharedRoute: sharedRouteFinded.SharedRouteDocument._id.toString(),
+                        numberOfSeat: numberOfSeat,
+                        startPoint: startPoint,
+                        endPoint: endPoint,
+                        distanceEstimate: distanceEstimate,
+                        distance: distanceEstimate,
+                        isSharedRouteMain: false
+                    }
+                }
+            };
+            newTrip = await this.tripService.createTrip(TripDto);
+
+        } else {
+            //create new trip
+            if (distanceEstimate <= 0) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Invalid distance',
+                    vnMessage: 'Lỗi khoảng cách đoạn đường'
+                }, HttpStatus.BAD_REQUEST);
+            }
+
+            const now = dayjs();
+            const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
+            const bookingEndTime = bookingStartTime.add(durationEstimate, 'minute');
+
+            // Validate booking time và lấy shifts
+            const [_, matchingShifts] = await Promise.all([
+                this.searchService.validateBookingTime(bookingStartTime, bookingEndTime),
+                this.searchService.getMatchingShifts(bookingStartTime, bookingEndTime)
+            ]);
+
+            // Lấy schedules khả dụng
+            const midnightUTC = now.startOf('day');
+
+            const schedules = await this.searchService.getAvailableSchedules(
+                midnightUTC.toDate(),
+                matchingShifts,
+                DriverSchedulesStatus.IN_PROGRESS
+            );
+
+            // Lọc schedules không xung đột
+            const validSchedules = await this.searchService.filterSchedulesWithoutConflicts(
+                schedules,
+                bookingStartTime,
+                bookingEndTime
+            );
+
+            // Lấy vehicles từ schedules
+            const vehicles = await this.searchService.getVehiclesFromSchedules(validSchedules);
+
+            // Kiểm tra số lượng vehicle theo category (mặc định quantity = 1)
+            const availableVehicles = await this.searchService.groupByVehicleType(
+                vehicles,
+                ServiceType.BOOKING_SHARE,
+                distanceEstimate
+            );
+
+            // Validate vehicle categories
+            const availableCategory = availableVehicles.find(
+                v => v.vehicleCategory.numberOfSeat >= numberOfSeat
+            );
+
+            if (!availableCategory || availableCategory.availableCount < 1) {
+                throw new HttpException({
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: `Insufficient vehicles have ${numberOfSeat} seats`,
+                    vnMessage: `Không còn xe đủ số lượng chỗ ngồi`
+                }, HttpStatus.BAD_REQUEST);
+            }
+
+            // Chọn vehicles
+            vehicles.filter(
+                v => v.categoryId.toString() === availableCategory.vehicleCategory._id.toString()
+            );
+            const vehicle = vehicles[0]
+
+            // Tạo trips
+
+            const driverSchedule = validSchedules.find(
+                s => s.vehicle._id.toString() === vehicle._id.toString()
+            );
+
+            const vehicleCategory = availableVehicles.find(
+                v => v.vehicleCategory._id.toString() === vehicle.categoryId.toString()
+            );
+
+            TripDto = {
+                customerId,
+                driverId: driverSchedule.driver._id.toString(),
+                timeStartEstimate: bookingStartTime.toDate(),
+                timeEndEstimate: bookingEndTime.toDate(),
+                vehicleId: vehicle._id.toString(),
+                scheduleId: driverSchedule._id.toString(),
+                serviceType: ServiceType.BOOKING_SHARE,
+                amount: vehicleCategory.price,
+                servicePayload: {
+                    bookingShare: {
+                        sharedRoute: null,
+                        numberOfSeat: numberOfSeat,
+                        startPoint: startPoint,
+                        endPoint: endPoint,
+                        distanceEstimate: distanceEstimate,
+                        distance: distanceEstimate,
+                        isSharedRouteMain: true
+                    }
+                }
+            };
+
+
+            const createSharedRouteDto: ICreateSharedRouteDTO = {
+                driverId: TripDto.driverId.toString(),
+                vehicleId: TripDto.vehicleId.toString(),
+                scheduleId: TripDto.scheduleId.toString(),
+                distanceEstimate: distanceEstimate,
+                durationEstimate: durationEstimate,
+            }
+
+
+            const newSharedRoute = await this.sharedRouteService.createSharedRoute(createSharedRouteDto)
+
+            TripDto = {
+                ...TripDto,
+                servicePayload: {
+                    bookingShare: {
+                        sharedRoute: newSharedRoute._id.toString(),
+                        numberOfSeat: numberOfSeat,
+                        startPoint: startPoint,
+                        endPoint: endPoint,
+                        distanceEstimate: distanceEstimate,
+                        distance: distanceEstimate,
+                        isSharedRouteMain: true
+                    }
+                }
+            }
+            console.log('TripDto', TripDto)
+
+
+            newTrip = await this.tripService.createTrip(TripDto);
+
+
+            //create new shared route
+
+            const sharedRouteStop = [{
+                order: 1,
+                pointType: SharedRouteStopsType.START_POINT,
+                trip: newTrip._id.toString(),
+                point: newTrip.servicePayload.bookingShare.startPoint,
+                isPass: false
+            }, {
+                order: 2,
+                pointType: SharedRouteStopsType.END_POINT,
+                trip: newTrip._id.toString(),
+                point: newTrip.servicePayload.bookingShare.endPoint,
+                isPass: false
+            }]
+
+            const updateSharedRouteDto: ICreateSharedRouteDTO = {
+                ...createSharedRouteDto,
+                stops: sharedRouteStop
+            }
+            await this.sharedRouteService.updateSharedRoute(newSharedRoute._id.toString(), updateSharedRouteDto)
+        }
+
+        ListTrip.push(newTrip._id);
+        console.log('newTrip', newTrip)
+        totalAmount += newTrip.amount;
+        const bookingCode = generateBookingCode()
+
+        const bookingDto = {
+            bookingCode,
+            customerId,
+            trips: ListTrip,
+            totalAmount,
+            paymentMethod
+        };
+
+        const newBooking = await this.bookingRepository.create(bookingDto)
+        if (!newBooking) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: 'fail to create booking',
+                vnMessage: 'Lỗi tạo booking',
+            }, HttpStatus.BAD_REQUEST);
+        }
+        console.log('newBooking', newBooking)
+        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        return {
+            newBooking,
+            paymentUrl: paymentResult.checkoutUrl
+        }
+    }
+
     async payBookingSuccess(bookingCode: number): Promise<BookingDocument> {
         const booking = await this.bookingRepository.findOneBooking(
             {
@@ -530,6 +807,9 @@ export class BookingService implements IBookingService {
                     message: `Failed to update trip ${tripId}`,
                     vnMessage: `Lỗi cập nhật trip ${tripId}`,
                 }, HttpStatus.BAD_REQUEST);
+            }
+            if (tripUpdate.serviceType === ServiceType.BOOKING_SHARE) {
+                await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
             }
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(
