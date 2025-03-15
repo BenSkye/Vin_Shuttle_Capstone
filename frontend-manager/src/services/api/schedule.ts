@@ -11,7 +11,7 @@ export const DriverSchedule = async (scheduleData: {
         console.log("Driver Schedule:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error:", error.response.data.vnMessage);
+
         throw error; // Re-throw to handle in the component
     }
 }

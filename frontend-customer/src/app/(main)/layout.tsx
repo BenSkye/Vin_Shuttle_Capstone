@@ -8,10 +8,10 @@ export default function MainLayout({
     children: React.ReactNode
 }) {
     return (
-        <Layout className="min-h-screen">
+        <Layout className="">
             <Header />
-            <main className="">
-                <div className="">
+            <main className="bg-white min-h-[calc(100vh-64px-70px)]"> {/* Điều chỉnh chiều cao để tránh tràn */}
+                <div className="container mx-auto px-4">
                     {children}
                 </div>
             </main>

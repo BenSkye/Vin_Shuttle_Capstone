@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { Logo } from './Logo'
 import { cookies } from "next/headers";
 
+
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -20,13 +21,13 @@ export default function Navbar() {
     const dropdownRef = useRef<HTMLDivElement>(null)
 
 
-    
+
 
     useEffect(() => {
         const checkLoginStatus = () => {
-            const accessToken = localStorage.getItem('accessToken')
+            const accessToken = Cookies.get('accessToken')
             setIsLoggedIn(!!accessToken)
-    
+
             if (accessToken) {
                 try {
                     const decodedToken: any = jwtDecode(accessToken)
@@ -38,26 +39,24 @@ export default function Navbar() {
                 }
             }
         }
-    
+
         checkLoginStatus()
         window.addEventListener('storage', checkLoginStatus)
-    
+
         return () => {
             window.removeEventListener('storage', checkLoginStatus)
         }
     }, [])
 
     const handleLogout = () => {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('userId')
-        localStorage.removeItem('user')
         Cookies.remove('accessToken')
+        Cookies.remove('refreshToken')
+        Cookies.remove('userId')
+        Cookies.remove('user')
         setIsLoggedIn(false)
         setShowDropdown(false)
         router.push('/login')
     }
-
     const toggleMenu = () => {
         setIsOpen(!isOpen)
     }
