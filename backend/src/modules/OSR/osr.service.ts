@@ -28,15 +28,22 @@ export class RoutingOSRService implements IRoutingOSRMService {
             distance: number
         }> {
         // Chuyển đổi sang định dạng OpenRouteService
-        const requestBody = await this.convertToOpenRouteFormat(stops, vehicleId);
-
+        let requestBody: any = await this.convertToOpenRouteFormat(stops, vehicleId);
+        requestBody = {
+            ...requestBody,
+            options: {
+                g: true,
+                metrics: [
+                    "distance"
+                ]
+            }
+        }
         try {
             const response = await this.httpService.post(
                 this.OSR_API_URL,
                 requestBody,
                 { headers: { 'Authorization': this.OSR_API_KEY } }
             ).toPromise();
-
             const result = this.parseOpenRouteResponse(response.data, stops);
             return result;
         } catch (error) {
@@ -143,56 +150,87 @@ export class RoutingOSRService implements IRoutingOSRMService {
         durationToNewTripEnd: number,
         distanceToNewTripStart: number,
         distanceToNewTripEnd: number,
-        distance: number
+        distance: number,
+        // perTripDistance: {
+        //     trioId: string,
+        //     distance: number
+        // }[]
     } {
         let durationToNewTripStart = 0;
         let durationToNewTripEnd = 0;
         let distanceToNewTripStart = 0;
         let distanceToNewTripEnd = 0;
         let distance = 0;
+        let perTripDistance = [];
         if (!response?.routes?.[0]?.steps) return {
             sharedRouteStop: [],
             durationToNewTripStart: durationToNewTripStart,
             durationToNewTripEnd: durationToNewTripEnd,
             distanceToNewTripStart: distanceToNewTripStart,
             distanceToNewTripEnd: distanceToNewTripEnd,
-            distance: distance
+            distance: distance,
+            // perTripDistance: perTripDistance
         };
 
         const optimizedStops: sharedRouteStop[] = [];
         distance = response.summary.distance;
-        response.routes[0].steps.forEach(step => {
-            if ((step.type !== 'start' || step.type !== 'end') && step.description !== TripIdForAtVehiclePosition) {
-                const tripId = step.description;
-                const originalStop = originalStops.find(s =>
-                    s.trip.toString() === tripId //store tripId in description
-                );
-                if (tripId === TempTripId) {
-                    if (originalStop.pointType === SharedRouteStopsType.START_POINT) {
-                        durationToNewTripStart = step.duration;
-                        distanceToNewTripStart = step.distance;
-                    }
-                    if (originalStop.pointType === SharedRouteStopsType.END_POINT) {
-                        durationToNewTripEnd = step.duration;
-                        distanceToNewTripEnd = step.distance;
-                    }
-                }
+        console.log('originalStops', originalStops);
 
-                if (originalStop) {
-                    optimizedStops.push({
-                        ...originalStop,
-                        order: optimizedStops.length + 1,
-                        point: {
-                            position: {
-                                lat: step.location[1],
-                                lng: step.location[0]
-                            },
-                            address: originalStop.point.address
-                        }
-                    });
+        console.log('response', response.routes[0].steps);
+        response.routes[0].steps.forEach(step => {
+            console.log('step175', step);
+
+            if (!['pickup', 'delivery'].includes(step.type) || step.description === TripIdForAtVehiclePosition) {
+                return;
+            }
+
+            const tripId = step.description;
+            const isPickup = step.type === 'pickup';
+            const isDelivery = step.type === 'delivery';
+
+            // Tìm điểm gốc tương ứng
+            const originalStop = originalStops.find(s =>
+                s.trip.toString() === tripId &&
+                s.pointType === (isPickup ? SharedRouteStopsType.START_POINT : SharedRouteStopsType.END_POINT)
+            );
+
+            console.log('originalStop180', originalStop);
+            if (!originalStop) return;
+
+            // Cập nhật duration & distance nếu là trip cần tìm
+            if (tripId === TempTripId) {
+                if (isPickup) {
+                    console.log('duration183', step.duration);
+                    durationToNewTripStart = step.duration;
+                    distanceToNewTripStart = step.distance;
+                } else {
+                    console.log('duration188', step.duration);
+                    durationToNewTripEnd = step.duration;
+                    distanceToNewTripEnd = step.distance;
                 }
             }
+
+            if (isDelivery) {
+                const pickupStep = response.routes[0].steps.find(step => step.type === 'pickup' && step.description === tripId);
+                let tripDistance = 0
+                if (!pickupStep) {
+                    const startStep = response.routes[0].steps.find(step => step.description === TripIdForAtVehiclePosition);
+                    tripDistance = step.distance - startStep.distance;
+                }
+
+                tripDistance = step.distance - pickupStep.distance;
+                perTripDistance.push({
+                    trioId: tripId,
+                    distance: tripDistance
+                });
+            }
+
+            // Thêm vào optimizedStops
+            originalStop.order = optimizedStops.length + 1;
+            console.log('optimizedStop211', originalStop);
+            optimizedStops.push(originalStop);
         });
+        console.log('optimizedStops', optimizedStops);
 
         return {
             sharedRouteStop: optimizedStops,

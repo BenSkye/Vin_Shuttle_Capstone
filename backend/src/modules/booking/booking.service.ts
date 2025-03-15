@@ -16,9 +16,11 @@ import { SHARE_ROUTE_SERVICE } from "src/modules/shared-route/shared-route.di-to
 import { ICreateSharedRouteDTO, searchSharedRouteDTO } from "src/modules/shared-route/shared-route.dto";
 import { ISharedRouteService } from "src/modules/shared-route/shared-route.port";
 import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
-import { BookingSharePayloadDto, ICreateTripDto } from "src/modules/trip/trip.dto";
+import { ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
 import { TripDocument } from "src/modules/trip/trip.schema";
+import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
+import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from "src/share/enums";
 import { SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
@@ -43,6 +45,8 @@ export class BookingService implements IBookingService {
         private readonly sharedRouteService: ISharedRouteService,
         @Inject(PRICING_SERVICE)
         private readonly pricingService: IPricingService,
+        @Inject(VEHICLE_REPOSITORY)
+        private readonly vehicleRepository: IVehiclesRepository,
     ) { }
 
     async bookingHour(
@@ -567,15 +571,20 @@ export class BookingService implements IBookingService {
         let newTrip: TripDocument = null
         if (sharedRouteFinded) {
             const now = dayjs();
+            console.log('durationToNewTripStart', sharedRouteFinded.durationToNewTripStart)
+            console.log('durationToNewTripEnd', sharedRouteFinded.durationToNewTripEnd)
             const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripStart) / 60, 'minute');
             const bookingEndTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripEnd / 60), 'minute');
-            const newTripDistance =
-                sharedRouteFinded.distanceToNewTripEnd - sharedRouteFinded.distanceToNewTripStart
+            console.log('distanceToNewTripEnd', sharedRouteFinded.distanceToNewTripEnd)
+            console.log('distanceToNewTripStart', sharedRouteFinded.distanceToNewTripStart)
+            const vehicle = await this.vehicleRepository.getById(sharedRouteFinded.SharedRouteDocument.vehicleId.toString())
             const newTripPrice = await this.pricingService.calculatePrice(
                 ServiceType.BOOKING_SHARE,
-                sharedRouteFinded.SharedRouteDocument.vehicleId.toString(),
-                newTripDistance
+                vehicle.categoryId.toString(),
+                distanceEstimate
             )
+            console.log('newTripPrice', newTripPrice)
+
             TripDto = {
                 customerId,
                 driverId: sharedRouteFinded.SharedRouteDocument.driverId.toString(),
@@ -591,8 +600,8 @@ export class BookingService implements IBookingService {
                         numberOfSeat: numberOfSeat,
                         startPoint: startPoint,
                         endPoint: endPoint,
-                        distanceEstimate: newTripDistance,
-                        distance: newTripDistance,
+                        distanceEstimate: distanceEstimate,
+                        distance: distanceEstimate,
                         isSharedRouteMain: false
                     }
                 }
@@ -641,7 +650,7 @@ export class BookingService implements IBookingService {
             // Kiểm tra số lượng vehicle theo category (mặc định quantity = 1)
             const availableVehicles = await this.searchService.groupByVehicleType(
                 vehicles,
-                ServiceType.BOOKING_DESTINATION,
+                ServiceType.BOOKING_SHARE,
                 distanceEstimate
             );
 
@@ -752,6 +761,7 @@ export class BookingService implements IBookingService {
         }
 
         ListTrip.push(newTrip._id);
+        console.log('newTrip', newTrip)
         totalAmount += newTrip.amount;
         const bookingCode = generateBookingCode()
 
@@ -771,6 +781,7 @@ export class BookingService implements IBookingService {
                 vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
+        console.log('newBooking', newBooking)
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
         return {
             newBooking,
@@ -796,6 +807,9 @@ export class BookingService implements IBookingService {
                     message: `Failed to update trip ${tripId}`,
                     vnMessage: `Lỗi cập nhật trip ${tripId}`,
                 }, HttpStatus.BAD_REQUEST);
+            }
+            if (tripUpdate.serviceType === ServiceType.BOOKING_SHARE) {
+                await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
             }
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(
@@ -828,6 +842,7 @@ export class BookingService implements IBookingService {
             booking._id.toString()
         )
     }
+
 
     async getCustomerPersonalBooking(customerId: string): Promise<BookingDocument[]> {
         return await this.bookingRepository.getBookings({ customerId }, [])

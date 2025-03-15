@@ -9,12 +9,15 @@ const useTrackingSocket = () => {
     const [socket, setSocket] = useState<any>(null); // Lưu trữ socket instance
     const { isLogin } = useAuth();
     useEffect(() => {
-        let socketInstance;
+        let socketInstance: any;
         const initializeSocket = async () => {
             socketInstance = await initSocket(SOCKET_NAMESPACE.TRACKING);
             if (!socketInstance) return;
             setSocket(socketInstance);
-            socketInstance.on('connect', () => setIsConnected(true));
+            socketInstance.on('connect', () => {
+                console.log('Socket connected18');
+                setIsConnected(true)
+            });
             socketInstance.on('disconnect', () => setIsConnected(false));
         };
 

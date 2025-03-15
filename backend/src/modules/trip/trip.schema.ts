@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
+import { paymentTime } from 'src/share/enums/payment.enum';
 import { TripStatus } from 'src/share/enums/trip.enum';
 import { Position, PositionSchema, StartOrEndPointSchema } from 'src/share/share.schema';
 
@@ -245,7 +246,7 @@ TripSchema.pre<Document & Trip>('save', function (next) {
         if (currentStatus === TripStatus.PAYED) {
             this.expireAt = null;
         } else if ((this as any).isNew) {
-            this.expireAt = new Date(Date.now() + 1 * 60 * 1000);
+            this.expireAt = new Date(Date.now() + paymentTime * 60 * 1000);
         }
 
         if (!(this as any).isNew) {

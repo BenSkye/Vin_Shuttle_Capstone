@@ -401,6 +401,7 @@ export class SearchService implements ISearchService {
 
     //lọc các vehicle không có cấu hình giá
     const validVehicles = [];
+    console.log('serviceType', serviceType);
     for (const vehicle of vehicles) {
       const checkVehiclePrice = await this.pricingService.checkVehicleCategoryAndServiceType(
         vehicle.categoryId.toString(),
@@ -411,6 +412,7 @@ export class SearchService implements ISearchService {
       }
     }
     vehicles = validVehicles;
+    console.log('vehicles', vehicles);
     if (vehicles.length == 0) {
       throw new HttpException(
         {

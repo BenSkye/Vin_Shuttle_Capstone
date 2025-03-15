@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { BookingStatus } from 'src/share/enums';
-import { PaymentMethod } from 'src/share/enums/payment.enum';
+import { PaymentMethod, paymentTime } from 'src/share/enums/payment.enum';
 
 export type BookingDocument = HydratedDocument<Booking>;
 
@@ -69,7 +69,7 @@ BookingSchema.pre<Booking>('save', function (next) {
             this.expireAt = null;
         } else if ((this as any).isNew) {
             // Nếu là bản ghi mới, đặt expireAt là 2 phút sau
-            this.expireAt = new Date(Date.now() + 1 * 60 * 1000);
+            this.expireAt = new Date(Date.now() + paymentTime * 60 * 1000);
         }
 
         // Tránh trùng lặp entry đầu tiên khi tạo mới

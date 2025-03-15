@@ -6,6 +6,8 @@ import { SHARE_ROUTE_REPOSITORY, SHARE_ROUTE_SERVICE } from 'src/modules/shared-
 import { SharedRouteRepository } from 'src/modules/shared-route/shared-route.repo';
 import { SharedRoute, SharedRouteSchema } from 'src/modules/shared-route/shared-route.schema';
 import { SharedRouteService } from 'src/modules/shared-route/shared-route.service';
+import { TripModule } from 'src/modules/trip/trip.module';
+import { ShareModule } from 'src/share/share.module';
 
 
 const dependencies = [
@@ -27,7 +29,9 @@ const dependencies = [
                 schema: SharedRouteSchema,
             },
         ]),
-        OsrModule
+        OsrModule,
+        ShareModule,
+        TripModule
     ],
     controllers: [],
     providers: [...dependencies],

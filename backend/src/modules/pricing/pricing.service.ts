@@ -213,6 +213,8 @@ export class PricingService implements IPricingService {
 
   //function to calculate price by hour or distance
   async calculatePrice(serviceType: string, vehicleCategoryId: string, totalUnits: number) {
+    console.log('serviceType', serviceType);
+    console.log('vehicleCategoryId', vehicleCategoryId);
     const config = await this.configRepo.findByServiceType(serviceType);
     if (!config) {
       throw new HttpException(

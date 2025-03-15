@@ -10,6 +10,8 @@ export interface ISharedRouteRepository {
     update(shareRouteId: string, updateDto: IUpdateSharedRouteDTO): Promise<SharedRouteDocument>
     delete(query: any): Promise<any>
     deleteById(id: string): Promise<any>
+    saveToRedis(sharedRoute: SharedRouteDocument): Promise<void>
+    findInRedis(id: string): Promise<SharedRouteDocument>
 }
 export interface ISharedRouteService {
     findBestRouteForNewTrip(searchDto: searchSharedRouteDTO): Promise<{
@@ -22,4 +24,5 @@ export interface ISharedRouteService {
 
     createSharedRoute(createDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument>
     updateSharedRoute(shareRouteId: string, updateDto: IUpdateSharedRouteDTO): Promise<SharedRouteDocument>
+    saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument>
 }

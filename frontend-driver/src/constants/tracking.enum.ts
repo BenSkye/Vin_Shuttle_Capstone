@@ -1,4 +1,4 @@
-export const MIN_DISTANCE_CHANGE = 10; // Minimum distance in meters for location updates
+export const MIN_DISTANCE_CHANGE = 15; // Minimum distance in meters for location updates
 
 // Time intervals for location updates (milliseconds)
 export const FOREGROUND_UPDATE_INTERVAL = 1000; // 1 second when trip is in progress
