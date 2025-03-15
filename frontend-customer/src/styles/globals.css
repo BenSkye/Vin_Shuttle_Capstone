@@ -116,3 +116,89 @@
     @apply w-full mb-6;
   }
 }
+
+/* Booking card hover effect */
+.booking-card {
+  @apply transform transition-all duration-300 hover:-translate-y-1;
+}
+
+/* Status badge animations */
+.status-badge {
+  @apply transition-all duration-300;
+}
+
+.status-badge:hover {
+  @apply transform scale-105;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Empty state styling */
+.empty-state {
+  @apply text-center py-12 text-gray-500;
+}
+
+/* Card content fade in animation */
+.card-content {
+  @apply opacity-0 animate-fadeIn;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@layer components {
+  .trip-status-dot {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  .trip-card {
+    @apply transition-all duration-300 hover:shadow-xl;
+  }
+
+  .location-dot {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  .location-line {
+    @apply w-0.5 bg-gray-300;
+  }
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

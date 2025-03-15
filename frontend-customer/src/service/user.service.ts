@@ -19,7 +19,7 @@ export const verifyOTP = async (data: { phone: string, code: string }) => {
             phone: data.phone,
             code: data.code
         });
-        console.log('OTP:', response.data.userId);
+        console.log('OTP:', response.data);
         return response.data;
     } catch (error) {
         throw error;

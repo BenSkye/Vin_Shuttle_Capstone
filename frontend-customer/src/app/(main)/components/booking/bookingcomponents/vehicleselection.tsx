@@ -30,7 +30,7 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
     };
 
     return (
-        <div className="w-full max-w-[1200px] mx-auto px-4">
+        <div className="w-full">
             <Title level={3} className="text-center mb-8 text-2xl font-bold text-gray-800">
                 Chọn loại xe phù hợp
             </Title>
@@ -41,7 +41,7 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
                     <p className="text-gray-500 text-lg">Không có xe khả dụng cho khoảng thời gian này</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {availableVehicles.map((vehicle) => {
                         const selectedQuantity = getSelectedQuantity(vehicle.vehicleCategory._id);
                         const isSelected = selectedQuantity > 0;
