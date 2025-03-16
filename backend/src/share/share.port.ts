@@ -33,8 +33,8 @@ export interface IRedisService {
     del(key: string): Promise<void>;
     setUserSocket(namespace: string, userId: string, socketId: string): Promise<void>;
     deleteUserSocket(namespace: string, socketId: string): Promise<void>;
-    getUserSocket(namespace: string, userId: string): Promise<string[]>;
+    getUserSockets(namespace: string, userId: string): Promise<string[]>;
     setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
     deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void>;
-    getListUserTrackingVehicle(vehicleId: string): Promise<string[]>;
+    getVehicleSubscribers(vehicleId: string): Promise<string[]>;
 }

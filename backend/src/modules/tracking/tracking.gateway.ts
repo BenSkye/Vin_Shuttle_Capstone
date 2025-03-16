@@ -98,14 +98,14 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         if (vehicleId) {
             await this.trackingService.updateLastVehicleLocation(vehicleId, location);
         }
-        const ListUserIdTrackingVehicle = await this.redisService.getListUserTrackingVehicle(vehicleId);
-        ListUserIdTrackingVehicle.forEach(userId => {
-            this.emitLocationUpdate(userId, vehicleId, location);
+        const subscribers = await this.redisService.getVehicleSubscribers(vehicleId);
+        subscribers.forEach(async userId => {
+            await this.emitLocationUpdate(userId, vehicleId, location);
         });
     }
 
     async emitLocationUpdate(userId: string, vehicleId: string, location: LocationData) {
-        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRACKING, userId);
+        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRACKING, userId);
         if (socketId) {
             console.log(`Emitting location update to: ${socketId} for vehicle: ${vehicleId} - ${location.latitude}, ${location.longitude}`);
             this.server.to(socketId).emit(`update_location_${vehicleId}`, location);

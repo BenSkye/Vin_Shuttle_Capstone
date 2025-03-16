@@ -427,7 +427,7 @@ export class TripService implements ITripService {
       updatedTrip._id.toString(),
       await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
     );
-    this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
+    this.redisService.deleteUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
   }
 

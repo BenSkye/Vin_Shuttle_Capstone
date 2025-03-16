@@ -79,14 +79,14 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     async emitTripUpdate(userId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
+        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
         if (socketId) {
             this.server.to(socketId).emit('trip_updated', tripData);
         }
     }
 
     async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSocket(SOCKET_NAMESPACE.TRIPS, userId);
+        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
         console.log('socketId', socketId)
         console.log('trip_updated_detail_', tripId)
         if (socketId) {

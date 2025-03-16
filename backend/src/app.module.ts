@@ -23,6 +23,7 @@ import { BusRouteModule } from './modules/bus-route/bus-route.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { RatingModule } from 'src/modules/rating/rating.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationModule } from 'src/modules/notification/notification.module';
 
 
 @Module({
@@ -56,7 +57,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     BusRouteModule,
     TrackingModule,
     RatingModule,
-
+    NotificationModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
