@@ -130,7 +130,7 @@ export class BookingController {
                         },
                         address: 'Hồ bơi nội khu S9, Đường D7, Vinhomes Grand Park, Long Binh Ward, Thủ Đức, Ho Chi Minh City, 71216, Vietnam'
                     },
-                    estimatedDuration: 7,
+                    durationEstimate: 7,
                     distanceEstimate: 2.8,
                     vehicleCategories:
                     {

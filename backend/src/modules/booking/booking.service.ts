@@ -22,7 +22,7 @@ import { TripDocument } from "src/modules/trip/trip.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from "src/share/enums";
-import { SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
 
@@ -561,6 +561,7 @@ export class BookingService implements IBookingService {
         const searchShareRouteDto: searchSharedRouteDTO = {
             startPoint: startPoint,
             endPoint: endPoint,
+            distanceEstimate: distanceEstimate,
             numberOfSeats: numberOfSeat
         }
         // Lấy thông tin shared route phù hợp nhất để ghép với trip
@@ -809,7 +810,14 @@ export class BookingService implements IBookingService {
                 }, HttpStatus.BAD_REQUEST);
             }
             if (tripUpdate.serviceType === ServiceType.BOOKING_SHARE) {
-                await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
+                if (tripUpdate.servicePayload.bookingShare.isSharedRouteMain) {
+                    await this.sharedRouteService.updateStatusShareRoute(
+                        tripUpdate.servicePayload.bookingShare.sharedRoute.toString(),
+                        SharedRouteStatus.PLANNED
+                    )
+                } else {
+                    await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
+                }
             }
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(

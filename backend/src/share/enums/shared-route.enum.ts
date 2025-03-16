@@ -1,4 +1,5 @@
 export enum SharedRouteStatus {
+    PENDING = 'pending',
     PLANNED = 'planned',
     IN_PROGRESS = 'in_progress',
     COMPLETED = 'completed',
@@ -9,3 +10,5 @@ export enum SharedRouteStopsType {
     START_POINT = 'startPoint',
     END_POINT = 'endPoint',
 }
+
+export const MaxDistanceAvailableToChange = 1; // 2 km

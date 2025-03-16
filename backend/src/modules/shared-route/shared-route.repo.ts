@@ -8,6 +8,7 @@ import Redis from "ioredis";
 import { REDIS_CLIENT } from "src/share/di-token";
 import { getSelectData } from "src/share/utils";
 import { paymentTime } from "src/share/enums/payment.enum";
+import { SharedRouteStatus } from "src/share/enums/shared-route.enum";
 
 
 export class SharedRouteRepository implements ISharedRouteRepository {
@@ -44,6 +45,19 @@ export class SharedRouteRepository implements ISharedRouteRepository {
             }, HttpStatus.NOT_FOUND);
         }
         return await this.shareRouteModel.findByIdAndUpdate(shareRouteId, updateDto, { new: true })
+    }
+
+    async updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument> {
+        const shareRoute = await this.shareRouteModel.findById(shareRouteId);
+        if (!shareRoute) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Share route not found ${shareRouteId}`,
+                vnMessage: `Không tìm thấy chia sẻ tuyến ${shareRouteId}`,
+            }, HttpStatus.NOT_FOUND);
+        }
+        shareRoute.status = status;
+        return await shareRoute.save();
     }
 
     async delete(query: any): Promise<any> {

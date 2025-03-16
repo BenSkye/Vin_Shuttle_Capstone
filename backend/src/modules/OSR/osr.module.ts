@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { OSR_SERVICE } from "src/modules/OSR/osr.di-token";
 import { RoutingOSRService } from "src/modules/OSR/osr.service";
 import { TrackingModule } from "src/modules/tracking/tracking.module";
+import { TripModule } from "src/modules/trip/trip.module";
 
 const dependencies = [
     {
@@ -14,6 +15,7 @@ const dependencies = [
 @Module({
     imports: [
         TrackingModule,
+        TripModule,
         HttpModule
     ],
     controllers: [],

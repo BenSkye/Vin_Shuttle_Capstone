@@ -4,7 +4,7 @@ import { TripStatus } from 'src/share/enums';
 
 export interface ITripRepository {
   create(tripDto: ICreateTripDto): Promise<TripDocument>;
-  findById(id: string): Promise<TripDocument>;
+  findById(id: string, select: string[]): Promise<TripDocument>;
   findByDriverId(driverId: string): Promise<TripDocument[]>;
   find(query: any, select: string[]): Promise<TripDocument[]>;
   findOne(query: any, select: string[]): Promise<TripDocument>

@@ -8,7 +8,8 @@ import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schem
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { TempTripId } from "src/share/enums/osr.enum";
-import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { convertObjectId } from "src/share/utils";
 
 export class SharedRouteService implements ISharedRouteService {
     constructor(
@@ -57,14 +58,45 @@ export class SharedRouteService implements ISharedRouteService {
         let bestRouteForNewTripId = null;
         let bestStopArray: sharedRouteStop[] = []
         let shortestLength = 0;
-        for (const sharedRoute of listSharedRoute) {
+        console.log('listSharedRoute', listSharedRoute);
+        for (const sharedRoute of listSharedRoute) { // loop through all shared routes
             let stops = sharedRoute.stops;
             stops = [...stops, newStartStop, newEndStop];
             stops.filter(stop => stop.isPass === false);
             const vehicleId = sharedRoute.vehicleId.toString();
             const route = await this.osrService.getRoute(stops, vehicleId);
+            console.log('route', route);
+            if (!route) {
+                console.error('Failed to get route for vehicle:', vehicleId);
+            }
             console.log('sharedRouteStop', route.sharedRouteStop);
+            console.log('perTripDistanceAfterChange71', route.perTripDistanceAfterChange);
+
             if (!bestRouteForNewTripId || route.distance < shortestLength) {
+                const perTripDistanceAfterChange = route.perTripDistanceAfterChange;
+                let isValidRoute = true;
+                for (const perTripDistance of perTripDistanceAfterChange) {
+                    console.log('perTripDistance.tripId', perTripDistance.tripId);
+                    if (perTripDistance.tripId === TempTripId) {
+                        console.log(perTripDistance.distance + "-" + searchDto.distanceEstimate)
+                        if (perTripDistance.distance - searchDto.distanceEstimate > MaxDistanceAvailableToChange) {
+                            console.log('is larger than max distance available to change')
+                            isValidRoute = false;
+                            break
+                        }
+                    } else {
+                        const trip = await this.tripRepository.findById(perTripDistance.tripId, ['servicePayload']);
+                        if (trip) {
+                            if (perTripDistance.distance - trip.servicePayload.bookingShare.distanceEstimate > MaxDistanceAvailableToChange) {
+                                isValidRoute = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!isValidRoute) {
+                    continue;
+                }
                 shortestLength = route.distance;
                 bestRouteForNewTripId = sharedRoute._id;
                 bestStopArray = route.sharedRouteStop;
@@ -74,7 +106,7 @@ export class SharedRouteService implements ISharedRouteService {
                 distanceToNewTripEnd = route.distanceToNewTripEnd;
             }
         }
-
+        console.log('bestRouteForNewTripId', bestRouteForNewTripId);
         if (bestRouteForNewTripId === null) {
             return null;
         }
@@ -100,9 +132,13 @@ export class SharedRouteService implements ISharedRouteService {
         return await this.sharedRouteRepository.update(shareRouteId, updateDto);
     }
 
+    async updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument> {
+        return await this.sharedRouteRepository.updateStatusShareRoute(shareRouteId, status);
+    }
+
     async saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument> {
 
-        const trip = await this.tripRepository.findById(tripId);
+        const trip = await this.tripRepository.findById(tripId, ['servicePayload']);
         if (!trip) {
             return null;
         }
