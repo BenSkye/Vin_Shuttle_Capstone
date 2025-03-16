@@ -27,49 +27,43 @@ export class RedisService implements IRedisService {
     }
 
     async setUserSocket(namespace: string, userId: string, socketId: string): Promise<void> {
-        const pipeline = this.redisClient.pipeline();
-        const socketIds = await this.redisClient.smembers(`${namespace}-${userId}`);
-        pipeline.set(`${namespace}-${socketId}`, userId, 'EX', 86400);
-        if (socketIds.includes(socketId)) return;
-        pipeline.sadd(`${namespace}-${userId}`, socketId);
-        await pipeline.exec();
+        const userSocketsKey = `userSockets:${namespace}:${userId}`;
+        await this.redisClient.sadd(userSocketsKey, socketId);
+        await this.redisClient.expire(userSocketsKey, 86400);
     }
 
     async deleteUserSocket(namespace: string, socketId: string): Promise<void> {
-        const userId = await this.redisClient.get(`${namespace}-${socketId}`);
-        console.log('userIdDelete', userId)
-        console.log('socketIdDelete', socketId)
+        // Tìm tất cả user keys chứa socketId này
+        const keys = await this.redisClient.keys(`userSockets:${namespace}:*`);
+
         const pipeline = this.redisClient.pipeline();
-        pipeline.srem(`${namespace}-${userId}`, socketId);
-        pipeline.del(`${namespace}-${socketId}`);
+        for (const key of keys) {
+            pipeline.srem(key, socketId);
+        }
         await pipeline.exec();
     }
 
-    async getUserSocket(namespace: string, userId: string): Promise<string[]> {
-        return this.redisClient.smembers(`${namespace}-${userId}`);
+    async getUserSockets(namespace: string, userId: string): Promise<string[]> {
+        const userSocketsKey = `userSockets:${namespace}:${userId}`;
+        return this.redisClient.smembers(userSocketsKey);
     }
+
 
     async setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
-        const namespace = SOCKET_NAMESPACE.TRACKING;
-        const pipeline = this.redisClient.pipeline();
-        const vehicleIds = await this.redisClient.smembers(`${namespace}-${vehicleId}`);
-        if (vehicleIds.includes(userId)) return;
-        pipeline.sadd(`${namespace}-${vehicleId}`, userId);
-        pipeline.expire(`${namespace}-${vehicleId}`, 86400);
-        await pipeline.exec();
+        const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+        await this.redisClient.sadd(vehicleUsersKey, userId);
+        await this.redisClient.expire(vehicleUsersKey, 86400);
     }
+
 
     async deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
-        const namespace = SOCKET_NAMESPACE.TRACKING;
-        const pipeline = this.redisClient.pipeline();
-        pipeline.srem(`${namespace}-${vehicleId}`, userId);
-        await pipeline.exec();
+        const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+        await this.redisClient.srem(vehicleUsersKey, userId);
     }
 
-    async getListUserTrackingVehicle(vehicleId: string): Promise<string[]> {
-        const namespace = SOCKET_NAMESPACE.TRACKING;
-        return this.redisClient.smembers(`${namespace}-${vehicleId}`);
+    async getVehicleSubscribers(vehicleId: string): Promise<string[]> {
+        const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+        return this.redisClient.smembers(vehicleUsersKey);
     }
-
 
 }
