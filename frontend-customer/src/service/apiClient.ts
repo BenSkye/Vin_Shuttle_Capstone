@@ -10,11 +10,13 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(function (config) {
+
   config.headers['x-client-id'] = 'Bearer ' + Cookies.get('x-client-id') || '';
   config.headers['authorization'] = 'Bearer ' + Cookies.get('authorization') || '';
 
   return config;
 }, function (error) {
+  error.log('error::', error)
   return Promise.reject(error);
 });
 

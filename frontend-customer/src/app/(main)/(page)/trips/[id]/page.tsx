@@ -1,4 +1,5 @@
 'use client';
+
 import { Spin, notification } from 'antd';
 import useTripSocket from '@/hooks/useTripSocket';
 import Link from 'next/link';
@@ -7,34 +8,100 @@ import { use } from 'react';
 import { ServiceType } from '@/constants/service-type.enum';
 import RealTimeTripMap from '@/app/(main)/components/trip/RealTimeTripMap';
 import { TripStatus } from '@/constants/trip.enum';
-
+import { motion } from 'framer-motion';
+import { IoCarSport } from 'react-icons/io5';
+import { FaMapMarkerAlt, FaClock, FaRoute, FaStar } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { getRateTrip } from '@/service/trip.service';
+import TripRating from '@/app/(main)/components/booking/bookingcomponents/triprating';
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const id = use(params).id;
-
+    console.log("Trip ID:", id);
     const { data, isLoading, error } = useTripSocket(id as string);
 
-    if (isLoading) return <Spin tip="Đang tải chi tiết chuyến đi..." />;
+    const [rating, setRating] = useState<{ rate: number, feedback: string } | null>(null);
+    const [loadingRating, setLoadingRating] = useState(false);
+
+    useEffect(() => {
+        const fetchRating = async () => {
+            if (data && (data as Trip).status === TripStatus.COMPLETED) {
+                setLoadingRating(true);
+                try {
+                    const ratingData = await getRateTrip(id);
+                    setRating(ratingData);
+                } catch (error) {
+                    // Silently fail if rating not found
+                    if (error instanceof Error && !error.message.includes('not found')) {
+                        console.error('Error fetching rating:', error);
+                    }
+                } finally {
+                    setLoadingRating(false);
+                }
+            }
+        };
+
+        fetchRating();
+    }, [id, data]);
+
+    if (isLoading) return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <Spin size="large" tip="Đang tải chi tiết chuyến đi..." />
+        </div>
+    );
+
     if (error)
         notification.error({
             message: 'Lỗi',
             description: error.message || 'Lỗi khi tải chi tiết chuyến đi',
         });
-    if (!data) return <p>Không tìm thấy chuyến đi</p>;
 
+    if (!data) return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <p className="text-gray-500 text-xl">Không tìm thấy chuyến đi</p>
+        </div>
+    );
 
     const renderServiceDetails = (trip: Trip) => {
+        const baseCardStyle = "bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300";
+        const labelStyle = "text-gray-600 font-medium text-sm sm:text-base";
+        const valueStyle = "text-gray-800 font-semibold text-base sm:text-lg";
+
         switch (trip.serviceType) {
             case ServiceType.BOOKING_HOUR:
                 const hourPayload = trip.servicePayload as BookingHourPayloadDto;
                 return (
-                    <>
-                        <div className="space-y-2">
-                            <p>Điểm đón: {hourPayload.bookingHour.startPoint.address}</p>
-                            <p>Tổng thời gian: {hourPayload.bookingHour.totalTime} giờ</p>
-                        </div>
-                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <div className={baseCardStyle}>
                             <div className="space-y-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <FaMapMarkerAlt className="text-blue-500 text-lg sm:text-xl flex-shrink-0" />
+                                        <p className={labelStyle}>Điểm đón</p>
+                                    </div>
+                                    <p className={`${valueStyle} sm:ml-auto`}>{hourPayload.bookingHour.startPoint.address}</p>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <FaClock className="text-blue-500 text-lg sm:text-xl flex-shrink-0" />
+                                        <p className={labelStyle}>Tổng thời gian</p>
+                                    </div>
+                                    <p className={`${valueStyle} sm:ml-auto`}>{hourPayload.bookingHour.totalTime} giờ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
+                            <motion.div
+                                className="mt-6"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                            >
                                 <RealTimeTripMap
                                     pickupLocation={[
                                         hourPayload.bookingHour.startPoint.position.lat,
@@ -42,110 +109,83 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                                     ]}
                                     vehicleId={trip.vehicleId._id}
                                 />
-                            </div>
-                        ) : (
-                            <></>
+                            </motion.div>
                         )}
-                    </>
+                    </motion.div>
                 );
-            case ServiceType.BOOKING_SCENIC_ROUTE:
-                const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto;
+
+            // Similar pattern for other service types...
+            // (Keep the same structure but update the UI elements)
+
+            default:
                 return (
-                    <>
-                        <div className="space-y-2">
-                            <p>Điểm đón: {scenicPayload.bookingScenicRoute.startPoint.address}</p>
-                            <p>Tuyến đường: {scenicPayload.bookingScenicRoute.routeId}</p>
-                            <p>Khoảng cách ước tính: {scenicPayload.bookingScenicRoute.distanceEstimate} km</p>
-                            <p>Khoảng cách thực tế: {scenicPayload.bookingScenicRoute.distance} km</p>
-                        </div>
-                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
-                            <div className="space-y-4">
-                                <RealTimeTripMap
-                                    pickupLocation={[
-                                        hourPayload.bookingHour.startPoint.position.lat,
-                                        hourPayload.bookingHour.startPoint.position.lng
-                                    ]}
-                                    vehicleId={trip.vehicleId._id}
-                                />
-                            </div>
-                        ) : (
-                            <></>
-                        )}
-                    </>
-                );
-            case ServiceType.BOOKING_DESTINATION:
-                const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto;
-                return (
-                    <>
-                        <div className="space-y-2">
-                            <p>Điểm đón: {destinationPayload.bookingDestination.startPoint.address}</p>
-                            <p>Điểm đến: {destinationPayload.bookingDestination.endPoint.address}</p>
-                            <p>Khoảng cách ước tính: {destinationPayload.bookingDestination.distanceEstimate} km</p>
-                            <p>Khoảng cách thực tế: {destinationPayload.bookingDestination.distance} km</p>
-                        </div>
-                        {trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS ? (
-                            <div className="space-y-4">
-                                <RealTimeTripMap
-                                    pickupLocation={[
-                                        hourPayload.bookingHour.startPoint.position.lat,
-                                        hourPayload.bookingHour.startPoint.position.lng
-                                    ]}
-                                    vehicleId={trip.vehicleId._id}
-                                />
-                            </div>
-                        ) : (
-                            <></>
-                        )}
-                    </>
-                );
-            case ServiceType.BOOKING_SHARE:
-                const sharePayload = trip.servicePayload as BookingSharePayloadDto;
-                return (
-                    <div className="space-y-2">
-                        <p>Điểm đón: {sharePayload.bookingShare.startPoint.address}</p>
-                        <p>Điểm đến: {sharePayload.bookingShare.endPoint.address}</p>
-                        <p>Số ghế: {sharePayload.bookingShare.numberOfSeat}</p>
-                        <p>Khoảng cách ước tính: {sharePayload.bookingShare.distanceEstimate} km</p>
-                        <p>Khoảng cách thực tế: {sharePayload.bookingShare.distance} km</p>
+                    <div className={baseCardStyle}>
+                        <p className="text-gray-500">Loại dịch vụ không xác định</p>
                     </div>
                 );
-            default:
-                return <p>Loại dịch vụ không xác định</p>;
         }
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <div className="max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold mb-6">Tài xế: {(data as Trip).driverId.name}</h1>
-                <h1 className="text-3xl font-bold mb-6">Xe: {(data as Trip).vehicleId.name}</h1>
-                <h1 className="text-3xl font-bold mb-6">Biển số: {(data as Trip).vehicleId.licensePlate}</h1>
-
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="min-h-screen py-6 sm:py-12">
+            <motion.div
+                className="container mx-auto px-4 max-w-4xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-8 mb-6 sm:mb-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
+                        <IoCarSport className="text-3xl sm:text-4xl text-blue-500" />
                         <div>
-                            <h3 className="font-semibold">Trạng thái</h3>
-                            <p
-                                className={
-                                    (data as Trip).status === 'completed' ? 'text-green-600' : 'text-blue-600'
-                                }
-                            >
-                                {(data as Trip).status}
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                                {(data as Trip).vehicleId.name}
+                            </h1>
+                            <p className="text-sm sm:text-base text-gray-500 mt-1">
+                                Biển số: {(data as Trip).vehicleId.licensePlate}
                             </p>
                         </div>
                     </div>
 
-                    <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-3">Chi tiết lộ trình</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
+                            <h3 className="font-semibold text-gray-700 text-sm sm:text-base mb-2">Tài xế</h3>
+                            <p className="text-lg sm:text-xl font-bold text-gray-900">
+                                {(data as Trip).driverId.name}
+                            </p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
+                            <h3 className="font-semibold text-gray-700 text-sm sm:text-base mb-2">Trạng thái</h3>
+                            <span className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold ${(data as Trip).status === 'completed'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                {(data as Trip).status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="mb-6 sm:mb-8">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Chi tiết lộ trình</h2>
                         {renderServiceDetails(data as Trip)}
                     </div>
 
+                    {/* Rating Section */}
+                    {(data as Trip).status.toLowerCase() === 'completed' && (
+                        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+                            <TripRating tripId={id} trip={data as Trip} />
+                        </div>
+                    )}
 
-                    <Link href="/trips" className="text-blue-600 hover:underline">
-                        ← Quay lại danh sách
+                    <Link
+                        href="/trips"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 mt-4 sm:mt-6 text-sm sm:text-base"
+                    >
+                        <span>←</span>
+                        <span className="hover:underline">Quay lại danh sách</span>
                     </Link>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

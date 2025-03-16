@@ -3,6 +3,7 @@ import apiClient from "@/service/apiClient";
 export const getPersonalTripById = async (id: string) => {
     try {
         const response = await apiClient.get(`/trip/customer-personal-trip/${id}`);
+        console.log('Trip:', response.data);
         return response.data;
     } catch (error: unknown) {
         if (error.response) {

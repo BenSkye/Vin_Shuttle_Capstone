@@ -57,7 +57,7 @@ const SchedulePage = () => {
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : "Failed to load vehicles";
                 console.error("Error fetching vehicles:", error);
-                console.error("Error fetching vehicles:", error);
+             
                 setError(errorMessage);
                 message.error(errorMessage);
             }
@@ -149,7 +149,7 @@ const SchedulePage = () => {
         if (activity.driverId) {
             form.setFieldsValue({
                 driverId: activity.driverId,
-                vehicleId: activity.description.replace('Vehicle: ', '').trim() !== 'N/A'
+                vehicleId: (activity.description ?? '').replace('Vehicle: ', '').trim() !== 'N/A'
                     ? vehicles.find(v => v.name === (activity.description ?? '').replace('Vehicle: ', '').trim())?._id
                     : undefined
             });
@@ -183,28 +183,38 @@ const SchedulePage = () => {
             setError(null);
             setLoading(true);
             const values = await form.validateFields();
-
+    
             if (!selectedDate) {
                 const errorMessage = "Date calculation error";
                 setError(errorMessage);
                 message.error(errorMessage);
                 return;
             }
-
+    
             const scheduleData = {
                 driver: values.driverId,
                 vehicle: values.vehicleId,
                 date: selectedDate,
                 shift: selectedTime
             };
-
+    
             await DriverSchedule(scheduleData);
             message.success("Driver scheduled successfully");
             setIsModalOpen(false);
             fetchDriverSchedules();
-        } catch (error) {
-            const errorMessage = error.response?.data?.vnMessage || error
-            console.error("Error assigning driver:", error.response?.data?.vnMessage || error);
+        } catch (error: unknown) {
+            let errorMessage = "An unexpected error occurred";
+    
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } 
+            
+            if (typeof error === "object" && error !== null && "response" in error) {
+                const err = error as { response?: { data?: { vnMessage?: string } } };
+                errorMessage = err.response?.data?.vnMessage || errorMessage;
+            }
+    
+            console.error("Error assigning driver:", errorMessage);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
