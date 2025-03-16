@@ -1,21 +1,27 @@
 import { HttpService } from "@nestjs/axios";
-import { Inject } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject } from "@nestjs/common";
 import { OpenRouteOptimizationRequestDTO, OpenRouteShipmentDTO } from "src/modules/OSR/osr.dto";
 import { IRoutingOSRMService } from "src/modules/OSR/osr.port";
 import { sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
 import { ITrackingService } from "src/modules/tracking/tracking.port";
+import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
+import { ITripRepository } from "src/modules/trip/trip.port";
 import { TempTripId, TripIdForAtVehiclePosition } from "src/share/enums/osr.enum";
 import { SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { Position } from "src/share/interface";
 
 export class RoutingOSRService implements IRoutingOSRMService {
-    private readonly OSR_API_URL = process.env.OSR_API_URL;
+    private readonly OSR_OPTIMIZATION_API_URL = process.env.OSR_OPTIMIZATION_API_URL;
+    private readonly OSR_DIRECTION_API_URL = process.env.OSR_DIRECTION_API_URL;
     private readonly OSR_API_KEY = process.env.ORS_API_KEY;
 
     constructor(
         private readonly httpService: HttpService,
         @Inject(TRACKING_SERVICE)
-        private readonly trackingService: ITrackingService
+        private readonly trackingService: ITrackingService,
+        @Inject(TRIP_REPOSITORY)
+        private readonly tripRepository: ITripRepository
     ) { }
 
     async getRoute(stops: sharedRouteStop[], vehicleId: string): Promise<
@@ -25,29 +31,62 @@ export class RoutingOSRService implements IRoutingOSRMService {
             durationToNewTripEnd: number,
             distanceToNewTripStart: number,
             distanceToNewTripEnd: number,
-            distance: number
+            distance: number,
+            perTripDistanceAfterChange: {
+                tripId: string,
+                distance: number
+            }[]
         }> {
-        // Chuyển đổi sang định dạng OpenRouteService
-        let requestBody: any = await this.convertToOpenRouteFormat(stops, vehicleId);
-        requestBody = {
-            ...requestBody,
-            options: {
-                g: true,
-                metrics: [
-                    "distance"
-                ]
-            }
-        }
         try {
+            let requestBody: any = await this.convertToOpenRouteFormat(stops, vehicleId);
+            requestBody = {
+                ...requestBody,
+                options: {
+                    g: true,
+                    metrics: [
+                        "distance"
+                    ]
+                }
+            }
             const response = await this.httpService.post(
-                this.OSR_API_URL,
+                this.OSR_OPTIMIZATION_API_URL,
                 requestBody,
                 { headers: { 'Authorization': this.OSR_API_KEY } }
             ).toPromise();
-            const result = this.parseOpenRouteResponse(response.data, stops);
+            const result = await this.parseOpenRouteResponse(response.data, stops);
+            console.log('result57', result);
             return result;
         } catch (error) {
-            throw new Error(`Failed to get optimized route: ${error.message}`);
+            console.log('error', error);
+            throw new HttpException(
+                {
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Failed to get route',
+                    vnMessage: 'Không thể lấy tuyến đường',
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    async getDistanceBetweenTwoPoints(startPoint: Position, endPoint: Position): Promise<number> {
+        try {
+            const url = `${this.OSR_DIRECTION_API_URL}/driving-car?api_key=${this.OSR_API_KEY}&start=${startPoint.lng},${startPoint.lat}&end=${endPoint.lng},${endPoint.lat}`;
+            console.log('url', url);
+            const response = await this.httpService.get(
+                url
+            ).toPromise();
+            return response.data.features[0].properties.summary.distance;
+        } catch (error) {
+            console.log('error', error);
+            throw new HttpException(
+                {
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Failed to get distance between two points',
+                    vnMessage: 'Không thể lấy khoảng cách giữa hai điểm',
+                },
+                HttpStatus.BAD_REQUEST,
+            );
         }
     }
 
@@ -144,24 +183,26 @@ export class RoutingOSRService implements IRoutingOSRMService {
         };
     }
 
-    private parseOpenRouteResponse(response: any, originalStops: sharedRouteStop[]): {
+    private async parseOpenRouteResponse(response: any, originalStops: sharedRouteStop[]): Promise<{
         sharedRouteStop: sharedRouteStop[];
         durationToNewTripStart: number,
         durationToNewTripEnd: number,
         distanceToNewTripStart: number,
         distanceToNewTripEnd: number,
         distance: number,
-        // perTripDistance: {
-        //     trioId: string,
-        //     distance: number
-        // }[]
-    } {
+        perTripDistanceAfterChange: {
+            tripId: string,
+            distance: number
+        }[]
+    }> {
+
         let durationToNewTripStart = 0;
         let durationToNewTripEnd = 0;
         let distanceToNewTripStart = 0;
         let distanceToNewTripEnd = 0;
         let distance = 0;
-        let perTripDistance = [];
+        const perTripDistanceAfterChange = [];
+        const optimizedStops: sharedRouteStop[] = [];
         if (!response?.routes?.[0]?.steps) return {
             sharedRouteStop: [],
             durationToNewTripStart: durationToNewTripStart,
@@ -169,19 +210,18 @@ export class RoutingOSRService implements IRoutingOSRMService {
             distanceToNewTripStart: distanceToNewTripStart,
             distanceToNewTripEnd: distanceToNewTripEnd,
             distance: distance,
-            // perTripDistance: perTripDistance
+            perTripDistanceAfterChange: perTripDistanceAfterChange
         };
 
-        const optimizedStops: sharedRouteStop[] = [];
         distance = response.summary.distance;
         console.log('originalStops', originalStops);
 
         console.log('response', response.routes[0].steps);
-        response.routes[0].steps.forEach(step => {
+        for (const step of response.routes[0].steps) {
             console.log('step175', step);
 
             if (!['pickup', 'delivery'].includes(step.type) || step.description === TripIdForAtVehiclePosition) {
-                return;
+                continue;
             }
 
             const tripId = step.description;
@@ -209,19 +249,39 @@ export class RoutingOSRService implements IRoutingOSRMService {
                     distanceToNewTripEnd = step.distance;
                 }
             }
-
+            step.distance = step.distance / 1000;
             if (isDelivery) {
                 const pickupStep = response.routes[0].steps.find(step => step.type === 'pickup' && step.description === tripId);
-                let tripDistance = 0
+                let tripDistanceAfterChange = 0
                 if (!pickupStep) {
                     const startStep = response.routes[0].steps.find(step => step.description === TripIdForAtVehiclePosition);
-                    tripDistance = step.distance - startStep.distance;
+                    startStep.distance = startStep.distance / 1000;
+                    console.log('startStep', startStep);
+                    const tripDistanceFromVehicleToStop = step.distance - startStep.distance;
+                    const defaulDistancFromVehicleToStop = await this.getDistanceBetweenTwoPoints(
+                        {
+                            lat: startStep.location[1],
+                            lng: startStep.location[0]
+                        },
+                        {
+                            lat: originalStop.point.position.lat,
+                            lng: originalStop.point.position.lng
+                        }
+                    )
+                    console.log('defaulDistancFromVehicleToStop', defaulDistancFromVehicleToStop);
+                    const distanceChange = tripDistanceFromVehicleToStop - defaulDistancFromVehicleToStop / 1000;
+                    const trip = await this.tripRepository.findById(tripId, ['servicePayload.bookingShare.distance']);
+                    tripDistanceAfterChange = trip.servicePayload.bookingShare.distance + distanceChange;
+                    console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + trip.servicePayload.bookingShare.distance + '+' + distanceChange);
+                } else {
+                    pickupStep.distance = pickupStep.distance / 1000;
+                    tripDistanceAfterChange = step.distance - pickupStep.distance;
+                    console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + step.distance + '-' + pickupStep.distance);
                 }
 
-                tripDistance = step.distance - pickupStep.distance;
-                perTripDistance.push({
-                    trioId: tripId,
-                    distance: tripDistance
+                perTripDistanceAfterChange.push({
+                    tripId: tripId,
+                    distance: tripDistanceAfterChange
                 });
             }
 
@@ -229,7 +289,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
             originalStop.order = optimizedStops.length + 1;
             console.log('optimizedStop211', originalStop);
             optimizedStops.push(originalStop);
-        });
+        };
         console.log('optimizedStops', optimizedStops);
 
         return {
@@ -238,7 +298,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
             durationToNewTripEnd,
             distanceToNewTripStart,
             distanceToNewTripEnd,
-            distance
+            distance,
+            perTripDistanceAfterChange
         };
     }
 }

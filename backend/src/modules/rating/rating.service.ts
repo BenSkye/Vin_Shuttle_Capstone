@@ -16,7 +16,7 @@ export class RatingService implements IRatingService {
     ) { }
 
     async createRating(customerId: string, data: ICreateRating): Promise<RatingDocument> {
-        const trip = await this.tripRepository.findById(data.tripId)
+        const trip = await this.tripRepository.findById(data.tripId, ['customerId'])
         if (!trip || trip.customerId._id.toString() !== customerId) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,

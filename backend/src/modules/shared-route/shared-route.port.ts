@@ -1,5 +1,6 @@
 import { ICreateSharedRouteDTO, IUpdateSharedRouteDTO, searchSharedRouteDTO } from "src/modules/shared-route/shared-route.dto";
 import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schema";
+import { SharedRouteStatus } from "src/share/enums/shared-route.enum";
 
 
 export interface ISharedRouteRepository {
@@ -8,6 +9,7 @@ export interface ISharedRouteRepository {
     findOne(query: any, select: string[]): Promise<SharedRouteDocument>
     findById(id: string): Promise<SharedRouteDocument>
     update(shareRouteId: string, updateDto: IUpdateSharedRouteDTO): Promise<SharedRouteDocument>
+    updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument>
     delete(query: any): Promise<any>
     deleteById(id: string): Promise<any>
     saveToRedis(sharedRoute: SharedRouteDocument): Promise<void>
@@ -24,5 +26,6 @@ export interface ISharedRouteService {
 
     createSharedRoute(createDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument>
     updateSharedRoute(shareRouteId: string, updateDto: IUpdateSharedRouteDTO): Promise<SharedRouteDocument>
+    updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument>
     saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument>
 }

@@ -12,6 +12,7 @@ export interface sharedRouteStop {
 export interface searchSharedRouteDTO {
     startPoint: StartOrEndPoint;
     endPoint: StartOrEndPoint;
+    distanceEstimate: number;
     numberOfSeats: number;
 }
 
@@ -35,5 +36,10 @@ export interface IUpdateSharedRouteDTO {
     durationEstimate?: number;
     durationActual?: number;
     status?: SharedRouteStatus;
+    statusHistory?: {
+        status: SharedRouteStatus;
+        changedAt: Date;
+        reason?: string;
+    }[];
 
 }

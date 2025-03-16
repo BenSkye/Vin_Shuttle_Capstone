@@ -18,8 +18,8 @@ export class TripRepository implements ITripRepository {
     const newTrip = new this.tripModel(tripDto)
     return await newTrip.save();
   }
-  async findById(id: string): Promise<TripDocument> {
-    return await this.tripModel.findById(id).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
+  async findById(id: string, select: string[]): Promise<TripDocument> {
+    return await this.tripModel.findById(id).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
   async findByDriverId(driverId: string): Promise<TripDocument[]> {
     return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
