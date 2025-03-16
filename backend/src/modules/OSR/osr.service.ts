@@ -14,7 +14,7 @@ import { Position } from "src/share/interface";
 export class RoutingOSRService implements IRoutingOSRMService {
     private readonly OSR_OPTIMIZATION_API_URL = process.env.OSR_OPTIMIZATION_API_URL;
     private readonly OSR_DIRECTION_API_URL = process.env.OSR_DIRECTION_API_URL;
-    private readonly OSR_API_KEY = process.env.ORS_API_KEY;
+    private readonly OSR_API_KEY = process.env.OSR_API_KEY;
 
     constructor(
         private readonly httpService: HttpService,
