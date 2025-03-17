@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Param, Put, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
@@ -11,7 +11,7 @@ import { UserRole } from 'src/share/enums';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(@Inject(USER_SERVICE) private readonly service: IUserService) {}
+  constructor(@Inject(USER_SERVICE) private readonly service: IUserService) { }
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
@@ -64,4 +64,32 @@ export class UsersController {
   async updateProfile(@Request() req, @Body() user: UpdateUserDto) {
     return await this.service.updateProfile(req.user._id, user);
   }
+
+  @Put('save-push-token')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Save user push token' })
+  @ApiBody({
+    type: String,
+    description: 'Save user push token',
+    examples: {
+      'Save user push token': {
+        value: {
+          pushToken: 'xxxxxxxxxxxxxxxxxxxx',
+        }
+      },
+    },
+  })
+  async saveUserPushToken(@Request() req, @Body() pushToken: string) {
+    return await this.service.saveUserPushToken(req.user._id, pushToken);
+  }
+
+  @Delete('delete-push-token')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('authorization')
+  @ApiOperation({ summary: 'Delete user push token' })
+  async deletePushToken(@Request() req) {
+    return await this.service.deletePushToken(req.user._id);
+  }
+
 }

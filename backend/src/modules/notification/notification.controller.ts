@@ -48,7 +48,7 @@ export class NotificationController {
         return await this.notificationService.getNotificationById(id)
     }
 
-    @Get('user')
+    @Get('personal-notification')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
     @ApiBearerAuth('authorization')
