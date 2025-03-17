@@ -44,6 +44,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dayjs": "^1.11.13",
+    "expo-server-sdk": "^3.14.0",
     "ioredis": "^5.5.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",

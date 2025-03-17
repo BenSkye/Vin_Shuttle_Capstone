@@ -6,6 +6,7 @@ import { AntdRegistry } from '@ant-design/nextjs-registry'
 import NextTopLoader from 'nextjs-toploader'
 import { Suspense } from 'react'
 import Loading from '@/components/shared/Loading'
+import { NotificationProvider } from '@/context/NotificationContext'
 
 polyfill()
 
@@ -37,7 +38,9 @@ export default function RootLayout({
             }}
           >
             <Suspense fallback={<Loading />}>
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </Suspense>
           </ConfigProvider>
         </AntdRegistry>

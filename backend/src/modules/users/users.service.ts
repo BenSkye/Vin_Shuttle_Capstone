@@ -46,4 +46,17 @@ export class UsersService implements IUserService {
     const updatedUser = await this.userRepository.updateUser(id, user);
     return updatedUser;
   }
+
+  async saveUserPushToken(userId: string, pushToken: string): Promise<void> {
+    await this.userRepository.saveUserPushToken(userId, pushToken);
+  }
+
+  async getUserPushToken(userId: string): Promise<string | null> {
+    const pushToken = await this.userRepository.getUserPushToken(userId);
+    return pushToken;
+  }
+
+  async deletePushToken(userId: string): Promise<void> {
+    await this.userRepository.deletePushToken(userId);
+  }
 }
