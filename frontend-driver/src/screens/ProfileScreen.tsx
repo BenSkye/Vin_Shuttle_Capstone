@@ -47,9 +47,9 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
+      await userHaslogout();
       await authService.logout();
       // Điều hướng về Login bằng cách thay thế stack hiện tại
-      await userHaslogout();
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],

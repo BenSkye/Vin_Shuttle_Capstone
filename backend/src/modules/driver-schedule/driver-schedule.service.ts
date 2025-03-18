@@ -66,7 +66,7 @@ export class DriverScheduleService implements IDriverScheduleService {
 
         }, HttpStatus.BAD_REQUEST);
       }
-      if (vehicle.vehicleCondition !== VehicleCondition.AVAILABLE) {
+      if (vehicle.vehicleCondition !== VehicleCondition.IN_USE) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Vehicle ${schedule.vehicle} is not available`,
