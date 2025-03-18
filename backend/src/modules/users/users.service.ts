@@ -48,6 +48,7 @@ export class UsersService implements IUserService {
   }
 
   async saveUserPushToken(userId: string, pushToken: string): Promise<void> {
+    console.log('saveUserPushToken', userId, pushToken);
     await this.userRepository.saveUserPushToken(userId, pushToken);
   }
 

@@ -41,7 +41,7 @@ export const handleNotification = async () => {
                     projectId,
                 })
             ).data;
-            console.log('Expo Push Token:', token);
+            console.log('Expo Push Token44:', token);
 
             // Kiểm tra và cập nhật Push Token nếu cần
 

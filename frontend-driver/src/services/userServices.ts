@@ -37,7 +37,9 @@ const getUserProfile = async (): Promise<UserProfile> => {
 
 const updateUserPushToken = async (pushToken: string): Promise<void> => {
   try {
-    const response = await apiClient.put('/users/save-push-token');
+    const response = await apiClient.put('/users/save-push-token', {
+      pushToken
+    });
   } catch (error: unknown) {
     console.error('Error fetching personal notification:', error);
     throw error;
