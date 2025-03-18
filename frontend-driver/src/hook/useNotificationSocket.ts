@@ -73,7 +73,7 @@ const useNotificationSocket = () => {
         }
 
         socket.on('connect', handleConnect);
-        socket.on('connect_error', (err) => {
+        socket.on('connect_error', (err: { message: any; }) => {
             console.error('Notification connection error:', err.message);
         });
 
