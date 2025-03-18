@@ -1,9 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
-import { FaCarAlt, FaClock, FaMapMarkedAlt, FaMoneyBillWave, FaPhoneAlt, FaPlane, FaRoute, FaShieldAlt, FaShip, FaUserTie } from 'react-icons/fa';
+import { FaCarAlt, FaClock, FaMapMarkedAlt, FaMoneyBillWave, FaPhoneAlt, FaRoute, FaShieldAlt, FaUserTie } from 'react-icons/fa';
 import BookingForm from './components/BookingForm';
 import ServiceCard from './components/ServiceCard';
 import FeatureCard from './components/FeatureCard';
