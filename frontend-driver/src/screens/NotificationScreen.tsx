@@ -1,10 +1,40 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, SafeAreaView } from 'react-native';
 import NotificationCard from '~/components/NotificationCard';
 import { useNotification } from '~/context/NotificationContext';
+import { styles } from '~/styles/NotificationStyle';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function NotificationScreen() {
-  const { notifications, unreadCount } = useNotification();
+  const { notifications, unreadCount, markAllAsRead, refreshNotifications } = useNotification();
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Sort notifications by date (newest first)
+  const sortedNotifications = useMemo(() => {
+    return [...notifications].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [notifications]);
+
+  const handleMarkAllRead = async () => {
+    if (unreadCount === 0) return; // Không làm gì nếu không có thông báo chưa đọc
+    
+    setLoading(true);
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshNotifications();
+    setRefreshing(false);
+  };
 
   if (notifications.length === 0) {
     return (
@@ -16,29 +46,41 @@ export default function NotificationScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.unreadCountText}>Số thông báo chưa đọc: {unreadCount}</Text>
+      <View style={styles.header}>
+        <Text style={styles.unreadCountText}>
+          Số thông báo chưa đọc: {unreadCount}
+        </Text>
+        
+        {/* <TouchableOpacity 
+          style={[
+            styles.markAllButton,
+            unreadCount === 0 ? styles.markAllButtonDisabled : {}
+          ]} 
+          onPress={handleMarkAllRead}
+          disabled={unreadCount === 0 || loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="checkmark-done" size={18} color="#fff" />
+              <Text style={styles.markAllButtonText}>Đọc tất cả</Text>
+            </>
+          )}
+        </TouchableOpacity> */}
+      </View>
+
       <FlatList
-        data={notifications}
+        data={sortedNotifications}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <NotificationCard notification={item} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  emptyText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#888',
-  },
-  unreadCountText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-});

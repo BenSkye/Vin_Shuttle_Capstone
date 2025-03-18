@@ -27,11 +27,11 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
       );
       
       // Sort by time, newest first
-      historyTrips.sort((a, b) => {
-        const timeA = new Date(a.updatedAt || a.createdAt).getTime();
-        const timeB = new Date(b.updatedAt || b.createdAt).getTime();
-        return timeB - timeA; // Descending order (newest first)
-      });
+      // historyTrips.sort((a, b) => {
+      //   const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+      //   const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+      //   return timeB - timeA; // Descending order (newest first)
+      // });
       
       setTrips(historyTrips);
     } catch (error) {
@@ -147,12 +147,12 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                     {getStatusBadge(trip.status)}
                   </View>
                   
-                  <View className="flex-row items-center mb-2">
+                  {/* <View className="flex-row items-center mb-2">
                     <Icon name="calendar" size={16} color="#4b5563" />
                     <Text className="ml-2 text-gray-600 text-sm">
                       {formatDate(trip.createdAt)}
                     </Text>
-                  </View>
+                  </View> */}
 
                   <View className="flex-row items-center mb-2">
                     <Icon name="car" size={16} color="#4b5563" />
@@ -280,17 +280,17 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                     </View>
                   )}
                   
-                  <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                  {/* <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
                     <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Ngày tạo:</Text>
                     <Text style={{ width: '70%', color: '#333' }}>{formatDate(selectedTrip.createdAt)}</Text>
-                  </View>
+                  </View> */}
                   
-                  {selectedTrip.updatedAt && (
+                  {/* {selectedTrip.updatedAt && (
                     <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
                       <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Cập nhật:</Text>
                       <Text style={{ width: '70%', color: '#333' }}>{formatDate(selectedTrip.updatedAt)}</Text>
                     </View>
-                  )}
+                  )} */}
                 </View>
                 
                 <View style={{ marginBottom: 20 }}>
