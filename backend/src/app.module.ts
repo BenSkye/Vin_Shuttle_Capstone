@@ -24,6 +24,7 @@ import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { RatingModule } from 'src/modules/rating/rating.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from 'src/modules/notification/notification.module';
+import { ConversationModule } from 'src/modules/conversation/conversation.module';
 
 
 @Module({
@@ -57,7 +58,8 @@ import { NotificationModule } from 'src/modules/notification/notification.module
     BusRouteModule,
     TrackingModule,
     RatingModule,
-    NotificationModule
+    NotificationModule,
+    ConversationModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

@@ -51,7 +51,11 @@ const deleteUserPushToken = async (): Promise<void> => {
     const response = await apiClient.delete('/users/delete-push-token');
   }
   catch (error: unknown) {
-    console.error('Error fetching personal notification:', error);
+    //if 403, token is not valid, but dont throw error
+    if (error.status === 403) {
+      return;
+    }
+    console.error('Error delete push token', error.status);
     throw error;
   }
 }
