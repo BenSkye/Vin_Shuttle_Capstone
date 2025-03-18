@@ -1,5 +1,6 @@
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deleteUserPushToken } from "~/services/userServices";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -41,6 +42,7 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
+      await deleteUserPushToken();
       await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userId']);
     } catch (error) {
       throw error;
