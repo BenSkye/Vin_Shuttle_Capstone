@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
 import { authService } from '../services/authServices';
 
 // Screens
@@ -16,11 +16,14 @@ import ProfileScreen from '../screens/ProfileScreen';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
 import TripTrackingScreen from '~/screens/TripTrackingScreen';
 import { useAuth } from '~/context/AuthContext';
+import { useNotification } from '~/context/NotificationContext';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
+  const { unreadCount, markAllAsRead } = useNotification();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -67,7 +70,22 @@ function TabNavigator() {
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
       <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
-      <Tab.Screen name="Thông báo" component={NotificationScreen} />
+      <Tab.Screen 
+        name="Thông báo" 
+        component={NotificationScreen}
+        options={{
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#FF3B30' }
+        }}
+        listeners={{
+          tabPress: e => {
+            // Mark all notifications as read when the tab is pressed
+            if (unreadCount > 0) {
+              // markAllAsRead();
+            }
+          }
+        }}
+      />
       <Tab.Screen name="Tin nhắn" component={ChatScreen} />
       <Tab.Screen name="Cá nhân" component={ProfileScreen} />
     </Tab.Navigator>
