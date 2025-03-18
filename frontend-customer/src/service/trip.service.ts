@@ -1,5 +1,16 @@
 import apiClient from "@/service/apiClient";
 
+export const getPersonalTrip = async () => {
+    try {
+        const response = await apiClient.get('/trip/customer-personal-trip');
+        console.log('Trips:', response.data);
+        return response.data;
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+
 export const getPersonalTripById = async (id: string) => {
     try {
         const response = await apiClient.get(`/trip/customer-personal-trip/${id}`);
@@ -28,16 +39,16 @@ export const getRateTrip = async (tripId: string) => {
     }
 }
 
-export const createRating = async (tripId: string,rate:number,feedback:string) =>{
-    try{
-        const response = await apiClient.post(`/rating/create-rating`,{
+export const createRating = async (tripId: string, rate: number, feedback: string) => {
+    try {
+        const response = await apiClient.post(`/rating/create-rating`, {
             tripId,
             rate,
             feedback
         });
         return response.data;
     }
-    catch(e){
-       console.log(e);
+    catch (e) {
+        console.log(e);
     }
 }

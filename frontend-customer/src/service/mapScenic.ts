@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:26202';
+const API_URL = 'http://103.162.20.220:26250';
 
 export interface RouteRequest {
     name: string;

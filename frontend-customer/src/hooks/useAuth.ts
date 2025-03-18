@@ -1,3 +1,6 @@
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
+
 // import { useMutation } from '@tanstack/react-query'
 // import { signIn, useSession } from 'next-auth/react'
 
@@ -10,21 +13,38 @@
 
 // import { posty } from '@/utils/request'
 
-// export const useAuth = () => {
-//   const { data, status } = useSession()
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  const { 
+    user, 
+    isLoggedIn, 
+    login, 
+    logout,
+    refreshToken,
+    getAccessToken 
+  } = context;
+  
+  return { 
+    user,
+    token: getAccessToken(),
+    authenticated: isLoggedIn,
+    loading: false, // We handle loading states elsewhere
+    id: user?.id,
+    email: user?.email,
+    phone: user?.phone,
+    name: user?.name,
+    login,
+    logout,
+    refreshToken
+  };
+};
 
-//   return {
-//     token: data?.user?.accessToken,
-//     authenticated: status === 'authenticated',
-//     loading: status === 'loading',
-//     user: data?.user || {},
-//     id: data?.user?.id,
-//     email: data?.user?.email,
-//     firstName: data?.user?.firstName,
-//     lastName: data?.user?.lastName,
-
-//   }
-// }
+export default useAuth;
 
 // export const useAuthVerifyToken = ({ onSuccess, onError } = {}) => {
 //   const { mutate, isPending } = useMutation(
@@ -236,4 +256,3 @@
 
 
 
- 

@@ -1,3 +1,5 @@
+import { AuthProvider } from '@/contexts/AuthContext'
+
 export default function AuthLayout({
     children,
 }: {
@@ -5,7 +7,9 @@ export default function AuthLayout({
 }) {
     return (
         <div>
-            {children}
+            <AuthProvider>
+                {children}
+            </AuthProvider>
         </div>
     )
-} 
+}
