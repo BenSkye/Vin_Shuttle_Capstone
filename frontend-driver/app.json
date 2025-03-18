@@ -30,6 +30,11 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.luannguyen123.myexpoapp"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "26140332-4529-441f-9ebb-14a47d86ae58"
+      }
     }
   }
 }

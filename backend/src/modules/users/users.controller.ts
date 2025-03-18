@@ -80,8 +80,8 @@ export class UsersController {
       },
     },
   })
-  async saveUserPushToken(@Request() req, @Body() pushToken: string) {
-    return await this.service.saveUserPushToken(req.user._id, pushToken);
+  async saveUserPushToken(@Request() req, @Body() data: { pushToken: string }) {
+    return await this.service.saveUserPushToken(req.user._id, data.pushToken);
   }
 
   @Delete('delete-push-token')
