@@ -71,7 +71,7 @@ function TabNavigator() {
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
       <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
-      <Tab.Screen name="Thông báo" component={NotificationScreen} />
+      {/* <Tab.Screen name="Thông báo" component={NotificationScreen} /> */}
       <Tab.Screen
         name="Thông báo"
         component={NotificationScreen}
