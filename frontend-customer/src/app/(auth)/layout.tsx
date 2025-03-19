@@ -1,3 +1,5 @@
+
+
 export default function AuthLayout({
     children,
 }: {
@@ -5,7 +7,9 @@ export default function AuthLayout({
 }) {
     return (
         <div>
+
             {children}
+
         </div>
     )
 } 

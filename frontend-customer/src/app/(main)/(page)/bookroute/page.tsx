@@ -24,7 +24,7 @@ const steps = [
 ];
 
 
-const DateTimeSelection = dynamic(() => import("../../components/booking/bookingcomponents/datetimeselection"), { ssr: false });
+const RouteDateTimeSelection = dynamic(() => import("../../components/booking/bookingcomponents/routedatetimeselection"), { ssr: false });
 const LocationSelection = dynamic(() => import("../../components/booking/bookingcomponents/locationselection"), { ssr: false });
 const CreateRoute = dynamic(() => import("../../components/map/createRoute"), { ssr: false });
 const CheckoutPage = dynamic(() => import("../../components/booking/bookingcomponents/checkoutpage"), { ssr: false });
@@ -98,7 +98,7 @@ const RouteBooking = () => {
             }
 
             return; // Don't increment current here as handleFinish will call next() if successful
-       
+
         }
 
         setCurrent((prev) => prev + 1);
@@ -150,8 +150,8 @@ const RouteBooking = () => {
             }
             const vehicle = availableVehicles.find(v => v.vehicleCategory._id === categoryId);
             return quantity > 0
-                ? [...prev, { 
-                    categoryVehicleId: categoryId, 
+                ? [...prev, {
+                    categoryVehicleId: categoryId,
                     quantity,
                     name: vehicle?.vehicleCategory.name || 'Unknown Vehicle'
                 }]
@@ -185,9 +185,9 @@ const RouteBooking = () => {
         }
 
         setLoading(true);
-      
+
         try {
-          
+
             const response = await vehicleSearchRoute(
                 selectedDate.format('YYYY-MM-DD'),
                 startTime.format('HH:mm'),
@@ -236,7 +236,7 @@ const RouteBooking = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen ">
             <div className="w-full px-4 py-8">
                 <div className="container mx-auto">
                     <div className="bg-white rounded-lg shadow-md p-6 lg:p-8">
@@ -262,13 +262,13 @@ const RouteBooking = () => {
                         <div className="w-full transition-all duration-300 ease-in-out">
                             <div className="mb-8 w-full">
                                 {current === 0 && (
-                                    <DateTimeSelection
+                                    <RouteDateTimeSelection
                                         selectedDate={selectedDate}
                                         startTime={startTime}
-                                        duration={duration}
-                                        onDateChange={handleDateChange} // Use the new handler with logging
-                                        onStartTimeChange={handleStartTimeChange} // Use the new handler with logging
-                                        onDurationChange={handleDurationChange} // Use the new handler with logging
+
+                                        onDateChange={handleDateChange}
+                                        onStartTimeChange={handleStartTimeChange}
+
                                     />
                                 )}
                                 {current === 1 && (
