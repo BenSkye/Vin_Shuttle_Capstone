@@ -1,45 +1,96 @@
-
-
-// screens/ConversationList.tsx
-import React, { useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import useConversationSocket from '~/hook/useConversationSocket';
 import { IConversation } from '~/interface/conversation';
-
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { styles } from '~/styles/ConversationStyle';
 export default function ConversationScreen() {
   const navigation = useNavigation();
   const { data: conversations, isLoading, error } = useConversationSocket();
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleConversationPress = (conversationId: string) => {
     navigation.navigate('ConversationDetail', { conversationId });
   };
 
-  useEffect(() => {
-    console.log('ConversationScreen mounted');
-    return () => {
-      console.log('ConversationScreen unmounted');
+  const formatTime = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { 
+        addSuffix: true,
+        locale: vi
+      });
+    } catch (error) {
+      return 'Invalid date';
     }
-  }, []);
+  };
 
-  const renderItem = ({ item }: { item: IConversation }) => (
-    <TouchableOpacity
-      style={styles.conversationItem}
-      onPress={() => handleConversationPress(item._id.toString())}
-    >
-      <Text style={styles.conversationTitle}>
-        {item.driverId.name}
-      </Text>
-      <Text style={styles.conversationMessage}>
-        {item.lastMessage?.content || 'No messages yet'}
-      </Text>
-    </TouchableOpacity>
-  );
+  const getInitials = (name: string = '') => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const renderItem = ({ item }: { item: IConversation }) => {
+    const sender = item.customerId;
+    const unread = false; // Add logic for unread messages if available
+    const time = item.lastMessage?.createdAt ? formatTime(item.lastMessage.createdAt) : '';
+    
+    return (
+      <TouchableOpacity
+        style={[styles.conversationItem, unread && styles.unreadItem]}
+        onPress={() => handleConversationPress(item._id.toString())}
+        activeOpacity={0.8}
+      >
+        <View style={styles.avatarContainer}>
+          {sender.avatar ? (
+            <Image source={{ uri: sender.avatar }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <Text style={styles.avatarInitials}>{getInitials(sender.name)}</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.contentContainer}>
+          <View style={styles.headerRow}>
+            <Text numberOfLines={1} style={[styles.senderName, unread && styles.unreadText]}>
+              {sender.name || 'Khách hàng'}
+            </Text>
+            <Text style={styles.timeText}>{time}</Text>
+          </View>
+          
+          <View style={styles.messageRow}>
+            <Text 
+              numberOfLines={1} 
+              style={[styles.messagePreview, unread && styles.unreadText]}
+            >
+              {item.lastMessage?.content || 'Chưa có tin nhắn'}
+            </Text>
+            {unread && <View style={styles.unreadIndicator} />}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Add refresh logic here if needed
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  };
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <SafeAreaView style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#007bff" />
       </SafeAreaView>
     );
@@ -47,72 +98,48 @@ export default function ConversationScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: {error.message}</Text>
+      <SafeAreaView style={styles.centerContainer}>
+        <Ionicons name="alert-circle-outline" size={50} color="#ff3b30" />
+        <Text style={styles.errorText}>Đã có lỗi xảy ra</Text>
+        <Text style={styles.errorSubtext}>{error.message}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+          <Text style={styles.retryButtonText}>Thử lại</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  const conversationsArray = conversations as IConversation[];
+
+  if (!conversationsArray || conversationsArray.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Tin nhắn</Text>
+        </View>
+        <View style={styles.centerContainer}>
+          <Ionicons name="chatbubble-ellipses-outline" size={70} color="#cccccc" />
+          <Text style={styles.emptyText}>Chưa có cuộc trò chuyện nào</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Tin nhắn</Text>
+      </View>
+      
       <FlatList
-        data={(conversations as IConversation[])}
+        data={conversationsArray}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.list}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  list: {
-    padding: 16,
-  },
-  conversationItem: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  conversationTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  conversationMessage: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-});
