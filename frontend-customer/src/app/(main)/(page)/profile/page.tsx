@@ -7,7 +7,7 @@ import {
     MailOutlined,
     PhoneOutlined,
     CameraOutlined,
-    HomeOutlined
+
 } from '@ant-design/icons';
 import { profileUser, editProfile } from '@/service/user.service';
 import { User } from '@/interface/user';
@@ -77,7 +77,7 @@ const EditProfilePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 w-full">
+        <div className="min-h-screen w-full">
             <div className="w-full mx-auto px-4 sm:px-8 py-12">
                 <div className="bg-white rounded-xl shadow-md w-full min-h-[600px]">
                     <div className="flex flex-col md:flex-row w-full min-h-[600px]">

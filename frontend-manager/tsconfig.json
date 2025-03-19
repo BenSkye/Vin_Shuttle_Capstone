@@ -37,7 +37,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "../Map2.tsx",
-    "src/middleware.js"
+    "middleware.js"
   ],
   "exclude": [
     "node_modules"

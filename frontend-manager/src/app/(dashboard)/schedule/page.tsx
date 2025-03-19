@@ -6,12 +6,14 @@ import { Modal, Form, Button, Select, message, Alert } from 'antd';
 import { Activity } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 import Announcements from '@/components/Announcements';
-import { getDriver } from '@/services/api/user';
+
 import { Driver } from '@/interfaces/index';
-import { getDriverSchedule, DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
+import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
+import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
 import { format } from 'date-fns';
-import { getVehicles } from '@/services/api/vehicles';
+
 import { Vehicle } from '@/interfaces/index';
+import { getAvailableVehicles } from '../../../services/api/vehicles';
 
 
 const SchedulePage = () => {
@@ -28,6 +30,7 @@ const SchedulePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+
     const [form] = Form.useForm();
 
     // Time slot mappings
@@ -43,40 +46,47 @@ const SchedulePage = () => {
 
     // Initial data loading
     useEffect(() => {
-        fetchDrivers();
+
         fetchDriverSchedules();
     }, []);
 
-    useEffect(() => {
-        const fetchVehicles = async () => {
-            try {
-                setError(null);
-                const response = await getVehicles();
-                console.log("Vehicles:", response);
-                setVehicles(response);
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Failed to load vehicles";
-                console.error("Error fetching vehicles:", error);
-             
-                setError(errorMessage);
-                message.error(errorMessage);
-            }
-        };
-        fetchVehicles();
-    }, []);
+    const fetchVehicles = async (date: string) => {
+        try {
+            setError(null);
+            setLoading(true);
+            console.log("Fetching vehicles for date:", date);
+            const response = await getAvailableVehicles(date);
+            console.log("Available vehicles:", response);
+            setVehicles(response);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to load vehicles";
+            console.error("Error fetching vehicles:", error);
+            setError(errorMessage);
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
 
 
     // Fetch available drivers
-    const fetchDrivers = async () => {
+    const fetchDrivers = async (date: string) => {
         try {
             setError(null);
-            const response = await getDriver();
+            setLoading(true);
+            console.log("Fetching vehicles for date:", date);
+            const response = await getAvailableDrivers(date);
+            console.log("Available vehicles:", response);
             setDrivers(response);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to load drivers";
             console.error("Error fetching drivers:", error);
             setError(errorMessage);
             message.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -147,6 +157,11 @@ const SchedulePage = () => {
 
         // If the activity has a driver and vehicle ID, populate the form
         if (activity.driverId) {
+            // Fetch available vehicles for the activity date
+            if (activity.date) {
+                fetchVehicles(activity.date);
+            }
+
             form.setFieldsValue({
                 driverId: activity.driverId,
                 vehicleId: (activity.description ?? '').replace('Vehicle: ', '').trim() !== 'N/A'
@@ -171,7 +186,12 @@ const SchedulePage = () => {
 
         // Use the exact date from the calendar cell
         const formattedDate = format(date, 'yyyy-MM-dd');
+
         console.log("Selected cell date:", formattedDate, "Day:", day, "Time:", time);
+
+        // Fetch available vehicles for the selected date
+        fetchVehicles(formattedDate);
+        fetchDrivers(formattedDate);
 
         setSelectedDate(formattedDate);
         form.resetFields();
@@ -183,37 +203,37 @@ const SchedulePage = () => {
             setError(null);
             setLoading(true);
             const values = await form.validateFields();
-    
+
             if (!selectedDate) {
                 const errorMessage = "Date calculation error";
                 setError(errorMessage);
                 message.error(errorMessage);
                 return;
             }
-    
+
             const scheduleData = {
                 driver: values.driverId,
                 vehicle: values.vehicleId,
                 date: selectedDate,
                 shift: selectedTime
             };
-    
+
             await DriverSchedule(scheduleData);
             message.success("Driver scheduled successfully");
             setIsModalOpen(false);
             fetchDriverSchedules();
         } catch (error: unknown) {
             let errorMessage = "An unexpected error occurred";
-    
+
             if (error instanceof Error) {
                 errorMessage = error.message;
-            } 
-            
+            }
+
             if (typeof error === "object" && error !== null && "response" in error) {
                 const err = error as { response?: { data?: { vnMessage?: string } } };
                 errorMessage = err.response?.data?.vnMessage || errorMessage;
             }
-    
+
             console.error("Error assigning driver:", errorMessage);
             setError(errorMessage);
             message.error(errorMessage);
