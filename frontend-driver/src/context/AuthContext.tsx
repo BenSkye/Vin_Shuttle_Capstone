@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { createContext, useContext, useEffect, useState } from "react";
+import { deleteUserPushToken } from "~/services/userServices";
+import { handleNotification } from "~/utils/handleNotification";
 
 
 interface AuthContextType {
@@ -22,6 +24,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (isLogin) {
+            handleNotification();
+        }
+    }, [isLogin]);
 
     const checkIsLogin = async () => {
         setIsLoading(true); // Bắt đầu loading
@@ -48,7 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIslogin(true);
     };
 
-    const userHaslogout = () => {
+    const userHaslogout = async () => {
+        await deleteUserPushToken();
         console.log('logout');
         setIslogin(false);
     };

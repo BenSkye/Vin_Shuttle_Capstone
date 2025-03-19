@@ -171,7 +171,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
 
                     {/* Rating Section */}
-                    {(data as Trip).status.toLowerCase() === 'completed' && (
+                    {(data as Trip).status.toLowerCase() === 'payed' && (
                         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
                             <TripRating tripId={id} trip={data as Trip} />
                         </div>

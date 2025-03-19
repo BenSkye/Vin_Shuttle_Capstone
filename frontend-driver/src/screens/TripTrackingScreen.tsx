@@ -23,6 +23,11 @@ import { styles } from '~/styles/TripTrackingStyle';
 import { pickUp, startTrip, completeTrip } from '~/services/tripServices';
 import { useLocation } from '~/context/LocationContext';
 import { useSchedule } from '~/context/ScheduleContext';
+import { 
+  CustomerInfoModal, 
+  EarlyEndConfirmationModal,
+  CustomerInfoCard 
+} from '~/components/TripTracking';
 
 const TripTrackingScreen = () => {
   const route = useRoute();
@@ -442,6 +447,11 @@ const TripTrackingScreen = () => {
     setShowEarlyEndConfirmation(false);
   };
 
+  const handleEarlyEndConfirm = () => {
+    closeEarlyEndConfirmation();
+    handleCompleteTrip();
+  };
+
   if (!route.params) {
     return (
       <View style={styles.container}>
@@ -487,56 +497,13 @@ const TripTrackingScreen = () => {
           </View>
         </View>
 
-        <View style={styles.customerContainer}>
-          <TouchableOpacity
-            style={styles.customerRowHeader}
-            onPress={toggleCustomerCollapse}
-          >
-            <View style={styles.customerAvatarContainer}>
-              <View style={styles.customerAvatar}>
-                <Text style={styles.customerInitial}>
-                  {trip.customerId?.name ? trip.customerId.name.charAt(0).toUpperCase() : 'K'}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.customerHeaderInfo}>
-              <Text style={styles.customerName}>{trip.customerId?.name || 'N/A'}</Text>
-              <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
-            </View>
-            <TouchableOpacity onPress={toggleCustomerCollapse}>
-              <MaterialIcons
-                name={isCustomerInfoCollapsed ? "keyboard-arrow-down" : "keyboard-arrow-up"}
-                size={24}
-                color="#333"
-              />
-            </TouchableOpacity>
-          </TouchableOpacity>
-
-          {!isCustomerInfoCollapsed && (
-            <View style={styles.customerDetails}>
-              {trip.serviceType === ServiceType.BOOKING_HOUR && (
-                <Text style={styles.customerTime}>
-                  Thời gian thuê xe:{' '}
-                  {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
-                </Text>
-              )}
-              <Text style={styles.customerAddress}>
-                {trip.serviceType === ServiceType.BOOKING_HOUR
-                  ? `Địa chỉ đón: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}`
-                  : trip.serviceType === ServiceType.BOOKING_DESTINATION
-                    ? `Điểm đón: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}`
-                    : 'N/A'}
-              </Text>
-              <TouchableOpacity
-                style={styles.viewMoreButton}
-                onPress={toggleCustomerInfo}
-              >
-                <Text style={styles.viewMoreText}>Xem chi tiết</Text>
-                <MaterialIcons name="keyboard-arrow-right" size={18} color="#1E88E5" />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+        {/* Customer Info Card Component */}
+        <CustomerInfoCard 
+          trip={trip}
+          isCollapsed={isCustomerInfoCollapsed}
+          onToggleCollapse={toggleCustomerCollapse}
+          onViewMorePress={toggleCustomerInfo}
+        />
 
         {/* Destination information - only show for destination booking when in progress */}
         {renderDestinationInfo()}
@@ -548,144 +515,20 @@ const TripTrackingScreen = () => {
         <View style={{ marginTop: 15 }}>{renderActionButton()}</View>
       </View>
 
-      {/* Customer Info Modal */}
-      <Modal
+      {/* Customer Info Modal Component */}
+      <CustomerInfoModal 
         visible={showCustomerInfo}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={toggleCustomerInfo}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Thông tin khách hàng</Text>
-              <TouchableOpacity onPress={toggleCustomerInfo}>
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
+        onClose={toggleCustomerInfo}
+        trip={trip}
+      />
 
-            <ScrollView
-              style={styles.modalScrollContainer}
-              contentContainerStyle={styles.modalBody}
-              showsVerticalScrollIndicator={true}>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Tên:</Text>
-                <Text style={styles.infoValue}>{trip.customerId?.name || 'N/A'}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Số điện thoại:</Text>
-                <Text style={styles.infoValue}>{trip.customerId?.phone || 'N/A'}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Mã chuyến đi:</Text>
-                <Text style={styles.infoValue}>{trip._id}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Phương tiện:</Text>
-                <Text style={styles.infoValue}>
-                  {trip.vehicleId?.name} ({trip.vehicleId?.licensePlate})
-                </Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Số tiền:</Text>
-                <Text style={styles.infoValue}>{trip.amount.toLocaleString('vi-VN')} VND</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Trạng thái:</Text>
-                <Text style={styles.infoValue}>{trip.status}</Text>
-              </View>
-
-              {trip.serviceType === ServiceType.BOOKING_DESTINATION && (
-                <>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Điểm đón:</Text>
-                    <Text style={styles.infoValue}>
-                      {
-                        (trip.servicePayload as BookingDestinationPayloadDto).bookingDestination
-                          .startPoint.address
-                      }
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Điểm đến:</Text>
-                    <Text style={styles.infoValue}>
-                      {
-                        (trip.servicePayload as BookingDestinationPayloadDto).bookingDestination
-                          .endPoint.address
-                      }
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Khoảng cách:</Text>
-                    <Text style={styles.infoValue}>
-                      {(
-                        (trip.servicePayload as BookingDestinationPayloadDto).bookingDestination
-                          .distanceEstimate / 1000
-                      ).toFixed(1)}{' '}
-                      km
-                    </Text>
-                  </View>
-                </>
-              )}
-
-              {trip.serviceType === ServiceType.BOOKING_HOUR && (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Thời gian thuê:</Text>
-                  <Text style={styles.infoValue}>
-                    {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Early End Confirmation Modal */}
-      <Modal
+      {/* Early End Confirmation Modal Component */}
+      <EarlyEndConfirmationModal
         visible={showEarlyEndConfirmation}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={closeEarlyEndConfirmation}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.confirmationModal}>
-            <View style={styles.confirmationHeader}>
-              <MaterialIcons name="warning" size={28} color="#FF9800" />
-              <Text style={styles.confirmationTitle}>Kết thúc chuyến sớm</Text>
-            </View>
-
-            <View style={styles.confirmationBody}>
-              <Text style={styles.confirmationText}>
-                Bạn còn {formatRemainingTime()} phút trong thời gian thuê xe.
-                Bạn có chắc chắn muốn kết thúc chuyến đi sớm không?
-              </Text>
-            </View>
-
-            <View style={styles.confirmationButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={closeEarlyEndConfirmation}
-              >
-                <Text style={styles.cancelButtonText}>Hủy</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={() => {
-                  closeEarlyEndConfirmation();
-                  handleCompleteTrip();
-                }}
-              >
-                <Text style={styles.confirmButtonText}>Kết thúc</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={closeEarlyEndConfirmation}
+        onConfirm={handleEarlyEndConfirm}
+        remainingTimeFormatted={formatRemainingTime()}
+      />
     </SafeAreaView>
   );
 };

@@ -1,75 +1,45 @@
 "use client"
 
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import Cookies from "js-cookie"
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserCheck, FiClock, FiBell } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { Logo } from './Logo'
+import { useAuth } from "../../../../context/AuthContext" // Import useAuth
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
     const [showNotifications, setShowNotifications] = useState(false)
-    const [userName, setUserName] = useState("")
     const router = useRouter()
     const dropdownRef = useRef<HTMLDivElement>(null)
     const notificationRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const checkLoginStatus = () => {
-            const accessToken = Cookies.get('authorization')
-            setIsLoggedIn(!!accessToken)
-
-            if (accessToken) {
-                try {
-                    const decodedToken: any = jwtDecode(accessToken)
-                    setUserName(decodedToken.name || "Người dùng")
-                } catch (error) {
-                    console.error("Lỗi giải mã token:", error)
-                    setUserName("Người dùng")
-                }
-            }
-        }
-
-        checkLoginStatus()
-        window.addEventListener('storage', checkLoginStatus)
-
-        return () => {
-            window.removeEventListener('storage', checkLoginStatus)
-        }
-    }, [])
+    // Use AuthContext instead of local state
+    const { authUser, isLoggedIn, logout } = useAuth()
 
     // Close dropdowns when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setShowDropdown(false);
+                setShowDropdown(false)
             }
             if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-                setShowNotifications(false);
+                setShowNotifications(false)
             }
         }
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
 
     const handleLogout = () => {
-        Cookies.remove('authorization')
-        Cookies.remove('accessToken')
-        Cookies.remove('refreshToken')
-        Cookies.remove('userId')
-        Cookies.remove('user')
-        setIsLoggedIn(false)
+        logout() // Use logout from AuthContext
         setShowDropdown(false)
         router.push('/login')
     }
+
     const toggleMenu = () => setIsOpen(!isOpen)
     const toggleNotifications = () => setShowNotifications(!showNotifications)
 
@@ -95,7 +65,7 @@ export default function Navbar() {
                         <FiUser className="text-white text-xl" />
                     </div>
                     <div className="hidden md:block text-left">
-                        <p className="text-sm font-medium text-gray-700">{userName}</p>
+                        <p className="text-sm font-medium text-gray-700">{authUser?.name || "Người dùng"}</p>
                         <p className="text-xs text-gray-500">Tài khoản của bạn</p>
                     </div>
                 </button>
@@ -128,21 +98,15 @@ export default function Navbar() {
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm">
             <nav className="flex items-center justify-between px-4 py-4 bg-white">
-                {/* Logo */}
                 <Logo size='large' />
-
-                {/* Desktop Navigation - Dịch về trái */}
-                <div className="hidden md:flex justify-center items-center space-x-8 ">
+                <div className="hidden md:flex justify-center items-center space-x-8">
                     {navItems.map((item) => (
                         <Link key={item.href} href={item.href} className="text-gray-600 hover:text-green-500 transition text-lg font-medium">
                             {item.label}
                         </Link>
                     ))}
                 </div>
-
-                {/* Thông báo & Auth Buttons */}
                 <div className="hidden md:flex items-center space-x-4 relative">
-                    {/* Icon Thông báo */}
                     <div className="relative" ref={notificationRef}>
                         <button onClick={toggleNotifications} className="text-gray-600 hover:text-green-500 text-2xl relative">
                             <FiBell />
@@ -152,7 +116,6 @@ export default function Navbar() {
                                 </span>
                             )}
                         </button>
-
                         {showNotifications && (
                             <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100">
                                 <p className="px-4 py-2 text-sm font-medium text-gray-700 border-b">Thông báo</p>
@@ -168,16 +131,12 @@ export default function Navbar() {
                             </div>
                         )}
                     </div>
-
                     <AuthButtons />
                 </div>
-
-                {/* Mobile Menu Button */}
                 <button onClick={toggleMenu} className="md:hidden text-gray-600 text-2xl">
                     {isOpen ? <FiX /> : <FiMenu />}
                 </button>
             </nav>
-
             {isOpen && (
                 <div className="md:hidden fixed top-[72px] left-0 right-0 bottom-0 bg-white overflow-y-auto z-50 shadow-lg">
                     <div className="flex flex-col space-y-4 p-4 pb-20 max-h-[calc(100vh-72px)]">
@@ -191,8 +150,6 @@ export default function Navbar() {
                                 {item.label}
                             </Link>
                         ))}
-
-                        {/* Mobile notification */}
                         <div className="pt-2">
                             <p className="font-medium text-gray-700 mb-2">Thông báo</p>
                             {notifications.length === 0 ? (
@@ -207,8 +164,6 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
-
-                        {/* Auth buttons for mobile */}
                         <div className="pt-4 border-t border-gray-100 flex flex-col space-y-3">
                             {isLoggedIn ? (
                                 <>
@@ -217,7 +172,7 @@ export default function Navbar() {
                                             <FiUser className="text-white text-xl" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-700">{userName}</p>
+                                            <p className="font-medium text-gray-700">{authUser?.name || "Người dùng"}</p>
                                             <p className="text-xs text-gray-500">Tài khoản của bạn</p>
                                         </div>
                                     </div>

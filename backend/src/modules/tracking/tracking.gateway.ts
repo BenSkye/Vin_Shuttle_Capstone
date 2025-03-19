@@ -70,12 +70,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         try {
             const payload = (client as any).user;
             console.log('payload', payload);
-            if (payload.role === UserRole.CUSTOMER) {
-                client.join(`user_${payload._id}`);
-            }
-            if (payload.role === UserRole.DRIVER) {
-                client.join(`driver_${payload._id}`);
-            }
+            client.join(`user_${payload._id}`);
             this.redisService.setUserSocket(SOCKET_NAMESPACE.TRACKING, payload._id, client.id);
             console.log(`Client connected: ${client.id}, User: ${payload._id}`);
         } catch (error) {

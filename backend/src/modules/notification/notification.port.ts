@@ -18,4 +18,5 @@ export interface INotificationService {
     markAsRead(id: string): Promise<NotificationDocument>
     markAllAsRead(userId: string): Promise<boolean>
     deleteNotification(id: string): Promise<boolean>
+    sendPushNotification(data: NotificationDocument): Promise<void>
 }

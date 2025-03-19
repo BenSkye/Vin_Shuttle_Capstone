@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPersonalTrips, pickUp, Trip } from '../services/tripServices';
 import { format } from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 import { ServiceType } from '~/constants/service-type.enum';
+import { useSchedule } from '~/context/ScheduleContext';
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
   const [activeTrips, setActiveTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { isInProgress } = useSchedule(); // Lấy trạng thái ca làm việc
+  const [showCheckInWarning, setShowCheckInWarning] = useState(false);
 
   const fetchActiveTrips = async () => {
     try {
@@ -58,27 +61,40 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     return unsubscribe;
   }, [navigation]);
 
+  // Kiểm tra check-in trước khi thực hiện các hành động
+  const handleActionWithCheckInValidation = (action: () => void) => {
+    if (!isInProgress) {
+      setShowCheckInWarning(true);
+      return;
+    }
+    action();
+  };
+
   const handleNavigateToTrip = (trip: Trip) => {
     const status = trip.status.toLowerCase();
     
-    // Only allow navigation to tracking for pickup and in_progress
+    // Chỉ cho phép đi đến màn hình theo dõi cho trạng thái pickup và in_progress
     if (status === 'pickup' || status === 'in_progress') {
-      navigation.navigate('TripTracking', { trip: trip });
+      handleActionWithCheckInValidation(() => {
+        navigation.navigate('TripTracking', { trip: trip });
+      });
     }
   };
 
   const handlePickup = async (tripId: string) => {
-    try {
-      setLoading(true);
-      await pickUp(tripId);
-      // Refresh the trips list after successful pickup
-      await fetchActiveTrips();
-    } catch (error) {
-      console.error('Error picking up customer:', error);
-      // You might want to add error handling UI here
-    } finally {
-      setLoading(false);
-    }
+    handleActionWithCheckInValidation(async () => {
+      try {
+        setLoading(true);
+        await pickUp(tripId);
+        // Refresh danh sách chuyến đi sau khi đón khách thành công
+        await fetchActiveTrips();
+      } catch (error) {
+        console.error('Error picking up customer:', error);
+        Alert.alert('Lỗi', 'Không thể đón khách. Vui lòng thử lại sau.');
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const getStatusColor = (status: string): string => {
@@ -129,6 +145,21 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     );
   };
 
+  // Hiển thị thông báo check-in nếu chưa check-in
+  const renderCheckInWarning = () => {
+    if (!isInProgress) {
+      return (
+        <View className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex-row items-center">
+          <Icon name="alert-circle-outline" size={20} color="#F59E0B" />
+          <Text className="ml-2 flex-1 text-amber-800">
+            Bạn cần phải Check-in ca làm việc trong mục "Lịch làm việc" để thực hiện các tác vụ
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <ScrollView
@@ -142,12 +173,18 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             <Icon name="car-clock" size={24} color="#1f2937" /> Chuyến đi hiện tại
           </Text>
 
+          {/* Hiển thị cảnh báo check-in */}
+          {renderCheckInWarning()}
+
           {loading ? (
             <ActivityIndicator size="large" color="#2563eb" />
           ) : activeTrips.length > 0 ? (
             activeTrips.map((trip) => {
               const canTrack = ['pickup', 'in_progress'].includes(trip.status.toLowerCase());
               const canPickup = trip.status.toLowerCase() === 'payed';
+              
+              // Style khi chưa check-in
+              const disabledStyle = !isInProgress ? "opacity-60" : "";
               
               return (
                 <View
@@ -204,7 +241,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                     {canPickup && (
                       <TouchableOpacity
                         onPress={() => handlePickup(trip._id)}
-                        className="mt-2 bg-green-500 rounded-md py-2 px-4"
+                        className={`mt-2 bg-green-500 rounded-md py-2 px-4 ${disabledStyle}`}
+                        disabled={!isInProgress}
                       >
                         <View className="flex-row items-center justify-center">
                           <Icon name="car-pickup" size={20} color="white" />
@@ -216,7 +254,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                     {canTrack && (
                       <TouchableOpacity
                         onPress={() => handleNavigateToTrip(trip)}
-                        className="mt-2 bg-blue-500 rounded-md py-2 px-4"
+                        className={`mt-2 bg-blue-500 rounded-md py-2 px-4 ${disabledStyle}`}
+                        disabled={!isInProgress}
                       >
                         <View className="flex-row items-center justify-center">
                           <Icon name="map-marker-path" size={20} color="white" />
@@ -238,6 +277,52 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           )}
         </View>
       </ScrollView>
+      
+      {/* Modal cảnh báo check-in */}
+      <Modal
+        visible={showCheckInWarning}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowCheckInWarning(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-center items-center px-4">
+          <View className="bg-white rounded-lg p-5 w-full max-w-md">
+            <View className="flex-row items-center mb-4">
+              <Icon name="alert-circle-outline" size={28} color="#F59E0B" />
+              <Text className="text-lg font-bold text-amber-600 ml-2">
+                Cần check-in ca làm việc
+              </Text>
+            </View>
+            
+            <Text className="text-gray-700 mb-2">
+              Bạn cần phải check-in vào ca làm việc trước khi có thể thực hiện các tác vụ với chuyến đi.
+            </Text>
+            
+            <Text className="text-gray-600 italic mb-4">
+              Vui lòng vào mục "Lịch làm việc" và check-in ca làm việc hiện tại, sau đó quay lại màn hình này.
+            </Text>
+            
+            <View className="flex-row justify-between">
+              <TouchableOpacity
+                onPress={() => setShowCheckInWarning(false)}
+                className="bg-gray-200 rounded-md py-2 px-4 flex-1 mr-2"
+              >
+                <Text className="text-gray-800 font-medium text-center">Đóng</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => {
+                  setShowCheckInWarning(false);
+                  navigation.navigate('Lịch trình');
+                }}
+                className="bg-blue-500 rounded-md py-2 px-4 flex-1 ml-2"
+              >
+                <Text className="text-white font-medium text-center">Đi đến lịch làm việc</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
