@@ -46,18 +46,13 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await userHaslogout();
-      await authService.logout();
-      // Điều hướng về Login bằng cách thay thế stack hiện tại
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (err) {
-      console.error('Logout error:', err);
-      setError('Không thể đăng xuất. Vui lòng thử lại.');
-    }
+    await authService.logout();
+    await userHaslogout();
+    // Điều hướng về Login bằng cách thay thế stack hiện tại
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
   };
 
   if (loading) {

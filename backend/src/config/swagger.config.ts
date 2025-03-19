@@ -19,6 +19,7 @@ export const swaggerConfig = new DocumentBuilder()
   .addTag('tracking', 'tracking location of vehicle')
   .addTag('rating', 'rating management')
   .addTag('notification', 'Notification management')
+  .addTag('conversation', 'Conversation management')
   .addTag('bus-stops', 'Bus Stop management')
   .addTag('bus-routes', 'Bus Route management')
 

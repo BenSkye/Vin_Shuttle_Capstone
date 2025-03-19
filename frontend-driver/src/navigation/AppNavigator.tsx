@@ -11,11 +11,12 @@ import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import NotificationScreen from '../screens/NotificationScreen';
-import ChatScreen from '../screens/ChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TripHistoryScreen from '../screens/TripHistoryScreen';
 import TripTrackingScreen from '~/screens/TripTrackingScreen';
 import { useAuth } from '~/context/AuthContext';
+import ConversationScreen from '../screens/ConversationScreen';
+import ConversationDetailScreen from '~/screens/ConversationDetailScreen';
 import { useNotification } from '~/context/NotificationContext';
 
 const Stack = createStackNavigator();
@@ -70,8 +71,9 @@ function TabNavigator() {
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
       <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
-      <Tab.Screen 
-        name="Thông báo" 
+      <Tab.Screen name="Thông báo" component={NotificationScreen} />
+      <Tab.Screen
+        name="Thông báo"
         component={NotificationScreen}
         options={{
           tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
@@ -86,7 +88,7 @@ function TabNavigator() {
           }
         }}
       />
-      <Tab.Screen name="Tin nhắn" component={ChatScreen} />
+      <Tab.Screen name="Tin nhắn" component={ConversationScreen} />
       <Tab.Screen name="Cá nhân" component={ProfileScreen} />
     </Tab.Navigator>
   );
@@ -126,6 +128,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Home" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="TripTracking" component={TripTrackingScreen} />
+        <Stack.Screen name="ConversationDetail" component={ConversationDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
