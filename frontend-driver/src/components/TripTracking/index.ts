@@ -1,3 +1,10 @@
+export { default as CustomerInfoCard } from './CustomerInfoCard';
 export { default as CustomerInfoModal } from './CustomerInfoModal';
 export { default as EarlyEndConfirmationModal } from './EarlyEndConfirmationModal';
-export { default as CustomerInfoCard } from './CustomerInfoCard';
+export { default as TripHeader } from './TripHeader';
+export { default as TrackingStatusWarning } from './TrackingStatusWarning';
+export { default as TripTypeInfo } from './TripTypeInfo';
+export { default as ProximityInfo } from './ProximityInfo';
+export { default as DestinationInfo } from './DestinationInfo';
+export { default as ActionButtons } from './ActionButtons';
+export { default as TimerManager } from './TimerManager';

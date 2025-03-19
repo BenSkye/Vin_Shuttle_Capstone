@@ -1,15 +1,6 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  SafeAreaView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Alert, SafeAreaView } from 'react-native';
 import MapComponent from '~/components/Map';
 import { ServiceType } from '~/constants/service-type.enum';
 import {
@@ -18,22 +9,28 @@ import {
   Position,
   Trip,
 } from '~/interface/trip';
-import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
 import { pickUp, startTrip, completeTrip } from '~/services/tripServices';
 import { useLocation } from '~/context/LocationContext';
-import { useSchedule } from '~/context/ScheduleContext';
-import { 
-  CustomerInfoModal, 
+import {
+  CustomerInfoModal,
   EarlyEndConfirmationModal,
-  CustomerInfoCard 
+  CustomerInfoCard,
+  TripHeader,
+  TrackingStatusWarning,
+  TripTypeInfo,
+  ProximityInfo,
+  DestinationInfo,
+  ActionButtons,
+  TimerManager
 } from '~/components/TripTracking';
 
 const TripTrackingScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
-  // const { updateIsInProgress } = useSchedule();
+  
+  // States
   const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({
     lat: 0,
     lng: 0,
@@ -49,78 +46,60 @@ const TripTrackingScreen = () => {
   const [timerActive, setTimerActive] = useState(false);
   const [showEarlyEndConfirmation, setShowEarlyEndConfirmation] = useState(false);
 
+  // Effect for initialization
+  React.useEffect(() => {
+    if (trip) {
+      initializeLocationData();
+    }
+  }, [trip]);
+
+  // Initialize location data based on trip type
+  const initializeLocationData = () => {
+    if (trip.serviceType === ServiceType.BOOKING_HOUR) {
+      const payload = trip.servicePayload as BookingHourPayloadDto;
+      setCustomerPickupLocation(payload.bookingHour.startPoint.position);
+    } else if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
+      const payload = trip.servicePayload as BookingDestinationPayloadDto;
+      setCustomerPickupLocation(payload.bookingDestination.startPoint.position);
+      setCustomerDestination(payload.bookingDestination.endPoint.position);
+      
+      // Only show destination if trip is in progress
+      const isInProgress = trip.status.toLowerCase() === 'in_progress';
+      setShowDestination(isInProgress);
+      setRouteToDestination(isInProgress);
+    }
+  };
+
+  // Event handlers
+  const handleBack = () => navigation.goBack();
+  
+  const toggleCustomerInfo = () => setShowCustomerInfo(!showCustomerInfo);
+  
+  const toggleCustomerCollapse = () => setIsCustomerInfoCollapsed(!isCustomerInfoCollapsed);
+  
+  const toggleRouteDestination = () => {
+    if (showDestination) {
+      setRouteToDestination(!routeToDestination);
+    }
+  };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    // Haversine formula to calculate distance between two points on Earth
     const R = 6371000; // Earth's radius in meters
     const φ1 = (lat1 * Math.PI) / 180;
     const φ2 = (lat2 * Math.PI) / 180;
     const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon1 - lon1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // Distance in meters
   };
-  // Get pickup and destination locations based on trip type
-  useEffect(() => {
-    if (trip) {
-      if (trip.serviceType === ServiceType.BOOKING_HOUR) {
-        const payload = trip.servicePayload as BookingHourPayloadDto;
-        setCustomerPickupLocation(payload.bookingHour.startPoint.position);
-      } else if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
-        const payload = trip.servicePayload as BookingDestinationPayloadDto;
-        setCustomerPickupLocation(payload.bookingDestination.startPoint.position);
 
-        // Store destination but don't show it until trip is started
-        setCustomerDestination(payload.bookingDestination.endPoint.position);
-
-        // Only show destination if trip is in progress
-        const isInProgress = trip.status.toLowerCase() === 'in_progress';
-        setShowDestination(isInProgress);
-
-        // Also set route to destination if in progress
-        setRouteToDestination(isInProgress);
-
-        // Update global state for location tracking frequency
-        // updateIsInProgress(isInProgress);
-      }
-
-      // Log the trip details for debugging
-      console.log('Trip details:', {
-        id: trip._id,
-        status: trip.status,
-        serviceType: trip.serviceType,
-        pickupLocation: customerPickupLocation,
-        destinationLocation: customerDestination,
-        showDestination: showDestination,
-        routeToDestination: routeToDestination,
-      });
-    }
-
-    // When unmounting, reset isInProgress
-    return () => {
-      // updateIsInProgress(false);
-    };
-  }, [trip]);//updateIsInProgress
-
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const toggleCustomerInfo = () => {
-    setShowCustomerInfo(!showCustomerInfo);
-  };
-
-  const toggleCustomerCollapse = () => {
-    setIsCustomerInfoCollapsed(!isCustomerInfoCollapsed);
-  };
-
+  // API handlers
   const handlePickup = async () => {
     try {
       setLoading(true);
@@ -137,13 +116,13 @@ const TripTrackingScreen = () => {
 
   const handleStartTrip = async () => {
     try {
-      // Check if we have the driver's current location
+      // Check location availability
       if (!location) {
         Alert.alert('Lỗi', 'Không thể xác định vị trí của bạn. Hãy đảm bảo GPS được bật.');
         return;
       }
 
-      // Check if we're close enough to the customer pickup location
+      // Check proximity to pickup location
       const distanceToPickup = calculateDistance(
         location.latitude,
         location.longitude,
@@ -151,9 +130,7 @@ const TripTrackingScreen = () => {
         customerPickupLocation.lng
       );
 
-      // Define the minimum required proximity (20 meters)
       const MIN_PROXIMITY = 30; // meters
-
       if (distanceToPickup > MIN_PROXIMITY) {
         Alert.alert(
           'Quá xa điểm đón',
@@ -166,27 +143,23 @@ const TripTrackingScreen = () => {
       setLoading(true);
       const updatedTrip = await startTrip(trip._id);
 
-      // Preserve customer information from the original trip object
+      // Preserve customer and vehicle information
       setTrip({
         ...updatedTrip,
         customerId: trip.customerId || updatedTrip.customerId,
-        vehicleId: trip.vehicleId || updatedTrip.vehicleId
+        vehicleId: trip.vehicleId || updatedTrip.vehicleId,
       });
 
-      // Start timer if this is a booking_hour trip
+      // Handle hourly booking timer
       if (trip.serviceType === ServiceType.BOOKING_HOUR) {
         const payload = trip.servicePayload as BookingHourPayloadDto;
         const totalMinutes = payload.bookingHour.totalTime;
-        const cleanupTimer = startCountdownTimer(totalMinutes);
-
-        // Store the cleanup function to be called when component unmounts
-        return cleanupTimer;
+        setTimerActive(true);
       }
 
-      // Set showDestination to true when trip starts if this is a destination booking
+      // Set destination display for destination booking
       if (trip.serviceType === ServiceType.BOOKING_DESTINATION) {
         setShowDestination(true);
-        // Also show route to destination
         setRouteToDestination(true);
       }
 
@@ -205,11 +178,7 @@ const TripTrackingScreen = () => {
       const updatedTrip = await completeTrip(trip._id);
       setTrip(updatedTrip);
 
-      // Update global state for location tracking frequency
-      // updateIsInProgress(false);
-
       Alert.alert('Thành công', 'Đã hoàn thành chuyến đi');
-      // Navigate back after small delay to show the success message
       setTimeout(() => {
         navigation.goBack();
       }, 1500);
@@ -221,220 +190,24 @@ const TripTrackingScreen = () => {
     }
   };
 
-  // Toggle between pickup and destination routes (for destination trips in progress)
-  const toggleRouteDestination = () => {
-    if (showDestination) {
-      setRouteToDestination(!routeToDestination);
-    }
+  // Timer handlers
+  const handleTimerUpdate = (timeLeft: number) => {
+    setRemainingTime(timeLeft);
   };
 
-  // Determine which button to show based on trip status
-  const renderActionButton = () => {
-    if (loading) {
-      return (
-        <View style={styles.actionButtonContainer}>
-          <ActivityIndicator size="large" color="#1E88E5" />
-        </View>
-      );
-    }
-
-    switch (trip.status.toLowerCase()) {
-      case 'assigned':
-        return (
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handlePickup}
-            disabled={!isTracking}
-          >
-            <MaterialIcons name="person" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Đón khách</Text>
-          </TouchableOpacity>
-        );
-      case 'pickup':
-        return (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={handleStartTrip}
-            disabled={!isTracking}
-          >
-            <MaterialIcons name="play-arrow" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Bắt đầu chuyến đi</Text>
-          </TouchableOpacity>
-        );
-      case 'in_progress':
-        if (trip.serviceType === ServiceType.BOOKING_HOUR && timerActive) {
-          return (
-            <View style={styles.timerActionContainer}>
-              <View style={styles.timerContainer}>
-                <MaterialIcons name="timer" size={20} color="#FF5722" />
-                <Text style={styles.timerText}>{formatRemainingTime()}</Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
-                onPress={handleEarlyEndRequest}
-                disabled={!isTracking}
-              >
-                <MaterialIcons name="done" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>Kết thúc sớm</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        } else {
-          return (
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#FF5722' }]}
-              onPress={handleCompleteTrip}
-              disabled={!isTracking}
-            >
-              <MaterialIcons name="done" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
-            </TouchableOpacity>
-          );
-        }
-      case 'completed':
-        return (
-          <View style={[styles.actionButton, { backgroundColor: '#8BC34A' }]}>
-            <MaterialIcons name="check-circle" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Chuyến đi đã hoàn thành</Text>
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Display destination information for BOOKING_DESTINATION when in progress
-  const renderDestinationInfo = () => {
-    if (trip.serviceType === ServiceType.BOOKING_DESTINATION && showDestination) {
-      const payload = trip.servicePayload as BookingDestinationPayloadDto;
-      return (
-        <TouchableOpacity
-          style={[styles.destinationContainer, routeToDestination ? styles.activeDestination : {}]}
-          onPress={toggleRouteDestination}>
-          <View style={styles.destinationHeader}>
-            <MaterialIcons name="location-on" size={18} color="#FF5722" />
-            <Text style={styles.destinationTitle}>Điểm đến</Text>
-            <View style={styles.routeToggle}>
-              <Text style={styles.routeToggleText}>
-                {routeToDestination ? 'Đang hiển thị lộ trình' : 'Nhấn để xem lộ trình'}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.destinationAddress}>
-            {payload.bookingDestination.endPoint.address}
-          </Text>
-          {payload.bookingDestination.distanceEstimate && (
-            <Text style={styles.destinationDistance}>
-              Khoảng cách: {(payload.bookingDestination.distanceEstimate / 1000).toFixed(1)} km
-            </Text>
-          )}
-        </TouchableOpacity>
-      );
-    }
-    return null;
-  };
-
-  // Show tracking status message
-  const renderTrackingStatus = useCallback(() => {
-    if (!isTracking) {
-      return (
-        <View style={styles.trackingWarning}>
-          <Ionicons name="warning" size={16} color="#FFA000" />
-          <Text style={styles.trackingWarningText}>
-            Vị trí không được cập nhật. Hãy đảm bảo GPS được bật.
-          </Text>
-        </View>
-      );
-    }
-    return null;
-  }, [isTracking]);
-
-  // Add this function to render the proximity information
-  const renderProximityInfo = () => {
-    if (trip.status.toLowerCase() === 'pickup' && location && customerPickupLocation) {
-      const distance = calculateDistance(
-        location.latitude,
-        location.longitude,
-        customerPickupLocation.lat,
-        customerPickupLocation.lng
-      );
-
-      const MIN_PROXIMITY = 30; // meters
-      const isCloseEnough = distance <= MIN_PROXIMITY;
-
-      return (
-        <View style={[
-          styles.proximityContainer,
-          { backgroundColor: isCloseEnough ? '#E8F5E9' : '#FFF3E0' }
-        ]}>
-          <MaterialIcons
-            name={isCloseEnough ? "check-circle" : "info"}
-            size={18}
-            color={isCloseEnough ? "#4CAF50" : "#FF9800"}
-          />
-          <Text style={[
-            styles.proximityText,
-            { color: isCloseEnough ? "#2E7D32" : "#E65100" }
-          ]}>
-            {isCloseEnough
-              ? `Bạn đã ở gần khách hàng (${Math.round(distance)}m)`
-              : `Bạn cần di chuyển gần khách hàng hơn (hiện tại cách ${Math.round(distance)}m, cần trong vòng ${MIN_PROXIMITY}m)`
-            }
-          </Text>
-        </View>
-      );
-    }
-    return null;
-  };
-
-  // Start the countdown timer
-  const startCountdownTimer = (totalMinutes: number) => {
-    // Convert minutes to milliseconds
-    const totalTime = totalMinutes * 60 * 1000;
-    const targetEndTime = new Date().getTime() + totalTime;
-
-    setRemainingTime(totalTime);
-    setTimerActive(true);
-
-    // Store the target end time in state or local storage if needed
-    // for app restarts or background mode handling
-
-    // Update the timer every second
-    const timerInterval = setInterval(() => {
-      const now = new Date().getTime();
-      const timeLeft = targetEndTime - now;
-
-      if (timeLeft <= 0) {
-        // Time's up, end the trip
-        clearInterval(timerInterval);
-        setRemainingTime(0);
-        setTimerActive(false);
-        handleCompleteTrip();
-      } else {
-        setRemainingTime(timeLeft);
-      }
-    }, 1000);
-
-    // Store the interval ID to clear it when component unmounts
-    return () => clearInterval(timerInterval);
-  };
-
-  // Format the remaining time for display
   const formatRemainingTime = (): string => {
     if (remainingTime === null) return '';
 
-    // Convert milliseconds to minutes and seconds
     const totalSeconds = Math.floor(remainingTime / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    // Format with leading zeros
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Handle early trip completion
   const handleEarlyEndRequest = () => {
-    if (remainingTime && remainingTime > 60000) { // More than 1 minute left
+    if (remainingTime && remainingTime > 60000) {
+      // More than 1 minute left
       setShowEarlyEndConfirmation(true);
     } else {
       // Less than a minute left, just end it without confirmation
@@ -442,7 +215,6 @@ const TripTrackingScreen = () => {
     }
   };
 
-  // Close the early end confirmation modal
   const closeEarlyEndConfirmation = () => {
     setShowEarlyEndConfirmation(false);
   };
@@ -469,60 +241,71 @@ const TripTrackingScreen = () => {
         showRouteToDestination={routeToDestination}
       />
 
-      {/* Header bar with back button and semi-transparent background */}
-      <View style={styles.headerBar}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={{ color: '#fff', marginLeft: 12, fontSize: 16 }}>
-          Trạng thái: {trip.status.toUpperCase()}
-        </Text>
-      </View>
+      {/* Header */}
+      <TripHeader tripStatus={trip.status} onBack={handleBack} />
+
+      {/* Timer manager (non-visual component) */}
+      {trip.serviceType === ServiceType.BOOKING_HOUR && timerActive && (
+        <TimerManager
+          totalMinutes={(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime}
+          isActive={timerActive}
+          onTimerUpdate={handleTimerUpdate}
+          onTimerComplete={handleCompleteTrip}
+        />
+      )}
 
       {/* Bottom info card */}
       <View style={styles.bottomCard}>
-        {/* Tracking status warning if location not active */}
-        {renderTrackingStatus()}
+        {/* Tracking status warning */}
+        <TrackingStatusWarning isTracking={isTracking} />
 
-        <View style={styles.tripHeader}>
-          <View style={styles.tripTypeContainer}>
-            <FontAwesome5 name="car" size={16} color="#1E88E5" />
-            <Text style={styles.tripTypeText}>
-              {trip.serviceType === ServiceType.BOOKING_HOUR
-                ? 'Đặt xe theo giờ'
-                : trip.serviceType === ServiceType.BOOKING_DESTINATION
-                  ? 'Đặt xe theo điểm đến'
-                  : 'Chuyến đi'}
-            </Text>
-          </View>
-        </View>
+        {/* Trip type information */}
+        <TripTypeInfo serviceType={trip.serviceType} />
 
-        {/* Customer Info Card Component */}
-        <CustomerInfoCard 
+        {/* Customer Info Card */}
+        <CustomerInfoCard
           trip={trip}
           isCollapsed={isCustomerInfoCollapsed}
           onToggleCollapse={toggleCustomerCollapse}
           onViewMorePress={toggleCustomerInfo}
         />
 
-        {/* Destination information - only show for destination booking when in progress */}
-        {renderDestinationInfo()}
+        {/* Destination information */}
+        <DestinationInfo
+          serviceType={trip.serviceType}
+          servicePayload={trip.servicePayload}
+          showDestination={showDestination}
+          routeToDestination={routeToDestination}
+          onToggleRouteDestination={toggleRouteDestination}
+        />
 
-        {/* Proximity information - only show in pickup status */}
-        {renderProximityInfo()}
+        {/* Proximity information */}
+        <ProximityInfo
+          tripStatus={trip.status}
+          location={location}
+          customerPickupLocation={customerPickupLocation}
+        />
 
-        {/* Action button section */}
-        <View style={{ marginTop: 15 }}>{renderActionButton()}</View>
+        {/* Action buttons */}
+        <View style={{ marginTop: 15 }}>
+          <ActionButtons
+            loading={loading}
+            tripStatus={trip.status}
+            serviceType={trip.serviceType}
+            timerActive={timerActive}
+            isTracking={isTracking}
+            onPickup={handlePickup}
+            onStartTrip={handleStartTrip}
+            onCompleteTrip={handleCompleteTrip}
+            onEarlyEnd={handleEarlyEndRequest}
+            formatRemainingTime={formatRemainingTime}
+          />
+        </View>
       </View>
 
-      {/* Customer Info Modal Component */}
-      <CustomerInfoModal 
-        visible={showCustomerInfo}
-        onClose={toggleCustomerInfo}
-        trip={trip}
-      />
+      {/* Modals */}
+      <CustomerInfoModal visible={showCustomerInfo} onClose={toggleCustomerInfo} trip={trip} />
 
-      {/* Early End Confirmation Modal Component */}
       <EarlyEndConfirmationModal
         visible={showEarlyEndConfirmation}
         onClose={closeEarlyEndConfirmation}
