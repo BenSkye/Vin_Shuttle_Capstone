@@ -41,8 +41,8 @@ export default function LoginPage() {
                 const response = await verifyOTP({ phone: formData.phone, code: formData.otp })
                 if (response.isValid) {
                     // Lưu token và userId vào cookies (với hạn 2 ngày)
-                    Cookies.set('authorization', response.accessToken, { expires: 2 });
-                    Cookies.set('refreshToken', response.refreshToken || '', { expires: 2 });
+                    Cookies.set('authorization', response.token.accessToken, { expires: 2 });
+                    Cookies.set('refreshToken', response.token.refreshToken || '', { expires: 2 });
                     Cookies.set('userId', response.userId, { expires: 2 });
 
                     // Cập nhật AuthContext

@@ -6,15 +6,15 @@ import { Modal, Form, Button, Select, message, Alert } from 'antd';
 import { Activity } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 import Announcements from '@/components/Announcements';
-import { getDriver } from '@/services/api/user';
+
 import { Driver } from '@/interfaces/index';
 import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
 import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
 import { format } from 'date-fns';
-import { getVehicles } from '@/services/api/vehicles';
+
 import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
-import dayjs from "dayjs";
+
 
 const SchedulePage = () => {
     // State definitions
@@ -29,7 +29,7 @@ const SchedulePage = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedFormattedDate, setSelectedFormattedDate] = useState<string>("");
+
 
     const [form] = Form.useForm();
 
@@ -186,7 +186,7 @@ const SchedulePage = () => {
 
         // Use the exact date from the calendar cell
         const formattedDate = format(date, 'yyyy-MM-dd');
-        setSelectedFormattedDate(formattedDate);
+
         console.log("Selected cell date:", formattedDate, "Day:", day, "Time:", time);
 
         // Fetch available vehicles for the selected date
