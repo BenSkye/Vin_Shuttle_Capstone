@@ -27,5 +27,7 @@ export interface ISharedRouteService {
     createSharedRoute(createDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument>
     updateSharedRoute(shareRouteId: string, updateDto: IUpdateSharedRouteDTO): Promise<SharedRouteDocument>
     updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument>
+    passStartPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument>
+    passEndPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument>
     saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument>
 }

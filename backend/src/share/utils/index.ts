@@ -43,4 +43,8 @@ export const DateUtils = {
   fromDate: (date: Date): dayjs.Dayjs => {
     return dayjs.utc(date, 'Asia/Ho_Chi_Minh'); // Chuyển Date thành dayjs với múi giờ VN
   },
+
+  formatDateTime: (date: Date): string => {
+    return dayjs(date).tz('Asia/Ho_Chi_Minh').format('HH:mm DD/MM/YYYY');
+  }
 };

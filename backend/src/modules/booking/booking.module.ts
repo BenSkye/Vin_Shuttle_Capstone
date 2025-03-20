@@ -6,8 +6,10 @@ import { BookingRepository } from 'src/modules/booking/booking.repo';
 import { Booking, BookingSchema } from 'src/modules/booking/booking.schema';
 import { BookingService } from 'src/modules/booking/booking.service';
 import { CheckoutModule } from 'src/modules/checkout/checkout.module';
+import { ConversationModule } from 'src/modules/conversation/conversation.module';
 import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
+import { NotificationModule } from 'src/modules/notification/notification.module';
 import { PricingModule } from 'src/modules/pricing/pricing.module';
 import { ScenicRouteModule } from 'src/modules/scenic-route/scenic-route.module';
 import { SearchModule } from 'src/modules/search/search.module';
@@ -46,7 +48,9 @@ const dependencies = [
     forwardRef(() => CheckoutModule),
     ShareModule,
     KeytokenModule,
-    ShareRouteModule
+    ShareRouteModule,
+    NotificationModule,
+    ConversationModule
   ],
   controllers: [BookingController],
   providers: [...dependencies],
