@@ -31,7 +31,7 @@ export const getPersonalTripById = async (id: string) => {
 
 export const getRateTrip = async (tripId: string) => {
     try {
-        const response = await apiClient.post(`/rating/get-rating-by-trip-id/${tripId}`);
+        const response = await apiClient.get(`/rating/get-rating-by-trip-id/${tripId}`);
         return response.data;
     } catch (error) {
         if (error.response) {
