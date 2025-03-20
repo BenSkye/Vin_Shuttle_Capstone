@@ -378,7 +378,24 @@ const SchedulePage = () => {
     return (
         <div className="p-4 flex gap-4 flex-col md:flex-row">
 
-            <div className="p-4 flex-grow">
+            <div className="">
+                <div className="p-4 border-t mt-4">
+                    <h4 className="font-medium mb-2">Trạng thái:</h4>
+                    <div className="flex gap-4">
+                        <div className="flex items-center">
+                            <span className="w-4 h-4 bg-green-500 inline-block mr-2"></span>
+                            <span>Kết thúc ca</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="w-4 h-4 bg-blue-500 inline-block mr-2"></span>
+                            <span>Đang làm việc</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="w-4 h-4 bg-yellow-500 inline-block mr-2"></span>
+                            <span>Chưa checkin</span>
+                        </div>
+                    </div>
+                </div>
                 <ScheduleCalendar
                     activities={activities}
                     onActivityClick={handleActivityClick}
