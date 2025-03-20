@@ -1,5 +1,5 @@
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OsrModule } from 'src/modules/OSR/osr.module';
 import { SHARE_ROUTE_REPOSITORY, SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
@@ -31,7 +31,7 @@ const dependencies = [
         ]),
         OsrModule,
         ShareModule,
-        TripModule
+        forwardRef(() => TripModule),
     ],
     controllers: [],
     providers: [...dependencies],

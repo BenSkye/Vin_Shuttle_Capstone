@@ -20,6 +20,8 @@ import { IUserRepository } from 'src/modules/users/users.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { IRedisService } from 'src/share/share.port';
+import { SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
+import { ISharedRouteService } from 'src/modules/shared-route/shared-route.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -37,7 +39,9 @@ export class TripService implements ITripService {
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
     @Inject(VEHICLE_REPOSITORY)
-    private readonly vehicleRepository: IVehiclesRepository
+    private readonly vehicleRepository: IVehiclesRepository,
+    @Inject(SHARE_ROUTE_SERVICE)
+    private readonly shareRouteService: ISharedRouteService,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -357,6 +361,9 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
+      await this.shareRouteService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
+    }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
@@ -417,6 +424,9 @@ export class TripService implements ITripService {
         },
         HttpStatus.BAD_REQUEST,
       );
+    }
+    if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
+      await this.shareRouteService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),

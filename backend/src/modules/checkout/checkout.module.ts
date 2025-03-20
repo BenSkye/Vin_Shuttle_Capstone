@@ -11,9 +11,12 @@ const dependencies = [
   },
 ];
 @Module({
-  imports: [forwardRef(() => BookingModule), ShareModule],
+  imports: [
+    forwardRef(() => BookingModule),
+    ShareModule
+  ],
   controllers: [CheckoutController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class CheckoutModule {}
+export class CheckoutModule { }

@@ -59,7 +59,7 @@ import { ConversationModule } from 'src/modules/conversation/conversation.module
     TrackingModule,
     RatingModule,
     NotificationModule,
-    ConversationModule
+    ConversationModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

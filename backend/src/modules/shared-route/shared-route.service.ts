@@ -9,7 +9,7 @@ import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { TempTripId } from "src/share/enums/osr.enum";
 import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
-import { convertObjectId } from "src/share/utils";
+
 
 export class SharedRouteService implements ISharedRouteService {
     constructor(
@@ -126,6 +126,55 @@ export class SharedRouteService implements ISharedRouteService {
 
     async createSharedRoute(createSharedRouteDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument> {
         return await this.sharedRouteRepository.create(createSharedRouteDto);
+    }
+
+    async passStartPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument> {
+        const sharedRoute = await this.sharedRouteRepository.findById(shareRouteId);
+        if (!sharedRoute) {
+            return null;
+        }
+        const stops = sharedRoute.stops;
+        const newStop = stops.map(stop => {
+            if (stop.trip === tripId && stop.pointType === SharedRouteStopsType.START_POINT) {
+                stop.isPass = true;
+            }
+            return stop;
+        });
+        //if stop is the first stop of share route change status to in progress
+        if (newStop[0].trip === tripId) {
+            await this.sharedRouteRepository.updateStatusShareRoute(
+                shareRouteId,
+                SharedRouteStatus.IN_PROGRESS
+            );
+        }
+        return await this.sharedRouteRepository.update(shareRouteId, {
+            stops: newStop
+        });
+    }
+
+    async passEndPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument> {
+        const sharedRoute = await this.sharedRouteRepository.findById(shareRouteId);
+        if (!sharedRoute) {
+            return null;
+        }
+        const stops = sharedRoute.stops;
+        const newStop = stops.map(stop => {
+            if (stop.trip === tripId && stop.pointType === SharedRouteStopsType.END_POINT) {
+                stop.isPass = true;
+            }
+            return stop;
+        }
+        );
+        //if the stop is the last stop of share route change status to completed
+        if (newStop[newStop.length - 1].trip === tripId && newStop[newStop.length - 1].pointType === SharedRouteStopsType.END_POINT) {
+            await this.sharedRouteRepository.updateStatusShareRoute(
+                shareRouteId,
+                SharedRouteStatus.COMPLETED
+            );
+        }
+        return await this.sharedRouteRepository.update(shareRouteId, {
+            stops: newStop
+        });
     }
 
     async updateSharedRoute(shareRouteId: string, updateDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument> {
