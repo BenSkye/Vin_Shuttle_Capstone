@@ -1,16 +1,19 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { View, Text, Alert, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Alert, SafeAreaView, TouchableOpacity } from 'react-native';
 import MapComponent from '~/components/Map';
 import { ServiceType } from '~/constants/service-type.enum';
 import {
   BookingHourPayloadDto,
   BookingDestinationPayloadDto,
+  BookingScenicRoutePayloadDto,
   Position,
   Trip,
+  ScenicRouteDto,
+  Waypoint,
 } from '~/interface/trip';
 import { styles } from '~/styles/TripTrackingStyle';
-import { pickUp, startTrip, completeTrip } from '~/services/tripServices';
+import { pickUp, startTrip, completeTrip, getSenicRouteById } from '~/services/tripServices';
 import { useLocation } from '~/context/LocationContext';
 import {
   CustomerInfoModal,
@@ -24,9 +27,16 @@ import {
   ActionButtons,
   TimerManager
 } from '~/components/TripTracking';
+import { RouteProp } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+// First, properly type the route params
+interface RouteParams {
+  trip: Trip;
+}
 
 const TripTrackingScreen = () => {
-  const route = useRoute();
+  const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
   
@@ -37,7 +47,7 @@ const TripTrackingScreen = () => {
   });
   const [customerDestination, setCustomerDestination] = useState<Position | null>(null);
   const [showDestination, setShowDestination] = useState(false);
-  const [trip, setTrip] = useState<Trip>(route.params?.trip as Trip);
+  const [trip, setTrip] = useState<Trip | undefined>(route.params?.trip);
   const [showCustomerInfo, setShowCustomerInfo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [routeToDestination, setRouteToDestination] = useState(false);
@@ -45,6 +55,12 @@ const TripTrackingScreen = () => {
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [timerActive, setTimerActive] = useState(false);
   const [showEarlyEndConfirmation, setShowEarlyEndConfirmation] = useState(false);
+  // New state for scenic route
+  const [scenicRouteData, setScenicRouteData] = useState<ScenicRouteDto | null>(null);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [showScenicRoute, setShowScenicRoute] = useState(false);
+  // Thêm state để quản lý trạng thái thu gọn
+  const [isScenicRouteCollapsed, setIsScenicRouteCollapsed] = useState(false);
 
   // Effect for initialization
   React.useEffect(() => {
@@ -53,8 +69,17 @@ const TripTrackingScreen = () => {
     }
   }, [trip]);
 
+  // Effect to set trip from route params
+  React.useEffect(() => {
+    if (route.params?.trip) {
+      setTrip(route.params.trip as Trip);
+    }
+  }, [route.params]);
+  
   // Initialize location data based on trip type
   const initializeLocationData = () => {
+    if (!trip) return;
+    
     if (trip.serviceType === ServiceType.BOOKING_HOUR) {
       const payload = trip.servicePayload as BookingHourPayloadDto;
       setCustomerPickupLocation(payload.bookingHour.startPoint.position);
@@ -67,6 +92,34 @@ const TripTrackingScreen = () => {
       const isInProgress = trip.status.toLowerCase() === 'in_progress';
       setShowDestination(isInProgress);
       setRouteToDestination(isInProgress);
+    } else if (trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE) {
+      const payload = trip.servicePayload as BookingScenicRoutePayloadDto;
+      setCustomerPickupLocation(payload.bookingScenicRoute.startPoint.position);
+      
+      // Fetch scenic route data if trip is in progress
+      const isInProgress = trip.status.toLowerCase() === 'in_progress';
+      if (isInProgress && payload.bookingScenicRoute.routeId && typeof payload.bookingScenicRoute.routeId === 'object') {
+        setScenicRouteData(payload.bookingScenicRoute.routeId);
+        setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
+        setShowScenicRoute(true);
+      } else if (isInProgress && payload.bookingScenicRoute.routeId) {
+        fetchScenicRouteData(payload.bookingScenicRoute.routeId._id || payload.bookingScenicRoute.routeId as unknown as string);
+      }
+    }
+  };
+
+  // Fetch scenic route data
+  const fetchScenicRouteData = async (routeId: string) => {
+    try {
+      const scenicRoute = await getSenicRouteById(routeId);
+      if (scenicRoute) {
+        setScenicRouteData(scenicRoute as unknown as ScenicRouteDto);
+        setWaypoints(scenicRoute.waypoints || []);
+        setShowScenicRoute(true);
+      }
+    } catch (error) {
+      console.error('Error fetching scenic route data:', error);
+      Alert.alert('Lỗi', 'Không thể tải dữ liệu tuyến đường');
     }
   };
 
@@ -101,6 +154,11 @@ const TripTrackingScreen = () => {
 
   // API handlers
   const handlePickup = async () => {
+    if (!trip?._id) {
+      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      return;
+    }
+
     try {
       setLoading(true);
       const updatedTrip = await pickUp(trip._id);
@@ -115,6 +173,11 @@ const TripTrackingScreen = () => {
   };
 
   const handleStartTrip = async () => {
+    if (!trip?._id) {
+      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      return;
+    }
+
     try {
       // Check location availability
       if (!location) {
@@ -163,6 +226,25 @@ const TripTrackingScreen = () => {
         setRouteToDestination(true);
       }
 
+      // Handle scenic route booking
+      if (trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE) {
+        const payload = trip.servicePayload as BookingScenicRoutePayloadDto;
+        if (payload.bookingScenicRoute.routeId) {
+          // If routeId is already an object with data
+          if (typeof payload.bookingScenicRoute.routeId === 'object' && payload.bookingScenicRoute.routeId._id) {
+            setScenicRouteData(payload.bookingScenicRoute.routeId);
+            setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
+            setShowScenicRoute(true);
+          } else {
+            // If routeId is just an ID, fetch the data
+            const routeId = typeof payload.bookingScenicRoute.routeId === 'string' 
+              ? payload.bookingScenicRoute.routeId 
+              : payload.bookingScenicRoute.routeId._id;
+            fetchScenicRouteData(routeId);
+          }
+        }
+      }
+
       Alert.alert('Thành công', 'Đã bắt đầu chuyến đi');
     } catch (error) {
       console.error('Start trip error:', error);
@@ -173,6 +255,11 @@ const TripTrackingScreen = () => {
   };
 
   const handleCompleteTrip = async () => {
+    if (!trip?._id) {
+      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      return;
+    }
+
     try {
       setLoading(true);
       const updatedTrip = await completeTrip(trip._id);
@@ -224,7 +311,12 @@ const TripTrackingScreen = () => {
     handleCompleteTrip();
   };
 
-  if (!route.params) {
+  // Thêm hàm toggle
+  const toggleScenicRouteCollapse = () => {
+    setIsScenicRouteCollapsed(!isScenicRouteCollapsed);
+  };
+
+  if (!route.params?.trip) {
     return (
       <View style={styles.container}>
         <Text className="p-2 text-gray-800">No trip details provided</Text>
@@ -239,13 +331,16 @@ const TripTrackingScreen = () => {
         pickupLocation={customerPickupLocation}
         detinateLocation={showDestination ? customerDestination : null}
         showRouteToDestination={routeToDestination}
+        waypoints={showScenicRoute ? waypoints : []}
+        scenicRouteCoordinates={showScenicRoute && scenicRouteData ? scenicRouteData.scenicRouteCoordinates : []}
+        showScenicRoute={showScenicRoute}
       />
 
       {/* Header */}
-      <TripHeader tripStatus={trip.status} onBack={handleBack} />
+      <TripHeader tripStatus={trip?.status || ''} onBack={handleBack} />
 
       {/* Timer manager (non-visual component) */}
-      {trip.serviceType === ServiceType.BOOKING_HOUR && timerActive && (
+      {trip?.serviceType === ServiceType.BOOKING_HOUR && timerActive && (
         <TimerManager
           totalMinutes={(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime}
           isActive={timerActive}
@@ -260,7 +355,7 @@ const TripTrackingScreen = () => {
         <TrackingStatusWarning isTracking={isTracking} />
 
         {/* Trip type information */}
-        <TripTypeInfo serviceType={trip.serviceType} />
+        <TripTypeInfo serviceType={trip?.serviceType || ''} />
 
         {/* Customer Info Card */}
         <CustomerInfoCard
@@ -270,18 +365,55 @@ const TripTrackingScreen = () => {
           onViewMorePress={toggleCustomerInfo}
         />
 
+        {/* Show scenic route information */}
+        {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
+          <View style={styles.scenicRouteInfo}>
+            <TouchableOpacity 
+              style={styles.scenicRouteHeader}
+              onPress={toggleScenicRouteCollapse}
+            >
+              <Text style={styles.scenicRouteTitle}>
+                Tuyến đường cố định: {scenicRouteData.name}
+              </Text>
+              <Ionicons 
+                name={isScenicRouteCollapsed ? "chevron-down" : "chevron-up"} 
+                size={24} 
+                color="#9C27B0" 
+              />
+            </TouchableOpacity>
+            
+            {!isScenicRouteCollapsed && (
+              <View style={styles.scenicRouteContent}>
+                <Text style={styles.scenicRouteDescription}>
+                  {scenicRouteData.description}
+                </Text>
+                <Text style={styles.scenicRouteStats}>
+                  Dự kiến: {scenicRouteData.totalDistance}km - {Math.round(scenicRouteData.estimatedDuration / 60)} phút
+                </Text>
+                {waypoints.length > 0 && (
+                  <Text style={styles.waypointText}>
+                    Điểm tham quan: {waypoints.map(wp => wp.name).join(', ')}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Destination information */}
-        <DestinationInfo
-          serviceType={trip.serviceType}
-          servicePayload={trip.servicePayload}
-          showDestination={showDestination}
-          routeToDestination={routeToDestination}
-          onToggleRouteDestination={toggleRouteDestination}
-        />
+        {trip?.serviceType !== ServiceType.BOOKING_SCENIC_ROUTE && (
+          <DestinationInfo
+            serviceType={trip?.serviceType || ''}
+            servicePayload={trip?.servicePayload}
+            showDestination={showDestination}
+            routeToDestination={routeToDestination}
+            onToggleRouteDestination={toggleRouteDestination}
+          />
+        )}
 
         {/* Proximity information */}
         <ProximityInfo
-          tripStatus={trip.status}
+          tripStatus={trip?.status || ''}
           location={location}
           customerPickupLocation={customerPickupLocation}
         />
@@ -290,8 +422,8 @@ const TripTrackingScreen = () => {
         <View style={{ marginTop: 15 }}>
           <ActionButtons
             loading={loading}
-            tripStatus={trip.status}
-            serviceType={trip.serviceType}
+            tripStatus={trip?.status || ''}
+            serviceType={trip?.serviceType || ''}
             timerActive={timerActive}
             isTracking={isTracking}
             onPickup={handlePickup}

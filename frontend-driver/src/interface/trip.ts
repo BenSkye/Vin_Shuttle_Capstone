@@ -1,4 +1,3 @@
-import { ScenicRoute } from './../../../backend/src/modules/scenic-route/scenic-route.schema';
 export interface LocationData {
     latitude: number;
     longitude: number;
@@ -48,7 +47,7 @@ export interface BookingHourPayloadDto {
 
 export interface BookingScenicRoutePayloadDto {
     bookingScenicRoute: {
-        routeId: ScenicRouteDto;
+        routeId: string | ScenicRouteDto;
         startPoint: {
             position: {
                 lat: number;
@@ -57,7 +56,8 @@ export interface BookingScenicRoutePayloadDto {
             address: string;
         };
         distanceEstimate: number;
-        distance: number
+        distance: number;
+        estimatedDuration?: number;
     }
 }
 
