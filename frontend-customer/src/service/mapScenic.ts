@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://103.162.20.220:26250';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
+console.log('API_URL Map Scenics:', API_URL);
 
 export interface RouteRequest {
     name: string;
