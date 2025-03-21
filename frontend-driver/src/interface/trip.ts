@@ -130,3 +130,14 @@ export interface BookingSharePayloadDto {
         distance: number
     }
 }
+
+export interface Rating {
+    _id: string;
+    tripId: Trip;
+    driverId: string;
+    customerId: string;
+    rate: number;
+    feedback: string;
+    createdAt: string;
+    updatedAt: string;
+}
