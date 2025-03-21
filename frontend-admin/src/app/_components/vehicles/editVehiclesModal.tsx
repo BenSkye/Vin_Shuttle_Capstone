@@ -52,12 +52,26 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [fileList, setFileList] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
-
+  
+  // Add this separate effect to fetch categories when component mounts
   useEffect(() => {
     fetchCategories();
+  }, []);
+
+  // This effect now only handles initialData
+  useEffect(() => {
     if (visible && initialData) {
-      form.setFieldsValue(initialData);
-      setExistingImages(initialData.image || []);
+      // Force a timeout to ensure form is ready before setting values
+      setTimeout(() => {
+        form.setFieldsValue({
+          name: initialData.name,
+          categoryId: initialData.categoryId,
+          licensePlate: initialData.licensePlate,
+          vehicleCondition: initialData.vehicleCondition,
+          operationStatus: initialData.operationStatus,
+        });
+        setExistingImages(initialData.image || []);
+      }, 100);
     }
   }, [visible, initialData, form]);
 

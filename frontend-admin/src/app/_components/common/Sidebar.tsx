@@ -90,9 +90,9 @@ export default function Sidebar() {
             label: <Link href="/cal">Tính tiền</Link>,
           },
           {
-            key: "/bookingHistory",
+            key: "/trip",
             icon: <BookOutlined />,
-            label: <Link href="/trip">Lịch sử đặt xe</Link>,
+            label: <Link href="/trip">Lịch sử cuốc xe</Link>,
           },
           {
             key: "logout",
