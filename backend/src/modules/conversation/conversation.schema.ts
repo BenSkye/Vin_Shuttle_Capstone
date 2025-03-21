@@ -29,6 +29,7 @@ export class Conversation {
         content: string;
         timestamp: Date;
     }];
+
     @Prop({
         type: {
             _id: false,
@@ -43,10 +44,16 @@ export class Conversation {
         timestamp: Date;
     }
 
+    @Prop({ type: Date, required: true })
+    timeToOpen: Date;
+
+    @Prop({ type: Date, required: true })
+    timeToClose: Date;
+
     @Prop({
         type: String,
         enum: ConversationStatus,
-        default: ConversationStatus.CLOSED
+        default: ConversationStatus.PENDING
     })
     status: ConversationStatus;
 }

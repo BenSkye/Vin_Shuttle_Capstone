@@ -2,7 +2,6 @@ import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDiscon
 import { Server, Socket } from 'socket.io';
 import { UseGuards, Inject, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/wsAuth.guard';
-import { ConversationService } from './conversation.service';
 import { REDIS_PROVIDER, TOKEN_PROVIDER } from '../../share/di-token';
 import { IRedisService, ITokenProvider } from '../../share/share.port';
 import { SOCKET_NAMESPACE } from '../../share/enums/socket.enum';
@@ -10,6 +9,7 @@ import { ConversationDocument } from 'src/modules/conversation/conversation.sche
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { CONVERSATION_SERVICE } from 'src/modules/conversation/conversation.di-token';
+import { IConversationService } from 'src/modules/conversation/conversation.port';
 
 @WebSocketGateway({
     namespace: `/${SOCKET_NAMESPACE.CONVERSATIONS}`,
@@ -29,7 +29,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
         @Inject(REDIS_PROVIDER) private readonly redisService: IRedisService,
         @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
         @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-        @Inject(CONVERSATION_SERVICE) private readonly conversationService: ConversationService
+        @Inject(CONVERSATION_SERVICE) private readonly conversationService: IConversationService
     ) { }
 
 
@@ -164,11 +164,11 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
             )
             console.log('customerSocketId', customerSocketId);
             if (customerSocketId) {
-                const conversationsList = await this.conversationService.getUserConversations(updatedConversation.customerId._id.toString());
+                const conversationsList = await this.conversationService.getPersonalConversations(updatedConversation.customerId._id.toString());
                 this.server.to(customerSocketId).emit('conversationsList', conversationsList);
             }
             if (driverSocketId) {
-                const conversationsList = await this.conversationService.getUserConversations(updatedConversation.driverId._id.toString());
+                const conversationsList = await this.conversationService.getPersonalConversations(updatedConversation.driverId._id.toString());
                 this.server.to(driverSocketId).emit('conversationsList', conversationsList);
             }
         } catch (error) {

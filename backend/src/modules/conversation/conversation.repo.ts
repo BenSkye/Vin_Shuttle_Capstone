@@ -20,8 +20,18 @@ export class ConversationRepository implements IConversationRepository {
         return await newConversation.save();
     }
 
-    async getConversation(query: any): Promise<ConversationDocument> {
-        return await this.conversationModel.findOne(query).populate('customerId driverId tripId');
+    async getConversation(query: any, select: string[]): Promise<ConversationDocument> {
+        return await this.conversationModel
+            .findOne(query)
+            .select(getSelectData(select))
+            .populate('customerId driverId tripId');
+    }
+
+    async getListConversation(query: any, select: string[]): Promise<ConversationDocument[]> {
+        return await this.conversationModel
+            .find(query)
+            .select(getSelectData(select))
+            .populate('customerId driverId tripId');
     }
 
     async getConversationById(id: string): Promise<ConversationDocument> {
@@ -40,6 +50,14 @@ export class ConversationRepository implements IConversationRepository {
         const conversation = await this.conversationModel.findById(id);
         if (!conversation) return false;
         conversation.status = ConversationStatus.CLOSED;
+        await conversation.save();
+        return true;
+    }
+
+    async openConversation(id: string): Promise<boolean> {
+        const conversation = await this.conversationModel.findById(id);
+        if (!conversation) return false;
+        conversation.status = ConversationStatus.OPENED;
         await conversation.save();
         return true;
     }

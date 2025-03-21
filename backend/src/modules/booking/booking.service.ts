@@ -26,6 +26,7 @@ import { TripDocument } from "src/modules/trip/trip.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripStatus } from "src/share/enums";
+import { timeToCloseConversation, timeToOpenConversation } from "src/share/enums/conversation.enum";
 import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
@@ -842,7 +843,9 @@ export class BookingService implements IBookingService {
             await this.conversationService.createConversation({
                 tripId: tripUpdate._id.toString(),
                 customerId: tripUpdate.customerId.toString(),
-                driverId: tripUpdate.driverId.toString()
+                driverId: tripUpdate.driverId.toString(),
+                timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start
+                timeToClose: new Date(tripUpdate.timeEndEstimate.getTime() + timeToCloseConversation) //30 minutes after trip end
             })
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(

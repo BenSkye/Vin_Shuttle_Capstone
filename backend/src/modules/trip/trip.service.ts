@@ -22,6 +22,7 @@ import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { IRedisService } from 'src/share/share.port';
 import { SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
 import { ISharedRouteService } from 'src/modules/shared-route/shared-route.port';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -511,5 +512,26 @@ export class TripService implements ITripService {
     }
     console.log('filter', filter);
     return await this.tripRepository.find(filter, []);
+  }
+
+  // run every minute
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: 'handleTripStartTimeout'
+  })
+  async handleTripStartTimeout() {
+    const now = new Date();
+    const startTimeoutAt = new Date(now.getTime() + 15 * 60 * 1000);
+    const trips = await this.tripRepository.find({
+      status: TripStatus.PAYED,
+      timeStartEstimate: { $lte: startTimeoutAt },
+      timeStart: null,
+    }, []);
+    for (const trip of trips) {
+      await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
+      this.tripGateway.emitTripUpdate(
+        trip.customerId.toString(),
+        await this.getPersonalCustomerTrip(trip.customerId.toString())
+      );
+    }
   }
 }

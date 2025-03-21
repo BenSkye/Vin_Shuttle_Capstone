@@ -5,6 +5,8 @@ import { driverScheduleParams, ICreateDriverSchedule, IUpdateDriverSchedule } fr
 import { DriverScheduleGateway } from "src/modules/driver-schedule/driver-schedule.gateway";
 import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
+import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
+import { ITrackingService } from "src/modules/tracking/tracking.port";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { UserDocument } from "src/modules/users/users.schema";
@@ -27,7 +29,8 @@ export class DriverScheduleService implements IDriverScheduleService {
     private readonly vehicleRepository: IVehiclesRepository,
     @Inject(DRIVERSCHEDULE_GATEWAY)
     private readonly driverScheduleGateway: DriverScheduleGateway,
-
+    @Inject(TRACKING_SERVICE)
+    private readonly trackingService: ITrackingService
 
   ) { }
 
@@ -432,11 +435,12 @@ export class DriverScheduleService implements IDriverScheduleService {
     );
 
     await this.driverScheduleGateway.handleDriverCheckout(driverId);
+    await this.trackingService.deleteLastVehicleLocation(driverSchedule.vehicle.toString());
 
     return scheduleUpdate
   }
 
-  @Cron('0 */15 * * * *', {
+  @Cron('0 20 * * * *', {
     name: 'autoCheckoutPendingSchedules',
   })
   async autoCheckoutPendingSchedules() {
@@ -452,7 +456,7 @@ export class DriverScheduleService implements IDriverScheduleService {
       const shift = schedule.shift as Shift;
       const shiftEndHour = ShiftHours[shift].end;
       const expectedCheckout = new Date(schedule.date);
-      expectedCheckout.setHours(shiftEndHour, 0, 0, 0);
+      expectedCheckout.setHours(shiftEndHour + ShiftDifference.OUT, 0, 0, 0); //add 15 minutes to shift end time
 
       // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, thực hiện checkout
       if (currentTime > expectedCheckout) {
@@ -474,6 +478,40 @@ export class DriverScheduleService implements IDriverScheduleService {
           });
 
         await this.driverScheduleGateway.handleDriverCheckout(schedule.driver._id.toString());
+        await this.trackingService.deleteLastVehicleLocation(schedule.vehicle._id.toString());
+        console.log(`Auto checkout for schedule ${schedule._id} completed.`);
+      }
+    }
+
+    //Lấy tất cả các ca đang ở trạng tháiNOT_STARTED trong và trước ngày hôm nay
+    const notStartedSchedules = await this.driverScheduleRepository.getDriverSchedules({
+      status: DriverSchedulesStatus.NOT_STARTED,
+      date: {
+        $lte: currentTime
+      },
+    }, []);
+
+    for (const schedule of notStartedSchedules) {
+      const shift = schedule.shift as Shift;
+      const shiftEndHour = ShiftHours[shift].end;
+      const expectedCheckout = new Date(schedule.date);
+      expectedCheckout.setHours(shiftEndHour + ShiftDifference.OUT, 0, 0, 0); //add 15 minutes to shift end time
+
+      // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, chuyển trạng thái sang Dropped
+      if (currentTime > expectedCheckout) {
+        await this.vehicleRepository.updateOperationStatus(
+          schedule.vehicle._id.toString(),
+          VehicleOperationStatus.PENDING
+        );
+        schedule.status = DriverSchedulesStatus.DROPPED_OFF;
+
+        await this.driverScheduleRepository.updateDriverSchedule(
+          schedule._id.toString(),
+          {
+            status: schedule.status,
+          });
+
+        // await this.driverScheduleGateway.handleDriverCheckout(schedule.driver._id.toString());
 
         console.log(`Auto checkout for schedule ${schedule._id} completed.`);
       }

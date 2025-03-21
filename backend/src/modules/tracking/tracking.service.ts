@@ -21,4 +21,9 @@ export class TrackingService implements ITrackingService {
         const location = await this.redisClient.get(key);
         return JSON.parse(location);
     }
+
+    async deleteLastVehicleLocation(vehicleId: string) {
+        const key = `lastLocation:${vehicleId}`;
+        await this.redisClient.del(key);
+    }
 }

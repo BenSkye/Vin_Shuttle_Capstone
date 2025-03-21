@@ -61,6 +61,7 @@ export interface IBooking {
         changedAt: Date;
         reason?: string;
     }>;
+    createdAt: string;
 }
 
 // Interface for booking destination request
