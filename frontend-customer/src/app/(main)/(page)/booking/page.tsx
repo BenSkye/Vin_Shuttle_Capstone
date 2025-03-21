@@ -38,7 +38,7 @@ const BookingList = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <Title level={2} className="mb-8 text-center">Lịch Sử Đặt Xe</Title>
+            <Title level={2} className="mb-8 text-center">Lịch Sử Thanh Toán</Title>
 
             {error && (
                 <Alert

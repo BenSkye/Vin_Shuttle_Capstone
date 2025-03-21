@@ -6,6 +6,7 @@ import useTripSocket from '@/hooks/useTripSocket';
 import { Trip } from '@/interface/trip';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { TripStatus } from '@/constants/trip.enum';
 
 const TripListPage = () => {
     const { data, isLoading, error } = useTripSocket();
@@ -18,6 +19,26 @@ const TripListPage = () => {
             });
         }
     }, [error]);
+
+    // Helper function to get status display text and color
+    const getStatusInfo = (status: string) => {
+        switch (status) {
+            case TripStatus.BOOKING:
+                return { text: 'Đang đặt', className: 'bg-yellow-100 text-yellow-800' };
+            case TripStatus.PAYED:
+                return { text: 'Đã thanh toán', className: 'bg-blue-100 text-blue-800' };
+            case TripStatus.PICKUP:
+                return { text: 'Đang đón', className: 'bg-orange-100 text-orange-800' };
+            case TripStatus.IN_PROGRESS:
+                return { text: 'Đang trong chuyến đi', className: 'bg-indigo-100 text-indigo-800' };
+            case TripStatus.COMPLETED:
+                return { text: 'Đã hoàn thành', className: 'bg-green-100 text-green-800' };
+            case TripStatus.CANCELLED:
+                return { text: 'Đã hủy', className: 'bg-red-100 text-red-800' };
+            default:
+                return { text: status, className: 'bg-gray-100 text-gray-800' };
+        }
+    };
 
     if (isLoading) {
         return (
@@ -57,89 +78,106 @@ const TripListPage = () => {
             </h1>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {(data as Trip[]).map((trip, index) => (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        key={trip._id}
-                        className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl"
-                    >
-                        <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-150" />
+                {(data as Trip[]).map((trip, index) => {
+                    const statusInfo = getStatusInfo(trip.status);
 
-                        <div className="relative">
-                            <div className="mb-4 flex items-center space-x-2">
-                                <div className="h-10 w-10 rounded-full bg-blue-100 p-2">
-                                    <svg
-                                        className="h-6 w-6 text-blue-500"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
+                    return (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            key={trip._id}
+                            className="group relative overflow-hidden rounded-xl bg-white p-6 shadow-md transition-all duration-300 hover:shadow-xl"
+                        >
+                            <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-150" />
+
+                            <div className="relative">
+                                {trip.driverId && (
+                                    <div className="mb-4 flex items-center space-x-2">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 p-2">
+                                            <svg
+                                                className="h-6 w-6 text-blue-500"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-800">
+                                            {trip.driverId.name || 'Chưa có tài xế'}
+                                        </h3>
+                                    </div>
+                                )}
+
+                                {trip.vehicleId && (
+                                    <div className="mb-4 flex items-center space-x-2">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 p-2">
+                                            <svg
+                                                className="h-6 w-6 text-blue-500"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <p className="text-lg text-gray-600">{trip.vehicleId.name}</p>
+                                    </div>
+                                )}
+
+                                <div className="mb-4">
+                                    <span
+                                        className={`inline-block rounded-full px-4 py-1 text-sm font-semibold ${statusInfo.className}`}
                                     >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                        />
-                                    </svg>
+                                        {statusInfo.text}
+                                    </span>
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-800">{trip.driverId.name}</h3>
-                            </div>
 
-                            <div className="mb-4 flex items-center space-x-2">
-                                <div className="h-10 w-10 rounded-full bg-blue-100 p-2">
-                                    <svg
-                                        className="h-6 w-6 text-blue-500"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                                        />
-                                    </svg>
-                                </div>
-                                <p className="text-lg text-gray-600">{trip.vehicleId.name}</p>
-                            </div>
+                                {trip.status === TripStatus.COMPLETED && trip.isRating && (
+                                    <div className="mb-4">
+                                        <span className="inline-block rounded-full bg-green-50 px-4 py-1 text-sm font-medium text-green-700">
+                                            Đã đánh giá
+                                        </span>
+                                    </div>
+                                )}
 
-                            <span
-                                className={`inline-block rounded-full px-4 py-1 text-sm font-semibold ${trip.status === 'completed'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-blue-100 text-blue-800'
-                                    }`}
-                            >
-                                {trip.status === 'completed' ? 'Hoàn thành' : 'Đang thực hiện'}
-                            </span>
-
-                            <Link
-                                href={`/trips/${trip._id}`}
-                                className="mt-6 inline-flex items-center space-x-2 text-blue-600 transition-colors hover:text-blue-800"
-                            >
-                                <span>Xem chi tiết</span>
-                                <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
+                                <Link
+                                    href={`/trips/${trip._id}`}
+                                    className="mt-4 inline-flex items-center space-x-2 text-blue-600 transition-colors hover:text-blue-800"
                                 >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                                    />
-                                </svg>
-                            </Link>
-                        </div>
-                    </motion.div>
-                ))}
+                                    <span>Xem chi tiết</span>
+                                    <svg
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                                        />
+                                    </svg>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    );
+                })}
             </div>
         </div>
     );

@@ -7,7 +7,13 @@ import { useState, useEffect, useRef } from "react"
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserCheck, FiClock, FiBell } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { Logo } from './Logo'
-import { useAuth } from "../../../../context/AuthContext" // Import useAuth
+import { useAuth } from "../../../../context/AuthContext"
+import { useNotification } from "../../../../context/NotificationContext" // Import useNotification
+import { formatDistanceToNow } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { Badge } from 'antd'
+import { markAsReadNotification, markAllAsReadNotification } from "../../../../service/notification.service"
+import { toast } from "react-hot-toast"
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
@@ -17,8 +23,23 @@ export default function Navbar() {
     const dropdownRef = useRef<HTMLDivElement>(null)
     const notificationRef = useRef<HTMLDivElement>(null)
 
-    // Use AuthContext instead of local state
+    // Use AuthContext
     const { authUser, isLoggedIn, logout } = useAuth()
+
+    // Create a local state that mirrors the auth user for debugging
+    const [userName, setUserName] = useState<string>("Người dùng")
+
+    // Update local state whenever authUser changes
+    useEffect(() => {
+        if (authUser && authUser.name) {
+            setUserName(authUser.name)
+        } else if (isLoggedIn) {
+            setUserName("Người dùng")
+        }
+    }, [authUser, isLoggedIn])
+
+    // Use NotificationContext
+    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotification()
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -51,11 +72,39 @@ export default function Navbar() {
         { label: "Tính năng", href: "/features" },
     ]
 
-    const notifications = [
-        { id: 1, message: "Bạn có chuyến xe sắp tới vào 10:30 sáng" },
-        { id: 2, message: "Đơn đặt xe của bạn đã được xác nhận!" },
-        { id: 3, message: "Có ưu đãi mới cho khách hàng thân thiết" }
-    ]
+    // Format time for notifications
+    const formatNotificationTime = (timestamp: string) => {
+        try {
+            return formatDistanceToNow(new Date(timestamp), { addSuffix: true, locale: vi });
+        } catch (error) {
+            return 'Vừa xong';
+        }
+    };
+
+    // Handle notification click
+    const handleNotificationClick = async (notificationId: string, redirectUrl?: string) => {
+        try {
+            await markAsRead(notificationId);
+
+            if (redirectUrl) {
+                router.push(redirectUrl);
+            }
+            setShowNotifications(false);
+        } catch (error) {
+            toast.error("Không thể đánh dấu đã đọc thông báo");
+        }
+    };
+
+    // Mark all notifications as read
+    const handleMarkAllAsRead = async () => {
+        try {
+            await markAllAsRead();
+            toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
+            // Let the socket update the state
+        } catch (error) {
+            toast.error("Không thể đánh dấu tất cả thông báo là đã đọc");
+        }
+    };
 
     const AuthButtons = () => (
         isLoggedIn ? (
@@ -65,7 +114,7 @@ export default function Navbar() {
                         <FiUser className="text-white text-xl" />
                     </div>
                     <div className="hidden md:block text-left">
-                        <p className="text-sm font-medium text-gray-700">{authUser?.name || "Người dùng"}</p>
+                        <p className="text-sm font-medium text-gray-700">{userName}</p>
                         <p className="text-xs text-gray-500">Tài khoản của bạn</p>
                     </div>
                 </button>
@@ -107,30 +156,64 @@ export default function Navbar() {
                     ))}
                 </div>
                 <div className="hidden md:flex items-center space-x-4 relative">
-                    <div className="relative" ref={notificationRef}>
-                        <button onClick={toggleNotifications} className="text-gray-600 hover:text-green-500 text-2xl relative">
-                            <FiBell />
-                            {notifications.length > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                    {notifications.length}
-                                </span>
-                            )}
-                        </button>
-                        {showNotifications && (
-                            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100">
-                                <p className="px-4 py-2 text-sm font-medium text-gray-700 border-b">Thông báo</p>
-                                {notifications.length === 0 ? (
-                                    <p className="px-4 py-2 text-gray-500 text-sm">Không có thông báo</p>
-                                ) : (
-                                    notifications.map((notif) => (
-                                        <div key={notif.id} className="px-4 py-3 text-gray-700 hover:bg-gray-100 transition">
-                                            {notif.message}
+                    {isLoggedIn && (
+                        <div className="relative" ref={notificationRef}>
+                            <button onClick={toggleNotifications} className="text-gray-600 hover:text-green-500 text-2xl relative">
+                                <Badge count={unreadCount} overflowCount={99}>
+                                    <FiBell />
+                                </Badge>
+                            </button>
+                            {showNotifications && (
+                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 max-h-[70vh] overflow-y-auto">
+                                    <div className="px-4 py-2 flex justify-between items-center border-b">
+                                        <p className="text-sm font-medium text-gray-700">Thông báo</p>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                className="text-sm text-blue-600 hover:text-blue-800"
+                                                onClick={handleMarkAllAsRead}
+                                            >
+                                                Đánh dấu tất cả đã đọc
+                                            </button>
+                                        )}
+                                    </div>
+                                    {notifications.length === 0 ? (
+                                        <div className="px-4 py-8 text-center">
+                                            <div className="mb-3 flex justify-center">
+                                                <FiBell className="text-gray-400 text-3xl" />
+                                            </div>
+                                            <p className="text-gray-500 text-sm">Không có thông báo</p>
                                         </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
-                    </div>
+                                    ) : (
+                                        <div>
+                                            {notifications.map((notif) => (
+                                                <div
+                                                    key={notif._id}
+                                                    className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${!notif.isRead ? 'bg-blue-50' : ''}`}
+                                                    onClick={() => handleNotificationClick(notif._id, notif.redirectUrl)}
+                                                >
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <p className={`text-sm font-medium ${!notif.isRead ? 'text-blue-800' : 'text-gray-800'}`}>
+                                                            {notif.title}
+                                                        </p>
+                                                        <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                                            {formatNotificationTime(notif.createdAt)}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600">{notif.message}</p>
+                                                </div>
+                                            ))}
+
+                                            <div className="p-2 text-center">
+                                                <button className="text-sm text-blue-600 hover:underline">
+                                                    Xem tất cả thông báo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <AuthButtons />
                 </div>
                 <button onClick={toggleMenu} className="md:hidden text-gray-600 text-2xl">
@@ -150,20 +233,54 @@ export default function Navbar() {
                                 {item.label}
                             </Link>
                         ))}
-                        <div className="pt-2">
-                            <p className="font-medium text-gray-700 mb-2">Thông báo</p>
-                            {notifications.length === 0 ? (
-                                <p className="text-gray-500 text-sm">Không có thông báo</p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {notifications.map((notif) => (
-                                        <div key={notif.id} className="p-2 bg-gray-50 rounded text-gray-700 text-sm">
-                                            {notif.message}
-                                        </div>
-                                    ))}
+                        {isLoggedIn && (
+                            <div className="pt-2">
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="font-medium text-gray-700">Thông báo</p>
+                                    {unreadCount > 0 && (
+                                        <span
+                                            className="text-xs text-blue-600"
+                                            onClick={handleMarkAllAsRead}
+                                        >
+                                            Đánh dấu tất cả đã đọc
+                                        </span>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                                {notifications.length === 0 ? (
+                                    <p className="text-gray-500 text-sm py-4 text-center">Không có thông báo</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {notifications.slice(0, 5).map((notif) => (
+                                            <div
+                                                key={notif._id}
+                                                className={`p-3 rounded text-sm ${!notif.isRead ? 'bg-blue-50' : 'bg-gray-50'}`}
+                                                onClick={() => handleNotificationClick(notif._id, notif.redirectUrl)}
+                                            >
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <p className={`font-medium ${!notif.isRead ? 'text-blue-800' : 'text-gray-800'}`}>
+                                                        {notif.title}
+                                                    </p>
+                                                    <span className="text-xs text-gray-500">
+                                                        {formatNotificationTime(notif.createdAt)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-gray-600">{notif.message}</p>
+                                            </div>
+                                        ))}
+                                        {notifications.length > 5 && (
+                                            <div className="text-center mt-2">
+                                                <button className="text-blue-600 text-sm" onClick={() => {
+                                                    setIsOpen(false);
+                                                    router.push('/notifications');
+                                                }}>
+                                                    Xem tất cả {notifications.length} thông báo
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="pt-4 border-t border-gray-100 flex flex-col space-y-3">
                             {isLoggedIn ? (
                                 <>
@@ -172,7 +289,7 @@ export default function Navbar() {
                                             <FiUser className="text-white text-xl" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-700">{authUser?.name || "Người dùng"}</p>
+                                            <p className="font-medium text-gray-700">{userName}</p>
                                             <p className="text-xs text-gray-500">Tài khoản của bạn</p>
                                         </div>
                                     </div>

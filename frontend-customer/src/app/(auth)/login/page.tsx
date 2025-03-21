@@ -10,6 +10,7 @@ import Cookies from 'js-cookie'; // Import js-cookie
 
 export default function LoginPage() {
     const router = useRouter()
+    const { login } = useAuth()
     const { setAuthUser, setIsLoggedIn } = useAuth() // Use AuthContext
     const [formData, setFormData] = useState({ phone: "", otp: "" })
     const [shouldFetch, setShouldFetch] = useState(false)
@@ -46,12 +47,14 @@ export default function LoginPage() {
                     Cookies.set('userId', response.userId, { expires: 2 });
 
                     // Cập nhật AuthContext
-                    setAuthUser({
-                        id: response.userId,
-                        phone: formData.phone,
-                        name: response.name || "Người dùng" // Fallback name
-                    })
-                    setIsLoggedIn(true)
+                    login(
+                        response.token.accessToken,
+                        response.token.refreshToken || '',
+                        response.userId,
+                        formData.phone,
+                        response.name || "Người dùng"
+                    )
+
                     router.push("/")
                 } else {
                     setError("Mã OTP không hợp lệ. Vui lòng thử lại.")
