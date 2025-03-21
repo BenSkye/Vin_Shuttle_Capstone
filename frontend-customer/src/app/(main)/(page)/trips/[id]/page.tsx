@@ -1,6 +1,6 @@
 'use client';
 
-import { Spin, notification } from 'antd';
+import { Spin, notification, Rate } from 'antd';
 import useTripSocket from '@/hooks/useTripSocket';
 import Link from 'next/link';
 import { BookingDestinationPayloadDto, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingSharePayloadDto, Trip } from '@/interface/trip';
@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import { IoCarSport } from 'react-icons/io5';
 import { FaMapMarkerAlt, FaClock, FaRoute, FaStar } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import { getRateTrip } from '@/service/trip.service';
+
 import TripRating from '@/app/(main)/components/booking/bookingcomponents/triprating';
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,29 +20,29 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     console.log("Trip ID:", id);
     const { data, isLoading, error } = useTripSocket(id as string);
 
-    const [rating, setRating] = useState<{ rate: number, feedback: string } | null>(null);
+    const [rating, setRating] = useState<{ rate: number, feedback: string }>({ rate: 5, feedback: '' });
     const [loadingRating, setLoadingRating] = useState(false);
+    const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
+    // Extract rating info from trip data if it exists
     useEffect(() => {
-        const fetchRating = async () => {
-            if (data && (data as Trip).status === TripStatus.COMPLETED) {
-                setLoadingRating(true);
-                try {
-                    const ratingData = await getRateTrip(id);
-                    setRating(ratingData);
-                } catch (error) {
-                    // Silently fail if rating not found
-                    if (error instanceof Error && !error.message.includes('not found')) {
-                        console.error('Error fetching rating:', error);
-                    }
-                } finally {
-                    setLoadingRating(false);
-                }
-            }
-        };
+        if (data && (data as Trip).rating) {
+            const tripData = data as Trip;
+            setRating({
+                rate: tripData.rating.rate,
+                feedback: tripData.rating.feedback || ''
+            });
+        }
+    }, [data]);
 
-        fetchRating();
-    }, [id, data]);
+    // Check if rating was submitted and update state
+    const handleRatingSuccess = () => {
+        setRatingSubmitted(true);
+        notification.success({
+            message: 'Thành công',
+            description: 'Cảm ơn bạn đã đánh giá chuyến đi!'
+        });
+    };
 
     if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -50,17 +50,25 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         </div>
     );
 
-    if (error)
+    if (error) {
         notification.error({
             message: 'Lỗi',
             description: error.message || 'Lỗi khi tải chi tiết chuyến đi',
         });
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <p className="text-red-500 text-xl">Có lỗi xảy ra khi tải dữ liệu chuyến đi</p>
+            </div>
+        );
+    }
 
     if (!data) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <p className="text-gray-500 text-xl">Không tìm thấy chuyến đi</p>
         </div>
     );
+
+    const trip = data as Trip;
 
     const renderServiceDetails = (trip: Trip) => {
         const baseCardStyle = "bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300";
@@ -114,8 +122,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     </motion.div>
                 );
 
-            // Similar pattern for other service types...
-            // (Keep the same structure but update the UI elements)
+            // Add other service type cases here
 
             default:
                 return (
@@ -123,6 +130,30 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         <p className="text-gray-500">Loại dịch vụ không xác định</p>
                     </div>
                 );
+        }
+    };
+
+    // Helper to translate trip status to Vietnamese
+    const getStatusText = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'completed': return 'Đã hoàn thành';
+            case 'in_progress': return 'Đang thực hiện';
+            case 'pickup': return 'Đang đón khách';
+            case 'pending': return 'Chờ xác nhận';
+            case 'cancelled': return 'Đã hủy';
+            default: return status;
+        }
+    };
+
+    // Get status badge style
+    const getStatusStyle = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'completed': return 'bg-green-100 text-green-800';
+            case 'in_progress': return 'bg-blue-100 text-blue-800';
+            case 'pickup': return 'bg-yellow-100 text-yellow-800';
+            case 'pending': return 'bg-gray-100 text-gray-800';
+            case 'cancelled': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800';
         }
     };
 
@@ -139,10 +170,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         <IoCarSport className="text-3xl sm:text-4xl text-blue-500" />
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                                {(data as Trip).vehicleId.name}
+                                {trip.vehicleId.name}
                             </h1>
                             <p className="text-sm sm:text-base text-gray-500 mt-1">
-                                Biển số: {(data as Trip).vehicleId.licensePlate}
+                                Biển số: {trip.vehicleId.licensePlate}
                             </p>
                         </div>
                     </div>
@@ -151,29 +182,56 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                         <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
                             <h3 className="font-semibold text-gray-700 text-sm sm:text-base mb-2">Tài xế</h3>
                             <p className="text-lg sm:text-xl font-bold text-gray-900">
-                                {(data as Trip).driverId.name}
+                                {trip.driverId.name}
                             </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
                             <h3 className="font-semibold text-gray-700 text-sm sm:text-base mb-2">Trạng thái</h3>
-                            <span className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold ${(data as Trip).status === 'completed'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-blue-100 text-blue-800'
-                                }`}>
-                                {(data as Trip).status}
+                            <span className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold ${getStatusStyle(trip.status)}`}>
+                                {getStatusText(trip.status)}
                             </span>
                         </div>
                     </div>
 
                     <div className="mb-6 sm:mb-8">
                         <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Chi tiết lộ trình</h2>
-                        {renderServiceDetails(data as Trip)}
+                        {renderServiceDetails(trip)}
                     </div>
 
                     {/* Rating Section */}
-                    {(data as Trip).status.toLowerCase() === 'completed' && (
+                    {trip.status === TripStatus.COMPLETED && !trip.isRating && !ratingSubmitted && (
                         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
-                            <TripRating tripId={id} trip={data as Trip} />
+                            <TripRating
+                                tripId={id}
+                                trip={trip}
+                                existingRating={null}
+                                onRatingSuccess={handleRatingSuccess}
+                            />
+                        </div>
+                    )}
+
+                    {(trip.status === TripStatus.COMPLETED && (trip.isRating || ratingSubmitted)) && trip.rating && (
+                        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+                            <div className="bg-gray-50 rounded-lg p-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">Đánh giá của bạn</h3>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <FaStar className="text-yellow-500" />
+                                    <span className="font-medium text-gray-700">Số sao:</span>
+                                    <Rate disabled value={trip.rating.rate} />
+                                    <span className="text-gray-700 ml-2">({trip.rating.rate}/5)</span>
+                                </div>
+
+                                {trip.rating.feedback && (
+                                    <div className="mt-3">
+                                        <span className="font-medium text-gray-700">Nhận xét:</span>
+                                        <p className="bg-white p-3 rounded-md border mt-2 text-gray-700">{trip.rating.feedback}</p>
+                                    </div>
+                                )}
+
+                                <div className="mt-4 text-gray-500 text-sm">
+                                    <p>Cảm ơn bạn đã đánh giá chuyến đi!</p>
+                                </div>
+                            </div>
                         </div>
                     )}
 

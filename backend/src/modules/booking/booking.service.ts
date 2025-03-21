@@ -6,6 +6,10 @@ import { IBookingRepository, IBookingService } from "src/modules/booking/booking
 import { BookingDocument } from "src/modules/booking/booking.schema";
 import { CHECKOUT_SERVICE } from "src/modules/checkout/checkout.di-token";
 import { ICheckoutService } from "src/modules/checkout/checkout.port";
+import { CONVERSATION_SERVICE } from "src/modules/conversation/conversation.di-token";
+import { IConversationService } from "src/modules/conversation/conversation.port";
+import { NOTIFICATION_SERVICE } from "src/modules/notification/notification.di-token";
+import { INotificationService } from "src/modules/notification/notification.port";
 import { PRICING_SERVICE } from "src/modules/pricing/pricing.di-token";
 import { IPricingService } from "src/modules/pricing/pricing.port";
 import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.di-token";
@@ -21,7 +25,7 @@ import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
 import { TripDocument } from "src/modules/trip/trip.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
-import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus } from "src/share/enums";
+import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripStatus } from "src/share/enums";
 import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
@@ -47,6 +51,10 @@ export class BookingService implements IBookingService {
         private readonly pricingService: IPricingService,
         @Inject(VEHICLE_REPOSITORY)
         private readonly vehicleRepository: IVehiclesRepository,
+        @Inject(NOTIFICATION_SERVICE)
+        private readonly notificationService: INotificationService,
+        @Inject(CONVERSATION_SERVICE)
+        private readonly conversationService: IConversationService
     ) { }
 
     async bookingHour(
@@ -819,6 +827,23 @@ export class BookingService implements IBookingService {
                     await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
                 }
             }
+            const notificationForCustomer = {
+                received: tripUpdate.customerId.toString(),
+                title: `Cuốc xe ${tripUpdate._id.toString()} đã thanh toán`,
+                body: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)} của bạn đã được thanh toán thành công`,
+            }
+            const notificationForDriver = {
+                received: tripUpdate.driverId.toString(),
+                title: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới ${tripUpdate._id.toString()}`,
+                body: `Bạn có cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)}`,
+            }
+            await this.notificationService.createNotification(notificationForCustomer)
+            await this.notificationService.createNotification(notificationForDriver)
+            await this.conversationService.createConversation({
+                tripId: tripUpdate._id.toString(),
+                customerId: tripUpdate.customerId.toString(),
+                driverId: tripUpdate.driverId.toString()
+            })
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(
             booking._id.toString(),
@@ -831,6 +856,7 @@ export class BookingService implements IBookingService {
                 vnMessage: `Lỗi cập nhật booking ${booking._id}`,
             }, HttpStatus.BAD_REQUEST);
         }
+
         return updateBooking
     }
 

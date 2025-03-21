@@ -7,7 +7,7 @@ import NextTopLoader from 'nextjs-toploader'
 import { Suspense } from 'react'
 import Loading from '@/components/shared/Loading'
 import { NotificationProvider } from '@/context/NotificationContext'
-
+import { AuthProvider } from '@/context/AuthContext'
 polyfill()
 
 const inter = Inter({ subsets: ['latin'] })
@@ -38,9 +38,11 @@ export default function RootLayout({
             }}
           >
             <Suspense fallback={<Loading />}>
-              <NotificationProvider>
-                {children}
-              </NotificationProvider>
+              <AuthProvider> {/* Bọc AuthProvider vào đây */}
+                <NotificationProvider>
+                  {children}
+                </NotificationProvider>
+              </AuthProvider>
             </Suspense>
           </ConfigProvider>
         </AntdRegistry>

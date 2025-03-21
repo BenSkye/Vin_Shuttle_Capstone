@@ -93,13 +93,12 @@ const renderStatusBadge = (status: 'draft' | 'active' | 'inactive') => {
     );
 };
 
-export default function CreateRoute({ onRouteSelect, selectedRoute: propSekectedRoute }: CreateRouteProps) {
+export default function CreateRoute({ onRouteSelect, selectedRoute: propSelectedRoute }: CreateRouteProps) {
     const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424]);
     const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([]);
     const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
-
     const [localSelectedRoute, setLocalSelectedRoute] = useState<RouteResponse | null>(null);
-
+    const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
 
     // Load saved routes from API
     useEffect(() => {
@@ -118,8 +117,12 @@ export default function CreateRoute({ onRouteSelect, selectedRoute: propSekected
     const selectRoute = useCallback((route: RouteResponse) => {
         console.log('Selected route data:', route);
 
+        // Update selected route ID for highlighting
+        setSelectedRouteId(route._id);
+
         // Update local state
         setLocalSelectedRoute(route);
+        setSelectedRoute(route);
 
         // Notify parent component if callback exists
         if (onRouteSelect) {
@@ -127,6 +130,16 @@ export default function CreateRoute({ onRouteSelect, selectedRoute: propSekected
         }
     }, [onRouteSelect]);
 
+    // Animation effect when route is selected
+    const getRouteItemClasses = (routeId: string) => {
+        const baseClasses = "p-3 rounded-lg cursor-pointer transition-all duration-300 border-2";
+
+        if (selectedRouteId === routeId) {
+            return `${baseClasses} bg-blue-50 border-blue-500 transform scale-[1.02] shadow-md`;
+        }
+
+        return `${baseClasses} bg-gray-50 hover:bg-gray-100 border-transparent`;
+    };
 
     return (
         <div className="h-screen flex">
@@ -140,11 +153,11 @@ export default function CreateRoute({ onRouteSelect, selectedRoute: propSekected
 
                 <div className="space-y-2">
                     {!selectedRoute ? (
-                        // Danh sách routes
+                        // Danh sách routes với hiệu ứng chọn
                         savedRoutes.map((route, index) => (
                             <div
                                 key={route._id || index}
-                                className="p-3 rounded-lg bg-gray-50 cursor-pointer hover:bg-gray-100"
+                                className={getRouteItemClasses(route._id)}
                                 onClick={() => selectRoute(route)}
                             >
                                 <div className="font-medium text-black">{route.name}</div>
@@ -160,7 +173,10 @@ export default function CreateRoute({ onRouteSelect, selectedRoute: propSekected
                         // Chi tiết route đã chọn
                         <div className="space-y-4">
                             <button
-                                onClick={() => setSelectedRoute(null)}
+                                onClick={() => {
+                                    setSelectedRoute(null);
+                                    setSelectedRouteId(null);
+                                }}
                                 className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-2"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -168,7 +184,7 @@ export default function CreateRoute({ onRouteSelect, selectedRoute: propSekected
                                 </svg>
                                 Quay lại danh sách
                             </button>
-                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-blue-500">
                                 <h3 className="text-xl font-bold text-black mb-2">{selectedRoute.name}</h3>
                                 <p className="text-gray-600 mb-4">{selectedRoute.description || 'Không có mô tả'}</p>
 

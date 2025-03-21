@@ -37,7 +37,7 @@ const LineBookingPage = () => {
         address: ''
     });
 
-    
+
     const [loading, setLoading] = useState(false);
     const [pickup, setPickup] = useState<string>('');
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null);
@@ -64,7 +64,7 @@ const LineBookingPage = () => {
         () => import('../../components/booking/bookingcomponents/vehicleselection'),
         { ssr: false }
     );
-    
+
     // Check if code is running in browser
     useEffect(() => {
         setIsBrowser(true);
@@ -89,19 +89,19 @@ const LineBookingPage = () => {
         const R = 6371; // Radius of the Earth in km
         const dLat = (endPoint.position.lat - startPoint.position.lat) * Math.PI / 180;
         const dLon = (endPoint.position.lng - startPoint.position.lng) * Math.PI / 180;
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(startPoint.position.lat * Math.PI / 180) * Math.cos(endPoint.position.lat * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(startPoint.position.lat * Math.PI / 180) * Math.cos(endPoint.position.lat * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c;
-        
+
         // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
         const duration = Math.ceil(distance * 2);
-        
+
         setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2);
         setEstimatedDuration(duration || 5);
-        
+
         return { distance, duration };
     };
 
@@ -153,24 +153,24 @@ const LineBookingPage = () => {
     const fetchAvailableVehicles = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             // Use calculateDistance to update estimatedDistance and estimatedDuration
             calculateDistance();
-            
+
             if (!startPoint.address || !endPoint.address) {
                 setError("Vui lòng chọn địa điểm đón và trả khách");
                 setLoading(false);
                 return false;
             }
-            
+
             console.log('Calling vehicleSearchDestination with params:', {
                 estimatedDuration: estimatedDuration || 5,
                 estimatedDistance: estimatedDistance || 2,
                 endPoint: endPoint.position,
                 startPoint: startPoint.position
             });
-            
+
             // Call API to get available vehicles using vehicleSearchDestination
             const vehicles = await vehicleSearchDestination(
                 estimatedDuration || 5, // Use default value if not available
@@ -178,7 +178,7 @@ const LineBookingPage = () => {
                 endPoint.position,
                 startPoint.position
             );
-            
+
             console.log('vehicleSearchDestination response:', vehicles);
             setAvailableVehicles(Array.isArray(vehicles) ? vehicles : [vehicles]);
             next();
@@ -215,23 +215,23 @@ const LineBookingPage = () => {
 
         setLoading(true);
         setError(null);
-        
+
         try {
             // Prepare the payload for booking destination
             const payload: BookingDestinationRequest = {
                 startPoint: startPoint,
                 endPoint: endPoint,
-                estimatedDuration: estimatedDuration, 
-                distanceEstimate: estimatedDistance, 
+                estimatedDuration: estimatedDuration,
+                distanceEstimate: estimatedDistance,
                 vehicleCategories: selectedVehicles,
                 paymentMethod: "pay_os"
             };
-            
+
             console.log('Calling bookingDestination with payload:', payload);
-            
+
             const response = await bookingDestination(payload);
             console.log('bookingDestination response:', response);
-            
+
             setBookingResponse(response);
             next(); // Move to checkout page
         } catch (error) {
@@ -243,7 +243,7 @@ const LineBookingPage = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100 p-5">
+        <div className="flex justify-center items-center min-h-screen ">
             <div className="max-w-5xl w-full bg-white p-10 rounded-lg shadow-lg">
                 <div className="flex justify-between mb-10">
                     {steps.map((item, index) => (
@@ -282,15 +282,15 @@ const LineBookingPage = () => {
                             endPoint={endPoint}
                             onLocationChange={handleEndLocationChange}
                             loading={loading}
-                            detectUserLocation={detectUserLocation} 
+                            detectUserLocation={detectUserLocation}
                         />
                     )}
                     {current === 3 && isBrowser && (
-                      <VehicleSelection
-                        availableVehicles={availableVehicles}
-                        selectedVehicles={selectedVehicles}
-                        onSelectionChange={handleVehicleSelection}
-                      />
+                        <VehicleSelection
+                            availableVehicles={availableVehicles}
+                            selectedVehicles={selectedVehicles}
+                            onSelectionChange={handleVehicleSelection}
+                        />
                     )}
                     {current === 4 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
                 </div>

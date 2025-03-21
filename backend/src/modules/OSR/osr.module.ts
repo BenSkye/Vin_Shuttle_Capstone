@@ -1,5 +1,5 @@
 import { HttpModule } from "@nestjs/axios";
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { OSR_SERVICE } from "src/modules/OSR/osr.di-token";
 import { RoutingOSRService } from "src/modules/OSR/osr.service";
 import { TrackingModule } from "src/modules/tracking/tracking.module";
@@ -15,7 +15,7 @@ const dependencies = [
 @Module({
     imports: [
         TrackingModule,
-        TripModule,
+        forwardRef(() => TripModule),
         HttpModule
     ],
     controllers: [],

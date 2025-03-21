@@ -23,6 +23,7 @@ import {
   ServiceType,
   Shift,
   ShiftHours,
+  TripStatus,
 } from 'src/share/enums';
 import { DateUtils } from 'src/share/utils';
 
@@ -339,6 +340,7 @@ export class SearchService implements ISearchService {
       this.tripRepository.find(
         {
           scheduleId: schedule._id.toString(),
+          status: { $nin: [TripStatus.COMPLETED, TripStatus.CANCELLED] },
           $or: [
             {
               timeStartEstimate: { $lt: bookingEndTime.add(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
