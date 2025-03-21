@@ -38,7 +38,7 @@ export default function RootLayout({
             }}
           >
             <Suspense fallback={<Loading />}>
-              <AuthProvider> {/* Bọc AuthProvider vào đây */}
+              <AuthProvider>
                 <NotificationProvider>
                   {children}
                 </NotificationProvider>

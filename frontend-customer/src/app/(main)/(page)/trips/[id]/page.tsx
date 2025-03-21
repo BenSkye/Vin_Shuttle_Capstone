@@ -133,26 +133,28 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         }
     };
 
-    // Helper to translate trip status to Vietnamese
+    // Helper to translate trip status to Vietnamese - updated to match trips list page
     const getStatusText = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed': return 'Đã hoàn thành';
-            case 'in_progress': return 'Đang thực hiện';
-            case 'pickup': return 'Đang đón khách';
-            case 'pending': return 'Chờ xác nhận';
-            case 'cancelled': return 'Đã hủy';
+        switch (status) {
+            case TripStatus.BOOKING: return 'Đang đặt';
+            case TripStatus.PAYED: return 'Đã thanh toán';
+            case TripStatus.PICKUP: return 'Đang đón';
+            case TripStatus.IN_PROGRESS: return 'Đang trong chuyến đi';
+            case TripStatus.COMPLETED: return 'Đã hoàn thành';
+            case TripStatus.CANCELLED: return 'Đã hủy';
             default: return status;
         }
     };
 
-    // Get status badge style
+    // Get status badge style - updated to match trips list page
     const getStatusStyle = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed': return 'bg-green-100 text-green-800';
-            case 'in_progress': return 'bg-blue-100 text-blue-800';
-            case 'pickup': return 'bg-yellow-100 text-yellow-800';
-            case 'pending': return 'bg-gray-100 text-gray-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
+        switch (status) {
+            case TripStatus.BOOKING: return 'bg-yellow-100 text-yellow-800';
+            case TripStatus.PAYED: return 'bg-blue-100 text-blue-800';
+            case TripStatus.PICKUP: return 'bg-orange-100 text-orange-800';
+            case TripStatus.IN_PROGRESS: return 'bg-indigo-100 text-indigo-800';
+            case TripStatus.COMPLETED: return 'bg-green-100 text-green-800';
+            case TripStatus.CANCELLED: return 'bg-red-100 text-red-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };

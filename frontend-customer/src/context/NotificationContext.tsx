@@ -1,12 +1,16 @@
 'use client';
 import useNotificationSocket from "@/hooks/useNotificationSocket";
 import { INotification } from "@/interface/notification";
-import { createContext, useEffect, useState, useContext, } from "react";
+import { createContext, useEffect, useState, useContext, useCallback } from "react";
+import { markAsReadNotification, markAllAsReadNotification } from "@/service/notification.service";
 
 interface NotificationContextType {
     notifications: INotification[];
     unreadCount: number;
+    markAsRead: (id: string) => Promise<void>;
+    markAllAsRead: () => Promise<void>;
 }
+
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
@@ -19,22 +23,49 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         setUnreadCountNumber(unreadCount);
     }, [notifications, unreadCount]);
 
-    useEffect(() => {
-        console.log('Notification list:', notificationList);
-        console.log('Unread count:', unreadCountNumber);
-    }, [notificationList, unreadCountNumber]);
+    const markAsRead = useCallback(async (id: string) => {
+        try {
+            await markAsReadNotification(id);
+
+            // Update local state
+            setNotificationList(prev =>
+                prev.map(notif => notif._id === id ? { ...notif, isRead: true } : notif)
+            );
+
+            setUnreadCountNumber(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error("Failed to mark notification as read:", error);
+            throw error;
+        }
+    }, []);
+
+    const markAllAsRead = useCallback(async () => {
+        try {
+            await markAllAsReadNotification();
+
+            // Update local state
+            setNotificationList(prev =>
+                prev.map(notif => ({ ...notif, isRead: true }))
+            );
+
+            setUnreadCountNumber(0);
+        } catch (error) {
+            console.error("Failed to mark all notifications as read:", error);
+            throw error;
+        }
+    }, []);
 
     return (
         <NotificationContext.Provider value={{
             notifications: notificationList,
-            unreadCount: unreadCountNumber
+            unreadCount: unreadCountNumber,
+            markAsRead,
+            markAllAsRead
         }}>
             {children}
         </NotificationContext.Provider>
     );
-
 }
-
 
 export const useNotification = () => {
     const context = useContext(NotificationContext);
