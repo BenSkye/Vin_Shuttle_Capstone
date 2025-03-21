@@ -213,7 +213,7 @@ const HourlyBookingPage = () => {
     }, [booking])
 
     return (
-        <div className="bg-[#f0f2f5] min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
+        <div className=" min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
             <Card className="w-full max-w-[1200px] p-4 sm:p-6 md:p-8 shadow-md rounded-xl">
                 <Title level={2} className="text-center text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8">
                     Đặt xe theo giờ
