@@ -16,7 +16,7 @@ export class RatingService implements IRatingService {
     ) { }
 
     async createRating(customerId: string, data: ICreateRating): Promise<RatingDocument> {
-        const trip = await this.tripRepository.findById(data.tripId, ['customerId'])
+        const trip = await this.tripRepository.findById(data.tripId, ['customerId', 'status'])
         if (!trip || trip.customerId._id.toString() !== customerId) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
@@ -24,6 +24,7 @@ export class RatingService implements IRatingService {
                 vnMessage: `Không tìm thấy chuyến đi ${data.tripId}`
             }, HttpStatus.NOT_FOUND)
         }
+        console.log('trip', trip)
         if (trip.status !== TripStatus.COMPLETED) {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,

@@ -148,13 +148,13 @@ export class Trip {
     @Prop({ type: Boolean, default: false })
     isRating: boolean;
 
-    @Prop({ type: Date })
+    @Prop({ type: Date, default: null })
     cancellationTime: Date;
 
-    @Prop({ type: String })
+    @Prop({ type: String, default: '' })
     cancellationReason: string;
 
-    @Prop({ type: Number })
+    @Prop({ type: Number, default: 0 })
     refundAmount: number;
 
     @Prop({ type: Date })
