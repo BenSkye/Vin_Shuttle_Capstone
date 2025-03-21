@@ -51,7 +51,7 @@ export class ConversationController {
     async getUserConversations(
         @Request() req
     ) {
-        return await this.conversationService.getUserConversations(req.user._id);
+        return await this.conversationService.getPersonalConversations(req.user._id);
     }
 
     @Get(':id')

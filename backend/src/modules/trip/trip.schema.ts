@@ -6,25 +6,6 @@ import { TripStatus } from 'src/share/enums/trip.enum';
 import { Position, PositionSchema, StartOrEndPointSchema } from 'src/share/share.schema';
 
 export type TripDocument = HydratedDocument<Trip>;
-// @Schema({ _id: false })
-// class Position {
-//     @Prop({ required: true, type: Number })
-//     lat: number;
-
-//     @Prop({ required: true, type: Number })
-//     lng: number;
-// }
-// const PositionSchema = SchemaFactory.createForClass(Position);
-
-// @Schema({ _id: false })
-// class StartPoint {
-//     @Prop({ required: true, type: PositionSchema })
-//     position: Position;
-
-//     @Prop({ required: true, type: String })
-//     address: string;
-// }
-// const StartPointSchema = SchemaFactory.createForClass(StartPoint);
 
 @Schema({ collection: 'Trips', timestamps: true })
 export class Trip {
@@ -239,6 +220,8 @@ TripSchema.pre<Trip>('validate', function (next) {
 
     next();
 });
+
+
 TripSchema.pre<Document & Trip>('save', function (next) {
     if ((this as any).isNew || (this as any).isModified('status')) {
         const currentStatus = this.status;

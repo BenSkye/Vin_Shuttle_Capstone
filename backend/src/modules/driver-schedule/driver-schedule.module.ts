@@ -14,6 +14,7 @@ import {
 } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { DriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.service';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
+import { TrackingModule } from 'src/modules/tracking/tracking.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 import { ShareModule } from 'src/share/share.module';
@@ -44,6 +45,7 @@ const dependencies = [
     VehiclesModule,
     ShareModule,
     KeytokenModule,
+    TrackingModule
   ],
   controllers: [DriverScheduleController],
   providers: [...dependencies],

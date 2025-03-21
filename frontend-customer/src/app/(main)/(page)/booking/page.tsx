@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Card, Space, Typography, message, Alert } from 'antd';
+import { Typography, message, Alert } from 'antd';
 import { getCustomerPersonalBooking } from '@/service/booking.service';
 import { IBooking } from '@/interface/booking';
 import Link from 'next/link';

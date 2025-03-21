@@ -5,6 +5,8 @@ import { ICreateConversation, IUpdateConversation } from "src/modules/conversati
 import { ConversationDocument } from "src/modules/conversation/conversation.schema";
 import { IConversationRepository } from "src/modules/conversation/conversation.port";
 import { CONVERSATION_REPOSITORY } from "src/modules/conversation/conversation.di-token";
+import { ConversationStatus } from "src/share/enums/conversation.enum";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class ConversationService implements IConversationService {
@@ -14,11 +16,29 @@ export class ConversationService implements IConversationService {
     ) { }
 
     async createConversation(data: ICreateConversation): Promise<ConversationDocument> {
+        const {
+            tripId,
+            customerId,
+            driverId,
+            timeToOpen,
+            timeToClose,
+        } = data;
+        //nếu timeToOpen trước hiện tại thì thêm status open vào conversation
+        const current = new Date();
+        if (timeToOpen < current) {
+            data = {
+                ...data,
+                status: ConversationStatus.OPENED
+            }
+        }
         return await this.conversationRepository.create(data);
     }
 
     async getConversationByTripId(tripId: string): Promise<ConversationDocument> {
-        const conversation = await this.conversationRepository.getConversation({ tripId });
+        const conversation = await this.conversationRepository.getConversation(
+            { tripId },
+            []
+        );
         if (!conversation) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
@@ -49,22 +69,70 @@ export class ConversationService implements IConversationService {
         return conversation;
     }
 
-    async getUserConversations(userId: string): Promise<ConversationDocument[]> {
-        return await this.conversationRepository.getUserConversations(userId);
+    async getPersonalConversations(userId: string): Promise<ConversationDocument[]> {
+        return await this.conversationRepository.getListConversation(
+            {
+                $or: [{ customerId: userId }, { driverId: userId }],
+                status: ConversationStatus.OPENED
+            },
+            []
+        )
     }
 
     async closeConversation(id: string): Promise<boolean> {
-        const conversation = await this.conversationRepository.closeConversation(id);
-        if (!conversation) {
+        const result = await this.conversationRepository.closeConversation(id);
+        if (!result) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
                 message: `Conversation not found ${id}`,
             }, HttpStatus.NOT_FOUND);
         }
-        return conversation;
+        return result;
+    }
+
+    async openConversation(id: string): Promise<boolean> {
+        const result = await this.conversationRepository.openConversation(id);
+        if (!result) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Conversation not found ${id}`,
+            }, HttpStatus.NOT_FOUND);
+        }
+        return result;
     }
 
     async addMessage(id: string, senderId: string, content: string): Promise<ConversationDocument> {
         return await this.conversationRepository.addMessage(id, senderId, content);
     }
+
+    //run every 1 minute function check timeToOpen and timeToClose
+    @Cron(CronExpression.EVERY_MINUTE, {
+        name: 'checkTimeToOpenAndClose'
+    })
+    async checkTimeToOpenAndClose() {
+        const current = new Date();
+        const conversations = await this.conversationRepository.getListConversation(
+            {
+                status: ConversationStatus.PENDING,
+                timeToOpen: { $lte: current }
+            },
+            []
+        );
+        conversations.forEach(async conversation => {
+            await this.conversationRepository.openConversation(conversation._id.toString());
+        });
+
+        const conversationsClose = await this.conversationRepository.getListConversation(
+            {
+                status: ConversationStatus.OPENED,
+                timeToClose: { $lte: current }
+            },
+            []
+        );
+        conversationsClose.forEach(async conversation => {
+            await this.conversationRepository.closeConversation(conversation._id.toString());
+        }
+        );
+    }
+
 }
