@@ -47,7 +47,7 @@ export interface BookingHourPayloadDto {
 
 export interface BookingScenicRoutePayloadDto {
     bookingScenicRoute: {
-        routeId: string;
+        routeId: string | ScenicRouteDto;
         startPoint: {
             position: {
                 lat: number;
@@ -56,8 +56,36 @@ export interface BookingScenicRoutePayloadDto {
             address: string;
         };
         distanceEstimate: number;
-        distance: number
+        distance: number;
+        estimatedDuration?: number;
     }
+}
+
+export interface ScenicRouteDto {
+    _id: string;
+    name: string;
+    description: string;
+    status: string;
+    waypoints: Waypoint[];
+    scenicRouteCoordinates: Coordinate[];
+    estimatedDuration: number;
+    totalDistance: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Waypoint {
+    id: number;
+    name: string;
+    position: {
+        lat: number;
+        lng: number;
+    };
+}
+
+export interface Coordinate {
+    lat: number;
+    lng: number;
 }
 
 export interface BookingDestinationPayloadDto {
@@ -101,4 +129,15 @@ export interface BookingSharePayloadDto {
         distanceEstimate: number;
         distance: number
     }
+}
+
+export interface Rating {
+    _id: string;
+    tripId: Trip;
+    driverId: string;
+    customerId: string;
+    rate: number;
+    feedback: string;
+    createdAt: string;
+    updatedAt: string;
 }

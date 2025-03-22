@@ -18,3 +18,18 @@ export const getTripList = async (): Promise<Trip[]> => {
     throw error;
   }
 };
+
+export const getTotalAmount = async (): Promise<number> => {
+  try {
+    const response = await axios.get(`${API_URL}/trip/total-amount`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching total amount:', error);
+    throw error;
+  }
+}
