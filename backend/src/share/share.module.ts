@@ -8,7 +8,7 @@ import { Redis } from 'ioredis';
 import { HttpModule } from '@nestjs/axios';
 
 
-export const tokenJWTProvider = new JwtTokenService('2d', '7d');
+export const tokenJWTProvider = new JwtTokenService('2d', '7d'); //set accesstoken 2 minutes and refreshtoken 7 days
 const tokenProvider: Provider = { provide: TOKEN_PROVIDER, useValue: tokenJWTProvider };
 
 const dependencies = [

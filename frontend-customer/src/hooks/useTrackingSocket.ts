@@ -10,9 +10,7 @@ const useTrackingSocket = (vehicleId?: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     useEffect(() => {
-
         const socket = initSocket(SOCKET_NAMESPACE.TRACKING);
-
         const fetchInitialData = async () => {
             setLoading(true);
             try {

@@ -6,6 +6,7 @@ import {
   Inject,
   Post,
   Put,
+  Req,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -14,11 +15,18 @@ import { AUTH_SERVICE } from 'src/modules/auth/auth.di-token';
 import { customerLoginDto } from 'src/modules/auth/auth.dto';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { IAuthService } from 'src/modules/auth/auth.port';
+import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
+import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { CreateUserDto, ICreateUserDto } from 'src/modules/users/users.dto';
+import { HEADER } from 'src/share/interface';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject(AUTH_SERVICE) private readonly authService: IAuthService) {}
+  constructor(
+    @Inject(AUTH_SERVICE) private readonly authService: IAuthService,
+    @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
+
+  ) { }
 
   @Post('register')
   @HttpCode(201)
@@ -100,5 +108,13 @@ export class AuthController {
   })
   async changePassword(@Request() req, @Body() data: { oldPassword: string; newPassword: string }) {
     return this.authService.changePassword(req.user._id, data.oldPassword, data.newPassword);
+  }
+
+  @Post('refresh-token')
+  @HttpCode(200)
+  async refreshToken(@Req() req) {
+    console.log('req.headers[HEADER.CLIENT_ID]', req.headers[HEADER.CLIENT_ID]);
+    console.log('req.headers[HEADER.REFRESH_TOKEN]', req.headers[HEADER.REFRESH_TOKEN]);
+    return this.keyTokenService.handleRefreshToken(req.headers[HEADER.CLIENT_ID], req.headers[HEADER.REFRESH_TOKEN]);
   }
 }

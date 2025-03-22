@@ -14,7 +14,7 @@ import { ITokenProvider } from 'src/share/share.port';
 export class OTPService implements IOTPService {
   constructor(
     @Inject(OTP_REPOSITORY) private readonly OTPRepository: IOTPRepository,
-    @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
+    // @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
   ) { }
 

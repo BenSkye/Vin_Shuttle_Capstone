@@ -1,6 +1,11 @@
 import { BookingStatus } from "@/constants/booking.constants";
 
 // Interface cho response API tìm xe
+
+export interface Position {
+    lat: number;
+    lng: number;
+};
 export interface AvailableVehicle {
     vehicleCategory: VehicleCategory;
     availableCount: number;

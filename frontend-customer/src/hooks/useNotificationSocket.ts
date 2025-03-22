@@ -3,6 +3,7 @@ import { initSocket } from '@/service/socket';
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum';
 import { getPersonalNotification } from '@/service/notification.service';
 import { INotification } from '@/interface/notification';
+import { useAuth } from '@/context/AuthContext';
 
 
 const useNotificationSocket = () => {
@@ -10,8 +11,11 @@ const useNotificationSocket = () => {
     const [unreadCount, setUnreadCount] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
-
+    const { isLoggedIn } = useAuth();
     useEffect(() => {
+        console.log('useNotificationSocket effect');
+        if (!isLoggedIn) return;
+        console.log('useNotificationSocket effect after check isLoggedIn');
         const fetchInitialData = async () => {
             setLoading(true);
             try {
@@ -65,7 +69,7 @@ const useNotificationSocket = () => {
             console.log('Notification socket disconnected');
             socket.disconnect();
         };
-    }, []);
+    }, [isLoggedIn]);
 
     return {
         notifications,

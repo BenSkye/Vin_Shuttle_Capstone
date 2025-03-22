@@ -10,5 +10,6 @@ export interface KeyTokenCreateDTO {
 
 export interface IKeyTokenService {
   createKeyToken(data: KeyTokenCreateDTO): Promise<object>;
+  handleRefreshToken(userId: string, refreshToken: string): Promise<object>;
   findByUserId(userId: string): Promise<KeyToken>;
 }

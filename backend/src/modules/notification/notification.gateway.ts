@@ -53,7 +53,6 @@ export class NotificationGateway implements OnGatewayInit, OnGatewayConnection, 
                     );
                 }
             } catch (error) {
-                console.log('error', error)
                 next(error);
             }
         });

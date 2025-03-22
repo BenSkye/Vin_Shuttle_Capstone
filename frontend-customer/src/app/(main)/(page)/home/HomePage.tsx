@@ -95,7 +95,7 @@ const HomePage = () => {
                             </div>
 
                             {/* Right side - Booking form */}
-                            <div className="w-full max-w-md mx-auto">
+                            {/* <div className="w-full max-w-md mx-auto">
                                 <BookingForm
                                     tripType={tripType}
                                     setTripType={setTripType}
@@ -104,7 +104,7 @@ const HomePage = () => {
                                     selectedDate={selectedDate}
                                     setSelectedDate={setSelectedDate}
                                 />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

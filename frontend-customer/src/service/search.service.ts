@@ -1,11 +1,7 @@
 import { AvailableVehicle } from '@/interface/booking';
+import { Position } from '@/interface/trip';
 import apiClient from '@/service/apiClient';
 import { AxiosError } from 'axios';
-
-interface Coordinates {
-    lat: number;
-    lng: number;
-}
 
 export const vehicleSearchHour = async (date: string, startTime: string, durationMinutes: number): Promise<AvailableVehicle> => {
     try {
@@ -26,8 +22,8 @@ export const vehicleSearchHour = async (date: string, startTime: string, duratio
 export const vehicleSearchDestination = async (
     estimatedDuration: number,
     estimatedDistance: number,
-    endPoint: Object,
-    startPoint: Object
+    endPoint: Position,
+    startPoint: Position
 ): Promise<AvailableVehicle> => {
     try {
         const response = await apiClient.get(
