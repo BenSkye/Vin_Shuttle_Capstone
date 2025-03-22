@@ -1,4 +1,4 @@
-import axios from 'axios';
+import Cookies from 'js-cookie';
 import apiClient from './apiClient';
 
 export const loginCustomer = async (phoneData: { phone: string }) => {
@@ -43,5 +43,61 @@ export const editProfile = async (data: { name: string, email: string, phone: st
         return response.data;
     } catch (error) {
         throw error;
+    }
+}
+
+let registeredLogout: (() => void) | null = null;
+
+export const registerLogout = (logoutFn: () => void) => {
+    registeredLogout = logoutFn;
+}
+
+export const unregisterLogout = () => {
+    registeredLogout = null;
+};
+
+export const executeLogout = () => {
+    if (registeredLogout) {
+        registeredLogout();
+    }
+    else {
+        Cookies.remove('authorization');
+        Cookies.remove('refreshToken');
+        Cookies.remove('userId');
+    }
+};
+
+
+let setIsLoginFalse: (() => void) | null = null;
+
+export const registerIsLoginFalse = (setIsLoginFalseFn: () => void) => {
+    setIsLoginFalse = setIsLoginFalseFn;
+}
+
+export const unregisterIsLoginFalse = () => {
+    setIsLoginFalse = null;
+}
+
+export const executeSetIsLoginFalse = () => {
+    if (setIsLoginFalse) {
+        console.log('setIsLoginFalse');
+        setIsLoginFalse();
+    }
+}
+
+let setIsLoginTrue: (() => void) | null = null;
+
+export const registerIsLoginTrue = (setIsLoginTrueFn: () => void) => {
+    setIsLoginTrue = setIsLoginTrueFn;
+}
+
+export const unregisterIsLoginTrue = () => {
+    setIsLoginTrue = null;
+}
+
+export const executeSetIsLoginTrue = () => {
+    if (setIsLoginTrue) {
+        console.log('setIsLoginTrue');
+        setIsLoginTrue();
     }
 }

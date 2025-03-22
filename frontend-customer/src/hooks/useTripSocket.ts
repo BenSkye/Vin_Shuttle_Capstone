@@ -11,8 +11,6 @@ const useTripSocket = (id?: string) => {
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-
-
         const fetchInitialData = async () => {
             setLoading(true);
             try {

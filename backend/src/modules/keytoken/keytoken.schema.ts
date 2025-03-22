@@ -8,8 +8,8 @@ export class KeyToken {
   @Prop({ required: true, ref: 'User' })
   user: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ required: true })
-  privateKey: string;
+  // @Prop({ required: true })
+  // privateKey: string;
 
   @Prop({ required: true })
   publicKey: string;

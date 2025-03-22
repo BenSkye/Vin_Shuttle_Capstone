@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext, createContext, ReactNode, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
+import { registerIsLoginFalse, registerIsLoginTrue, registerLogout, unregisterIsLoginFalse, unregisterIsLoginTrue, unregisterLogout } from '@/service/user.service';
 
 // Define types for user and auth data
 type User = {
@@ -13,12 +14,9 @@ type User = {
 
 type AuthContextType = {
     authUser: User | null;
-    setAuthUser: React.Dispatch<React.SetStateAction<User | null>>;
     isLoggedIn: boolean;
-    setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
     login: (accessToken: string, refreshToken: string | undefined, userId: string, phone?: string, name?: string) => void;
     logout: () => void;
-    getAuthToken: () => string | null;
 };
 
 // Create context with a default value
@@ -40,137 +38,94 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [authUser, setAuthUser] = useState<User | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
-    // Load auth data from cookies on initial render and when cookies change
-    const loadUserFromCookies = useCallback(() => {
-        const accessToken = Cookies.get('authorization');
+
+    useEffect(() => {
+        const token = Cookies.get('authorization');
         const userId = Cookies.get('userId');
-
-        if (accessToken && userId) {
-            try {
-                const decodedToken: any = jwtDecode(accessToken);
-                const currentTime = Date.now() / 1000;
-
-                if (decodedToken.exp && decodedToken.exp > currentTime) {
-                    // Token is valid
-                    const userName = decodedToken.name || "Người dùng";
-
-                    // Set auth state from cookies
-                    const user: User = {
-                        id: userId,
-                        name: userName,
-                        phone: decodedToken.phone || undefined
-                    };
-
-                    setAuthUser(user);
-                    setIsLoggedIn(true);
-                    return true;
-                } else {
-                    // Token expired, clear cookies
-                    clearAuthCookies();
-                    setAuthUser(null);
-                    setIsLoggedIn(false);
-                    return false;
-                }
-            } catch (error) {
-                console.error("Error decoding token from cookie:", error);
-                // If token can't be decoded but exists, still set the user
-                const user: User = {
-                    id: userId,
-                    name: "Người dùng"
-                };
-
-                setAuthUser(user);
-                setIsLoggedIn(true);
-                return true;
-            }
-        } else {
-            // No valid cookies found
-            setAuthUser(null);
-            setIsLoggedIn(false);
-            return false;
+        if (token && userId) {
+            const decode = jwtDecode(token) as User;
+            const user: User = {
+                id: userId,
+                phone: decode.phone,
+                name: decode.name
+            };
+            setAuthUser(user);
+            setIsLoggedIn(true);
         }
     }, []);
 
-    // Initial load from cookies
-    useEffect(() => {
-        loadUserFromCookies();
-    }, [loadUserFromCookies]);
+    const logout = useCallback(() => {
+        setAuthUser(null);
+        setIsLoggedIn(false);
+        clearAuthCookies();
+    }, []);
 
-    // Setup a cookie change observer
+    const setIsLoginFalse = useCallback(() => {
+        setIsLoggedIn(false);
+    }, []);
+
+    const setIsLoginTrue = useCallback(() => {
+        setIsLoggedIn(true);
+    }, []);
+
     useEffect(() => {
-        // Create a function to check for cookie changes
-        const checkCookieChanges = () => {
-            loadUserFromCookies();
+        registerLogout(logout);
+        return () => {
+            unregisterLogout();
         };
+    }, [logout]);
 
-        // Check every 2 seconds
-        const interval = setInterval(checkCookieChanges, 2000);
+    useEffect(() => {
+        registerIsLoginFalse(setIsLoginFalse);
+        return () => {
+            unregisterIsLoginFalse();
+        };
+    }, [setIsLoginFalse]);
 
-        return () => clearInterval(interval);
-    }, [loadUserFromCookies]);
-
-    const clearAuthCookies = () => {
-        Cookies.remove('authorization');
-        Cookies.remove('refreshToken');
-        Cookies.remove('userId');
-    }
+    useEffect(() => {
+        registerIsLoginTrue(setIsLoginTrue);
+        return () => {
+            unregisterIsLoginTrue();
+        };
+    }, [setIsLoginTrue]);
 
     // Login function to set auth state and save to cookies
-    const login = (accessToken: string, refreshToken: string | undefined, userId: string, phone?: string, name?: string) => {
+    const login = async (
+        accessToken: string,
+        refreshToken: string | undefined,
+        userId: string
+    ) => {
         // Try to get the name from token if not provided
-        let userName = name;
-        try {
-            const decodedToken: any = jwtDecode(accessToken);
-            if (!userName) {
-                userName = decodedToken.name || "Người dùng";
-            }
-        } catch (error) {
-            if (!userName) {
-                userName = "Người dùng";
-            }
-            console.error("Error decoding token:", error);
-        }
+
+        Cookies.set('authorization', accessToken, { expires: 2 });
+        Cookies.set('refreshToken', refreshToken || '', { expires: 7 });
+        Cookies.set('userId', userId, { expires: 7 });
+
+        const decode = await jwtDecode(accessToken) as User
 
         const user: User = {
             id: userId,
-            phone,
-            name: userName
+            phone: decode.phone,
+            name: decode.name
         };
 
         // Update state
         setAuthUser(user);
         setIsLoggedIn(true);
-
-        // Set cookies
-        Cookies.set('authorization', accessToken, { expires: 2 });
-        if (refreshToken) {
-            Cookies.set('refreshToken', refreshToken, { expires: 2 });
-        }
-        Cookies.set('userId', userId, { expires: 2 });
-
         console.log("Login successful, user:", user);
     };
 
-    // Logout function to clear auth state and cookies
-    const logout = () => {
-        setAuthUser(null);
-        setIsLoggedIn(false);
-        clearAuthCookies();
-    };
-
-    // Function to get the current auth token from cookies
-    const getAuthToken = (): string | null => {
-        return Cookies.get('authorization') || null;
+    const clearAuthCookies = () => {
+        Cookies.remove('authorization');
+        Cookies.remove('refreshToken');
+        Cookies.remove('userId');
     };
 
     const value = {
         authUser,
-        setAuthUser,
         isLoggedIn,
-        setIsLoggedIn,
         login,
         logout,
-        getAuthToken
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
