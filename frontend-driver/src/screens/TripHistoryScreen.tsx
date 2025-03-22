@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, ScrollView, RefreshControl, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { getPersonalTrips, Trip } from '../services/tripServices';
+import { getPersonalTrips, Trip, getRatingByTripId } from '../services/tripServices';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Ionicons } from '@expo/vector-icons';
 import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 import { ServiceType } from '~/constants/service-type.enum';
-import { BookingDestinationPayloadDto, BookingHourPayloadDto } from '~/interface/trip';
+import { BookingDestinationPayloadDto, BookingHourPayloadDto, Rating } from '~/interface/trip';
 
 export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -15,6 +15,8 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showTripDetails, setShowTripDetails] = useState(false);
+  const [tripRating, setTripRating] = useState<Rating | null>(null);
+  const [loadingRating, setLoadingRating] = useState(false);
 
   const fetchTrips = async () => {
     try {
@@ -58,9 +60,21 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     return unsubscribe;
   }, [navigation]);
 
-  const handleShowTripDetails = (trip: Trip) => {
+  const handleShowTripDetails = async (trip: Trip) => {
     setSelectedTrip(trip);
     setShowTripDetails(true);
+    
+    // Fetch rating when showing trip details
+    setLoadingRating(true);
+    try {
+      const ratingData = await getRatingByTripId(trip._id);
+      setTripRating(ratingData as unknown as Rating);
+    } catch (error) {
+      console.error('Error fetching trip rating:', error);
+      setTripRating(null);
+    } finally {
+      setLoadingRating(false);
+    }
   };
 
   const getStatusText = (status: string): string => {
@@ -117,6 +131,30 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     } catch (e) {
       return 'Invalid date';
     }
+  };
+
+  // Render stars based on rating value
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const maxStars = 5;
+    
+    for (let i = 1; i <= maxStars; i++) {
+      stars.push(
+        <Icon 
+          key={i}
+          name={i <= rating ? "star" : "star-outline"} 
+          size={20} 
+          color={i <= rating ? "#FFD700" : "#D3D3D3"} 
+          style={{ marginRight: 2 }}
+        />
+      );
+    }
+    
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {stars}
+      </View>
+    );
   };
 
   return (
@@ -320,6 +358,55 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                     <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Biển số:</Text>
                     <Text style={{ width: '70%', color: '#333' }}>{selectedTrip.vehicleId?.licensePlate || 'N/A'}</Text>
                   </View>
+                </View>
+
+                {/* Add Rating Section */}
+                <View style={{ marginBottom: 20 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
+                    Đánh giá từ khách hàng
+                  </Text>
+                  
+                  {loadingRating ? (
+                    <View style={{ padding: 10, alignItems: 'center' }}>
+                      <ActivityIndicator size="small" color="#2563eb" />
+                      <Text style={{ marginTop: 8, color: '#666' }}>Đang tải đánh giá...</Text>
+                    </View>
+                  ) : tripRating ? (
+                    <>
+                      <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                        <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Điểm đánh giá:</Text>
+                        <View style={{ width: '70%', flexDirection: 'row', alignItems: 'center' }}>
+                          {renderStars(tripRating.rate)}
+                          <Text style={{ marginLeft: 5, color: '#333' }}>
+                            ({tripRating.rate}/5)
+                          </Text>
+                        </View>
+                      </View>
+                      
+                      {tripRating.feedback && (
+                        <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                          <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Nhận xét:</Text>
+                          <Text style={{ width: '70%', color: '#333' }}>
+                            {tripRating.feedback}
+                          </Text>
+                        </View>
+                      )}
+                      
+                      <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+                        <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Ngày đánh giá:</Text>
+                        <Text style={{ width: '70%', color: '#333' }}>
+                          {formatDate(tripRating.createdAt)}
+                        </Text>
+                      </View>
+                    </>
+                  ) : (
+                    <View style={{ padding: 15, backgroundColor: '#f9f9f9', borderRadius: 8, alignItems: 'center' }}>
+                      <Icon name="star-off" size={24} color="#6b7280" />
+                      <Text style={{ textAlign: 'center', color: '#6b7280', marginTop: 8 }}>
+                        Chưa có đánh giá cho chuyến đi này
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </ScrollView>
             </View>

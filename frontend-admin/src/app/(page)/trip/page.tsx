@@ -8,15 +8,16 @@ import {
   DatePicker,
   Select,
   Button,
-  Space,
   App,
   Spin,
   Tag,
   Typography,
+  Card,
+  Statistic,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { SearchOutlined } from "@ant-design/icons";
-import { getTripList } from "../../services/tripServices";
+import { getTripList, getTotalAmount } from "../../services/tripServices";
 import { Trip } from "../../services/interface";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -38,6 +39,8 @@ export default function TripHistoryPage() {
   const [dateRange, setDateRange] = useState<
     [dayjs.Dayjs | null, dayjs.Dayjs | null]
   >([null, null]);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [loadingTotal, setLoadingTotal] = useState(true);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,6 +93,7 @@ export default function TripHistoryPage() {
 
   useEffect(() => {
     fetchTrips();
+    fetchTotalAmount();
   }, []);
 
   useEffect(() => {
@@ -106,6 +110,18 @@ export default function TripHistoryPage() {
       console.error("Failed to fetch trips:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTotalAmount = async () => {
+    setLoadingTotal(true);
+    try {
+      const amount = await getTotalAmount();
+      setTotalAmount(amount);
+    } catch (error) {
+      console.error("Failed to fetch total amount:", error);
+    } finally {
+      setLoadingTotal(false);
     }
   };
 
@@ -199,6 +215,18 @@ export default function TripHistoryPage() {
       ),
     },
     {
+      title: "Tên phương tiện",
+      dataIndex: ["vehicleId", "name"],
+      key: "vehicle",
+      render: (name) => name || "N/A",
+    },
+    {
+      title: "Biển số xe",
+      dataIndex: ["vehicleId", "licensePlate"],
+      key: "licensePlate",
+      render: (licensePlate) => licensePlate || "N/A",
+    },
+    {
       title: "Loại dịch vụ",
       dataIndex: "serviceType",
       key: "serviceType",
@@ -255,20 +283,26 @@ export default function TripHistoryPage() {
       sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
     },
     {
-      title: "Hành động",
-      key: "action",
-      width: 120,
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="link"
-            onClick={() => console.log("View details", record._id)}
-          >
-            Chi tiết
-          </Button>
-        </Space>
-      ),
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
+    // {
+    //   title: "Hành động",
+    //   key: "action",
+    //   width: 120,
+    //   render: (_, record) => (
+    //     <Space size="middle">
+    //       <Button
+    //         type="link"
+    //         onClick={() => console.log("View details", record._id)}
+    //       >
+    //         Chi tiết
+    //       </Button>
+    //     </Space>
+    //   ),
+    // },
   ];
 
   return (
@@ -289,6 +323,23 @@ export default function TripHistoryPage() {
             />
           </Header>
           <Content className="m-6">
+            {/* Card hiển thị tổng doanh thu */}
+            <Card className="mb-6 bg-white shadow-sm">
+              <Statistic
+                title="Tổng doanh thu"
+                value={totalAmount}
+                loading={loadingTotal}
+                precision={0}
+                formatter={(value) => 
+                  new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND"
+                  }).format(Number(value))
+                }
+                valueStyle={{ color: '#3f8600', fontWeight: 'bold', fontSize: '24px' }}
+              />
+            </Card>
+
             <div className="bg-white p-6 rounded-md shadow-sm mb-6">
               <div className="flex flex-wrap gap-4 mb-4">
                 <RangePicker

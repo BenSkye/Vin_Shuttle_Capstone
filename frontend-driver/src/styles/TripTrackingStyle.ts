@@ -356,4 +356,47 @@ export const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
+    // Add these new styles for scenic route
+    scenicRouteInfo: {
+        backgroundColor: '#F3E5F5',
+        borderRadius: 8,
+        marginTop: 12,
+        borderLeftWidth: 3,
+        borderLeftColor: '#9C27B0',
+        marginBottom: 10,
+    },
+    scenicRouteHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 12,
+    },
+    scenicRouteContent: {
+        padding: 12,
+        paddingTop: 0,
+    },
+    scenicRouteTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#9C27B0',
+        flex: 1,
+    },
+    scenicRouteDescription: {
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 8,
+        lineHeight: 20,
+    },
+    scenicRouteStats: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 8,
+        fontWeight: '500',
+    },
+    waypointText: {
+        fontSize: 13,
+        color: '#666',
+        fontStyle: 'italic',
+        lineHeight: 18,
+    },
 });

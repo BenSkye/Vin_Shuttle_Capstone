@@ -1,21 +1,27 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
-import MapView, { Marker, Polyline, UrlTile } from 'react-native-maps';
+import MapView, { Marker, Polyline, UrlTile, Callout } from 'react-native-maps';
 import { useLocation } from '~/context/LocationContext';
-import { Position } from '~/interface/trip';
+import { Position, Coordinate, Waypoint } from '~/interface/trip';
 import { imgAccess } from '~/constants/imgAccess';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
 
 const MapComponent = ({
     pickupLocation,
     detinateLocation,
-    showRouteToDestination = false
+    showRouteToDestination = false,
+    waypoints = [],
+    scenicRouteCoordinates = [],
+    showScenicRoute = false
 }: {
     pickupLocation: Position,
     detinateLocation?: Position | null,
-    showRouteToDestination?: boolean
+    showRouteToDestination?: boolean,
+    waypoints?: Waypoint[],
+    scenicRouteCoordinates?: Coordinate[],
+    showScenicRoute?: boolean
 }) => {
     const { location, errorMsg, isTracking } = useLocation();
     const mapRef = useRef<MapView | null>(null);
@@ -23,6 +29,7 @@ const MapComponent = ({
     const [detinate, setDetinate] = useState<{ latitude: number; longitude: number } | null>(null);
     const [routeToPickupCoordinates, setRouteToPickupCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
     const [routeToDestinationCoordinates, setRouteToDestinationCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [scenicRouteFormattedCoordinates, setScenicRouteFormattedCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
     const [routeError, setRouteError] = useState<string | null>(null);
     const [locationTimestamp, setLocationTimestamp] = useState<Date | null>(null);
 
@@ -49,6 +56,21 @@ const MapComponent = ({
         }
     }, [pickupLocation, detinateLocation]);
 
+    // Format scenic route coordinates
+    useEffect(() => {
+        if (scenicRouteCoordinates && scenicRouteCoordinates.length > 0) {
+            const formattedCoords = scenicRouteCoordinates.map(coord => ({
+                latitude: coord.lat,
+                longitude: coord.lng
+            }));
+            setScenicRouteFormattedCoordinates(formattedCoords);
+            
+            console.log(`Formatted ${formattedCoords.length} scenic route coordinates`);
+        } else {
+            setScenicRouteFormattedCoordinates([]);
+        }
+    }, [scenicRouteCoordinates]);
+
     // Update timestamp when location changes
     useEffect(() => {
         if (location) {
@@ -56,7 +78,7 @@ const MapComponent = ({
         }
     }, [location]);
 
-    // Fit map to include all relevant points (driver, pickup, and destination if available)
+    // Fit map to include all relevant points (driver, pickup, waypoints, and destination if available)
     useEffect(() => {
         if (location && mapRef.current) {
             const points = [
@@ -65,6 +87,18 @@ const MapComponent = ({
             
             if (pickup) points.push(pickup);
             if (detinate) points.push(detinate);
+            
+            // Add waypoints if available
+            if (waypoints && waypoints.length > 0) {
+                waypoints.forEach(waypoint => {
+                    if (waypoint.position && waypoint.position.lat && waypoint.position.lng) {
+                        points.push({
+                            latitude: waypoint.position.lat,
+                            longitude: waypoint.position.lng
+                        });
+                    }
+                });
+            }
             
             // Only fit bounds if we have multiple points
             if (points.length > 1) {
@@ -82,22 +116,22 @@ const MapComponent = ({
                 }, 1000);
             }
         }
-    }, [location, pickup, detinate]);
+    }, [location, pickup, detinate, waypoints]);
 
     // Get route from driver to pickup
     useEffect(() => {
-        if (location && pickup && pickup.latitude && pickup.longitude && !showRouteToDestination) {
+        if (location && pickup && pickup.latitude && pickup.longitude && !showRouteToDestination && !showScenicRoute) {
             fetchRoute(
                 { latitude: location.latitude, longitude: location.longitude },
                 pickup,
                 setRouteToPickupCoordinates
             );
         }
-    }, [location, pickup, showRouteToDestination]);
+    }, [location, pickup, showRouteToDestination, showScenicRoute]);
 
     // Get route from driver to destination when in destination mode
     useEffect(() => {
-        if (location && detinate && detinate.latitude && detinate.longitude && showRouteToDestination) {
+        if (location && detinate && detinate.latitude && detinate.longitude && showRouteToDestination && !showScenicRoute) {
             fetchRoute(
                 { latitude: location.latitude, longitude: location.longitude },
                 detinate,
@@ -107,7 +141,7 @@ const MapComponent = ({
             // Clear the pickup route when showing route to destination
             setRouteToPickupCoordinates([]);
         }
-    }, [location, detinate, showRouteToDestination]);
+    }, [location, detinate, showRouteToDestination, showScenicRoute]);
 
     // Helper function to fetch routes
     const fetchRoute = async (
@@ -213,7 +247,7 @@ const MapComponent = ({
                         />
                         
                         {/* Route to pickup point - blue */}
-                        {routeToPickupCoordinates.length > 0 && !showRouteToDestination && (
+                        {routeToPickupCoordinates.length > 0 && !showRouteToDestination && !showScenicRoute && (
                             <Polyline
                                 coordinates={routeToPickupCoordinates}
                                 strokeWidth={4}
@@ -223,11 +257,21 @@ const MapComponent = ({
                         )}
                         
                         {/* Route to destination - orange */}
-                        {routeToDestinationCoordinates.length > 0 && showRouteToDestination && (
+                        {routeToDestinationCoordinates.length > 0 && showRouteToDestination && !showScenicRoute && (
                             <Polyline
                                 coordinates={routeToDestinationCoordinates}
                                 strokeWidth={4}
                                 strokeColor="#FF5722"
+                                lineDashPattern={[0]}
+                            />
+                        )}
+
+                        {/* Scenic route - purple */}
+                        {scenicRouteFormattedCoordinates.length > 0 && showScenicRoute && (
+                            <Polyline
+                                coordinates={scenicRouteFormattedCoordinates}
+                                strokeWidth={5}
+                                strokeColor="#9C27B0"
                                 lineDashPattern={[0]}
                             />
                         )}
@@ -252,8 +296,8 @@ const MapComponent = ({
                             />
                         </Marker.Animated>
 
-                        {/* Marker cho điểm đón - only show if not in destination routing mode */}
-                        {pickup && isValidCoordinate(pickup.latitude, pickup.longitude) && (!showRouteToDestination) && (
+                        {/* Marker cho điểm đón - only show if not in scenic route or destination routing mode */}
+                        {pickup && isValidCoordinate(pickup.latitude, pickup.longitude) && (!showRouteToDestination && !showScenicRoute) && (
                             <Marker 
                                 coordinate={pickup} 
                                 title="Điểm đón"
@@ -262,14 +306,45 @@ const MapComponent = ({
                         )}
 
                         {/* Marker cho điểm đến */}
-                        {detinate && isValidCoordinate(detinate.latitude, detinate.longitude) && (
+                        {detinate && isValidCoordinate(detinate.latitude, detinate.longitude) && !showScenicRoute && (
                             <Marker 
                                 coordinate={detinate} 
                                 title="Điểm đến"
                                 pinColor="#FF5722"
                             />
                         )}
+
+                        {/* Waypoint markers for scenic route */}
+                        {showScenicRoute && waypoints && waypoints.length > 0 && waypoints.map((waypoint, index) => (
+                            <Marker
+                                key={`waypoint-${index}`}
+                                coordinate={{
+                                    latitude: waypoint.position.lat,
+                                    longitude: waypoint.position.lng
+                                }}
+                                title={`Điểm ${index + 1}: ${waypoint.name}`}
+                            >
+                                <View style={styles.waypointMarker}>
+                                    <MaterialIcons name="place" size={30} color="#9C27B0" />
+                                    <Text style={styles.waypointNumber}>{index + 1}</Text>
+                                </View>
+                                <Callout>
+                                    <View style={styles.callout}>
+                                        <Text style={styles.calloutTitle}>{waypoint.name}</Text>
+                                    </View>
+                                </Callout>
+                            </Marker>
+                        ))}
                     </MapView>
+                    
+                    {/* Scenic Route Indicator */}
+                    {showScenicRoute && (
+                        <View style={styles.routeIndicator}>
+                            <Text style={styles.routeIndicatorText}>
+                                Đang hiển thị: Tuyến đường cố định
+                            </Text>
+                        </View>
+                    )}
                     
                     {/* Location status indicator */}
                     <View style={styles.locationStatusBar}>
@@ -365,7 +440,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 60,
         alignSelf: 'center',
-        backgroundColor: 'rgba(255, 87, 34, 0.9)',
+        backgroundColor: 'rgba(156, 39, 176, 0.9)',
         padding: 8,
         borderRadius: 20,
     },
@@ -401,6 +476,29 @@ const styles = StyleSheet.create({
     locationStatusText: {
         fontSize: 12,
         color: '#333',
+    },
+    waypointMarker: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    waypointNumber: {
+        position: 'absolute',
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginTop: -5,
+    },
+    callout: {
+        width: 160,
+        padding: 10,
+    },
+    calloutTitle: {
+        fontWeight: 'bold',
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    calloutDescription: {
+        fontSize: 12,
     }
 });
 
