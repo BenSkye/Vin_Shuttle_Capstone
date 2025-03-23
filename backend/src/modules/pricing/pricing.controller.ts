@@ -25,6 +25,7 @@ import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { PRICING_SERVICE } from 'src/modules/pricing/pricing.di-token';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { IPricingService } from 'src/modules/pricing/pricing.port';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('pricing')
 @Controller('pricing')
@@ -32,14 +33,15 @@ export class PricingController {
   constructor(
     @Inject(PRICING_SERVICE)
     private readonly pricingService: IPricingService,
-  ) {}
+  ) { }
 
   /* Service Config Endpoints */
   @Post('service-configs')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create a new service configuration' })
   @ApiBody({
     type: 'ICreateServiceConfigDto',
@@ -80,7 +82,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get service configuration by type' })
   @ApiParam({
     name: 'serviceType',
@@ -103,7 +106,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get all service configurations' })
   async listAllServiceConfigs() {
     return await this.pricingService.getAllServiceConfigs();
@@ -113,7 +117,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update service configuration base unit' })
   @ApiParam({
     name: 'serviceType',
@@ -161,7 +166,8 @@ export class PricingController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create vehicle pricing configuration' })
   @ApiBody({
     type: 'ICreateVehiclePricingDto',
@@ -190,7 +196,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update vehicle pricing tiered pricing' })
   @ApiBody({
     type: 'IUpdateVehiclePricingDto',
@@ -235,7 +242,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get vehicle pricing by category ID' })
   @ApiParam({
     name: 'vehicleCategoryId',
@@ -257,7 +265,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get all vehicle pricing configurations' })
   async listAllVehiclePricings() {
     return await this.pricingService.getAllVehiclePricings();
@@ -267,7 +276,8 @@ export class PricingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'For admin test price when update price' })
   @ApiBody({
     type: 'ICreateVehiclePricingDto',

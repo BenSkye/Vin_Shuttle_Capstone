@@ -8,4 +8,4 @@ export enum TripStatus {
   DROPPED_OFF = 'dropped_off',
 }
 
-export const GUARANTEED_TIME_BETWEEN_TRIPS = 5;
+export const GUARANTEED_TIME_BETWEEN_TRIPS = 2; // minutes

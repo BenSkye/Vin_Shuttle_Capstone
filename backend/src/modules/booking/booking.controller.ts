@@ -8,6 +8,7 @@ import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingSceni
 import { IBookingService } from "src/modules/booking/booking.port";
 import { BookingStatus, UserRole } from "src/share/enums";
 import { PaymentMethod } from "src/share/enums/payment.enum";
+import { HEADER } from "src/share/interface";
 
 @ApiTags('booking')
 @Controller('booking')
@@ -21,7 +22,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiBody({
         type: Object,
         description: 'Create a Booking Hour and their Trip for customer',
@@ -65,7 +67,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiBody({
         type: Object,
         description: 'Create a Booking Scenic route and their Trip for customer',
@@ -109,7 +112,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiBody({
         type: Object,
         description: 'Create a Booking destination and their Trip for customer',
@@ -157,7 +161,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiBody({
         type: Object,
         description: 'Create a Booking for shared route',
@@ -200,7 +205,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     async getCustomerPersonalBooking(
         @Request() req,
     ) {
@@ -212,7 +218,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'get customer booking by id' })
     async getCustomerPersonalBookingById(
         @Param('id') id: string,
@@ -225,7 +232,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'get list booking by query' })
     @ApiQuery({
         name: 'status',
@@ -261,7 +269,8 @@ export class BookingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'get total transaction has confirm' })
     async totalTransaction() {
         return await this.bookingService.totalTransaction()

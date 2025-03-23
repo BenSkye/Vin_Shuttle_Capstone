@@ -7,6 +7,7 @@ import { SharedRouteRepository } from 'src/modules/shared-route/shared-route.rep
 import { SharedRoute, SharedRouteSchema } from 'src/modules/shared-route/shared-route.schema';
 import { SharedRouteService } from 'src/modules/shared-route/shared-route.service';
 import { TripModule } from 'src/modules/trip/trip.module';
+import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 import { ShareModule } from 'src/share/share.module';
 
 
@@ -32,6 +33,7 @@ const dependencies = [
         OsrModule,
         ShareModule,
         forwardRef(() => TripModule),
+        VehiclesModule
     ],
     controllers: [],
     providers: [...dependencies],

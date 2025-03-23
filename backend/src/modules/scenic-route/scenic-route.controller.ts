@@ -20,6 +20,7 @@ import {
   ICreateScenicRouteDto,
   IUpdateScenicRouteDto,
 } from 'src/modules/scenic-route/scenic-route.dto';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('scenic-routes')
 @Controller('scenic-routes')
@@ -27,13 +28,14 @@ export class ScenicRouteController {
   constructor(
     @Inject(SCENIC_ROUTE_SERVICE)
     private readonly routeService: IScenicRouteService,
-  ) {}
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create a new route' })
   @ApiBody({
     type: 'CreateScenicRouteDto',
@@ -103,7 +105,8 @@ export class ScenicRouteController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update a route' })
   @ApiBody({
     type: 'UpdateScenicRouteDto',
