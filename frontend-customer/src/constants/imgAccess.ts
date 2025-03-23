@@ -1,3 +1,3 @@
 export const imgAccess = {
-    busTopView: import('../../public/images/bus-top-view.png'),
+  busTopView: import('../../public/images/bus-top-view.png'),
 }

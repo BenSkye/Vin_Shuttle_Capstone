@@ -1,13 +1,18 @@
-import { polyfill } from 'interweave-ssr'
-import '../styles/globals.css'
-import { Inter } from 'next/font/google'
-import { ConfigProvider } from 'antd'
-import { AntdRegistry } from '@ant-design/nextjs-registry'
-import NextTopLoader from 'nextjs-toploader'
 import { Suspense } from 'react'
+
+import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { ConfigProvider } from 'antd'
+import { polyfill } from 'interweave-ssr'
+import { Inter } from 'next/font/google'
+import NextTopLoader from 'nextjs-toploader'
+
 import Loading from '@/components/shared/Loading'
-import { NotificationProvider } from '@/context/NotificationContext'
+
 import { AuthProvider } from '@/context/AuthContext'
+import { NotificationProvider } from '@/context/NotificationContext'
+
+import '../styles/globals.css'
+
 polyfill()
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,11 +25,7 @@ export const metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -39,9 +40,7 @@ export default function RootLayout({
           >
             <Suspense fallback={<Loading />}>
               <AuthProvider>
-                <NotificationProvider>
-                  {children}
-                </NotificationProvider>
+                <NotificationProvider>{children}</NotificationProvider>
               </AuthProvider>
             </Suspense>
           </ConfigProvider>
