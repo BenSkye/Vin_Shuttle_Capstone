@@ -7,8 +7,8 @@ import { ISharedRouteRepository, ISharedRouteService } from "src/modules/shared-
 import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schema";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
-import { VEHICLE_REPOSITORY, VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
-import { IVehiclesRepository, IVehiclesService } from "src/modules/vehicles/vehicles.port";
+import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
+import { IVehiclesService } from "src/modules/vehicles/vehicles.port";
 import { TempTripId } from "src/share/enums/osr.enum";
 import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
@@ -83,7 +83,7 @@ export class SharedRouteService implements ISharedRouteService {
             stops.filter(stop => stop.isPass === false);
             //get all stops have pointType endPoint
             const stopsEndPoint = stops.filter(stop => stop.pointType === SharedRouteStopsType.END_POINT);
-            let listTripsAmount = []
+            const listTripsAmount = []
             for (const endPoint of stopsEndPoint) {
                 const trip = await this.tripRepository.findById(endPoint.trip, ['servicePayload']);
                 if (trip) {
