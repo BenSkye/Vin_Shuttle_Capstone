@@ -4,7 +4,7 @@ import { Typography, message, Alert } from 'antd';
 import { getCustomerPersonalBooking } from '@/service/booking.service';
 import { IBooking } from '@/interface/booking';
 import Link from 'next/link';
-import { formatVndPrice } from '../../../../utils/price.until';
+import { formatVndPrice } from '@/utils/price.until';
 import { bookingStatusColor } from '@/constants/booking.constants';
 
 const { Title } = Typography;

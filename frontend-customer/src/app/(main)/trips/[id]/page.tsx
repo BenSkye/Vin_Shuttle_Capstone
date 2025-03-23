@@ -3,14 +3,14 @@
 import { Spin, notification, Rate } from 'antd';
 import useTripSocket from '@/hooks/useTripSocket';
 import Link from 'next/link';
-import { BookingDestinationPayloadDto, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingSharePayloadDto, Trip } from '@/interface/trip';
+import { BookingHourPayloadDto, Trip } from '@/interface/trip';
 import { use } from 'react';
 import { ServiceType } from '@/constants/service-type.enum';
 import RealTimeTripMap from '@/app/(main)/components/trip/RealTimeTripMap';
 import { TripStatus } from '@/constants/trip.enum';
 import { motion } from 'framer-motion';
 import { IoCarSport } from 'react-icons/io5';
-import { FaMapMarkerAlt, FaClock, FaRoute, FaStar } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaClock, FaStar } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 
 import TripRating from '@/app/(main)/components/booking/bookingcomponents/triprating';

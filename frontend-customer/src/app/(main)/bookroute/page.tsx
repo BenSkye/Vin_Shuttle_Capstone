@@ -24,11 +24,11 @@ const steps = [
 ];
 
 
-const RouteDateTimeSelection = dynamic(() => import("../../components/booking/bookingcomponents/routedatetimeselection"), { ssr: false });
-const LocationSelection = dynamic(() => import("../../components/booking/bookingcomponents/locationselection"), { ssr: false });
-const CreateRoute = dynamic(() => import("../../components/map/createRoute"), { ssr: false });
-const CheckoutPage = dynamic(() => import("../../components/booking/bookingcomponents/checkoutpage"), { ssr: false });
-const VehicleSelection = dynamic(() => import("../../components/booking/bookingcomponents/vehicleselection"), { ssr: false });
+const RouteDateTimeSelection = dynamic(() => import("../components/booking/bookingcomponents/routedatetimeselection"), { ssr: false });
+const LocationSelection = dynamic(() => import("../components/booking/bookingcomponents/locationselection"), { ssr: false });
+const CreateRoute = dynamic(() => import("../components/map/createRoute"), { ssr: false });
+const CheckoutPage = dynamic(() => import("../components/booking/bookingcomponents/checkoutpage"), { ssr: false });
+const VehicleSelection = dynamic(() => import("../components/booking/bookingcomponents/vehicleselection"), { ssr: false });
 
 const RouteBooking = () => {
     const [current, setCurrent] = useState(0);
