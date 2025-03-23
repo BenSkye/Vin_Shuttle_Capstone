@@ -1,22 +1,22 @@
-import { FaLocationArrow, FaMap, FaRegClock } from 'react-icons/fa';
+import { FaLocationArrow, FaMap, FaRegClock } from 'react-icons/fa'
 
 const LocationTabs = () => {
-    return (
-        <div className="grid grid-cols-1 gap-1 mb-6">
-            <button className="flex items-center justify-center gap-2 p-4 bg-yellow-400 text-gray-900 rounded hover:bg-yellow-500 transition-colors">
-                <FaRegClock className="w-5 h-5" />
-                <span>Đặt xe theo giờ</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 p-4 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors">
-                <FaMap className="w-5 h-5" />
-                <span>Đặt theo tuyến cố định</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 p-4 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors">
-                <FaLocationArrow className="w-5 h-5" />
-                <span>Đặt xe theo điểm đến</span>
-            </button>
-        </div>
-    );
-};
+  return (
+    <div className="mb-6 grid grid-cols-1 gap-1">
+      <button className="flex items-center justify-center gap-2 rounded bg-yellow-400 p-4 text-gray-900 transition-colors hover:bg-yellow-500">
+        <FaRegClock className="h-5 w-5" />
+        <span>Đặt xe theo giờ</span>
+      </button>
+      <button className="flex items-center justify-center gap-2 rounded bg-gray-700 p-4 text-white transition-colors hover:bg-gray-600">
+        <FaMap className="h-5 w-5" />
+        <span>Đặt theo tuyến cố định</span>
+      </button>
+      <button className="flex items-center justify-center gap-2 rounded bg-gray-700 p-4 text-white transition-colors hover:bg-gray-600">
+        <FaLocationArrow className="h-5 w-5" />
+        <span>Đặt xe theo điểm đến</span>
+      </button>
+    </div>
+  )
+}
 
-export default LocationTabs; 
+export default LocationTabs

@@ -1,20 +1,12 @@
-'use client';
+'use client'
 
-import { Spin } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined } from '@ant-design/icons'
+import { Spin } from 'antd'
 
 export default function Loading() {
-    return (
-        <div className="min-h-screen w-full flex items-center justify-center">
-            <Spin
-                indicator={
-                    <LoadingOutlined
-                        style={{ fontSize: 48 }}
-                        spin
-                    />
-                }
-                tip="Đang tải..."
-            />
-        </div>
-    );
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center">
+      <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} tip="Đang tải..." />
+    </div>
+  )
 }
