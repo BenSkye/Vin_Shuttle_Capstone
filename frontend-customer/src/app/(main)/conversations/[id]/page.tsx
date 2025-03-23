@@ -11,6 +11,8 @@ import { IConversation } from '@/interface/conversation'
 
 // pages/conversations/[id].tsx
 
+// pages/conversations/[id].tsx
+
 const ConversationDetail = ({ params }: { params: Promise<{ id: string }> }) => {
   const id = use(params).id
   const { data: conversation, isLoading, error, sendMessage } = useConversationSocket(id as string)
