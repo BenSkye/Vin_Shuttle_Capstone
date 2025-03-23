@@ -5,6 +5,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { ICreateConversation, IUpdateConversation } from "src/modules/conversation/conversation.dto";
 import { IConversationService } from "src/modules/conversation/conversation.port";
 import { CONVERSATION_SERVICE } from "src/modules/conversation/conversation.di-token";
+import { HEADER } from "src/share/interface";
 
 @ApiTags('conversation')
 @Controller('conversation')
@@ -17,7 +18,8 @@ export class ConversationController {
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Create a conversation' })
     @ApiBody({
         type: ICreateConversation,
@@ -46,7 +48,8 @@ export class ConversationController {
     @Get('personal-conversation')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get conversations for a user' })
     async getUserConversations(
         @Request() req
@@ -57,7 +60,8 @@ export class ConversationController {
     @Get(':id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get conversation by id' })
     async getConversationById(
         @Param('id') id: string,
@@ -70,7 +74,8 @@ export class ConversationController {
     @Delete(':id/close')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Close a conversation' })
     async closeConversation(
         @Param('id') id: string

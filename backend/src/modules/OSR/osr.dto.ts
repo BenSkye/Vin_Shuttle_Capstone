@@ -25,3 +25,8 @@ export interface OpenRouteOptimizationRequestDTO {
     vehicles: OpenRouteDTO[];
     shipments: OpenRouteShipmentDTO[];
 }
+
+export interface tripAmount {
+    tripId: number;
+    amount: number;
+}

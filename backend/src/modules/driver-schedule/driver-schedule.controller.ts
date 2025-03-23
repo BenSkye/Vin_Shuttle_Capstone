@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Inject,
@@ -20,6 +21,7 @@ import { DRIVERSCHEDULE_SERVICE } from 'src/modules/driver-schedule/driver-sched
 import { CreateDriverScheduleDto, driverScheduleParams, ICreateDriverSchedule } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverSchedulesStatus, Shift, UserRole } from 'src/share/enums';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('driver-schedules')
 @Controller('driver-schedules')
@@ -33,7 +35,9 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create a list of driver schedules' })
   @ApiBody({
     type: CreateDriverScheduleDto,
@@ -79,7 +83,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update driver schedule' })
   @ApiParam({
     name: 'driverScheduleId',
@@ -113,7 +118,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver not scheduled in date' })
   @ApiParam({
     name: 'date',
@@ -128,7 +134,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get vehicle not scheduled in date' })
   @ApiParam({
     name: 'date',
@@ -143,7 +150,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver schedules in week' })
   @ApiParam({
     name: 'startDate',
@@ -166,7 +174,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver schedules by query' })
   @ApiQuery({
     name: 'driver',
@@ -222,7 +231,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'For driver to get personal schedules in week' })
   @ApiParam({
     name: 'startDate',
@@ -250,7 +260,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'For driver to check-in' })
   @ApiParam({
     name: 'driverScheduleId',
@@ -265,7 +276,8 @@ export class DriverScheduleController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'For driver to check-out' })
   @ApiParam({
     name: 'driverScheduleId',

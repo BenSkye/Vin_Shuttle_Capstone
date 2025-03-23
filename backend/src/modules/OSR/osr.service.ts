@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, HttpStatus, Inject } from "@nestjs/common";
-import { OpenRouteOptimizationRequestDTO, OpenRouteShipmentDTO } from "src/modules/OSR/osr.dto";
+import { OpenRouteOptimizationRequestDTO, OpenRouteShipmentDTO, tripAmount } from "src/modules/OSR/osr.dto";
 import { IRoutingOSRMService } from "src/modules/OSR/osr.port";
 import { sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
@@ -24,7 +24,12 @@ export class RoutingOSRService implements IRoutingOSRMService {
         private readonly tripRepository: ITripRepository
     ) { }
 
-    async getRoute(stops: sharedRouteStop[], vehicleId: string): Promise<
+    async getRoute(
+        stops: sharedRouteStop[],
+        vehicleId: string,
+        vehicleCapacity: number,
+        listTripsAmount: tripAmount[]
+    ): Promise<
         {
             sharedRouteStop: sharedRouteStop[],
             durationToNewTripStart: number,
@@ -38,7 +43,12 @@ export class RoutingOSRService implements IRoutingOSRMService {
             }[]
         }> {
         try {
-            let requestBody: any = await this.convertToOpenRouteFormat(stops, vehicleId);
+            let requestBody: any = await this.convertToOpenRouteFormat(
+                stops,
+                vehicleId,
+                vehicleCapacity,
+                listTripsAmount
+            );
             requestBody = {
                 ...requestBody,
                 options: {
@@ -92,7 +102,9 @@ export class RoutingOSRService implements IRoutingOSRMService {
 
     private async convertToOpenRouteFormat(
         stops: sharedRouteStop[],
-        vehicleId: string
+        vehicleId: string,
+        vehicleCapacity: number,
+        listTripsAmount: tripAmount[]
     ): Promise<OpenRouteOptimizationRequestDTO> {
         const lastVehicleLocation = await this.trackingService.getLastVehicleLocation(vehicleId);
         console.log('lastVehicleLocation', lastVehicleLocation);
@@ -124,7 +136,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
         let tripIndexId = 1;
 
         for (const [tripId, stops] of Object.entries(stopsByTrip)) {
-            // Xử lý trường hợp thiếu pickup
+            // Xử lý trường hợp thiếu pickup (pickup đã pass)
             let isPickupSubstituted = false
 
             let pickupStop = stops.pickup;
@@ -144,6 +156,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
 
             // Đảm bảo có cả pickup và delivery
             if (stops.delivery && stops.delivery.point.position) {
+                // get amount of trip from listTripsAmount
+                const tripAmount = listTripsAmount.find(tripAmount => tripAmount.tripId === parseInt(tripId));
                 listTrips.push({
                     id: tripIndexId++,
                     pickup: {
@@ -164,7 +178,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
                         ],
                         description: `${tripId}`
                     },
-                    amount: [1]
+                    amount: [tripAmount?.amount || 1]
                 });
             }
         }
@@ -176,7 +190,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
                     description: vehicleId,
                     profile: 'driving-car',
                     start: [lastVehicleLocation.longitude, lastVehicleLocation.latitude],
-                    capacity: [4]
+                    capacity: [vehicleCapacity]
                 }
             ],
             shipments: listTrips
@@ -203,7 +217,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
         let distance = 0;
         const perTripDistanceAfterChange = [];
         const optimizedStops: sharedRouteStop[] = [];
-        if (!response?.routes?.[0]?.steps) return {
+        if (!response?.routes?.[0]?.steps || response?.unassigned?.length > 0) return {
             sharedRouteStop: [],
             durationToNewTripStart: durationToNewTripStart,
             durationToNewTripEnd: durationToNewTripEnd,

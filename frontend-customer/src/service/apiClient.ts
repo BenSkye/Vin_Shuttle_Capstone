@@ -1,4 +1,4 @@
-import { executeLogout, executeSetIsLogin, executeSetIsLoginFalse, executeSetIsLoginTrue } from '@/service/user.service';
+import { executeLogout, executeSetIsLoginFalse, executeSetIsLoginTrue } from '@/service/user.service';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
