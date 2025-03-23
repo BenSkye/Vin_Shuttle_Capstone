@@ -19,12 +19,12 @@ import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interfa
 import { bookingHour } from '@/service/booking.service'
 import { vehicleSearchHour } from '@/service/search.service'
 
-import CheckoutPage from '../components/booking/bookingcomponents/checkoutpage'
-import DateTimeSelection from '../components/booking/bookingcomponents/datetimeselection'
-import VehicleSelection from '../components/booking/bookingcomponents/vehicleselection'
+import CheckoutPage from '../../components/booking/bookingcomponents/checkoutpage'
+import DateTimeSelection from '../../components/booking/bookingcomponents/datetimeselection'
+import VehicleSelection from '../../components/booking/bookingcomponents/vehicleselection'
 
 const LocationSelection = dynamic(
-  () => import('../components/booking/bookingcomponents/locationselection'),
+  () => import('../../components/booking/bookingcomponents/locationselection'),
   { ssr: false }
 )
 

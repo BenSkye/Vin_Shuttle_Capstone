@@ -6,8 +6,6 @@ import { Badge } from 'antd'
 // Import useNotification
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { jwtDecode } from 'jwt-decode'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
@@ -15,11 +13,8 @@ import { FiBell, FiClock, FiLogOut, FiMenu, FiUser, FiUserCheck, FiX } from 'rea
 
 import { useAuth } from '../../../../context/AuthContext'
 import { useNotification } from '../../../../context/NotificationContext'
-import {
-  markAllAsReadNotification,
-  markAsReadNotification,
-} from '../../../../service/notification.service'
 import { Logo } from './Logo'
+import { Routes } from '@/constants/routers'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -71,11 +66,11 @@ export default function Navbar() {
   const toggleNotifications = () => setShowNotifications(!showNotifications)
 
   const navItems = [
-    { label: 'Trang Chủ', href: '/' },
-    { label: 'Đặt xe theo giờ', href: '/bookhour' },
-    { label: 'Đặt xe theo tuyến cố định', href: '/bookroute' },
-    { label: 'Đặt xe điểm đến', href: '/bookdes' },
-    { label: 'Tính năng', href: '/features' },
+    { label: 'Trang Chủ', href: Routes.HOME },
+    { label: 'Đặt xe theo giờ', href: Routes.RIDE.HOURLY },
+    { label: 'Đặt xe theo tuyến cố định', href: Routes.RIDE.ROUTES },
+    { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
+    { label: 'Tính năng', href: Routes.FEATURES },
   ]
 
   // Format time for notifications

@@ -25,19 +25,19 @@ const steps = [
 ]
 
 const RouteDateTimeSelection = dynamic(
-  () => import('../components/booking/bookingcomponents/routedatetimeselection'),
+  () => import('../../components/booking/bookingcomponents/routedatetimeselection'),
   { ssr: false }
 )
 const LocationSelection = dynamic(
-  () => import('../components/booking/bookingcomponents/locationselection'),
+  () => import('../../components/booking/bookingcomponents/locationselection'),
   { ssr: false }
 )
-const CreateRoute = dynamic(() => import('../components/map/createRoute'), { ssr: false })
-const CheckoutPage = dynamic(() => import('../components/booking/bookingcomponents/checkoutpage'), {
+const CreateRoute = dynamic(() => import('../../components/map/createRoute'), { ssr: false })
+const CheckoutPage = dynamic(() => import('../../components/booking/bookingcomponents/checkoutpage'), {
   ssr: false,
 })
 const VehicleSelection = dynamic(
-  () => import('../components/booking/bookingcomponents/vehicleselection'),
+  () => import('../../components/booking/bookingcomponents/vehicleselection'),
   { ssr: false }
 )
 
@@ -160,13 +160,13 @@ const RouteBooking = () => {
       const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
       return quantity > 0
         ? [
-            ...prev,
-            {
-              categoryVehicleId: categoryId,
-              quantity,
-              name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-            },
-          ]
+          ...prev,
+          {
+            categoryVehicleId: categoryId,
+            quantity,
+            name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+          },
+        ]
         : prev
     })
   }
