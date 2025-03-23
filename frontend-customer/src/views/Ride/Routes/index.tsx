@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic'
 
 import { FaCar, FaClock, FaMapMarkerAlt, FaMoneyBillWave } from 'react-icons/fa'
 
-import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking'
+import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingRoute } from '@/service/booking.service'
 import { RouteResponse } from '@/service/mapScenic'
 import { vehicleSearchRoute } from '@/service/search.service'
@@ -156,13 +156,13 @@ const RoutesBooking = () => {
       const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
       return quantity > 0
         ? [
-            ...prev,
-            {
-              categoryVehicleId: categoryId,
-              quantity,
-              name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-            },
-          ]
+          ...prev,
+          {
+            categoryVehicleId: categoryId,
+            quantity,
+            name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+          },
+        ]
         : prev
     })
   }

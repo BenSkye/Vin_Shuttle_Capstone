@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios'
 
-import { AvailableVehicle } from '@/interface/booking'
-import { Position } from '@/interface/trip'
+import { AvailableVehicle } from '@/interface/booking.interface'
+import { Position } from '@/interface/trip.interface'
 import apiClient from '@/service/apiClient'
 
 export const vehicleSearchHour = async (

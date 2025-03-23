@@ -32,7 +32,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-b from-gray-900 to-gray-800">
-      <div className="mx-auto max-w-7xl px-4 pt-12 pb-8">
+      <div className="mx-auto max-w-full px-12 pt-12 pb-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white">Về VinShuttle</h3>

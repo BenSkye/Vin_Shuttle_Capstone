@@ -3,8 +3,8 @@ import React from 'react'
 import { Card, Typography } from 'antd'
 import { FaCar } from 'react-icons/fa'
 
-import { AvailableVehicle } from '@/interface/booking'
-import { BookingHourRequest } from '@/interface/booking'
+import { AvailableVehicle } from '@/interface/booking.interface'
+import { BookingHourRequest } from '@/interface/booking.interface'
 import { formatVndPrice } from '@/utils/price.until'
 
 const { Title } = Typography

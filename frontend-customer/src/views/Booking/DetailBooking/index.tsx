@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 import { bookingStatusColor } from '@/constants/booking.constants'
 
-import { IBooking } from '@/interface/booking'
+import { IBooking } from '@/interface/booking.interface'
 import { getCustomerPersonalBookingById } from '@/service/booking.service'
 import { formatVndPrice } from '@/utils/price.until'
 
@@ -72,13 +72,12 @@ export default function BookingDetailPage({ id }: { id: string }) {
           <div className="space-y-2">
             <p className="text-sm text-gray-500">Trạng Thái</p>
             <span
-              className={`rounded-full px-3 py-1 text-sm font-medium ${
-                bookingStatusColor[booking.status] === 'green'
+              className={`rounded-full px-3 py-1 text-sm font-medium ${bookingStatusColor[booking.status] === 'green'
                   ? 'bg-green-100 text-green-800'
                   : bookingStatusColor[booking.status] === 'red'
                     ? 'bg-red-100 text-red-800'
                     : 'bg-yellow-100 text-yellow-800'
-              }`}
+                }`}
             >
               {booking.status.replace('_', ' ')}
             </span>
@@ -104,13 +103,12 @@ export default function BookingDetailPage({ id }: { id: string }) {
             <div key={index} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <div
-                  className={`h-4 w-4 rounded-full ${
-                    bookingStatusColor[history.status] === 'green'
+                  className={`h-4 w-4 rounded-full ${bookingStatusColor[history.status] === 'green'
                       ? 'bg-green-500'
                       : bookingStatusColor[history.status] === 'red'
                         ? 'bg-red-500'
                         : 'bg-yellow-500'
-                  }`}
+                    }`}
                 ></div>
                 {index !== booking.statusHistory.length - 1 && (
                   <div className="mt-2 h-full w-0.5 bg-gray-200"></div>

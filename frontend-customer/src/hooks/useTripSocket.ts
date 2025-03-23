@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
-import { Trip } from '@/interface/trip'
+import { Trip } from '@/interface/trip.interface'
 import { initSocket } from '@/service/socket'
 import { getPersonalTrip, getPersonalTripById } from '@/service/trip.service'
 

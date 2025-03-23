@@ -16,7 +16,7 @@ import useTripSocket from '@/hooks/useTripSocket'
 import TripRating from '@/views/Ride/components/triprating'
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap'
 
-import { BookingHourPayloadDto, Trip } from '@/interface/trip'
+import { BookingHourPayloadDto, Trip } from '@/interface/trip.interface'
 
 export default function DetailTripPage({ id }: { id: string }) {
   console.log('Trip ID:', id)

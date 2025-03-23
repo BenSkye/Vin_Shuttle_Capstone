@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 import { bookingStatusColor } from '@/constants/booking.constants'
 
-import { IBooking } from '@/interface/booking'
+import { IBooking } from '@/interface/booking.interface'
 import { getCustomerPersonalBooking } from '@/service/booking.service'
 import { formatVndPrice } from '@/utils/price.until'
 

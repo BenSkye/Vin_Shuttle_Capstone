@@ -4,14 +4,14 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { ServiceType } from '@/constants/service-type.enum'
 
-import { BookingResponse } from '@/interface/booking'
+import { BookingResponse } from '@/interface/booking.interface'
 import {
   BookingDestinationPayloadDto,
   BookingHourPayloadDto,
   BookingScenicRoutePayloadDto,
   BookingSharePayloadDto,
   Trip,
-} from '@/interface/trip'
+} from '@/interface/trip.interface'
 import { getPersonalTripById } from '@/service/trip.service'
 
 const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse }) => {

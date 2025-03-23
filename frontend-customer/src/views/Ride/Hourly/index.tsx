@@ -19,7 +19,7 @@ import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import DateTimeSelection from '@/views/Ride/components/datetimeselection'
 import VehicleSelection from '@/views/Ride/components/vehicleselection'
 
-import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking'
+import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingHour } from '@/service/booking.service'
 import { vehicleSearchHour } from '@/service/search.service'
 

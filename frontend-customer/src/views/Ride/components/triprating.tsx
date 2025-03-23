@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { FaCar, FaStar, FaUserAlt } from 'react-icons/fa'
 import Swal from 'sweetalert2'
 
-import { Trip } from '@/interface/trip'
+import { Trip } from '@/interface/trip.interface'
 import { createRating, getRateTrip } from '@/service/trip.service'
 
 const { TextArea } = Input
@@ -209,11 +209,10 @@ export default function TripRating({ tripId, trip, existingRating = null }: Trip
                 onClick={handleSubmit}
                 loading={submitting}
                 disabled={rating === 0}
-                className={`h-10 rounded-xl text-sm transition-all duration-300 sm:h-12 sm:text-base ${
-                  rating === 0
+                className={`h-10 rounded-xl text-sm transition-all duration-300 sm:h-12 sm:text-base ${rating === 0
                     ? 'cursor-not-allowed bg-gray-400'
                     : 'transform bg-blue-500 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-lg'
-                }`}
+                  }`}
               >
                 Gửi đánh giá
               </Button>

@@ -8,7 +8,7 @@ import { FaCar, FaClock, FaCreditCard, FaMapMarkerAlt } from 'react-icons/fa'
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import TripTypeSelection from '@/views/Ride/components/triptypeselection'
 
-import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking'
+import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingDestination } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
 
@@ -98,9 +98,9 @@ const DestinationBookingPage = () => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((startPoint.position.lat * Math.PI) / 180) *
-        Math.cos((endPoint.position.lat * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
+      Math.cos((endPoint.position.lat * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     const distance = R * c
 

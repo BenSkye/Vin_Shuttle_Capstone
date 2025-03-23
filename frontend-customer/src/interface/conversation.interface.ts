@@ -1,4 +1,4 @@
-import { User } from '@/interface/user'
+import { User } from '@/interface/user.interface'
 
 export interface IConversation {
   _id: string
