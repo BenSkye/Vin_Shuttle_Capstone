@@ -14,10 +14,11 @@ import {
   FaUserTie,
 } from 'react-icons/fa'
 
+import { Routes } from '@/constants/routers'
+
 import BookingForm from './components/BookingForm'
 import FeatureCard from './components/FeatureCard'
 import ServiceCard from './components/ServiceCard'
-import { Routes } from '@/constants/routers'
 
 const HomePage = () => {
   const [selectedService, setSelectedService] = useState<'hour' | 'route' | 'destination'>('hour')

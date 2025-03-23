@@ -17,9 +17,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import dayjs from 'dayjs'
 
-import DateTimeSelection from './bookingcomponents/datetimeselection'
-import LocationSelection from './bookingcomponents/locationselection'
-import VehicleSelection from './bookingcomponents/vehicleselection'
+import DateTimeSelection from './datetimeselection'
+import LocationSelection from './locationselection'
+import VehicleSelection from './vehicleselection'
 
 const steps = ['Chọn ngày và giờ', 'Chọn loại xe', 'Chọn địa điểm đón']
 
