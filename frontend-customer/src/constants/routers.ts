@@ -19,4 +19,13 @@ export const Routes = {
   TRIPS: '/trips',
   NOTIFICATIONS: '/notifications',
   CONVERSATIONS: '/conversations',
+  ABOUT: '/aboutus',
+  PRICING: '/pricing',
+  CONTACT: '/contact',
+  STATIC_CONTENT: {
+    TERMS: '/terms',
+    PRIVACY: '/privacy',
+    USER_GUIDE: '/user-guide',
+  },
+  FAQ: '/faq',
 }

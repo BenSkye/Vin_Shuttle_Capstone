@@ -48,7 +48,7 @@ const RouteDateTimeSelection = ({
               <span>Chọn ngày</span>
             </div>
           }
-          bodyStyle={{ padding: '12px' }}
+          styles={{ body: { padding: '12px' } }}
         >
           <DatePicker
             className="w-full"
@@ -72,7 +72,7 @@ const RouteDateTimeSelection = ({
               <span>Chọn giờ</span>
             </div>
           }
-          bodyStyle={{ padding: '12px' }}
+          styles={{ body: { padding: '12px' } }}
         >
           <TimePicker
             className="w-full"
