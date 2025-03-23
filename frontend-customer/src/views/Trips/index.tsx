@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { TripStatus } from '@/constants/trip.enum'
 import useTripSocket from '@/hooks/useTripSocket'
 
-import { Trip } from '@/interface/trip'
+import { Trip } from '@/interface/trip.interface'
 
 const TripListPage = () => {
   const { data, isLoading, error } = useTripSocket()

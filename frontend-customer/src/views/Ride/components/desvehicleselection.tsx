@@ -3,7 +3,7 @@ import React from 'react'
 import { Card, Typography } from 'antd'
 import { FaCar } from 'react-icons/fa'
 
-import { AvailableVehicle } from '@/interface/booking'
+import { AvailableVehicle } from '@/interface/booking.interface'
 import { formatVndPrice } from '@/utils/price.until'
 
 const { Title } = Typography
@@ -38,10 +38,9 @@ const DesVehicleSelection: React.FC<VehicleSelectionProps> = ({
             return (
               <Card
                 key={vehicle.vehicleCategory._id}
-                className={`transform cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  isSelected ? 'bg-blue-100' : 'border border-gray-200'
-                }`}
-                bodyStyle={{ padding: '1.5rem' }}
+                className={`transform cursor-pointer transition-all duration-200 hover:shadow-lg ${isSelected ? 'bg-blue-100' : 'border border-gray-200'
+                  }`}
+                styles={{ body: { padding: '1.5rem' } }}
                 onClick={() => {
                   console.log('Card clicked:', vehicle.vehicleCategory._id)
                   onSelectionChange(

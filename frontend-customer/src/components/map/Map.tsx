@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import debounce from 'lodash/debounce'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
-import { MapProps, MapState } from '../../interface/map.types'
+import { MapProps, MapState } from '../../interface/map.interface'
 
 // Custom Icon for Pickup Location
 const PickupIcon = new L.Icon({

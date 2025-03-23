@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
-import { LocationData } from '@/interface/trip'
+import { LocationData } from '@/interface/trip.interface'
 import { initSocket } from '@/service/socket'
 import { getLastVehicleLocation } from '@/service/tracking.service'
 

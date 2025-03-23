@@ -3,8 +3,8 @@ import React from 'react'
 import { Card, Typography } from 'antd'
 import { FaCar } from 'react-icons/fa'
 
-import { AvailableVehicle } from '@/interface/booking'
-import { BookingHourRequest } from '@/interface/booking'
+import { AvailableVehicle } from '@/interface/booking.interface'
+import { BookingHourRequest } from '@/interface/booking.interface'
 import { formatVndPrice } from '@/utils/price.until'
 
 const { Title } = Typography
@@ -55,10 +55,9 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
             return (
               <Card
                 key={vehicle.vehicleCategory._id}
-                className={`transform transition-all duration-200 hover:shadow-lg ${
-                  isSelected ? 'border-2 border-blue-500 bg-blue-50' : 'border border-gray-200'
-                }`}
-                bodyStyle={{ padding: '1.5rem' }}
+                className={`transform transition-all duration-200 hover:shadow-lg ${isSelected ? 'border-2 border-blue-500 bg-blue-50' : 'border border-gray-200'
+                  }`}
+                styles={{ body: { padding: '1.5rem' } }}
               >
                 <div className="mb-4 flex items-center gap-4">
                   <div className="rounded-full bg-blue-100 p-3">

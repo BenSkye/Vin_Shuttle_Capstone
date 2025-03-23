@@ -5,8 +5,8 @@ import {
   BookingHourRequest,
   BookingRouteRequest,
   IBooking,
-} from '@/interface/booking'
-import { BookingResponse } from '@/interface/booking'
+} from '@/interface/booking.interface'
+import { BookingResponse } from '@/interface/booking.interface'
 import apiClient from '@/service/apiClient'
 
 export const bookingHour = async (payload: BookingHourRequest): Promise<BookingResponse> => {

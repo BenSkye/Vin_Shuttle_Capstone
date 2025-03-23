@@ -4,7 +4,7 @@ import { Socket } from 'socket.io-client'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
-import { IConversation } from '@/interface/conversation'
+import { IConversation } from '@/interface/conversation.interface'
 import { getConversationById, getPersonalConversations } from '@/service/conversation.service'
 import { initSocket } from '@/service/socket'
 

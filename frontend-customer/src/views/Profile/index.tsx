@@ -6,7 +6,7 @@ import { CameraOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-import { User } from '@/interface/user'
+import { User } from '@/interface/user.interface'
 import { editProfile, profileUser } from '@/service/user.service'
 
 const EditProfilePage = () => {

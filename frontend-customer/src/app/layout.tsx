@@ -1,49 +1,29 @@
-import { Suspense } from 'react'
-
-import { AntdRegistry } from '@ant-design/nextjs-registry'
-import { ConfigProvider } from 'antd'
-import { polyfill } from 'interweave-ssr'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import NextTopLoader from 'nextjs-toploader'
-
-import Loading from '@/components/shared/Loading'
-
-import { AuthProvider } from '@/context/AuthContext'
-import { NotificationProvider } from '@/context/NotificationContext'
-
-import '../styles/globals.css'
-
-polyfill()
+import { AntdRegistry } from '@/lib/AntdRegistry'
+import BaseLayout from '@/components/layout/Baselayout'
+import { Providers } from '@/providers'
+import '@/styles/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'VinShuttle',
-  description: 'VinHome Grand Park Internal Transportation Service',
-  icons: {
-    icon: '/images/bus.gif',
-  },
+export const metadata: Metadata = {
+  title: 'VinShuttle - Dịch vụ vận chuyển nội khu thông minh',
+  description: 'Dịch vụ vận chuyển nội khu thông minh tại VinHomes Grand Park',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
+    <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
-        <NextTopLoader />
         <AntdRegistry>
-          <ConfigProvider
-            theme={{
-              token: {
-                colorPrimary: '#1890ff',
-              },
-            }}
-          >
-            <Suspense fallback={<Loading />}>
-              <AuthProvider>
-                <NotificationProvider>{children}</NotificationProvider>
-              </AuthProvider>
-            </Suspense>
-          </ConfigProvider>
+          <Providers>
+            <BaseLayout>{children}</BaseLayout>
+          </Providers>
         </AntdRegistry>
       </body>
     </html>

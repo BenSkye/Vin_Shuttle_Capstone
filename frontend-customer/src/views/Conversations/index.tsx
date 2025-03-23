@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 import useConversationSocket from '@/hooks/useConversationSocket'
 
-import { IConversation } from '@/interface/conversation'
+import { IConversation } from '@/interface/conversation.interface'
 
 const ConversationListPage = () => {
   const { data: conversations, isLoading, error } = useConversationSocket()
