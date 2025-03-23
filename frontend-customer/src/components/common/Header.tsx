@@ -11,10 +11,11 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { FiBell, FiClock, FiLogOut, FiMenu, FiUser, FiUserCheck, FiX } from 'react-icons/fi'
 
+import { Routes } from '@/constants/routers'
+
 import { useAuth } from '../../context/AuthContext'
 import { useNotification } from '../../context/NotificationContext'
 import { Logo } from './Logo'
-import { Routes } from '@/constants/routers'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -126,14 +127,14 @@ export default function Navbar() {
         {showDropdown && (
           <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-gray-100 bg-white py-2 shadow-xl">
             <Link
-              href="/profile"
+              href={Routes.PROFILE}
               className="flex items-center gap-3 px-4 py-3 transition hover:bg-green-50"
             >
               <FiUserCheck className="text-green-500" />
               <span>Thông tin cá nhân</span>
             </Link>
             <Link
-              href="/trips"
+              href={Routes.TRIPS}
               className="flex items-center gap-3 px-4 py-3 transition hover:bg-green-50"
             >
               <FiClock className="text-green-500" />
