@@ -13,10 +13,10 @@ import {
 } from "antd";
 import { EnvironmentOutlined, CarOutlined, ClockCircleOutlined, CreditCardOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import DateTimeSelection from "../../components/booking/bookingcomponents/datetimeselection";
-import VehicleSelection from "../../components/booking/bookingcomponents/vehicleselection";
-const LocationSelection = dynamic(() => import('../../components/booking/bookingcomponents/locationselection'), { ssr: false });
-import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+import DateTimeSelection from '../components/booking/bookingcomponents/datetimeselection';
+import VehicleSelection from '../components/booking/bookingcomponents/vehicleselection';
+const LocationSelection = dynamic(() => import('../components/booking/bookingcomponents/locationselection'), { ssr: false });
+import CheckoutPage from "../components/booking/bookingcomponents/checkoutpage";
 import { vehicleSearchHour } from "@/service/search.service";
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from "@/interface/booking";
 import { BookingHourDuration } from "@/constants/booking.constants";

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { FaCar, FaClock, FaCreditCard, FaMapMarkerAlt } from "react-icons/fa";
 
-import TripTypeSelection from "../../components/booking/bookingcomponents/triptypeselection";
-import CheckoutPage from "../../components/booking/bookingcomponents/checkoutpage";
+import TripTypeSelection from "../components/booking/bookingcomponents/triptypeselection";
+import CheckoutPage from "../components/booking/bookingcomponents/checkoutpage";
 import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from "@/interface/booking";
 import dynamic from 'next/dynamic';
 import { bookingDestination } from "@/service/booking.service";
@@ -53,15 +53,15 @@ const LineBookingPage = () => {
     const [estimatedDuration, setEstimatedDuration] = useState<number>(5);
 
     const LocationSelection = dynamic(
-        () => import('../../components/booking/bookingcomponents/locationselection'),
+        () => import('../components/booking/bookingcomponents/locationselection'),
         { ssr: false }
     );
     const DestinationLocation = dynamic(
-        () => import('../../components/booking/bookingcomponents/destinationLocation'),
+        () => import('../components/booking/bookingcomponents/destinationLocation'),
         { ssr: false }
     );
     const VehicleSelection = dynamic(
-        () => import('../../components/booking/bookingcomponents/vehicleselection'),
+        () => import('../components/booking/bookingcomponents/vehicleselection'),
         { ssr: false }
     );
 
