@@ -17,6 +17,7 @@ import {
 import BookingForm from './components/BookingForm'
 import FeatureCard from './components/FeatureCard'
 import ServiceCard from './components/ServiceCard'
+import { Routes } from '@/constants/routers'
 
 const HomePage = () => {
   const [selectedService, setSelectedService] = useState<'hour' | 'route' | 'destination'>('hour')
@@ -30,21 +31,21 @@ const HomePage = () => {
       title: 'Đặt xe theo giờ',
       description: 'Thuê xe theo giờ với tài xế chuyên nghiệp',
       icon: <FaClock className="h-8 w-8 text-green-500" />,
-      href: '/bookhour',
+      href: Routes.RIDE.HOURLY,
     },
     {
       id: 'route',
       title: 'Đặt xe theo tuyến cố định',
       description: 'Di chuyển theo các tuyến đường quen thuộc',
       icon: <FaRoute className="h-8 w-8 text-green-500" />,
-      href: '/bookroute',
+      href: Routes.RIDE.ROUTES,
     },
     {
       id: 'destination',
       title: 'Đặt xe điểm đến',
       description: 'Đặt xe đi đến điểm đến mong muốn',
       icon: <FaMapMarkedAlt className="h-8 w-8 text-green-500" />,
-      href: '/bookdes',
+      href: Routes.RIDE.DESTINATION,
     },
   ]
 

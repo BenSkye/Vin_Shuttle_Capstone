@@ -9,8 +9,8 @@ import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/
 import { bookingDestination } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
 
-import CheckoutPage from '../components/booking/bookingcomponents/checkoutpage'
-import TripTypeSelection from '../components/booking/bookingcomponents/triptypeselection'
+import CheckoutPage from '../../components/booking/bookingcomponents/checkoutpage'
+import TripTypeSelection from '../../components/booking/bookingcomponents/triptypeselection'
 
 const steps = [
   { title: 'Chọn số người', icon: <FaClock className="text-blue-500" /> },
@@ -56,15 +56,15 @@ const LineBookingPage = () => {
   const [estimatedDuration, setEstimatedDuration] = useState<number>(5)
 
   const LocationSelection = dynamic(
-    () => import('../components/booking/bookingcomponents/locationselection'),
+    () => import('../../components/booking/bookingcomponents/locationselection'),
     { ssr: false }
   )
   const DestinationLocation = dynamic(
-    () => import('../components/booking/bookingcomponents/destinationLocation'),
+    () => import('../../components/booking/bookingcomponents/destinationLocation'),
     { ssr: false }
   )
   const VehicleSelection = dynamic(
-    () => import('../components/booking/bookingcomponents/vehicleselection'),
+    () => import('../../components/booking/bookingcomponents/vehicleselection'),
     { ssr: false }
   )
 
@@ -101,9 +101,9 @@ const LineBookingPage = () => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((startPoint.position.lat * Math.PI) / 180) *
-        Math.cos((endPoint.position.lat * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
+      Math.cos((endPoint.position.lat * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     const distance = R * c
 
