@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
 import { useMap } from 'react-leaflet'
 
-import '../../../../../styles/locationselection.css'
+import '@/styles/locationselection.css'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {

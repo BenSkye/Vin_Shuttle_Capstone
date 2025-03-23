@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { FiBell, FiClock, FiLogOut, FiMenu, FiUser, FiUserCheck, FiX } from 'react-icons/fi'
 
-import { useAuth } from '../../../../context/AuthContext'
-import { useNotification } from '../../../../context/NotificationContext'
+import { useAuth } from '../../context/AuthContext'
+import { useNotification } from '../../context/NotificationContext'
 import { Logo } from './Logo'
 import { Routes } from '@/constants/routers'
 

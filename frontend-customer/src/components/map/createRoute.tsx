@@ -12,8 +12,8 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 
-import { RouteResponse, routeService } from '../../../../service/mapScenic'
-import './map.css'
+import { RouteResponse, routeService } from '../../service/mapScenic'
+import '@/styles/map.css'
 
 interface CreateRouteProps {
   onRouteSelect?: (route: RouteResponse) => void
