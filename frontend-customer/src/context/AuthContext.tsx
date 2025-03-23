@@ -30,7 +30,8 @@ type User = {
 
 type AuthContextType = {
   authUser: User | null
-  isLoggedIn: boolean
+  isLoggedIn: boolean,
+  isLoading: boolean,
   login: (
     accessToken: string,
     refreshToken: string | undefined,
