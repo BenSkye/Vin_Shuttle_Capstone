@@ -7,7 +7,7 @@ import { BookingBusRoutePayloadDto, ICreateTripDto, tripParams } from 'src/modul
 import { ITripRepository, ITripService } from 'src/modules/trip/trip.port';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 
-import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripStatus, UserRole } from 'src/share/enums';
+import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripCancelBy, TripStatus, UserRole } from 'src/share/enums';
 
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
@@ -513,6 +513,55 @@ export class TripService implements ITripService {
     console.log('filter', filter);
     return await this.tripRepository.find(filter, []);
   }
+
+  async cancelTrip(userId: string, id: string, reason: string): Promise<TripDocument> {
+    const trip = await this.tripRepository.findOne({ _id: id }, []);
+    if (!trip || ![trip.customerId._id.toString(), trip.driverId._id.toString()].includes(userId)) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip not found',
+          vnMessage: 'Chuyến đi không tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if ([TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip is not cancellable',
+          vnMessage: 'Chuyến đi không thể hủy',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const cancellationTime = new Date();
+    const cancellationReason = reason;
+    const cancelledBy = trip.customerId._id.toString() === userId ? TripCancelBy.CUSTOMER : TripCancelBy.DRIVER;
+    const tripUpdate = await this.tripRepository.updateTrip(id, {
+      status: TripStatus.CANCELLED,
+      cancellationTime,
+      cancellationReason,
+      cancelledBy,
+    });
+    if (!tripUpdate) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip update failed',
+          vnMessage: 'Cập nhật chuyến đi thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    this.tripGateway.emitTripUpdate(
+      tripUpdate.customerId.toString(),
+      await this.getPersonalCustomerTrip(tripUpdate.customerId.toString())
+    );
+    return tripUpdate;
+  }
+
 
   // run every minute
   @Cron(CronExpression.EVERY_MINUTE, {

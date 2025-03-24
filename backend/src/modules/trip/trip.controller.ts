@@ -124,6 +124,33 @@ export class TripController {
     return await this.tripService.driverCompleteTrip(data.tripId, req.user._id)
   }
 
+  @Post('cancel-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Cancel trip by customer or driver' })
+  @ApiBody({
+    type: String,
+    description: 'Cancel trip',
+    examples: {
+      'Cancel trip': {
+        value: {
+          tripId: '67b6c79187febb73be4b3f09',
+          reason: 'I want to cancel this trip',
+        },
+      },
+    },
+  })
+  async cancelTrip(
+    @Body() data: {
+      tripId: string;
+      reason: string
+    },
+    @Request() req) {
+    return await this.tripService.cancelTrip(req.user._id, data.tripId, data.reason);
+  }
+
   @Post('calculate-bus-route-fare')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
