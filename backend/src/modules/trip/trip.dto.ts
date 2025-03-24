@@ -1,5 +1,5 @@
 import { ServiceType } from "src/share/enums";
-import { TripStatus } from "src/share/enums/trip.enum";
+import { TripCancelBy, TripStatus } from "src/share/enums/trip.enum";
 import { Position, StartOrEndPoint } from "src/share/interface";
 
 export interface ICreateTripDto {
@@ -34,6 +34,7 @@ export interface IUpdateTripDto {
   isRating?: boolean;
   cancellationTime?: Date;
   cancellationReason?: string;
+  cancelledBy?: TripCancelBy;
   refundAmount?: number;
   statusHistory?: Array<{
     status: TripStatus;
