@@ -45,10 +45,12 @@ interface StatusHistory {
 export const getPersonalTrips = async (): Promise<Trip[]> => {
   try {
     const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
     const response = await axios.get(`${API_URL}/trip/driver-personal-trip`, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+        'Authorization': `Bearer ${accessToken}`,
+        'x-client-id': userId
+      }
     });
     return response.data;
   } catch (error) {
@@ -60,12 +62,14 @@ export const getPersonalTrips = async (): Promise<Trip[]> => {
 export const pickUp = async (tripId: string): Promise<Trip> => {
   try {
     const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
     const response = await axios.post(
       `${API_URL}/trip/driver-pickup-customer`,
       { tripId },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          'x-client-id': userId,
         },
       }
     );

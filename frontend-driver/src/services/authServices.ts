@@ -25,6 +25,8 @@ export const authService = {
       console.log('API_URL:', API_URL);
       const response = await axios.post(`${API_URL}/auth/login-by-password`, credentials);
       console.log('acessstokennnn:', response.data.token.accessToken);
+      console.log('refreshToken:', response.data.token.refreshToken);
+      console.log('userId:', response.data.userId);
       // Store tokens and userId in AsyncStorage
       if (response.data.isValid) {
         await AsyncStorage.multiSet([
@@ -43,8 +45,9 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       await deleteUserPushToken();
-      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userId']);
+      await AsyncStorage.clear();
     } catch (error) {
+      console.error('Error during logout in authService:', error);
       throw error;
     }
   },

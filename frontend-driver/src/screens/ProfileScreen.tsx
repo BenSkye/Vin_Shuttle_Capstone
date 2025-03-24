@@ -46,13 +46,24 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = async () => {
-    await authService.logout();
-    await userHaslogout();
-    // Điều hướng về Login bằng cách thay thế stack hiện tại
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+    try {
+      setLoading(true); // Hiển thị loading khi đăng xuất
+      
+      // Cập nhật context (sẽ xóa push token và thông tin đăng nhập)
+      await userHaslogout();
+      
+      // Điều hướng về Login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Hiển thị thông báo lỗi nếu cần
+      setError('Đã xảy ra lỗi khi đăng xuất. Vui lòng thử lại.');
+    } finally {
+      setLoading(false); // Đảm bảo tắt loading kể cả khi có lỗi
+    }
   };
 
   if (loading) {

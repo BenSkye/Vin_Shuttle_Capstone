@@ -13,9 +13,11 @@ apiClient.interceptors.request.use(
   async (config) => {
     try {
       const accessToken = await AsyncStorage.getItem('accessToken');
+      const userId = await AsyncStorage.getItem('userId');
       // config.headers['x-client-id'] = 'Bearer ' + Cookies.get('x-client-id') || '';
-      if (accessToken) {
-        config.headers['authorization'] = `Bearer ${accessToken}`;
+      if (accessToken && userId) {
+        config.headers['Authorization'] = `Bearer ${accessToken}`;
+        config.headers['x-client-id'] = userId;
       }
       return config;
     } catch (error) {

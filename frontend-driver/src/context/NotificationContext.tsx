@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useContext, } from "react";
+import { createContext, useEffect, useState, useContext, useRef } from "react";
 import { useAuth } from "~/context/AuthContext";
 import useNotificationSocket from "~/hook/useNotificationSocket";
 import { INotification } from "~/interface/notification";
@@ -16,12 +16,29 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
     const [notificationList, setNotificationList] = useState<INotification[]>([]);
     const [unreadCountNumber, setUnreadCountNumber] = useState<number>(0);
-    const { notifications, isLoading, error, refreshNotifications: refreshSocketNotifications } = useNotificationSocket();
+    const { notifications = [], isLoading, error, refreshNotifications: refreshSocketNotifications } = useNotificationSocket();
     const { isLogin } = useAuth();
+    
+    // Sử dụng ref để theo dõi lần xử lý trước đó
+    const previousNotificationsRef = useRef<INotification[]>([]);
     
     // Xử lý khi có thông báo mới từ socket
     useEffect(() => {
-        if (isLogin && notifications.length > 0) {
+        // Kiểm tra xem notifications có thay đổi không
+        const notificationsChanged = 
+            notifications && 
+            JSON.stringify(notifications) !== JSON.stringify(previousNotificationsRef.current);
+        
+        // Chỉ cập nhật khi có thay đổi thực sự
+        if (isLogin && notifications && notificationsChanged) {
+            previousNotificationsRef.current = notifications;
+            
+            // Kiểm tra nếu là lần đầu set notifications hoặc notifications rỗng
+            if (notificationList.length === 0) {
+                setNotificationList(notifications);
+                return;
+            }
+            
             // Tạo map từ notificationList hiện tại để dễ dàng tìm kiếm
             const currentNotificationsMap = new Map(
                 notificationList.map(notification => [notification._id, notification])
@@ -34,7 +51,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
                     const existingNotification = currentNotificationsMap.get(newNotification._id);
                     return {
                         ...newNotification,
-                        isRead: existingNotification?.isRead
+                        isRead: existingNotification?.isRead || false
                     };
                 }
                 // Nếu là thông báo mới, giữ nguyên trạng thái từ server
@@ -42,15 +59,13 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             });
             
             setNotificationList(updatedNotifications);
-        } else if (isLogin) {
-            // Trường hợp khởi tạo lần đầu
-            setNotificationList(notifications);
         }
-    }, [notifications, isLogin]);
+    }, [notifications, isLogin, notificationList]);
 
     // Cập nhật số lượng thông báo chưa đọc
     useEffect(() => {
-        const unreadNotifications: INotification[] = notificationList.filter((notification: INotification) => !notification.isRead);
+        // Chỉ tính toán lại khi notificationList thay đổi
+        const unreadNotifications = notificationList.filter(notification => !notification.isRead);
         setUnreadCountNumber(unreadNotifications.length);
     }, [notificationList]);
 
@@ -97,9 +112,11 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         if (isLogin) {
             try {
                 const freshNotifications = await getPersonalNotification();
-                setNotificationList(freshNotifications);
-                const unreadCount = freshNotifications.filter(n => !n.isRead).length;
-                setUnreadCountNumber(unreadCount);
+                if (freshNotifications) {
+                    setNotificationList(freshNotifications);
+                    const unreadCount = freshNotifications.filter(n => !n.isRead).length;
+                    setUnreadCountNumber(unreadCount);
+                }
             } catch (error) {
                 console.error('Error refreshing notifications:', error);
             }

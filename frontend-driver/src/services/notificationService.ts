@@ -1,9 +1,19 @@
 import apiClient from "~/services/apiClient";
 import { INotification } from "~/interface/notification";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export const getPersonalNotification = async () => {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
+
     try {
-        const response = await apiClient.get('/notification/personal-notification');
+        const response = await apiClient.get('/notification/personal-notification', {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'x-client-id': userId
+            }
+          });
         return response.data;
     } catch (error: unknown) {
         console.error('Error fetching personal notification:', error);

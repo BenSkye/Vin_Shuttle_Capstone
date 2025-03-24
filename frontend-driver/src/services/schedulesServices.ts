@@ -39,8 +39,9 @@ export const getPersonalSchedules = async (startDate: string, endDate: string): 
       `${API_URL}/driver-schedules/get-personal-schedules-from-start-to-end/${startDate}/${endDate}`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+          'Authorization': `Bearer ${accessToken}`,
+          'x-client-id': userId
+        }
       }
     );
 
@@ -65,12 +66,14 @@ export const getPersonalSchedules = async (startDate: string, endDate: string): 
 export const driverCheckin = async (driverScheduleId: string): Promise<Schedule> => {
   try {
     const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
     const response = await axios.get(
       `${API_URL}/driver-schedules/driver-checkin/${driverScheduleId}`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+          'Authorization': `Bearer ${accessToken}`,
+          'x-client-id': userId
+        }
       }
     );
     return response.data;
@@ -83,12 +86,14 @@ export const driverCheckin = async (driverScheduleId: string): Promise<Schedule>
 export const driverCheckout = async (driverScheduleId: string): Promise<Schedule> => {
   try {
     const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
     const response = await axios.get(
       `${API_URL}/driver-schedules/driver-checkout/${driverScheduleId}`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+          'Authorization': `Bearer ${accessToken}`,
+          'x-client-id': userId
+        }
       }
     );
     return response.data;
@@ -114,8 +119,9 @@ export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => 
       `${API_URL}/driver-schedules/get-personal-schedules-from-start-to-end/${today}/${today}`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+          'Authorization': `Bearer ${accessToken}`,
+          'x-client-id': userId
+        }
       }
     );
 

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const initSocket = async (namespace: string) => {
     const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:2028';
     const accessToken = await AsyncStorage.getItem('accessToken');
+    const userId = await AsyncStorage.getItem('userId');
     const token = `Bearer ${accessToken}`;
     console.log('accessToken', accessToken);
     if (!accessToken) {
@@ -12,7 +13,8 @@ export const initSocket = async (namespace: string) => {
     }
     return io(`${SOCKET_URL}/${namespace}`, {
         auth: {
-            authorization: token
+            authorization: token,
+            'x-client-id': userId
         },
         autoConnect: false,
         reconnection: true,
