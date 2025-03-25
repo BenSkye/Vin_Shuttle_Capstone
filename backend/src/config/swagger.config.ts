@@ -27,4 +27,9 @@ export const swaggerConfig = new DocumentBuilder()
     { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
     HEADER.AUTHORIZATION, // Authorization header
   )
+
+  .addBearerAuth(
+    { type: 'apiKey', in: 'header', name: HEADER.CLIENT_ID },
+    HEADER.CLIENT_ID,
+  )
   .build();

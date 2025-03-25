@@ -1,4 +1,4 @@
-import { Inject } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject } from "@nestjs/common";
 import { OSR_SERVICE } from "src/modules/OSR/osr.di-token";
 import { IRoutingOSRMService } from "src/modules/OSR/osr.port";
 import { SHARE_ROUTE_REPOSITORY } from "src/modules/shared-route/shared-route.di-token";
@@ -7,6 +7,8 @@ import { ISharedRouteRepository, ISharedRouteService } from "src/modules/shared-
 import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schema";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
+import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
+import { IVehiclesService } from "src/modules/vehicles/vehicles.port";
 import { TempTripId } from "src/share/enums/osr.enum";
 import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
@@ -18,7 +20,9 @@ export class SharedRouteService implements ISharedRouteService {
         @Inject(OSR_SERVICE)
         private readonly osrService: IRoutingOSRMService,
         @Inject(TRIP_REPOSITORY)
-        private readonly tripRepository: ITripRepository
+        private readonly tripRepository: ITripRepository,
+        @Inject(VEHICLE_SERVICE)
+        private readonly vehicleService: IVehiclesService
     ) { }
 
     async findBestRouteForNewTrip(searchDto: searchSharedRouteDTO): Promise<{
@@ -60,14 +64,51 @@ export class SharedRouteService implements ISharedRouteService {
         let shortestLength = 0;
         console.log('listSharedRoute', listSharedRoute);
         for (const sharedRoute of listSharedRoute) { // loop through all shared routes
-            let stops = sharedRoute.stops;
-            stops = [...stops, newStartStop, newEndStop];
-            stops.filter(stop => stop.isPass === false);
             const vehicleId = sharedRoute.vehicleId.toString();
-            const route = await this.osrService.getRoute(stops, vehicleId);
+            const vehicleCategory = await this.vehicleService.getVehicleCategoryByVehicleId(vehicleId);
+            if (!vehicleCategory) {
+                throw new HttpException(
+                    {
+                        statusCode: HttpStatus.NOT_FOUND,
+                        message: `vehicleCategory ${vehicleId} not found`,
+                        vnMessage: 'Xe không tồn tại',
+                    },
+                    HttpStatus.NOT_FOUND,
+                );
+            }
+            if (vehicleCategory.numberOfSeat < searchDto.numberOfSeats) {
+                continue;
+            }
+            let stops = sharedRoute.stops;
+            stops.filter(stop => stop.isPass === false);
+            //get all stops have pointType endPoint
+            const stopsEndPoint = stops.filter(stop => stop.pointType === SharedRouteStopsType.END_POINT);
+            const listTripsAmount = []
+            for (const endPoint of stopsEndPoint) {
+                const trip = await this.tripRepository.findById(endPoint.trip, ['servicePayload']);
+                if (trip) {
+                    listTripsAmount.push({
+                        tripId: trip._id.toString(),
+                        amount: trip.servicePayload.bookingShare.numberOfSeat
+                    });
+                }
+            }
+            stops = [...stops, newStartStop, newEndStop];
+            listTripsAmount.push({
+                tripId: TempTripId,
+                amount: searchDto.numberOfSeats
+            })
+
+            const route = await this.osrService.getRoute(
+                stops,
+                vehicleId,
+                vehicleCategory.numberOfSeat,
+                listTripsAmount
+            );
             console.log('route', route);
-            if (!route) {
+            if (!route || route.distance === 0) {
                 console.error('Failed to get route for vehicle:', vehicleId);
+                continue;
             }
             console.log('sharedRouteStop', route.sharedRouteStop);
             console.log('perTripDistanceAfterChange71', route.perTripDistanceAfterChange);
@@ -94,6 +135,7 @@ export class SharedRouteService implements ISharedRouteService {
                         }
                     }
                 }
+                //Check sharedRouteStop is valid
                 if (!isValidRoute) {
                     continue;
                 }

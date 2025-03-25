@@ -4,6 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { NOTIFICATION_SERVICE } from "src/modules/notification/notification.di-token";
 import { ICreateNotification } from "src/modules/notification/notification.dto";
 import { INotificationService } from "src/modules/notification/notification.port";
+import { HEADER } from "src/share/interface";
 
 @ApiTags('notification')
 @Controller('notification')
@@ -16,7 +17,8 @@ export class NotificationController {
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Create a notification' })
     @ApiBody({
         type: ICreateNotification,
@@ -40,7 +42,8 @@ export class NotificationController {
     @Get('get/:id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get notification by id' })
     async getNotificationById(
         @Param('id') id: string
@@ -51,7 +54,8 @@ export class NotificationController {
     @Get('personal-notification')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get user notifications' })
     async getUserNotifications(
         @Request() req
@@ -62,7 +66,8 @@ export class NotificationController {
     @Patch('mark-read/:id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Mark notification as read' })
     async markAsRead(
         @Param('id') id: string
@@ -73,7 +78,8 @@ export class NotificationController {
     @Patch('mark-all-read')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Mark all notifications as read' })
     async markAllAsRead(
         @Request() req
@@ -84,7 +90,8 @@ export class NotificationController {
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Delete notification' })
     async deleteNotification(
         @Param('id') id: string

@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
 import { paymentTime } from 'src/share/enums/payment.enum';
-import { TripStatus } from 'src/share/enums/trip.enum';
+import { TripCancelBy, TripStatus } from 'src/share/enums/trip.enum';
 import { Position, PositionSchema, StartOrEndPointSchema } from 'src/share/share.schema';
 
 export type TripDocument = HydratedDocument<Trip>;
@@ -153,6 +153,9 @@ export class Trip {
 
     @Prop({ type: String, default: '' })
     cancellationReason: string;
+
+    @Prop({ type: String, enum: TripCancelBy, default: null })
+    cancelledBy: TripCancelBy;
 
     @Prop({ type: Number, default: 0 })
     refundAmount: number;

@@ -7,6 +7,7 @@ import { USER_SERVICE } from 'src/modules/users/users.di-token';
 import { UpdateUserDto } from 'src/modules/users/users.dto';
 import { IUserService } from 'src/modules/users/users.port';
 import { UserRole } from 'src/share/enums';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -16,7 +17,8 @@ export class UsersController {
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'View  profile user' })
   async getAllUsers() {
     return await this.service.listUsers();
@@ -24,7 +26,8 @@ export class UsersController {
   @Get('get-user-by-role/:role')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'View  profile user by role' })
   @ApiParam({
     name: 'role',
@@ -38,7 +41,8 @@ export class UsersController {
 
   @Get('profile')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'View personal profile' })
   async getProfile(@Request() req) {
     return await this.service.viewProfile(req.user._id);
@@ -46,7 +50,8 @@ export class UsersController {
 
   @Put('profile')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update personal profile' })
   @ApiBody({
     type: UpdateUserDto,
@@ -67,7 +72,8 @@ export class UsersController {
 
   @Put('save-push-token')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Save user push token' })
   @ApiBody({
     type: String,
@@ -86,7 +92,8 @@ export class UsersController {
 
   @Delete('delete-push-token')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Delete user push token' })
   async deletePushToken(@Request() req) {
     return await this.service.deletePushToken(req.user._id);

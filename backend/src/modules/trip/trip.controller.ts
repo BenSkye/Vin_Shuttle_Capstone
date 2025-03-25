@@ -7,6 +7,7 @@ import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { tripParams } from "src/modules/trip/trip.dto";
 import { ITripService } from "src/modules/trip/trip.port";
 import { ServiceType, TripStatus, UserRole } from "src/share/enums";
+import { HEADER } from "src/share/interface";
 
 @ApiTags('trip')
 @Controller('trip')
@@ -22,7 +23,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.CUSTOMER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get customer personal trip' })
   async getCustomerPersonalTrip(@Request() req) {
     return await this.tripService.getPersonalCustomerTrip(req.user._id);
@@ -33,7 +35,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver personal trip' })
   async getDriverPersonalTrip(
     @Request() req,
@@ -45,7 +48,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.CUSTOMER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get trip by id' })
   async getTripById(@Param('id') id: string, @Request() req) {
     return await this.tripService.getPersonalCustomerTripById(req.user._id, id)
@@ -55,7 +59,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Driver pickup customer' })
   @ApiBody({
     type: String,
@@ -77,7 +82,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Driver start trip' })
   @ApiBody({
     type: String,
@@ -99,7 +105,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.DRIVER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Driver complete trip' })
   @ApiBody({
     type: String,
@@ -117,10 +124,38 @@ export class TripController {
     return await this.tripService.driverCompleteTrip(data.tripId, req.user._id)
   }
 
+  @Post('cancel-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Cancel trip by customer or driver' })
+  @ApiBody({
+    type: String,
+    description: 'Cancel trip',
+    examples: {
+      'Cancel trip': {
+        value: {
+          tripId: '67b6c79187febb73be4b3f09',
+          reason: 'I want to cancel this trip',
+        },
+      },
+    },
+  })
+  async cancelTrip(
+    @Body() data: {
+      tripId: string;
+      reason: string
+    },
+    @Request() req) {
+    return await this.tripService.cancelTrip(req.user._id, data.tripId, data.reason);
+  }
+
   @Post('calculate-bus-route-fare')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Calculate bus route fare' })
   async calculateBusRouteFare(
     @Body() data: { routeId: string; fromStopId: string; toStopId: string; numberOfSeats: number },
@@ -138,7 +173,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get total amount' })
   async totalAmount() {
     return await this.tripService.totalAmount();
@@ -149,7 +185,8 @@ export class TripController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get list of trips with filters' })
   @ApiQuery({
     name: 'status',

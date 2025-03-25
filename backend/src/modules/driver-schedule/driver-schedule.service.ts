@@ -187,7 +187,7 @@ export class DriverScheduleService implements IDriverScheduleService {
         vnMessage: `Không tìm thấy xe ${driverScheduledto.vehicle}`,
       }, HttpStatus.BAD_REQUEST);
     }
-    if (vehicle.vehicleCondition !== VehicleCondition.AVAILABLE) {
+    if (vehicle.vehicleCondition !== VehicleCondition.IN_USE) {
       throw new HttpException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: `Vehicle ${driverScheduledto.vehicle} is not available`,

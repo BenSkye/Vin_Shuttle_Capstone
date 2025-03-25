@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+
 
 const NavBar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -15,12 +17,12 @@ const NavBar = () => {
     useEffect(() => {
         // Check login status on component mount
         const checkLoginStatus = () => {
-            const token = localStorage.getItem('accessToken');
+            const token = Cookies.get('authorization'); // Retrieve token from cookies
             setIsLoggedIn(!!token);
 
             if (token) {
                 try {
-                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    const user = JSON.parse(Cookies.get('user') || '{}'); // Retrieve user data from cookies
                     setUserName(user.name || 'User');
                     setUserRole(user.role || 'Admin');
                 } catch (error) {

@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
+import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-category.schema';
 import { ICreateVehicle, IUpdateVehicle, vehicleParams } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository, IVehiclesService } from 'src/modules/vehicles/vehicles.port';
@@ -76,5 +77,12 @@ export class VehiclesService implements IVehiclesService {
     }
     const result = await this.vehicleRepository.getListVehicles(filter, []);
     return result;
+  }
+  async getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null> {
+    const vehicle = await this.vehicleRepository.getVehicle({ _id: vehicleId }, ['categoryId']);
+    const vehicleCategoryRepository = await this.vehicleCategoryRepository.getById(
+      vehicle.categoryId.toString()
+    );
+    return vehicleCategoryRepository;
   }
 }

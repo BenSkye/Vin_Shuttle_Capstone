@@ -92,7 +92,8 @@ export class AuthController {
   @Put('change-password')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  @ApiBearerAuth('authorization')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Change user password' })
   @ApiBody({
     type: 'changeUserPassword',

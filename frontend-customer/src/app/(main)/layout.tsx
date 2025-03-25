@@ -1,24 +1,13 @@
-import { Layout } from 'antd'
-import Header from './components/common/Header'
-import Footer from './components/common/Footer'
+import PrivateLayout from '@/components/layout/PrivateLayout'
 
+interface MainLayoutProps {
+    children: React.ReactNode
+}
 
-export default function MainLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function MainLayout({ children }: MainLayoutProps) {
     return (
-
-        <Layout className="">
-            <Header />
-            <main className="bg-white min-h-[calc(100vh-64px-70px)]">
-                <div className="container mx-auto px-4">
-                    {children}
-                </div>
-            </main>
-            <Footer />
-        </Layout>
-
-    );
+        <PrivateLayout>
+            {children}
+        </PrivateLayout>
+    )
 }

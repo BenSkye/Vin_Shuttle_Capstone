@@ -7,6 +7,7 @@ import { RATING_SERVICE } from "src/modules/rating/rating.di-token";
 import { ICreateRating, IGetAverageRating } from "src/modules/rating/rating.dto";
 import { IRatingService } from "src/modules/rating/rating.port";
 import { ServiceType, UserRole } from "src/share/enums";
+import { HEADER } from "src/share/interface";
 
 @ApiTags('rating')
 @Controller('rating')
@@ -20,7 +21,8 @@ export class RatingController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiBody({
         type: Object,
         description: 'Create a Rating for customer',
@@ -46,7 +48,8 @@ export class RatingController {
     @Get('get-rating-by-trip-id/:tripId')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     async getRatingByTripId(
         @Param('tripId') tripId: string
     ) {
@@ -57,7 +60,8 @@ export class RatingController {
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
     @Roles(UserRole.ADMIN, UserRole.MANAGER)
-    @ApiBearerAuth('authorization')
+    @ApiBearerAuth(HEADER.AUTHORIZATION)
+    @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get average rating of driver or customer' })
     @ApiQuery({
         name: 'serviceType',
