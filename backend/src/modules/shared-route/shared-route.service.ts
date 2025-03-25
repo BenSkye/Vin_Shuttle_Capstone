@@ -9,6 +9,7 @@ import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesService } from "src/modules/vehicles/vehicles.port";
+import { ServiceType } from "src/share/enums";
 import { TempTripId } from "src/share/enums/osr.enum";
 import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
@@ -165,7 +166,6 @@ export class SharedRouteService implements ISharedRouteService {
         }
     }
 
-
     async createSharedRoute(createSharedRouteDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument> {
         return await this.sharedRouteRepository.create(createSharedRouteDto);
     }
@@ -258,6 +258,37 @@ export class SharedRouteService implements ISharedRouteService {
         return await this.sharedRouteRepository.update(sharedRouteId, {
             stops: newStop
         });
+    }
+
+    async getSharedRouteById(shareRouteId: string): Promise<SharedRouteDocument> {
+        return await this.sharedRouteRepository.findById(shareRouteId);
+    }
+
+
+    async getSharedRouteByTripId(tripId: string): Promise<SharedRouteDocument> {
+        const trip = await this.tripRepository.findById(tripId, ['servicePayload']);
+        if (!trip) {
+            throw new HttpException(
+                {
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Trip not found',
+                    vnMessage: 'Chuyến đi không tồn tại',
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+        if (trip.serviceType !== ServiceType.BOOKING_SHARE) {
+            throw new HttpException(
+                {
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'Trip is not shared route',
+                    vnMessage: 'Chuyến đi không phải là chuyến đi chia sẻ',
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+        const sharedRouteId = trip.servicePayload.bookingShare.sharedRoute.toString();
+        return await this.sharedRouteRepository.findById(sharedRouteId);
     }
 
 }
