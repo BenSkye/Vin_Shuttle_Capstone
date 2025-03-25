@@ -15,6 +15,8 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
     const router = useRouter()
 
     useEffect(() => {
+        console.log('PrivateLayout: isLoggedIn', isLoggedIn)
+        console.log('PrivateLayout: isLoading', isLoading)
         if (!isLoading && !isLoggedIn) {
             router.replace(Routes.AUTH.LOGIN)
         }

@@ -526,7 +526,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if ([TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
+    if (![TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
@@ -563,6 +563,8 @@ export class TripService implements ITripService {
   }
 
 
+
+
   // run every minute
   @Cron(CronExpression.EVERY_MINUTE, {
     name: 'handleTripStartTimeout'
@@ -583,4 +585,6 @@ export class TripService implements ITripService {
       );
     }
   }
+
+
 }
