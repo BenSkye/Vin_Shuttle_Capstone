@@ -8,7 +8,7 @@ import { bookingStatusColor } from '@/constants/booking.constants'
 
 import { IBooking } from '@/interface/booking.interface'
 import { getCustomerPersonalBookingById } from '@/service/booking.service'
-import { formatVndPrice } from '@/utils/price.until'
+import { formatVndPrice } from '@/utils/price'
 
 export default function BookingDetailPage({ id }: { id: string }) {
   const [booking, setBooking] = useState<IBooking | null>(null)
@@ -73,10 +73,10 @@ export default function BookingDetailPage({ id }: { id: string }) {
             <p className="text-sm text-gray-500">Trạng Thái</p>
             <span
               className={`rounded-full px-3 py-1 text-sm font-medium ${bookingStatusColor[booking.status] === 'green'
-                  ? 'bg-green-100 text-green-800'
-                  : bookingStatusColor[booking.status] === 'red'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                ? 'bg-green-100 text-green-800'
+                : bookingStatusColor[booking.status] === 'red'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
                 }`}
             >
               {booking.status.replace('_', ' ')}
@@ -104,10 +104,10 @@ export default function BookingDetailPage({ id }: { id: string }) {
               <div className="flex flex-col items-center">
                 <div
                   className={`h-4 w-4 rounded-full ${bookingStatusColor[history.status] === 'green'
-                      ? 'bg-green-500'
-                      : bookingStatusColor[history.status] === 'red'
-                        ? 'bg-red-500'
-                        : 'bg-yellow-500'
+                    ? 'bg-green-500'
+                    : bookingStatusColor[history.status] === 'red'
+                      ? 'bg-red-500'
+                      : 'bg-yellow-500'
                     }`}
                 ></div>
                 {index !== booking.statusHistory.length - 1 && (

@@ -5,7 +5,7 @@ import { FaCar } from 'react-icons/fa'
 
 import { AvailableVehicle } from '@/interface/booking.interface'
 import { BookingHourRequest } from '@/interface/booking.interface'
-import { formatVndPrice } from '@/utils/price.until'
+import { formatVndPrice } from '@/utils/price'
 
 const { Title } = Typography
 

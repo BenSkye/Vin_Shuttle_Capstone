@@ -9,7 +9,7 @@ import { bookingStatusColor } from '@/constants/booking.constants'
 
 import { IBooking } from '@/interface/booking.interface'
 import { getCustomerPersonalBooking } from '@/service/booking.service'
-import { formatVndPrice } from '@/utils/price.until'
+import { formatVndPrice } from '@/utils/price'
 
 const { Title } = Typography
 
