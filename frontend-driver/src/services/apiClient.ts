@@ -5,7 +5,7 @@ const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true'
+    'ngrok-skip-browser-warning': 'true',
   },
 });
 
@@ -24,7 +24,8 @@ apiClient.interceptors.request.use(
       console.error('Error getting accessToken from AsyncStorage:', error);
       return config; // Trả về config gốc nếu có lỗi
     }
-  }, (error) => {
+  },
+  (error) => {
     console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }

@@ -1,5 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  SafeAreaView,
+} from 'react-native';
 import NotificationCard from '~/components/NotificationCard';
 import { useNotification } from '~/context/NotificationContext';
 import { styles } from '~/styles/NotificationStyle';
@@ -19,7 +27,7 @@ export default function NotificationScreen() {
 
   const handleMarkAllRead = async () => {
     if (unreadCount === 0) return; // Không làm gì nếu không có thông báo chưa đọc
-    
+
     setLoading(true);
     try {
       await markAllAsRead();
@@ -47,10 +55,8 @@ export default function NotificationScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.unreadCountText}>
-          Số thông báo chưa đọc: {unreadCount}
-        </Text>
-        
+        <Text style={styles.unreadCountText}>Số thông báo chưa đọc: {unreadCount}</Text>
+
         {/* <TouchableOpacity 
           style={[
             styles.markAllButton,
@@ -74,12 +80,7 @@ export default function NotificationScreen() {
         data={sortedNotifications}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <NotificationCard notification={item} />}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
     </View>
   );

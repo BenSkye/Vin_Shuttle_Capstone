@@ -17,11 +17,7 @@ const EarlyEndConfirmationModal: React.FC<EarlyEndConfirmationModalProps> = ({
   remainingTimeFormatted,
 }) => {
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}>
+    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.confirmationModal}>
           <View style={styles.confirmationHeader}>
@@ -31,23 +27,17 @@ const EarlyEndConfirmationModal: React.FC<EarlyEndConfirmationModalProps> = ({
 
           <View style={styles.confirmationBody}>
             <Text style={styles.confirmationText}>
-              Bạn còn {remainingTimeFormatted} phút trong thời gian thuê xe.
-              Bạn có chắc chắn muốn kết thúc chuyến đi sớm không?
+              Bạn còn {remainingTimeFormatted} phút trong thời gian thuê xe. Bạn có chắc chắn muốn
+              kết thúc chuyến đi sớm không?
             </Text>
           </View>
 
           <View style={styles.confirmationButtons}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Hủy</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={onConfirm}
-            >
+            <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
               <Text style={styles.confirmButtonText}>Kết thúc</Text>
             </TouchableOpacity>
           </View>

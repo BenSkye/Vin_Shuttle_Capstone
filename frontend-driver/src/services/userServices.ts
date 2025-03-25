@@ -1,19 +1,13 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '~/services/apiClient';
-
+import { User } from '~/interface/user';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // Define interface for user profile
-interface UserProfile {
-  name: string;
-  phone: string;
-  email: string;
-  avatar: string;
-}
 
 // Get user profile function
-const getUserProfile = async (): Promise<UserProfile> => {
+const getUserProfile = async (): Promise<User> => {
   const accessToken = await AsyncStorage.getItem('accessToken');
   const userId = await AsyncStorage.getItem('userId');
 
@@ -28,9 +22,9 @@ const getUserProfile = async (): Promise<UserProfile> => {
   try {
     const response = await axios.get(`${API_URL}/users/profile`, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'x-client-id': userId
-      }
+        Authorization: `Bearer ${accessToken}`,
+        'x-client-id': userId,
+      },
     });
     return response.data;
   } catch (error: any) {
@@ -57,20 +51,20 @@ const deleteUserPushToken = async (): Promise<void> => {
     // Kiểm tra xem token và userId có tồn tại không trước khi gọi API
     const accessToken = await AsyncStorage.getItem('accessToken');
     const userId = await AsyncStorage.getItem('userId');
-    
+
     if (!accessToken || !userId) {
       console.log('No token or userId found when trying to delete push token');
       return; // Không cần throw error, chỉ return
     }
-    
+
     // Gọi API trực tiếp với axios thay vì apiClient để kiểm soát headers
     await axios.delete(`${API_URL}/users/delete-push-token`, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'x-client-id': userId
-      }
+        Authorization: `Bearer ${accessToken}`,
+        'x-client-id': userId,
+      },
     });
-    
+
     console.log('Push token deleted successfully');
   } catch (error: any) {
     // Log chi tiết lỗi để debug
@@ -79,10 +73,10 @@ const deleteUserPushToken = async (): Promise<void> => {
       console.log('Error response status:', error.response.status);
       console.log('Error response data:', error.response.data);
     }
-    
+
     // Không throw error để đảm bảo quá trình logout vẫn tiếp tục
   }
 };
 
 export { getUserProfile, updateUserPushToken, deleteUserPushToken };
-export type { UserProfile };
+export type { User };

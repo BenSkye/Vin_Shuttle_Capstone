@@ -66,8 +66,7 @@ function TabNavigator() {
           fontSize: 12,
           paddingBottom: 5,
         },
-      })}
-    >
+      })}>
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
       <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
@@ -77,15 +76,15 @@ function TabNavigator() {
         component={NotificationScreen}
         options={{
           tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#FF3B30' }
+          tabBarBadgeStyle: { backgroundColor: '#FF3B30' },
         }}
         listeners={{
-          tabPress: e => {
+          tabPress: (e) => {
             // Mark all notifications as read when the tab is pressed
             if (unreadCount > 0) {
               // markAllAsRead();
             }
-          }
+          },
         }}
       />
       <Tab.Screen name="Tin nhắn" component={ConversationScreen} />
@@ -105,10 +104,9 @@ export default function AppNavigator() {
     );
   }
 
-
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center">
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#00C000" />
       </View>
     );
@@ -117,14 +115,11 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={isLogin ? "Home" : "Login"}
+        initialRouteName={isLogin ? 'Home' : 'Login'}
         screenOptions={{
           headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Login">
-          {(props) => <LoginScreen {...props} />}
-        </Stack.Screen>
+        }}>
+        <Stack.Screen name="Login">{(props) => <LoginScreen {...props} />}</Stack.Screen>
         <Stack.Screen name="Home" component={TabNavigator} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="TripTracking" component={TripTrackingScreen} />

@@ -48,10 +48,10 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       setLoading(true); // Hiển thị loading khi đăng xuất
-      
+
       // Cập nhật context (sẽ xóa push token và thông tin đăng nhập)
       await userHaslogout();
-      
+
       // Điều hướng về Login
       navigation.reset({
         index: 0,
@@ -68,7 +68,7 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
+      <SafeAreaView className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#00C000" />
       </SafeAreaView>
     );
@@ -77,8 +77,8 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView>
-        <View className="bg-white px-4 pt-6 pb-8">
-          <Text className="text-2xl font-bold text-gray-800 mb-6">Thông tin cá nhân</Text>
+        <View className="bg-white px-4 pb-8 pt-6">
+          <Text className="mb-6 text-2xl font-bold text-gray-800">Thông tin cá nhân</Text>
           <View className="items-center">
             <View className="relative">
               <Image
@@ -87,39 +87,39 @@ export default function ProfileScreen() {
                     ? require('../assets/default-avatar.png')
                     : { uri: profile.avatar }
                 }
-                className="w-28 h-28 rounded-full"
+                className="h-28 w-28 rounded-full"
                 onError={() => setImageError(true)}
               />
-              <View className="absolute bottom-0 right-0 bg-gray-100 p-2 rounded-full border-2 border-white">
+              <View className="absolute bottom-0 right-0 rounded-full border-2 border-white bg-gray-100 p-2">
                 <Ionicons name="camera" size={20} color="#00C000" />
               </View>
             </View>
-            <Text className="text-xl font-semibold mt-4 text-gray-800">{profile?.name}</Text>
-            <Text className="text-gray-500 mt-1">Tài xế</Text>
+            <Text className="mt-4 text-xl font-semibold text-gray-800">{profile?.name}</Text>
+            <Text className="mt-1 text-gray-500">Tài xế</Text>
           </View>
         </View>
 
-        <View className="px-4 mt-4">
-          <View className="bg-white rounded-xl shadow-sm">
-            <View className="p-4 border-b border-gray-100">
-              <Text className="text-lg font-semibold text-gray-800 mb-4">Thông tin liên hệ</Text>
+        <View className="mt-4 px-4">
+          <View className="rounded-xl bg-white shadow-sm">
+            <View className="border-b border-gray-100 p-4">
+              <Text className="mb-4 text-lg font-semibold text-gray-800">Thông tin liên hệ</Text>
               <View className="space-y-4">
                 <View className="flex-row items-center">
-                  <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-green-50">
                     <Ionicons name="call-outline" size={20} color="#00C000" />
                   </View>
                   <View className="ml-3">
-                    <Text className="text-gray-500 text-sm">Số điện thoại</Text>
-                    <Text className="text-gray-800 font-medium">{profile?.phone}</Text>
+                    <Text className="text-sm text-gray-500">Số điện thoại</Text>
+                    <Text className="font-medium text-gray-800">{profile?.phone}</Text>
                   </View>
                 </View>
                 <View className="flex-row items-center">
-                  <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-green-50">
                     <Ionicons name="mail-outline" size={20} color="#00C000" />
                   </View>
                   <View className="ml-3">
-                    <Text className="text-gray-500 text-sm">Email</Text>
-                    <Text className="text-gray-800 font-medium">{profile?.email}</Text>
+                    <Text className="text-sm text-gray-500">Email</Text>
+                    <Text className="font-medium text-gray-800">{profile?.email}</Text>
                   </View>
                 </View>
               </View>
@@ -128,15 +128,12 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={handleLogout}
-            className="mt-6 bg-red-500 rounded-xl p-4 flex-row items-center justify-center"
-          >
+            className="mt-6 flex-row items-center justify-center rounded-xl bg-red-500 p-4">
             <Ionicons name="log-out-outline" size={20} color="white" />
-            <Text className="text-white font-medium ml-2">Đăng xuất</Text>
+            <Text className="ml-2 font-medium text-white">Đăng xuất</Text>
           </TouchableOpacity>
 
-          {error && (
-            <Text className="text-red-500 text-center mt-4 px-4">{error}</Text>
-          )}
+          {error && <Text className="mt-4 px-4 text-center text-red-500">{error}</Text>}
         </View>
       </ScrollView>
     </SafeAreaView>
