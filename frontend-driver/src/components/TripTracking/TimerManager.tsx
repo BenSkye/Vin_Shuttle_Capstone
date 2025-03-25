@@ -11,7 +11,7 @@ const TimerManager = ({
   totalMinutes,
   isActive,
   onTimerUpdate,
-  onTimerComplete
+  onTimerComplete,
 }: TimerManagerProps) => {
   useEffect(() => {
     if (!isActive || totalMinutes <= 0) return;

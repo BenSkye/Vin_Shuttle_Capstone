@@ -18,14 +18,14 @@ const DestinationInfo = ({
   servicePayload,
   showDestination,
   routeToDestination,
-  onToggleRouteDestination
+  onToggleRouteDestination,
 }: DestinationInfoProps) => {
   if (serviceType !== ServiceType.BOOKING_DESTINATION || !showDestination) {
     return null;
   }
 
   const payload = servicePayload as BookingDestinationPayloadDto;
-  
+
   return (
     <TouchableOpacity
       style={[styles.destinationContainer, routeToDestination ? styles.activeDestination : {}]}
@@ -39,9 +39,7 @@ const DestinationInfo = ({
           </Text>
         </View>
       </View>
-      <Text style={styles.destinationAddress}>
-        {payload.bookingDestination.endPoint.address}
-      </Text>
+      <Text style={styles.destinationAddress}>{payload.bookingDestination.endPoint.address}</Text>
       {payload.bookingDestination.distanceEstimate && (
         <Text style={styles.destinationDistance}>
           Khoảng cách: {(payload.bookingDestination.distanceEstimate / 1000).toFixed(1)} km

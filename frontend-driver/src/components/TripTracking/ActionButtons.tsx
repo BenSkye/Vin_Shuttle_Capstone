@@ -27,7 +27,7 @@ const ActionButtons = ({
   onStartTrip,
   onCompleteTrip,
   onEarlyEnd,
-  formatRemainingTime
+  formatRemainingTime,
 }: ActionButtonsProps) => {
   if (loading) {
     return (
@@ -38,14 +38,11 @@ const ActionButtons = ({
   }
 
   const status = tripStatus.toLowerCase();
-  
+
   switch (status) {
     case 'assigned':
       return (
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onPickup}
-          disabled={!isTracking}>
+        <TouchableOpacity style={styles.actionButton} onPress={onPickup} disabled={!isTracking}>
           <MaterialIcons name="person" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Đón khách</Text>
         </TouchableOpacity>

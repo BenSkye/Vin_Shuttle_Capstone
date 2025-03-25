@@ -20,10 +20,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
 }) => {
   return (
     <View style={styles.customerContainer}>
-      <TouchableOpacity
-        style={styles.customerRowHeader}
-        onPress={onToggleCollapse}
-      >
+      <TouchableOpacity style={styles.customerRowHeader} onPress={onToggleCollapse}>
         <View style={styles.customerAvatarContainer}>
           <View style={styles.customerAvatar}>
             <Text style={styles.customerInitial}>
@@ -37,7 +34,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
         </View>
         <TouchableOpacity onPress={onToggleCollapse}>
           <MaterialIcons
-            name={isCollapsed ? "keyboard-arrow-down" : "keyboard-arrow-up"}
+            name={isCollapsed ? 'keyboard-arrow-down' : 'keyboard-arrow-up'}
             size={24}
             color="#333"
           />
@@ -59,10 +56,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
                 ? `Điểm đón: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}`
                 : 'N/A'}
           </Text>
-          <TouchableOpacity
-            style={styles.viewMoreButton}
-            onPress={onViewMorePress}
-          >
+          <TouchableOpacity style={styles.viewMoreButton} onPress={onViewMorePress}>
             <Text style={styles.viewMoreText}>Xem chi tiết</Text>
             <MaterialIcons name="keyboard-arrow-right" size={18} color="#1E88E5" />
           </TouchableOpacity>
