@@ -40,6 +40,7 @@ type AuthContextType = {
     name?: string
   ) => void
   logout: () => void
+
 }
 
 // Create context with a default value
@@ -60,8 +61,10 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [authUser, setAuthUser] = useState<User | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
+    setIsLoading(true)
     const token = Cookies.get('authorization')
     const userId = Cookies.get('userId')
     if (token && userId) {
@@ -74,12 +77,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAuthUser(user)
       setIsLoggedIn(true)
     }
+    setIsLoading(false)
   }, [])
 
   const logout = useCallback(() => {
+    setIsLoading(true)
     setAuthUser(null)
     setIsLoggedIn(false)
     clearAuthCookies()
+    setIsLoading(false)
   }, [])
 
   const setIsLoginFalse = useCallback(() => {
@@ -144,6 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoggedIn,
     login,
     logout,
+    isLoading,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
