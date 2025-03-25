@@ -30,4 +30,7 @@ export interface ISharedRouteService {
     passStartPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument>
     passEndPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument>
     saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument>
+    getSharedRouteById(id: string): Promise<SharedRouteDocument>
+    getSharedRouteByTripId(tripId: string): Promise<SharedRouteDocument>
+
 }

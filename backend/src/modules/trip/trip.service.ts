@@ -563,6 +563,8 @@ export class TripService implements ITripService {
   }
 
 
+
+
   // run every minute
   @Cron(CronExpression.EVERY_MINUTE, {
     name: 'handleTripStartTimeout'
@@ -583,4 +585,6 @@ export class TripService implements ITripService {
       );
     }
   }
+
+
 }
