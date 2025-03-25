@@ -8,4 +8,9 @@ export enum TripStatus {
   DROPPED_OFF = 'dropped_off',
 }
 
+export enum TripCancelBy {
+  CUSTOMER = 'customer',
+  DRIVER = 'driver',
+}
+
 export const GUARANTEED_TIME_BETWEEN_TRIPS = 2; // minutes

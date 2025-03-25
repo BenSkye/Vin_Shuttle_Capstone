@@ -33,4 +33,5 @@ export interface ITripService {
 
   totalAmount(): Promise<number>;
   getTripByQuery(query: tripParams): Promise<TripDocument[]>;
+  cancelTrip(userId: string, id: string, reason: string): Promise<TripDocument>;
 }

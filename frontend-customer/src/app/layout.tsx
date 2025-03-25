@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { AntdRegistry } from '@/lib/AntdRegistry'
+import { AntdRegistry } from '@/libs/AntdRegistry'
 import BaseLayout from '@/components/layout/Baselayout'
 import { Providers } from '@/providers'
 import '@/styles/globals.css'
