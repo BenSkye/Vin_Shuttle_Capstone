@@ -526,7 +526,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if ([TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
+    if (![TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
