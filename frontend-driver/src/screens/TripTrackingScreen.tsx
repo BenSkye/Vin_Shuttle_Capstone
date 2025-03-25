@@ -25,7 +25,7 @@ import {
   ProximityInfo,
   DestinationInfo,
   ActionButtons,
-  TimerManager
+  TimerManager,
 } from '~/components/TripTracking';
 import { RouteProp } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -39,7 +39,7 @@ const TripTrackingScreen = () => {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
-  
+
   // States
   const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({
     lat: 0,
@@ -75,11 +75,11 @@ const TripTrackingScreen = () => {
       setTrip(route.params.trip as Trip);
     }
   }, [route.params]);
-  
+
   // Initialize location data based on trip type
   const initializeLocationData = () => {
     if (!trip) return;
-    
+
     if (trip.serviceType === ServiceType.BOOKING_HOUR) {
       const payload = trip.servicePayload as BookingHourPayloadDto;
       setCustomerPickupLocation(payload.bookingHour.startPoint.position);
@@ -87,7 +87,7 @@ const TripTrackingScreen = () => {
       const payload = trip.servicePayload as BookingDestinationPayloadDto;
       setCustomerPickupLocation(payload.bookingDestination.startPoint.position);
       setCustomerDestination(payload.bookingDestination.endPoint.position);
-      
+
       // Only show destination if trip is in progress
       const isInProgress = trip.status.toLowerCase() === 'in_progress';
       setShowDestination(isInProgress);
@@ -95,15 +95,22 @@ const TripTrackingScreen = () => {
     } else if (trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE) {
       const payload = trip.servicePayload as BookingScenicRoutePayloadDto;
       setCustomerPickupLocation(payload.bookingScenicRoute.startPoint.position);
-      
+
       // Fetch scenic route data if trip is in progress
       const isInProgress = trip.status.toLowerCase() === 'in_progress';
-      if (isInProgress && payload.bookingScenicRoute.routeId && typeof payload.bookingScenicRoute.routeId === 'object') {
+      if (
+        isInProgress &&
+        payload.bookingScenicRoute.routeId &&
+        typeof payload.bookingScenicRoute.routeId === 'object'
+      ) {
         setScenicRouteData(payload.bookingScenicRoute.routeId);
         setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
         setShowScenicRoute(true);
       } else if (isInProgress && payload.bookingScenicRoute.routeId) {
-        fetchScenicRouteData(payload.bookingScenicRoute.routeId._id || payload.bookingScenicRoute.routeId as unknown as string);
+        fetchScenicRouteData(
+          payload.bookingScenicRoute.routeId._id ||
+            (payload.bookingScenicRoute.routeId as unknown as string)
+        );
       }
     }
   };
@@ -125,11 +132,11 @@ const TripTrackingScreen = () => {
 
   // Event handlers
   const handleBack = () => navigation.goBack();
-  
+
   const toggleCustomerInfo = () => setShowCustomerInfo(!showCustomerInfo);
-  
+
   const toggleCustomerCollapse = () => setIsCustomerInfoCollapsed(!isCustomerInfoCollapsed);
-  
+
   const toggleRouteDestination = () => {
     if (showDestination) {
       setRouteToDestination(!routeToDestination);
@@ -231,15 +238,19 @@ const TripTrackingScreen = () => {
         const payload = trip.servicePayload as BookingScenicRoutePayloadDto;
         if (payload.bookingScenicRoute.routeId) {
           // If routeId is already an object with data
-          if (typeof payload.bookingScenicRoute.routeId === 'object' && payload.bookingScenicRoute.routeId._id) {
+          if (
+            typeof payload.bookingScenicRoute.routeId === 'object' &&
+            payload.bookingScenicRoute.routeId._id
+          ) {
             setScenicRouteData(payload.bookingScenicRoute.routeId);
             setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
             setShowScenicRoute(true);
           } else {
             // If routeId is just an ID, fetch the data
-            const routeId = typeof payload.bookingScenicRoute.routeId === 'string' 
-              ? payload.bookingScenicRoute.routeId 
-              : payload.bookingScenicRoute.routeId._id;
+            const routeId =
+              typeof payload.bookingScenicRoute.routeId === 'string'
+                ? payload.bookingScenicRoute.routeId
+                : payload.bookingScenicRoute.routeId._id;
             fetchScenicRouteData(routeId);
           }
         }
@@ -332,7 +343,9 @@ const TripTrackingScreen = () => {
         detinateLocation={showDestination ? customerDestination : null}
         showRouteToDestination={routeToDestination}
         waypoints={showScenicRoute ? waypoints : []}
-        scenicRouteCoordinates={showScenicRoute && scenicRouteData ? scenicRouteData.scenicRouteCoordinates : []}
+        scenicRouteCoordinates={
+          showScenicRoute && scenicRouteData ? scenicRouteData.scenicRouteCoordinates : []
+        }
         showScenicRoute={showScenicRoute}
       />
 
@@ -368,31 +381,27 @@ const TripTrackingScreen = () => {
         {/* Show scenic route information */}
         {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
           <View style={styles.scenicRouteInfo}>
-            <TouchableOpacity 
-              style={styles.scenicRouteHeader}
-              onPress={toggleScenicRouteCollapse}
-            >
+            <TouchableOpacity style={styles.scenicRouteHeader} onPress={toggleScenicRouteCollapse}>
               <Text style={styles.scenicRouteTitle}>
                 Tuyến đường cố định: {scenicRouteData.name}
               </Text>
-              <Ionicons 
-                name={isScenicRouteCollapsed ? "chevron-down" : "chevron-up"} 
-                size={24} 
-                color="#9C27B0" 
+              <Ionicons
+                name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
+                size={24}
+                color="#9C27B0"
               />
             </TouchableOpacity>
-            
+
             {!isScenicRouteCollapsed && (
               <View style={styles.scenicRouteContent}>
-                <Text style={styles.scenicRouteDescription}>
-                  {scenicRouteData.description}
-                </Text>
+                <Text style={styles.scenicRouteDescription}>{scenicRouteData.description}</Text>
                 <Text style={styles.scenicRouteStats}>
-                  Dự kiến: {scenicRouteData.totalDistance}km - {Math.round(scenicRouteData.estimatedDuration / 60)} phút
+                  Dự kiến: {scenicRouteData.totalDistance}km -{' '}
+                  {Math.round(scenicRouteData.estimatedDuration / 60)} phút
                 </Text>
                 {waypoints.length > 0 && (
                   <Text style={styles.waypointText}>
-                    Điểm tham quan: {waypoints.map(wp => wp.name).join(', ')}
+                    Điểm tham quan: {waypoints.map((wp) => wp.name).join(', ')}
                   </Text>
                 )}
               </View>

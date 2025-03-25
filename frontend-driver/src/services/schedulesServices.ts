@@ -1,32 +1,12 @@
-import axios from "axios";
+import apiClient from '~/services/apiClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Schedule } from '~/interface/schedule';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-interface Schedule {
-  _id: string;
-  driver: {
-    _id: string;
-    name: string;
-  };
-  date: string;
-  shift: string;
-  vehicle: {
-    _id: string;
-    name: string;
-  };
-  status: string;
-  isLate: boolean;
-  isEarlyCheckout: boolean;
-  createdAt: string;
-  updatedAt: string;
-  checkinTime: string;
-  checkoutTime: string;
-}
-
-export const getPersonalSchedules = async (startDate: string, endDate: string): Promise<Schedule[]> => {
+export const getPersonalSchedules = async (
+  startDate: string,
+  endDate: string
+): Promise<Schedule[]> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
     const userId = await AsyncStorage.getItem('userId');
 
     if (!userId) {
@@ -35,13 +15,8 @@ export const getPersonalSchedules = async (startDate: string, endDate: string): 
 
     console.log('Fetching schedules for user:', userId);
 
-    const response = await axios.get(
-      `${API_URL}/driver-schedules/get-personal-schedules-from-start-to-end/${startDate}/${endDate}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    const response = await apiClient.get(
+      `/driver-schedules/get-personal-schedules-from-start-to-end/${startDate}/${endDate}`
     );
 
     // Lọc chỉ lấy lịch của driver đang đăng nhập
@@ -56,7 +31,7 @@ export const getPersonalSchedules = async (startDate: string, endDate: string): 
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
-      url: error.config?.url
+      url: error.config?.url,
     });
     throw error;
   }
@@ -64,15 +39,7 @@ export const getPersonalSchedules = async (startDate: string, endDate: string): 
 
 export const driverCheckin = async (driverScheduleId: string): Promise<Schedule> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.get(
-      `${API_URL}/driver-schedules/driver-checkin/${driverScheduleId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await apiClient.get(`/driver-schedules/driver-checkin/${driverScheduleId}`);
     return response.data;
   } catch (error: any) {
     console.error('Error checking in:', error);
@@ -82,15 +49,7 @@ export const driverCheckin = async (driverScheduleId: string): Promise<Schedule>
 
 export const driverCheckout = async (driverScheduleId: string): Promise<Schedule> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.get(
-      `${API_URL}/driver-schedules/driver-checkout/${driverScheduleId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await apiClient.get(`/driver-schedules/driver-checkout/${driverScheduleId}`);
     return response.data;
   } catch (error: any) {
     console.error('Error checking out:', error);
@@ -100,7 +59,6 @@ export const driverCheckout = async (driverScheduleId: string): Promise<Schedule
 
 export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
     const userId = await AsyncStorage.getItem('userId');
 
     if (!userId) {
@@ -110,13 +68,9 @@ export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => 
     const today = new Date().toISOString().split('T')[0];
     //today have type 2025-30-03
     console.log('today', today);
-    const response = await axios.get(
-      `${API_URL}/driver-schedules/get-personal-schedules-from-start-to-end/${today}/${today}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+
+    const response = await apiClient.get(
+      `/driver-schedules/get-personal-schedules-from-start-to-end/${today}/${today}`
     );
 
     return response.data;
@@ -124,8 +78,4 @@ export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => 
     console.error('Error fetching today schedule:', error);
     throw error;
   }
-}
-
-
-
-
+};

@@ -5,7 +5,7 @@ const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true'
+    'ngrok-skip-browser-warning': 'true',
   },
 });
 
@@ -13,16 +13,19 @@ apiClient.interceptors.request.use(
   async (config) => {
     try {
       const accessToken = await AsyncStorage.getItem('accessToken');
+      const userId = await AsyncStorage.getItem('userId');
       // config.headers['x-client-id'] = 'Bearer ' + Cookies.get('x-client-id') || '';
-      if (accessToken) {
-        config.headers['authorization'] = `Bearer ${accessToken}`;
+      if (accessToken && userId) {
+        config.headers['Authorization'] = `Bearer ${accessToken}`;
+        config.headers['x-client-id'] = userId;
       }
       return config;
     } catch (error) {
       console.error('Error getting accessToken from AsyncStorage:', error);
       return config; // Trả về config gốc nếu có lỗi
     }
-  }, (error) => {
+  },
+  (error) => {
     console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }

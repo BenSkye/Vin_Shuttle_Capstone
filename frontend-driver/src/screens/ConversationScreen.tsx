@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,9 +27,9 @@ export default function ConversationScreen() {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { 
+      return formatDistanceToNow(new Date(dateString), {
         addSuffix: true,
-        locale: vi
+        locale: vi,
       });
     } catch (error) {
       return 'Invalid date';
@@ -31,7 +39,7 @@ export default function ConversationScreen() {
   const getInitials = (name: string = '') => {
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -41,13 +49,12 @@ export default function ConversationScreen() {
     const sender = item.customerId;
     const unread = false; // Add logic for unread messages if available
     const time = item.lastMessage?.createdAt ? formatTime(item.lastMessage.createdAt) : '';
-    
+
     return (
       <TouchableOpacity
         style={[styles.conversationItem, unread && styles.unreadItem]}
         onPress={() => handleConversationPress(item._id.toString())}
-        activeOpacity={0.8}
-      >
+        activeOpacity={0.8}>
         <View style={styles.avatarContainer}>
           {sender.avatar ? (
             <Image source={{ uri: sender.avatar }} style={styles.avatar} />
@@ -57,7 +64,7 @@ export default function ConversationScreen() {
             </View>
           )}
         </View>
-        
+
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
             <Text numberOfLines={1} style={[styles.senderName, unread && styles.unreadText]}>
@@ -65,12 +72,9 @@ export default function ConversationScreen() {
             </Text>
             <Text style={styles.timeText}>{time}</Text>
           </View>
-          
+
           <View style={styles.messageRow}>
-            <Text 
-              numberOfLines={1} 
-              style={[styles.messagePreview, unread && styles.unreadText]}
-            >
+            <Text numberOfLines={1} style={[styles.messagePreview, unread && styles.unreadText]}>
               {item.lastMessage?.content || 'Chưa có tin nhắn'}
             </Text>
             {unread && <View style={styles.unreadIndicator} />}
@@ -130,7 +134,7 @@ export default function ConversationScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Tin nhắn</Text>
       </View>
-      
+
       <FlatList
         data={conversationsArray}
         renderItem={renderItem}
@@ -142,4 +146,3 @@ export default function ConversationScreen() {
     </SafeAreaView>
   );
 }
-

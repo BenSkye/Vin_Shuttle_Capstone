@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
   Image,
   Platform,
-  KeyboardAvoidingView 
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,12 @@ import { styles } from '~/styles/ConversationDetailStyle';
 
 export default function ConversationDetailScreen({ route }: { route: any }) {
   const { conversationId } = route.params;
-  const { data: conversation, isLoading, error, sendMessage } = useConversationSocket(conversationId);
+  const {
+    data: conversation,
+    isLoading,
+    error,
+    sendMessage,
+  } = useConversationSocket(conversationId);
   const [message, setMessage] = useState('');
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -55,7 +60,7 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
   const getInitials = (name: string = '') => {
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -63,31 +68,27 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
 
   const renderItem = ({ item }: { item: IMessage }) => {
     const isMyMessage = item.senderId === user?.id;
-    
+
     return (
       <View
         style={[
           styles.messageContainer,
           isMyMessage ? styles.myMessageContainer : styles.otherMessageContainer,
-        ]}
-      >
-        <View
-          style={[
-            styles.messageItem,
-            isMyMessage ? styles.myMessage : styles.otherMessage,
-          ]}
-        >
-          <Text style={[
-            styles.messageContent,
-            isMyMessage ? styles.myMessageContent : styles.otherMessageContent
-          ]}>
+        ]}>
+        <View style={[styles.messageItem, isMyMessage ? styles.myMessage : styles.otherMessage]}>
+          <Text
+            style={[
+              styles.messageContent,
+              isMyMessage ? styles.myMessageContent : styles.otherMessageContent,
+            ]}>
             {item.content}
           </Text>
         </View>
-        <Text style={[
-          styles.messageTime,
-          isMyMessage ? styles.myMessageTime : styles.otherMessageTime
-        ]}>
+        <Text
+          style={[
+            styles.messageTime,
+            isMyMessage ? styles.myMessageTime : styles.otherMessageTime,
+          ]}>
           {formatMessageTime(item.timestamp)}
         </Text>
       </View>
@@ -122,13 +123,10 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        
+
         {customerInfo && (
           <View style={styles.headerInfo}>
             <View style={styles.headerAvatar}>
@@ -146,11 +144,10 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
       </View>
 
       {/* Chat area */}
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardAvoid}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={90}
-      >
+        keyboardVerticalOffset={90}>
         <FlatList
           ref={flatListRef}
           data={(conversation as IConversation)?.listMessage || []}
@@ -169,20 +166,14 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
             placeholderTextColor="#888"
             multiline
           />
-          <TouchableOpacity 
-            style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]} 
+          <TouchableOpacity
+            style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
             onPress={handleSendMessage}
-            disabled={!message.trim()}
-          >
-            <Ionicons 
-              name="send" 
-              size={20} 
-              color={message.trim() ? "#fff" : "#cacaca"} 
-            />
+            disabled={!message.trim()}>
+            <Ionicons name="send" size={20} color={message.trim() ? '#fff' : '#cacaca'} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-

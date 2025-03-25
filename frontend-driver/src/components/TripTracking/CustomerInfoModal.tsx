@@ -11,17 +11,9 @@ interface CustomerInfoModalProps {
   trip: Trip;
 }
 
-const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({
-  visible,
-  onClose,
-  trip,
-}) => {
+const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({ visible, onClose, trip }) => {
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}>
+    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
