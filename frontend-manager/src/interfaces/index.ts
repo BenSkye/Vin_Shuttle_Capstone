@@ -7,6 +7,9 @@ export interface DriverScheduleEvent {
 }
 
 export interface Activity {
+    vehicleName: string;
+    driverName: string;
+    vehicleId: string;
     id: string;
     driverId: string;
     title: string;
@@ -59,4 +62,5 @@ export interface Vehicle {
     description: string;
     vehicleCondition: string;
     operationStatus: string;
+
 }

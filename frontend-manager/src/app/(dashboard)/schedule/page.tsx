@@ -15,6 +15,8 @@ import { format } from 'date-fns';
 import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
 
+// Define modal types for clarity
+type ModalType = 'view' | 'assign' | 'update' | 'none';
 
 const SchedulePage = () => {
     // State definitions
@@ -27,11 +29,12 @@ const SchedulePage = () => {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [isEditing, setIsEditing] = useState(false);
+    const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
 
-
-    const [form] = Form.useForm();
+    // Separate forms for assign and update operations
+    const [assignForm] = Form.useForm();
+    const [updateForm] = Form.useForm();
 
     // Time slot mappings
     const shiftTimeRanges = {
@@ -46,7 +49,6 @@ const SchedulePage = () => {
 
     // Initial data loading
     useEffect(() => {
-
         fetchDriverSchedules();
     }, []);
 
@@ -68,17 +70,14 @@ const SchedulePage = () => {
         }
     };
 
-
-
-
     // Fetch available drivers
     const fetchDrivers = async (date: string) => {
         try {
             setError(null);
             setLoading(true);
-            console.log("Fetching vehicles for date:", date);
+            console.log("Fetching drivers for date:", date);
             const response = await getAvailableDrivers(date);
-            console.log("Available vehicles:", response);
+            console.log("Available drivers:", response);
             setDrivers(response);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to load drivers";
@@ -123,7 +122,8 @@ const SchedulePage = () => {
                     color: getStatusColor(schedule.status),
                     date: scheduleDate.toISOString().split('T')[0],
                     // Store original date object to help with week calculations
-                    originalDate: scheduleDate
+                    originalDate: scheduleDate,
+                    vehicleId: schedule.vehicle?._id
                 };
             });
 
@@ -135,6 +135,7 @@ const SchedulePage = () => {
             message.error(errorMessage);
         }
     };
+
     // Get color based on status
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -153,22 +154,22 @@ const SchedulePage = () => {
     const handleActivityClick = (activity: Activity) => {
         setError(null);
         setSelectedActivity(activity);
+        setModalType('update'); // Set modal type to 'update'
         setIsModalOpen(true);
 
-        // If the activity has a driver and vehicle ID, populate the form
+        // If the activity has a driver and vehicle ID, prepare for potential updates
         if (activity.driverId) {
-            // Fetch available vehicles for the activity date
+            // Fetch available vehicles and drivers for the activity date
             if (activity.date) {
                 fetchVehicles(activity.date);
+                fetchDrivers(activity.date);
             }
 
-            form.setFieldsValue({
-                driverId: activity.driverId,
-                vehicleId: (activity.description ?? '').replace('Vehicle: ', '').trim() !== 'N/A'
-                    ? vehicles.find(v => v.name === (activity.description ?? '').replace('Vehicle: ', '').trim())?._id
-                    : undefined
+            updateForm.setFieldsValue({
+                driverId: activity.driverId ? { value: activity.driverId, label: activity.name } : undefined,
+                vehicleId: activity.vehicleId ? { value: activity.vehicleId, label: activity.name } : undefined,
             });
-            setIsEditing(true);
+
             setSelectedTime(activity.startTime);
             setSelectedDay(activity.day);
             if (activity.date) {
@@ -182,7 +183,7 @@ const SchedulePage = () => {
         setSelectedTime(time);
         setSelectedDay(day);
         setSelectedActivity(null);
-        setIsEditing(false);
+        setModalType('assign');
 
         // Use the exact date from the calendar cell
         const formattedDate = format(date, 'yyyy-MM-dd');
@@ -194,7 +195,7 @@ const SchedulePage = () => {
         fetchDrivers(formattedDate);
 
         setSelectedDate(formattedDate);
-        form.resetFields();
+        assignForm.resetFields();
         setIsModalOpen(true);
     };
 
@@ -202,7 +203,7 @@ const SchedulePage = () => {
         try {
             setError(null);
             setLoading(true);
-            const values = await form.validateFields();
+            const values = await assignForm.validateFields();
 
             if (!selectedDate) {
                 const errorMessage = "Date calculation error";
@@ -248,7 +249,7 @@ const SchedulePage = () => {
         try {
             setError(null);
             setLoading(true);
-            const values = await form.validateFields();
+            const values = await updateForm.validateFields();
 
             await updateDriverSchedule(
                 selectedActivity.id,
@@ -268,17 +269,158 @@ const SchedulePage = () => {
             message.error(errorMessage);
         } finally {
             setLoading(false);
-            setIsEditing(false);
+            setModalType('none');
         }
     };
 
     const handleModalClose = () => {
         setIsModalOpen(false);
-        setIsEditing(false);
+        setModalType('none');
         setError(null);
     };
 
-    // Render activity details or form
+    const switchToUpdateMode = () => {
+        setModalType('update');
+    };
+
+    // Modal title based on the current mode
+    const getModalTitle = () => {
+        switch (modalType) {
+            case 'view':
+                return "Driver Schedule Details";
+            case 'assign':
+                return "Assign Driver";
+            case 'update':
+                return "Update Schedule";
+            default:
+                return "Schedule";
+        }
+    };
+
+    // Render view mode content
+    const renderViewContent = () => {
+        if (!selectedActivity) return null;
+
+        return (
+            <div>
+                <p><strong>Driver:</strong> {selectedActivity.title}</p>
+                <p><strong>Description:</strong> {selectedActivity.description}</p>
+                <p>
+                    <strong>Shift:</strong> {selectedActivity.endTime}
+                    ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
+                </p>
+                <Button
+                    type="primary"
+                    onClick={switchToUpdateMode}
+                    className="mt-4"
+                >
+                    Edit Schedule
+                </Button>
+            </div>
+        );
+    };
+
+    // Render assign form
+    const renderAssignForm = () => {
+        return (
+            <Form form={assignForm} layout="vertical">
+                <div className="mb-4">
+                    <p className="text-base font-medium">
+                        Assigning driver for:
+                        <span className="font-bold ml-1">
+                            {dayNames[selectedDay]} - Shift {selectedTime}
+                            ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
+                        </span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Date: {selectedDate}</p>
+                </div>
+
+                <Form.Item
+                    name="driverId"
+                    label="Select Driver"
+                    rules={[{ required: true, message: 'Please select a driver' }]}
+                >
+                    <Select
+                        placeholder="Choose a driver"
+                        showSearch
+                        optionFilterProp="children"
+                    >
+                        {drivers.map(driver => (
+                            <Select.Option key={driver._id} value={driver._id}>
+                                {driver.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+                <Form.Item
+                    name="vehicleId"
+                    label="Select Vehicle"
+                    rules={[{ required: true, message: 'Please select a vehicle' }]}
+                >
+                    <Select placeholder="Choose a vehicle">
+                        {vehicles.map(vehicle => (
+                            <Select.Option key={vehicle._id} value={vehicle._id}>
+                                {vehicle.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+            </Form>
+        );
+    };
+
+    // Render update form
+    const renderUpdateForm = () => {
+        return (
+            <Form form={updateForm} layout="vertical">
+                <div className="mb-4">
+                    <p className="text-base font-medium">
+                        Updating schedule for:
+                        <span className="font-bold ml-1">
+                            {dayNames[selectedDay]} - Shift {selectedTime}
+                            ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
+                        </span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Date: {selectedDate}</p>
+                </div>
+
+                <Form.Item
+                    name="driverId"
+                    label="Select Driver"
+                    rules={[{ required: true, message: 'Please select a driver' }]}
+                >
+                    <Select
+                        placeholder="Choose a driver"
+                        showSearch
+                        optionFilterProp="children"
+                    >
+                        {drivers.map(driver => (
+                            <Select.Option key={driver.name} value={driver._id}>
+                                {driver.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+
+                <Form.Item
+                    name="vehicleId"
+                    label="Select Vehicle"
+                    rules={[{ required: true, message: 'Please select a vehicle' }]}
+                >
+                    <Select placeholder="Choose a vehicle">
+                        {vehicles.map(vehicle => (
+                            <Select.Option key={vehicle._id} value={vehicle._id}>
+                                {vehicle.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+            </Form>
+        );
+    };
+
+    // Render modal content based on mode
     const renderModalContent = () => {
         return (
             <>
@@ -294,90 +436,50 @@ const SchedulePage = () => {
                     />
                 )}
 
-                {selectedActivity && !isEditing ? (
-                    <div>
-                        <p><strong>Driver:</strong> {selectedActivity.title}</p>
-                        <p><strong>Description:</strong> {selectedActivity.description}</p>
-                        <p>
-                            <strong>Shift:</strong> {selectedActivity.endTime}
-                            ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
-                        </p>
-                        <Button
-                            type="primary"
-                            onClick={() => setIsEditing(true)}
-                            className="mt-4"
-                        >
-                            Edit Schedule
-                        </Button>
-                    </div>
-                ) : (
-                    <Form form={form} layout="vertical">
-                        <div className="mb-4">
-                            <p className="text-base font-medium">
-                                {isEditing ? "Updating" : "Assigning"} driver for:
-                                <span className="font-bold ml-1">
-                                    {dayNames[selectedDay]} - Shift {selectedTime}
-                                    ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
-                                </span>
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">Date: {selectedDate}</p>
-                        </div>
-
-                        <Form.Item
-                            name="driverId"
-                            label="Select Driver"
-                            rules={[{ required: true, message: 'Please select a driver' }]}
-                        >
-                            <Select
-                                placeholder="Choose a driver"
-                                showSearch
-                                optionFilterProp="children"
-                            >
-                                {drivers.map(driver => (
-                                    <Select.Option key={driver._id} value={driver._id}>
-                                        {driver.name}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="vehicleId"
-                            label="Select Vehicle"
-                            rules={[{ required: true, message: 'Please select a vehicle' }]}
-                        >
-                            <Select placeholder="Choose a vehicle">
-                                {vehicles.map(vehicle => (
-                                    <Select.Option value={vehicle._id} key={vehicle._id}>{vehicle.name}</Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                    </Form>
-                )}
+                {modalType === 'view' && renderViewContent()}
+                {modalType === 'assign' && renderAssignForm()}
+                {modalType === 'update' && renderUpdateForm()}
             </>
         );
     };
 
-    // Modal footer buttons
-    const renderModalFooter = () => [
-        <Button key="close" onClick={handleModalClose}>
-            Cancel
-        </Button>,
-        (!selectedActivity || isEditing) && (
-            <Button
-                key="submit"
-                type="primary"
-                onClick={isEditing ? handleUpdateSchedule : handleAssignDriver}
-                loading={loading}
-            >
-                {isEditing ? "Update" : "Assign"}
+    // Modal footer buttons based on mode
+    const renderModalFooter = () => {
+        const buttons = [
+            <Button key="close" onClick={handleModalClose}>
+                Cancel
             </Button>
-        )
-    ];
+        ];
+
+        if (modalType === 'assign') {
+            buttons.push(
+                <Button
+                    key="submit"
+                    type="primary"
+                    onClick={handleAssignDriver}
+                    loading={loading}
+                >
+                    Assign
+                </Button>
+            );
+        } else if (modalType === 'update') {
+            buttons.push(
+                <Button
+                    key="update"
+                    type="primary"
+                    onClick={handleUpdateSchedule}
+                    loading={loading}
+                >
+                    Update
+                </Button>
+            );
+        }
+
+        return buttons;
+    };
 
     return (
         <div className="p-4 flex gap-4 flex-col md:flex-row">
-
             <div className="">
                 <div className="p-4 border-t mt-4">
                     <h4 className="font-medium mb-2">Trạng thái:</h4>
@@ -403,7 +505,7 @@ const SchedulePage = () => {
                 />
 
                 <Modal
-                    title={selectedActivity && !isEditing ? "Driver Schedule Details" : isEditing ? "Update Schedule" : "Assign Driver"}
+                    title={getModalTitle()}
                     open={isModalOpen}
                     onCancel={handleModalClose}
                     footer={renderModalFooter()}

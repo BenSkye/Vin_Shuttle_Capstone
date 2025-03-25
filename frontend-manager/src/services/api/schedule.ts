@@ -17,7 +17,13 @@ export const DriverSchedule = async (scheduleData: {
 }
 
 
-export const updateDriverSchedule = async (driverScheduleID: string, driver: string, date: string, shift: string, vehicle: string) => {
+export const updateDriverSchedule = async (
+    driverScheduleID: string,
+    driver: string,
+    date: string,
+    shift: string,
+    vehicle: string
+) => {
     try {
         const response = await axiosInstance.put(`/driver-schedules/update-driver-schedule/${driverScheduleID}`, {
             driver,
@@ -26,11 +32,16 @@ export const updateDriverSchedule = async (driverScheduleID: string, driver: str
             vehicle
         });
         return response.data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        } else if (typeof error === "object" && error !== null && "response" in error) {
+            const err = error as { response?: { data?: { vnMessage?: string, message?: string } } };
+            const errorMessage = err.response?.data?.vnMessage || err.response?.data?.message || "Failed to update schedule";
+            throw new Error(errorMessage);
+        } else {
+            throw new Error("Failed to update schedule");
+        }
     }
-    catch (e) {
-        console.log(e);
-    }
-
 }
-
 

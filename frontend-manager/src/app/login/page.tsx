@@ -3,24 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/form/LoginForm';
 import { loginUser } from '@/services/api/user';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
 
     const handleLogin = async (email: string, password: string) => {
         try {
             const response = await loginUser(email, password);
             console.log("Response:", response);
 
-            localStorage.setItem('accessToken', response.token.accessToken);
-            localStorage.setItem('refreshToken', response.token.refreshToken);
-            localStorage.setItem('userId', response.userId);
-
-            document.cookie = `accessToken=${response.token.accessToken}; path=/; max-age=${60 * 60 * 24}; secure`;
+            await login(response.token.accessToken, response.token.refreshToken, response.userId);
 
             router.push('/');
         } catch (error) {
-            throw error;
+            console.error("Login failed:", error);
         }
     };
 
