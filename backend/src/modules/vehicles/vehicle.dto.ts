@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
 import { QueryOptions } from 'src/share/interface';
 
