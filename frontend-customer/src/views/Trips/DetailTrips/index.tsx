@@ -1,53 +1,30 @@
 'use client'
 
-import { use } from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { Rate, Spin, notification } from 'antd'
+import { Spin, notification } from 'antd'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { FaClock, FaMapMarkerAlt, FaStar } from 'react-icons/fa'
+import { FaClock, FaMapMarkerAlt } from 'react-icons/fa'
 import { IoCarSport } from 'react-icons/io5'
 
 import { ServiceType } from '@/constants/service-type.enum'
 import { TripStatus } from '@/constants/trip.enum'
-import useTripSocket from '@/hooks/useTripSocket'
 
-import TripRating from '@/views/Ride/components/triprating'
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap'
 
 import { BookingHourPayloadDto, Trip } from '@/interface/trip.interface'
+import useTripSocket from '@/hooks/sockets/useTripSocket'
+import { useTripDetailQuery } from '@/hooks/queries/trip.query'
+import TripRatingView from '@/views/Trips/components/tripRatingView'
+import TripRatingForm from '@/views/Trips/components/tripRatingForm'
 
 export default function DetailTripPage({ id }: { id: string }) {
   console.log('Trip ID:', id)
-  const { data, isLoading, error } = useTripSocket(id as string)
+  const { data: trip, isLoading, error } = useTripDetailQuery(id as string)
+  useTripSocket(id)
 
-  const [rating, setRating] = useState<{ rate: number; feedback: string }>({
-    rate: 5,
-    feedback: '',
-  })
-  const [loadingRating, setLoadingRating] = useState(false)
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
-
-  // Extract rating info from trip data if it exists
-  useEffect(() => {
-    if (data && (data as Trip).rating) {
-      const tripData = data as Trip
-      setRating({
-        rate: tripData.rating.rate,
-        feedback: tripData.rating.feedback || '',
-      })
-    }
-  }, [data])
-
-  // Check if rating was submitted and update state
-  const handleRatingSuccess = () => {
-    setRatingSubmitted(true)
-    notification.success({
-      message: 'Thành công',
-      description: 'Cảm ơn bạn đã đánh giá chuyến đi!',
-    })
-  }
 
   if (isLoading)
     return (
@@ -68,14 +45,13 @@ export default function DetailTripPage({ id }: { id: string }) {
     )
   }
 
-  if (!data)
+  if (!trip)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-xl text-gray-500">Không tìm thấy chuyến đi</p>
       </div>
     )
 
-  const trip = data as Trip
 
   const renderServiceDetails = (trip: Trip) => {
     const baseCardStyle =
@@ -229,46 +205,18 @@ export default function DetailTripPage({ id }: { id: string }) {
           </div>
 
           {/* Rating Section */}
-          {trip.status === TripStatus.COMPLETED && !trip.isRating && !ratingSubmitted && (
+          {trip.status === TripStatus.COMPLETED && (
             <div className="mt-6 border-t border-gray-200 pt-6 sm:mt-8 sm:pt-8">
-              <TripRating
-                tripId={id}
-                trip={trip}
-                existingRating={null}
-                onRatingSuccess={handleRatingSuccess}
-              />
+              {!trip.isRating && !ratingSubmitted ? (
+                <TripRatingForm
+                  tripId={id}
+                  onSuccess={() => setRatingSubmitted(true)}
+                />
+              ) : (
+                <TripRatingView tripId={trip._id} />
+              )}
             </div>
           )}
-
-          {trip.status === TripStatus.COMPLETED &&
-            (trip.isRating || ratingSubmitted) &&
-            trip.rating && (
-              <div className="mt-6 border-t border-gray-200 pt-6 sm:mt-8 sm:pt-8">
-                <div className="rounded-lg bg-gray-50 p-6">
-                  <h3 className="mb-4 text-xl font-bold text-gray-800">Đánh giá của bạn</h3>
-                  <div className="mb-3 flex items-center gap-2">
-                    <FaStar className="text-yellow-500" />
-                    <span className="font-medium text-gray-700">Số sao:</span>
-                    <Rate disabled value={trip.rating.rate} />
-                    <span className="ml-2 text-gray-700">({trip.rating.rate}/5)</span>
-                  </div>
-
-                  {trip.rating.feedback && (
-                    <div className="mt-3">
-                      <span className="font-medium text-gray-700">Nhận xét:</span>
-                      <p className="mt-2 rounded-md border bg-white p-3 text-gray-700">
-                        {trip.rating.feedback}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-4 text-sm text-gray-500">
-                    <p>Cảm ơn bạn đã đánh giá chuyến đi!</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
           <Link
             href="/trips"
             className="mt-4 inline-flex items-center gap-2 text-sm text-blue-600 transition-colors duration-200 hover:text-blue-800 sm:mt-6 sm:text-base"
