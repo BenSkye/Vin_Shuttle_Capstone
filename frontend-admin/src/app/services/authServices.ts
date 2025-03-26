@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
+import apiClient from './apiClient';
 
 interface LoginCredentials {
   email: string;
@@ -19,7 +17,7 @@ interface LoginResponse {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response = await axios.post(`${API_URL}/auth/login-by-password`, credentials);
+      const response = await apiClient.post(`/auth/login-by-password`, credentials);
       return response.data;
     } catch (error) {
       throw error;

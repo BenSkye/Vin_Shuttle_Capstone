@@ -2,7 +2,6 @@
 
 import { Form, Input, Button, Card, Layout, notification  } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-// import '@ant-design/v5-patch-for-react-19'
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../services/authServices';
