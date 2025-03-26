@@ -274,7 +274,7 @@ export class SharedRouteService implements ISharedRouteService {
 
 
     async getSharedRouteByTripId(tripId: string): Promise<SharedRouteDocument> {
-        const trip = await this.tripRepository.findById(tripId, ['servicePayload']);
+        const trip = await this.tripRepository.findById(tripId, ['serviceType', 'servicePayload']);
         if (!trip) {
             throw new HttpException(
                 {
