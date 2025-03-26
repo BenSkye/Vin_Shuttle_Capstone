@@ -7,15 +7,19 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 import { TripStatus } from '@/constants/trip.enum'
-import useTripSocket from '@/hooks/useTripSocket'
 
 import { Trip } from '@/interface/trip.interface'
+import { useTripQuery } from '@/hooks/queries/trip.query'
+import useTripSocket from '@/hooks/sockets/useTripSocket'
 
 const TripListPage = () => {
-  const { data, isLoading, error } = useTripSocket()
+  const { data: trips, isLoading, error } = useTripQuery()
+
+  useTripSocket()
 
   useEffect(() => {
     if (error) {
+      console.log('error22', error)
       notification.error({
         message: 'Lỗi',
         description: error.message || 'Lỗi khi tải danh sách chuyến đi',
@@ -51,7 +55,7 @@ const TripListPage = () => {
     )
   }
 
-  if (!data || (data as Trip[]).length === 0) {
+  if (!trips || (trips as Trip[]).length === 0) {
     return (
       <div className="flex h-[70vh] flex-col items-center justify-center space-y-4">
         <svg
@@ -81,7 +85,7 @@ const TripListPage = () => {
       </h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {(data as Trip[]).map((trip, index) => {
+        {(trips as Trip[]).map((trip, index) => {
           const statusInfo = getStatusInfo(trip.status)
 
           return (

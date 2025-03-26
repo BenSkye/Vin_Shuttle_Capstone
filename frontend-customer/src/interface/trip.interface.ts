@@ -24,12 +24,13 @@ export interface Trip {
   amount: number
   status: string
   statusHistory: object[]
-  serviceType: string
+  serviceType: string,
+  isRating: boolean,
   servicePayload:
-    | BookingHourPayloadDto
-    | BookingScenicRoutePayloadDto
-    | BookingDestinationPayloadDto
-    | BookingSharePayloadDto
+  | BookingHourPayloadDto
+  | BookingScenicRoutePayloadDto
+  | BookingDestinationPayloadDto
+  | BookingSharePayloadDto
 }
 
 export interface BookingHourPayloadDto {
