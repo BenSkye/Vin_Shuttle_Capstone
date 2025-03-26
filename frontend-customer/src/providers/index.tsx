@@ -2,6 +2,7 @@
 
 import { AuthProvider } from '@/context/AuthContext'
 import { NotificationProvider } from '@/context/NotificationContext'
+import { ReactQueryProvider } from '@/providers/ReactQueryProvider'
 import { Toaster } from 'react-hot-toast'
 
 interface ProvidersProps {
@@ -10,27 +11,29 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        {children}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
+    <ReactQueryProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
               duration: 3000,
-              theme: {
-                primary: '#22c55e',
-                secondary: '#4b5563',
+              style: {
+                background: '#363636',
+                color: '#fff',
               },
-            },
-          }}
-        />
-      </NotificationProvider>
-    </AuthProvider>
+              success: {
+                duration: 3000,
+                theme: {
+                  primary: '#22c55e',
+                  secondary: '#4b5563',
+                },
+              },
+            }}
+          />
+        </NotificationProvider>
+      </AuthProvider>
+    </ReactQueryProvider>
   )
 }
