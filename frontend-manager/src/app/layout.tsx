@@ -1,6 +1,8 @@
 import { Inter } from 'next/font/google'
 import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { AuthProvider } from '../contexts/AuthContext'
+
 
 import '../styles/antd-var.css'
 import '../styles/globals.css'
@@ -31,7 +33,9 @@ export default function RootLayout({
         <AntdRegistry>
           <ConfigProvider
           >
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </ConfigProvider>
         </AntdRegistry>
       </body>
