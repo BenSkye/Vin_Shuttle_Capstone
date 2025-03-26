@@ -2,6 +2,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OsrModule } from 'src/modules/OSR/osr.module';
+import { ShareRouteController } from 'src/modules/shared-route/share-route.controller';
 import { SHARE_ROUTE_REPOSITORY, SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
 import { SharedRouteRepository } from 'src/modules/shared-route/shared-route.repo';
 import { SharedRoute, SharedRouteSchema } from 'src/modules/shared-route/shared-route.schema';
@@ -37,7 +38,7 @@ const dependencies = [
         VehiclesModule,
         TrackingModule
     ],
-    controllers: [],
+    controllers: [ShareRouteController],
     providers: [...dependencies],
     exports: [...dependencies],
 })
