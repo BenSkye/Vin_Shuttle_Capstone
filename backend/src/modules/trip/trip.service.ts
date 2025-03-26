@@ -573,7 +573,8 @@ export class TripService implements ITripService {
   })
   async handleTripStartTimeout() {
     const now = new Date();
-    const endTimeOut = new Date(now.getTime() + 15 * 60 * 1000);
+    const endTimeOut = new Date(now.getTime() - 15 * 60 * 1000);
+    console.log('endTimeOut', endTimeOut);
     const trips = await this.tripRepository.find({
       status: TripStatus.PAYED,
       timeEndEstimate: { $lte: endTimeOut },
