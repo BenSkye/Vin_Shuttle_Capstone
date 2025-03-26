@@ -5,6 +5,10 @@ import { ICreateVehicle, IUpdateVehicle } from 'src/modules/vehicles/vehicle.dto
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { Vehicle, VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import { VehicleOperationStatus } from 'src/share/enums';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
+import { QueryOptions } from 'src/share/interface';
+import { getSelectData } from 'src/share/utils';
+import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class VehiclesRepository implements IVehiclesRepository {
@@ -32,9 +36,18 @@ export class VehiclesRepository implements IVehiclesRepository {
     return updatedVehicle;
   }
 
-  async getListVehicles(query: any, select: string[]): Promise<VehicleDocument[] | null> {
+  async getListVehicles(
+    query: any,
+    select: string[],
+    options?: QueryOptions
+  ): Promise<VehicleDocument[] | null> {
     console.log('query', query);
-    const result = await this.vehicleModel.find(query).select(select);
+    let queryBuilder = this.vehicleModel.find(query);
+    if (select && select.length > 0) {
+      queryBuilder = queryBuilder.select(getSelectData(select));
+    }
+    queryBuilder = applyQueryOptions(queryBuilder, options);
+    const result = await queryBuilder.exec();
     return result;
   }
 

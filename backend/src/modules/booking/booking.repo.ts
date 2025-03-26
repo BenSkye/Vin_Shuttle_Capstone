@@ -5,7 +5,9 @@ import { ICreateBooking, IUpdateBooking } from 'src/modules/booking/booking.dto'
 import { IBookingRepository } from 'src/modules/booking/booking.port';
 import { Booking, BookingDocument } from 'src/modules/booking/booking.schema';
 import { BookingStatus } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 import { getSelectData } from 'src/share/utils';
+import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class BookingRepository implements IBookingRepository {
@@ -19,8 +21,19 @@ export class BookingRepository implements IBookingRepository {
     async getBookingById(id: string): Promise<BookingDocument> {
         return await this.BookingModel.findById(id)
     }
-    async getBookings(query: object, select: string[]): Promise<BookingDocument[]> {
-        return await this.BookingModel.find(query).select(getSelectData(select))
+    async getBookings(
+        query: object,
+        select: string[],
+        options?: QueryOptions
+    ): Promise<BookingDocument[]> {
+        let queryBuilder = this.BookingModel.find(query);
+        if (select && select.length > 0) {
+            queryBuilder = queryBuilder.select(getSelectData(select));
+        }
+        console.log('options', options);
+        queryBuilder = applyQueryOptions(queryBuilder, options);
+        const result = await queryBuilder.exec();
+        return result
     }
     async findOneBooking(query: object, select: string[]): Promise<BookingDocument> {
         return await this.BookingModel.findOne(query).select(getSelectData(select))

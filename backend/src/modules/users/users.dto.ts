@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateUserDto {
   name?: string;
@@ -92,4 +93,12 @@ export class UpdateUserDto {
     example: 'KhanhHg8386@gmail.com',
   })
   email?: string;
+}
+
+
+export interface userParams extends QueryOptions {
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: UserRole;
 }

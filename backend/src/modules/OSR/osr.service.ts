@@ -106,6 +106,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
         vehicleCapacity: number,
         listTripsAmount: tripAmount[]
     ): Promise<OpenRouteOptimizationRequestDTO> {
+        const listTrips: OpenRouteShipmentDTO[] = [];
+
         const lastVehicleLocation = await this.trackingService.getLastVehicleLocation(vehicleId);
         console.log('lastVehicleLocation', lastVehicleLocation);
         // Nhóm các stop theo trip
@@ -130,7 +132,6 @@ export class RoutingOSRService implements IRoutingOSRMService {
 
         // Tạo danh sách trips theo định dạng shipment của OpenRouteService
         // Danh sách cuốc xe bao gôm pickup(startPoint) và delivery(endPoint)
-        const listTrips: OpenRouteShipmentDTO[] = [];
         // Đánh ID cho các trip trong OpenRouteService theo index
         // Lưu Id của trip vào trong description của pickup và delivery
         let tripIndexId = 1;

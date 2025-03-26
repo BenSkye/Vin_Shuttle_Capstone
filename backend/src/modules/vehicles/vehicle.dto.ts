@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
+import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateVehicle {
   name: string;
@@ -60,9 +62,9 @@ export class UpdateVehicleDto {
 }
 
 
-export interface vehicleParams {
-  name?: string;
-  categoryId?: string;
-  operationStatus?: VehicleOperationStatus
-  vehicleCondition?: VehicleCondition
+export interface vehicleParams extends QueryOptions {
+  name?: string,
+  categoryId?: string,
+  operationStatus?: VehicleOperationStatus,
+  vehicleCondition?: VehicleCondition,
 }
