@@ -19,6 +19,10 @@ const columns: Column<Customer>[] = [
 
 const CustomerPage = () => {
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Number of items per page
+
+    const totalPages = Math.ceil(customers.length / itemsPerPage);
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -40,6 +44,15 @@ const CustomerPage = () => {
 
         fetchCustomers();
     }, []);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const paginatedCustomers = customers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const renderRow = (item: Customer) => (
         <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight">
@@ -88,10 +101,14 @@ const CustomerPage = () => {
             </div>
 
             {/* TABLE */}
-            <Table columns={columns} renderRow={renderRow} data={customers} />
+            <Table columns={columns} renderRow={renderRow} data={paginatedCustomers} />
 
             {/* PAGINATION */}
-            <Pagination />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };

@@ -28,6 +28,10 @@ const columns: Column<Driver>[] = [
 
 const DriverPage = () => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Number of items per page
+
+    const totalPages = Math.ceil(drivers.length / itemsPerPage);
 
     useEffect(() => {
         const fetchDrivers = async () => {
@@ -42,6 +46,15 @@ const DriverPage = () => {
 
         fetchDrivers();
     }, []);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const paginatedDrivers = drivers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const renderRow = (item: Driver) => (
         <tr key={item.id} className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-gray-100">
@@ -103,9 +116,13 @@ const DriverPage = () => {
                 </div>
             </div>
             {/* LIST */}
-            <Table columns={columns} renderRow={renderRow} data={drivers} />
+            <Table columns={columns} renderRow={renderRow} data={paginatedDrivers} />
             {/* PAGINATION */}
-            <Pagination />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };
