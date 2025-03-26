@@ -127,7 +127,6 @@ export class SharedRouteService implements ISharedRouteService {
                 const perTripDistanceAfterChange = route.perTripDistanceAfterChange;
                 let isValidRoute = true;
                 for (const perTripDistance of perTripDistanceAfterChange) {
-                    console.log('perTripDistance.tripId', perTripDistance.tripId);
                     if (perTripDistance.tripId === TempTripId) {
                         console.log(perTripDistance.distance + "-" + searchDto.distanceEstimate)
                         if (perTripDistance.distance - searchDto.distanceEstimate > MaxDistanceAvailableToChange) {
