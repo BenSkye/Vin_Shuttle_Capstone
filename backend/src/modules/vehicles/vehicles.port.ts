@@ -2,7 +2,6 @@ import { VehicleCategoryDocument } from 'src/modules/vehicle-categories/vehicle-
 import { ICreateVehicle, IUpdateVehicle, vehicleParams } from 'src/modules/vehicles/vehicle.dto';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import { VehicleOperationStatus } from 'src/share/enums';
-import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { QueryOptions } from 'src/share/interface';
 
 export const vehicleStatus = ['available', 'in-use', 'maintenance'] as const;

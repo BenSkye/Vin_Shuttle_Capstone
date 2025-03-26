@@ -3,12 +3,14 @@ import { SCENIC_ROUTE_REPOSITORY } from 'src/modules/scenic-route/scenic-route.d
 import {
   ICreateScenicRouteDto,
   IUpdateScenicRouteDto,
+  scenicRouteParams,
 } from 'src/modules/scenic-route/scenic-route.dto';
 import {
   IScenicRouteRepository,
   IScenicRouteService,
 } from 'src/modules/scenic-route/scenic-route.port';
 import { ScenicRouteDocument } from 'src/modules/scenic-route/scenic-route.schema';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class ScenicRouteService implements IScenicRouteService {
@@ -47,8 +49,9 @@ export class ScenicRouteService implements IScenicRouteService {
     return route;
   }
 
-  async getAllScenicRoutes(): Promise<ScenicRouteDocument[]> {
-    return await this.routeRepository.findAll();
+  async getAllScenicRoutes(query?: scenicRouteParams): Promise<ScenicRouteDocument[]> {
+    const { filter, options } = processQueryParams(query, ['name']);
+    return await this.routeRepository.findAll(filter, options);
   }
 
   async updateScenicRoute(id: string, route: IUpdateScenicRouteDto): Promise<ScenicRouteDocument> {

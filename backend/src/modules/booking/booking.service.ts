@@ -722,8 +722,8 @@ export class BookingService implements IBookingService {
                 driverId: TripDto.driverId.toString(),
                 vehicleId: TripDto.vehicleId.toString(),
                 scheduleId: TripDto.scheduleId.toString(),
-                distanceEstimate: distanceEstimate,
-                durationEstimate: durationEstimate,
+                // distanceEstimate: distanceEstimate,
+                // durationEstimate: durationEstimate,
             }
 
 

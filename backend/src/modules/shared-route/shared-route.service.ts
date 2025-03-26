@@ -13,7 +13,7 @@ import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesService } from "src/modules/vehicles/vehicles.port";
 import { ServiceType } from "src/share/enums";
 import { TempTripId } from "src/share/enums/osr.enum";
-import { MaxDistanceAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { MaxDistancePercentAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
 
 
 export class SharedRouteService implements ISharedRouteService {
@@ -128,8 +128,10 @@ export class SharedRouteService implements ISharedRouteService {
                 let isValidRoute = true;
                 for (const perTripDistance of perTripDistanceAfterChange) {
                     if (perTripDistance.tripId === TempTripId) {
-                        console.log(perTripDistance.distance + "-" + searchDto.distanceEstimate)
-                        if (perTripDistance.distance - searchDto.distanceEstimate > MaxDistanceAvailableToChange) {
+                        console.log('perTripDistance.distance', perTripDistance.distance)
+                        console.log(searchDto.distanceEstimate + '+' + '(' + searchDto.distanceEstimate + '*' + MaxDistancePercentAvailableToChange + ')',
+                            searchDto.distanceEstimate + (searchDto.distanceEstimate * MaxDistancePercentAvailableToChange))
+                        if (perTripDistance.distance > searchDto.distanceEstimate + (searchDto.distanceEstimate * MaxDistancePercentAvailableToChange)) {
                             console.log('is larger than max distance available to change')
                             isValidRoute = false;
                             break
@@ -137,7 +139,8 @@ export class SharedRouteService implements ISharedRouteService {
                     } else {
                         const trip = await this.tripRepository.findById(perTripDistance.tripId, ['servicePayload']);
                         if (trip) {
-                            if (perTripDistance.distance - trip.servicePayload.bookingShare.distanceEstimate > MaxDistanceAvailableToChange) {
+                            if (perTripDistance.distance >
+                                trip.servicePayload.bookingShare.distanceEstimate + (trip.servicePayload.bookingShare.distanceEstimate * MaxDistancePercentAvailableToChange)) {
                                 isValidRoute = false;
                                 break;
                             }

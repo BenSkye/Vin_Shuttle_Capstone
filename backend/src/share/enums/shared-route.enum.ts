@@ -11,4 +11,4 @@ export enum SharedRouteStopsType {
     END_POINT = 'endPoint',
 }
 
-export const MaxDistanceAvailableToChange = 2.2; // 2 km
+export const MaxDistancePercentAvailableToChange = 0.5; // 50%

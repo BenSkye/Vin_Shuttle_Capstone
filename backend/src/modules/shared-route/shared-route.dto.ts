@@ -22,8 +22,8 @@ export interface ICreateSharedRouteDTO {
     vehicleId: string;
     scheduleId: string;
     stops?: sharedRouteStop[];
-    distanceEstimate: number;
-    durationEstimate: number;
+    // distanceEstimate: number;
+    // durationEstimate: number;
 }
 
 export interface IUpdateSharedRouteDTO {
@@ -32,8 +32,8 @@ export interface IUpdateSharedRouteDTO {
     scheduleId?: string;
     stops?: sharedRouteStop[];
     distanceEstimate?: number;
-    distanceActual?: number;
-    durationEstimate?: number;
+    // distanceActual?: number;
+    // durationEstimate?: number;
     durationActual?: number;
     status?: SharedRouteStatus;
     statusHistory?: {

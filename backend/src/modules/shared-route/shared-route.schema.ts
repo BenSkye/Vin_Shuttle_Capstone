@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
 import { paymentTime } from "src/share/enums/payment.enum";
 import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
-import { Position, PositionSchema, StartOrEndPointSchema } from "src/share/share.schema";
+import { Position, StartOrEndPointSchema } from "src/share/share.schema";
 
 export type SharedRouteDocument = HydratedDocument<SharedRoute>;
 
@@ -48,20 +48,20 @@ export class SharedRoute {
         isPass: boolean;
     }>;
 
-    @Prop({ type: [PositionSchema] })
-    optimizedCoordinates: Position[];
+    // @Prop({ type: [PositionSchema] })
+    // optimizedCoordinates: Position[];
 
-    @Prop({ type: Number, required: true })
-    distanceEstimate: number;
+    // @Prop({ type: Number, required: true })
+    // distanceEstimate: number;
 
-    @Prop({ type: Number })
-    distanceActual: number;
+    // @Prop({ type: Number })
+    // distanceActual: number;
 
-    @Prop({ type: Number, required: true })
-    durationEstimate: number;
+    // @Prop({ type: Number, required: true })
+    // durationEstimate: number;
 
-    @Prop({ type: Number })
-    durationActual: number;
+    // @Prop({ type: Number })
+    // durationActual: number;
 
     @Prop({
         type: String,
