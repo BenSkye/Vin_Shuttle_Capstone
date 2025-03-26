@@ -13,9 +13,7 @@ export function PublicHeader({ isOpen, toggleMenu }: PublicHeaderProps) {
         <header className="sticky top-0 z-50 bg-white shadow-sm">
             <nav className="flex items-center justify-between bg-white px-4 py-4">
                 {/* Logo */}
-                <Link href={Routes.HOME}>
-                    <Logo size="large" />
-                </Link>
+                <Logo size="large" />
 
                 {/* Desktop Auth Buttons */}
                 <div className="relative hidden items-center space-x-4 md:flex">

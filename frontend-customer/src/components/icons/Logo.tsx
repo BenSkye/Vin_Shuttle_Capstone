@@ -1,3 +1,4 @@
+import { Routes } from '@/constants/routers'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -18,7 +19,7 @@ export const Logo = ({ size = 'medium', showText = true, className = '' }: LogoP
 
   return (
     <Link
-      href="/"
+      href={Routes.HOME}
       className={`flex items-center gap-3 transition-opacity hover:opacity-90 ${className}`}
       aria-label="VinShuttle Home"
     >
