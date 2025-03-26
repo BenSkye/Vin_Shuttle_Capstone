@@ -25,6 +25,7 @@ import { RatingModule } from 'src/modules/rating/rating.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from 'src/modules/notification/notification.module';
 import { ConversationModule } from 'src/modules/conversation/conversation.module';
+import { ShareRouteModule } from 'src/modules/shared-route/shared-route.module';
 
 
 @Module({
@@ -60,6 +61,7 @@ import { ConversationModule } from 'src/modules/conversation/conversation.module
     RatingModule,
     NotificationModule,
     ConversationModule,
+    ShareRouteModule
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
