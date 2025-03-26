@@ -8,7 +8,8 @@ import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingSceni
 import { IBookingService } from "src/modules/booking/booking.port";
 import { BookingStatus, UserRole } from "src/share/enums";
 import { PaymentMethod } from "src/share/enums/payment.enum";
-import { HEADER } from "src/share/interface";
+import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
+import { HEADER, QueryOptions } from "src/share/interface";
 
 @ApiTags('booking')
 @Controller('booking')
@@ -207,10 +208,20 @@ export class BookingController {
     @Roles(UserRole.CUSTOMER)
     @ApiBearerAuth(HEADER.AUTHORIZATION)
     @ApiBearerAuth(HEADER.CLIENT_ID)
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+    @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+    @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        enum: SortOrderOption,
+        description: 'Sort order (asc, desc)'
+    })
     async getCustomerPersonalBooking(
         @Request() req,
+        @Query() query: QueryOptions
     ) {
-        return await this.bookingService.getCustomerPersonalBooking(req.user._id)
+        return await this.bookingService.getCustomerPersonalBooking(req.user._id, query)
     }
 
 
@@ -221,6 +232,7 @@ export class BookingController {
     @ApiBearerAuth(HEADER.AUTHORIZATION)
     @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'get customer booking by id' })
+
     async getCustomerPersonalBookingById(
         @Param('id') id: string,
         @Request() req,
@@ -258,6 +270,15 @@ export class BookingController {
         required: false,
         enum: PaymentMethod,
         description: 'Filter by payment method'
+    })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+    @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+    @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        enum: SortOrderOption,
+        description: 'Sort order (asc, desc)'
     })
     async getListBookingByQuery(
         @Query() query: bookingParams

@@ -1,12 +1,13 @@
 import { ICreateTripDto, IUpdateTripDto, tripParams } from 'src/modules/trip/trip.dto';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 import { TripStatus } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 
 export interface ITripRepository {
   create(tripDto: ICreateTripDto): Promise<TripDocument>;
   findById(id: string, select: string[]): Promise<TripDocument>;
   findByDriverId(driverId: string): Promise<TripDocument[]>;
-  find(query: any, select: string[]): Promise<TripDocument[]>;
+  find(query: any, select: string[], options?: QueryOptions,): Promise<TripDocument[]>;
   findOne(query: any, select: string[]): Promise<TripDocument>
   updateStatus(id: string, status: TripStatus): Promise<TripDocument>;
   updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument>;

@@ -28,8 +28,10 @@ import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripStatus } from "src/share/enums";
 import { timeToCloseConversation, timeToOpenConversation } from "src/share/enums/conversation.enum";
 import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { QueryOptions } from "src/share/interface";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
+import { processQueryParams } from "src/share/utils/query-params.util";
 
 Injectable()
 export class BookingService implements IBookingService {
@@ -554,7 +556,7 @@ export class BookingService implements IBookingService {
         const trip = await this.tripRepository.findOne({
             customerId: customerId,
             status: {
-                $nin: [TripStatus.COMPLETED, TripStatus.CANCELLED]
+                $nin: [TripStatus.COMPLETED, TripStatus.CANCELLED, TripStatus.DROPPED_OFF]
             },
             serviceType: ServiceType.BOOKING_SHARE
         }, [])
@@ -881,8 +883,9 @@ export class BookingService implements IBookingService {
     }
 
 
-    async getCustomerPersonalBooking(customerId: string): Promise<BookingDocument[]> {
-        return await this.bookingRepository.getBookings({ customerId }, [])
+    async getCustomerPersonalBooking(customerId: string, query: QueryOptions): Promise<BookingDocument[]> {
+        const { options } = processQueryParams(query, []);
+        return await this.bookingRepository.getBookings({ customerId }, [], options)
     }
     async getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument> {
         const booking = await this.bookingRepository.findOneBooking({
@@ -901,7 +904,9 @@ export class BookingService implements IBookingService {
 
 
     async getListBookingByQuery(query: bookingParams): Promise<BookingDocument[]> {
-        return await this.bookingRepository.getBookings(query, [])
+        const { filter, options } = processQueryParams(query, []);
+        const result = await this.bookingRepository.getBookings(filter, [], options)
+        return result;
     }
 
     async getBookingById(id: string): Promise<BookingDocument> {

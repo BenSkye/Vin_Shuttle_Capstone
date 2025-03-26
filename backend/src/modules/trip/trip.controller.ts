@@ -7,6 +7,7 @@ import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { tripParams } from "src/modules/trip/trip.dto";
 import { ITripService } from "src/modules/trip/trip.port";
 import { ServiceType, TripStatus, UserRole } from "src/share/enums";
+import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
 import { HEADER } from "src/share/interface";
 
 @ApiTags('trip')
@@ -217,6 +218,15 @@ export class TripController {
     required: false,
     enum: ServiceType,
     description: 'Filter by serviceType'
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)'
   })
   async listQuery(@Query() query: tripParams) {
     return await this.tripService.getTripByQuery(query);

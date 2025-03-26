@@ -5,6 +5,8 @@ import { SHARE_ROUTE_REPOSITORY } from "src/modules/shared-route/shared-route.di
 import { ICreateSharedRouteDTO, searchSharedRouteDTO, sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
 import { ISharedRouteRepository, ISharedRouteService } from "src/modules/shared-route/shared-route.port";
 import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schema";
+import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
+import { ITrackingService } from "src/modules/tracking/tracking.port";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
@@ -23,7 +25,9 @@ export class SharedRouteService implements ISharedRouteService {
         @Inject(TRIP_REPOSITORY)
         private readonly tripRepository: ITripRepository,
         @Inject(VEHICLE_SERVICE)
-        private readonly vehicleService: IVehiclesService
+        private readonly vehicleService: IVehiclesService,
+        @Inject(TRACKING_SERVICE)
+        private readonly trackingService: ITrackingService
     ) { }
 
     async findBestRouteForNewTrip(searchDto: searchSharedRouteDTO): Promise<{
@@ -66,6 +70,11 @@ export class SharedRouteService implements ISharedRouteService {
         console.log('listSharedRoute', listSharedRoute);
         for (const sharedRoute of listSharedRoute) { // loop through all shared routes
             const vehicleId = sharedRoute.vehicleId.toString();
+            const lastVehicleLocation = await this.trackingService.getLastVehicleLocation(vehicleId);
+            console.log('lastVehicleLocation', lastVehicleLocation);
+            if (!lastVehicleLocation) {
+                continue;
+            }
             const vehicleCategory = await this.vehicleService.getVehicleCategoryByVehicleId(vehicleId);
             if (!vehicleCategory) {
                 throw new HttpException(

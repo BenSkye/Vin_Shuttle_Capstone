@@ -11,6 +11,7 @@ import {
 } from 'src/modules/vehicles/vehicle.dto';
 import { VEHICLE_SERVICE } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesService } from 'src/modules/vehicles/vehicles.port';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
 
 @ApiTags('vehicles')
@@ -44,6 +45,15 @@ export class VehiclesController {
     required: false,
     enum: VehicleCondition,
     description: 'Filter by vehicle condition (available, in-use, maintenance)'
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)'
   })
   async getListVehicles(@Query() query: vehicleParams) {
     return await this.vehicleService.getListVehicles(query);
