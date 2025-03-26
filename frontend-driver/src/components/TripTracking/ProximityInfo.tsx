@@ -31,7 +31,7 @@ const ProximityInfo = ({ tripStatus, location, customerPickupLocation }: Proximi
 
     return R * c; // Distance in meters
   };
-  
+
   const distance = calculateDistance(
     location.latitude,
     location.longitude,

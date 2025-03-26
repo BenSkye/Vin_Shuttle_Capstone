@@ -159,9 +159,11 @@ export default function ScheduleScreen() {
       const updatedSchedule = await driverCheckin(scheduleId);
       updateIsInProgress(true);
       // Cập nhật danh sách lịch
-      setSchedules(schedules.map(schedule =>
-        schedule._id === updatedSchedule._id ? updatedSchedule : schedule
-      ));
+      setSchedules(
+        schedules.map((schedule) =>
+          schedule._id === updatedSchedule._id ? updatedSchedule : schedule
+        )
+      );
     } catch (error) {
       console.error('Checkin error:', error);
       Alert.alert('Lỗi', 'Không thể check-in. Vui lòng thử lại sau hoặc kiểm tra lại ngày tháng');
@@ -176,9 +178,11 @@ export default function ScheduleScreen() {
       const updatedSchedule = await driverCheckout(scheduleId);
       // Cập nhật danh sách lịch
       updateIsInProgress(false);
-      setSchedules(schedules.map(schedule =>
-        schedule._id === updatedSchedule._id ? updatedSchedule : schedule
-      ));
+      setSchedules(
+        schedules.map((schedule) =>
+          schedule._id === updatedSchedule._id ? updatedSchedule : schedule
+        )
+      );
     } catch (error) {
       console.error('Checkout error:', error);
       Alert.alert('Lỗi', 'Không thể check-out. Vui lòng thử lại sau.');
@@ -196,24 +200,22 @@ export default function ScheduleScreen() {
       case 'not_started':
         return (
           <TouchableOpacity
-            className="bg-blue-600 px-4 py-2 rounded-lg"
-            onPress={() => handleCheckin(schedule._id)}
-          >
-            <Text className="text-white font-semibold">Check-in</Text>
+            className="rounded-lg bg-blue-600 px-4 py-2"
+            onPress={() => handleCheckin(schedule._id)}>
+            <Text className="font-semibold text-white">Check-in</Text>
           </TouchableOpacity>
         );
       case 'in_progress':
         return (
           <TouchableOpacity
-            className="bg-amber-500 px-4 py-2 rounded-lg"
-            onPress={() => handleCheckout(schedule._id)}
-          >
-            <Text className="text-white font-semibold">Check-out</Text>
+            className="rounded-lg bg-amber-500 px-4 py-2"
+            onPress={() => handleCheckout(schedule._id)}>
+            <Text className="font-semibold text-white">Check-out</Text>
           </TouchableOpacity>
         );
       case 'completed':
         return (
-          <View className="bg-green-100 px-4 py-2 rounded-lg">
+          <View className="rounded-lg bg-green-100 px-4 py-2">
             <Text className="text-green-800">Đã hoàn thành</Text>
           </View>
         );
@@ -226,7 +228,7 @@ export default function ScheduleScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
         <View className="p-4">
-          <Text className="text-xl font-bold mb-4">Lịch làm việc</Text>
+          <Text className="mb-4 text-xl font-bold">Lịch làm việc</Text>
 
           <Calendar
             onDayPress={handleDayPress}
@@ -243,23 +245,27 @@ export default function ScheduleScreen() {
           {loading ? (
             <ActivityIndicator className="mt-4" size="large" color="#2563eb" />
           ) : selectedDate && selectedSchedule ? (
-            <View className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <Text className="font-semibold mb-2">Chi tiết ca làm:</Text>
+            <View className="mt-4 rounded-lg bg-gray-50 p-4">
+              <Text className="mb-2 font-semibold">Chi tiết ca làm:</Text>
               <Text>Ngày: {format(new Date(selectedSchedule.date), 'dd/MM/yyyy')}</Text>
-              <Text>Ca: {selectedSchedule.shift} ({getShiftTimeText(selectedSchedule.shift)})</Text>
+              <Text>
+                Ca: {selectedSchedule.shift} ({getShiftTimeText(selectedSchedule.shift)})
+              </Text>
               <Text>Xe: {selectedSchedule.vehicle.name}</Text>
               <Text>Trạng thái: {getStatusText(selectedSchedule.status)}</Text>
 
               {selectedSchedule.checkinTime && (
-                <Text>Giờ check-in: {format(new Date(selectedSchedule.checkinTime), 'HH:mm:ss')}</Text>
+                <Text>
+                  Giờ check-in: {format(new Date(selectedSchedule.checkinTime), 'HH:mm:ss')}
+                </Text>
               )}
               {selectedSchedule.checkoutTime && (
-                <Text>Giờ check-out: {format(new Date(selectedSchedule.checkoutTime), 'HH:mm:ss')}</Text>
+                <Text>
+                  Giờ check-out: {format(new Date(selectedSchedule.checkoutTime), 'HH:mm:ss')}
+                </Text>
               )}
 
-              <View className="mt-4">
-                {renderActionButtons(selectedSchedule)}
-              </View>
+              <View className="mt-4">{renderActionButtons(selectedSchedule)}</View>
             </View>
           ) : null}
         </View>

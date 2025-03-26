@@ -1,55 +1,11 @@
-//import { getSenicRoute } from './../../../frontend-customer/src/service/scenics';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Trip } from '~/interface/trip';
 import { ScenicRouteDto } from '~/interface/trip';
+import apiClient from './apiClient';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-interface Customer {
-  _id: string;
-  name: string;
-  phone: string;
-  email: string;
-}
-
-interface Driver {
-  _id: string;
-  name: string;
-}
-
-interface Vehicle {
-  _id: string;
-  name: string;
-  licensePlate: string;
-  operationStatus: string;
-  vehicleCondition: string;
-}
-
-interface ServicePayload {
-  bookingHour: {
-    totalTime: number;
-    startPoint: {
-      lat: number;
-      lng: number;
-    };
-  };
-}
-
-interface StatusHistory {
-  status: string;
-  changedAt: string;
-  _id: string;
-}
 
 export const getPersonalTrips = async (): Promise<Trip[]> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.get(`${API_URL}/trip/driver-personal-trip`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.get('/trip/driver-personal-trip');
     return response.data;
   } catch (error) {
     console.error('Error fetching personal trips:', error);
@@ -57,18 +13,12 @@ export const getPersonalTrips = async (): Promise<Trip[]> => {
   }
 };
 
+/**
+ * Cập nhật trạng thái đón khách
+ */
 export const pickUp = async (tripId: string): Promise<Trip> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.post(
-      `${API_URL}/trip/driver-pickup-customer`,
-      { tripId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await apiClient.post('/trip/driver-pickup-customer', { tripId });
     return response.data;
   } catch (error) {
     console.error('Error updating to pickup status:', error);
@@ -76,18 +26,12 @@ export const pickUp = async (tripId: string): Promise<Trip> => {
   }
 };
 
+/**
+ * Bắt đầu chuyến đi
+ */
 export const startTrip = async (tripId: string): Promise<Trip> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.post(
-      `${API_URL}/trip/driver-start-trip`,
-      { tripId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await apiClient.post('/trip/driver-start-trip', { tripId });
     return response.data;
   } catch (error) {
     console.error('Error starting trip:', error);
@@ -95,18 +39,12 @@ export const startTrip = async (tripId: string): Promise<Trip> => {
   }
 };
 
+/**
+ * Hoàn thành chuyến đi
+ */
 export const completeTrip = async (tripId: string): Promise<Trip> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.post(
-      `${API_URL}/trip/driver-complete-trip`,
-      { tripId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const response = await apiClient.post('/trip/driver-complete-trip', { tripId });
     return response.data;
   } catch (error) {
     console.error('Error completing trip:', error);
@@ -114,14 +52,12 @@ export const completeTrip = async (tripId: string): Promise<Trip> => {
   }
 };
 
+/**
+ * Lấy thông tin lộ trình du lịch
+ */
 export const getSenicRouteById = async (routeId: string): Promise<ScenicRouteDto> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.get(`${API_URL}/scenic-routes/${routeId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.get(`/scenic-routes/${routeId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching scenic route:', error);
@@ -129,17 +65,31 @@ export const getSenicRouteById = async (routeId: string): Promise<ScenicRouteDto
   }
 };
 
+/**
+ * Lấy đánh giá theo ID chuyến đi
+ */
 export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const response = await axios.get(`${API_URL}/rating/get-rating-by-trip-id/${tripId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const response = await apiClient.get(`/rating/get-rating-by-trip-id/${tripId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching rating:', error);
+    throw error;
+  }
+};
+
+/**
+ * Hủy chuyến đi
+ */
+export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
+  try {
+    const response = await apiClient.post('/trip/driver-cancel-trip', { 
+      tripId,
+      reason 
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching trip:', error);
+    console.error('Error canceling trip:', error);
     throw error;
   }
 };
