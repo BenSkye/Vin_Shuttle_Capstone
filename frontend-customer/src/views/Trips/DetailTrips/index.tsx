@@ -3,7 +3,7 @@
 import { use } from 'react'
 import { useEffect, useState } from 'react'
 
-import { Rate, Spin, notification } from 'antd'
+import { Rate, Spin, notification, Button, Modal, Input } from 'antd'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { FaClock, FaMapMarkerAlt, FaStar } from 'react-icons/fa'
@@ -16,11 +16,15 @@ import useTripSocket from '@/hooks/useTripSocket'
 import TripRating from '@/views/Ride/components/triprating'
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap'
 
-import { BookingHourPayloadDto, Trip } from '@/interface/trip.interface'
+import { BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingDestinationPayloadDto, Trip } from '@/interface/trip.interface'
+import { cancelTrip } from '../../../service/trip.service'
 
 export default function DetailTripPage({ id }: { id: string }) {
   console.log('Trip ID:', id)
   const { data, isLoading, error } = useTripSocket(id as string)
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [isCanceling, setIsCanceling] = useState(false)
 
   const [rating, setRating] = useState<{ rate: number; feedback: string }>({
     rate: 5,
@@ -47,6 +51,43 @@ export default function DetailTripPage({ id }: { id: string }) {
       message: 'Thành công',
       description: 'Cảm ơn bạn đã đánh giá chuyến đi!',
     })
+  }
+
+  const handleCancelTrip = async () => {
+    if (!cancelReason.trim()) {
+      notification.warning({
+        message: 'Lý do hủy chuyến',
+        description: 'Vui lòng nhập lý do hủy chuyến.',
+      })
+      return
+    }
+
+    setIsCanceling(true)
+    try {
+      // Call the cancelTrip API function
+      await cancelTrip(id, cancelReason)
+      notification.success({
+        message: 'Thành công',
+        description: 'Chuyến đi đã được hủy thành công!',
+      })
+      setIsCancelModalVisible(false)
+    } catch (error: any) {
+      notification.error({
+        message: 'Lỗi',
+        description: error.message || 'Không thể hủy chuyến đi. Vui lòng thử lại sau.',
+      })
+    } finally {
+      setIsCanceling(false)
+    }
+  }
+
+  const showCancelModal = () => {
+    setIsCancelModalVisible(true)
+  }
+
+  const hideCancelModal = () => {
+    setIsCancelModalVisible(false)
+    setCancelReason('')
   }
 
   if (isLoading)
@@ -134,7 +175,118 @@ export default function DetailTripPage({ id }: { id: string }) {
           </motion.div>
         )
 
-      // Add other service type cases here
+      case ServiceType.BOOKING_SCENIC_ROUTE:
+        const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={baseCardStyle}>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Điểm đón</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {scenicPayload.bookingScenicRoute.startPoint.address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaClock className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Khoảng cách ước tính</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {scenicPayload.bookingScenicRoute.distanceEstimate} km
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
+              <motion.div
+                className="mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <RealTimeTripMap
+                  pickupLocation={[
+                    scenicPayload.bookingScenicRoute.startPoint.position.lat,
+                    scenicPayload.bookingScenicRoute.startPoint.position.lng,
+                  ]}
+                  vehicleId={trip.vehicleId._id}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        )
+
+      case ServiceType.BOOKING_DESTINATION:
+        const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={baseCardStyle}>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Điểm đón</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {destinationPayload.bookingDestination.startPoint.address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Điểm đến</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {destinationPayload.bookingDestination.endPoint.address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaClock className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Khoảng cách ước tính</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {destinationPayload.bookingDestination.distanceEstimate} km
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
+              <motion.div
+                className="mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <RealTimeTripMap
+                  pickupLocation={[
+                    destinationPayload.bookingDestination.startPoint.position.lat,
+                    destinationPayload.bookingDestination.startPoint.position.lng,
+                  ]}
+                  destinationLocation={[
+                    destinationPayload.bookingDestination.endPoint.position.lat,
+                    destinationPayload.bookingDestination.endPoint.position.lng,
+                  ]}
+                  vehicleId={trip.vehicleId._id}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        )
 
       default:
         return (
@@ -227,6 +379,39 @@ export default function DetailTripPage({ id }: { id: string }) {
             </h2>
             {renderServiceDetails(trip)}
           </div>
+
+          {/* Cancel Trip Button */}
+          {trip.status === TripStatus.PAYED && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                type="primary"
+                danger
+                onClick={showCancelModal}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                Hủy chuyến
+              </Button>
+            </div>
+          )}
+
+          {/* Cancel Confirmation Modal */}
+          <Modal
+            title="Xác nhận hủy chuyến"
+            visible={isCancelModalVisible}
+            onOk={handleCancelTrip}
+            onCancel={hideCancelModal}
+            okText={isCanceling ? 'Đang hủy...' : 'Xác nhận'}
+            cancelText="Hủy"
+            confirmLoading={isCanceling}
+          >
+            <p>Vui lòng nhập lý do hủy chuyến:</p>
+            <Input.TextArea
+              rows={4}
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Nhập lý do hủy chuyến..."
+            />
+          </Modal>
 
           {/* Rating Section */}
           {trip.status === TripStatus.COMPLETED && !trip.isRating && !ratingSubmitted && (
