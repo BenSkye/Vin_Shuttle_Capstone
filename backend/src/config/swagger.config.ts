@@ -22,6 +22,8 @@ export const swaggerConfig = new DocumentBuilder()
   .addTag('conversation', 'Conversation management')
   .addTag('bus-stops', 'Bus Stop management')
   .addTag('bus-routes', 'Bus Route management')
+  .addTag('share-route', 'Share Route management')
+
 
   .addBearerAuth(
     { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
