@@ -114,7 +114,9 @@ const SchedulePage = () => {
                 return {
                     id: schedule._id,
                     driverId: schedule.driver?._id || "Unknown Driver ID",
+                    driverName: schedule.driver?.name || "Unknown Driver",
                     title: schedule.driver?.name || "Unknown Driver",
+                    name: schedule.driver?.name || "Unknown Driver", // Added 'name' property
                     description: `Vehicle: ${schedule.vehicle?.name || "N/A"}`,
                     startTime: schedule.shift,
                     endTime: schedule.shift,
@@ -123,7 +125,8 @@ const SchedulePage = () => {
                     date: scheduleDate.toISOString().split('T')[0],
                     // Store original date object to help with week calculations
                     originalDate: scheduleDate,
-                    vehicleId: schedule.vehicle?._id
+                    vehicleId: schedule.vehicle?._id,
+                    vehicleName: schedule.vehicle?.name || "Unknown Vehicle"
                 };
             });
 

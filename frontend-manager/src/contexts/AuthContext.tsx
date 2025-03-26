@@ -4,8 +4,7 @@ import React, { useState, useEffect, useContext, createContext, ReactNode, useCa
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { registerIsLoginFalse, registerIsLoginTrue, registerLogout, unregisterIsLoginFalse, unregisterIsLoginTrue, unregisterLogout } from '../services/api/user';
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+
 
 
 
@@ -130,5 +129,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
   };
 
-  return <AuthContext.Provider value={ value }> { children } </AuthContext.Provider>;
+  return <AuthContext.Provider value={value}> {children} </AuthContext.Provider>;
 }

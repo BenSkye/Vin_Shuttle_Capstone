@@ -7,6 +7,7 @@ export interface DriverScheduleEvent {
 }
 
 export interface Activity {
+    name: string;
     vehicleName: string;
     driverName: string;
     vehicleId: string;
