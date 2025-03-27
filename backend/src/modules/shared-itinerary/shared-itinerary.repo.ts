@@ -15,58 +15,58 @@ export class SharedItineraryRepository implements ISharedItineraryRepository {
 
     constructor(
         @InjectModel(SharedItinerary.name)
-        private readonly shareRouteModel: Model<SharedItinerary>,
+        private readonly shareItineraryModel: Model<SharedItinerary>,
         @Inject(REDIS_CLIENT)
         private readonly redisClient: Redis
     ) { }
 
     async create(createDto: ICreateSharedItineraryDTO): Promise<SharedItineraryDocument> {
-        const newSharedItinerary = new this.shareRouteModel(createDto)
+        const newSharedItinerary = new this.shareItineraryModel(createDto)
         return await newSharedItinerary.save();
     }
     async find(query: any, select: string[]): Promise<SharedItineraryDocument[]> {
-        return await this.shareRouteModel.find(query).select(getSelectData(select))
+        return await this.shareItineraryModel.find(query).select(getSelectData(select))
     }
     async findOne(query: any, select: string[]): Promise<SharedItineraryDocument> {
-        return await this.shareRouteModel.findOne(query).select(getSelectData(select))
+        return await this.shareItineraryModel.findOne(query).select(getSelectData(select))
     }
 
     async findById(id: string): Promise<SharedItineraryDocument> {
-        return await this.shareRouteModel.findById(id)
+        return await this.shareItineraryModel.findById(id)
     }
 
-    async update(shareRouteId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument> {
-        const shareRoute = await this.shareRouteModel.findById(shareRouteId);
-        if (!shareRoute) {
+    async update(shareItineraryId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument> {
+        const shareItinerary = await this.shareItineraryModel.findById(shareItineraryId);
+        if (!shareItinerary) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Share route not found ${shareRouteId}`,
-                vnMessage: `Không tìm thấy chia sẻ tuyến ${shareRouteId}`,
+                message: `Share route not found ${shareItineraryId}`,
+                vnMessage: `Không tìm thấy chia sẻ tuyến ${shareItineraryId}`,
             }, HttpStatus.NOT_FOUND);
         }
-        return await this.shareRouteModel.findByIdAndUpdate(shareRouteId, updateDto, { new: true })
+        return await this.shareItineraryModel.findByIdAndUpdate(shareItineraryId, updateDto, { new: true })
     }
 
-    async updateStatusSharedItinerary(shareRouteId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument> {
-        const shareRoute = await this.shareRouteModel.findById(shareRouteId);
-        if (!shareRoute) {
+    async updateStatusSharedItinerary(shareItineraryId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument> {
+        const shareItinerary = await this.shareItineraryModel.findById(shareItineraryId);
+        if (!shareItinerary) {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
-                message: `Share route not found ${shareRouteId}`,
-                vnMessage: `Không tìm thấy chia sẻ tuyến ${shareRouteId}`,
+                message: `Share route not found ${shareItineraryId}`,
+                vnMessage: `Không tìm thấy chia sẻ tuyến ${shareItineraryId}`,
             }, HttpStatus.NOT_FOUND);
         }
-        shareRoute.status = status;
-        return await shareRoute.save();
+        shareItinerary.status = status;
+        return await shareItinerary.save();
     }
 
     async delete(query: any): Promise<any> {
-        return await this.shareRouteModel.deleteMany(query
+        return await this.shareItineraryModel.deleteMany(query
         )
     }
 
     async deleteById(id: string): Promise<any> {
-        return await this.shareRouteModel.findByIdAndDelete(id)
+        return await this.shareItineraryModel.findByIdAndDelete(id)
     }
 
     async saveToRedis(sharedItinerary: SharedItineraryDocument): Promise<void> {

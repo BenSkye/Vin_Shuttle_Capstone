@@ -8,8 +8,8 @@ export interface ISharedItineraryRepository {
     find(query: any, select: string[]): Promise<SharedItineraryDocument[]>
     findOne(query: any, select: string[]): Promise<SharedItineraryDocument>
     findById(id: string): Promise<SharedItineraryDocument>
-    update(shareRouteId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument>
-    updateStatusSharedItinerary(shareRouteId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument>
+    update(shareItineraryId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument>
+    updateStatusSharedItinerary(shareItineraryId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument>
     delete(query: any): Promise<any>
     deleteById(id: string): Promise<any>
     saveToRedis(sharedItinerary: SharedItineraryDocument): Promise<void>
@@ -25,10 +25,10 @@ export interface ISharedItineraryService {
     }>
 
     createSharedItinerary(createDto: ICreateSharedItineraryDTO): Promise<SharedItineraryDocument>
-    updateSharedItinerary(shareRouteId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument>
-    updateStatusSharedItinerary(shareRouteId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument>
-    passStartPoint(shareRouteId: string, tripId: string): Promise<SharedItineraryDocument>
-    passEndPoint(shareRouteId: string, tripId: string): Promise<SharedItineraryDocument>
+    updateSharedItinerary(shareItineraryId: string, updateDto: IUpdateSharedItineraryDTO): Promise<SharedItineraryDocument>
+    updateStatusSharedItinerary(shareItineraryId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument>
+    passStartPoint(shareItineraryId: string, tripId: string): Promise<SharedItineraryDocument>
+    passEndPoint(shareItineraryId: string, tripId: string): Promise<SharedItineraryDocument>
     saveASharedItineraryFromRedisToDBByTripID(tripId: string): Promise<SharedItineraryDocument>
     getSharedItineraryById(id: string): Promise<SharedItineraryDocument>
     getSharedItineraryByTripId(tripId: string): Promise<SharedItineraryDocument>
