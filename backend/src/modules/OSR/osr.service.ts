@@ -218,7 +218,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
         let distance = 0;
         const perTripDistanceAfterChange = [];
         const optimizedStops: sharedItineraryStop[] = [];
-        if (!response?.itinerarys?.[0]?.steps || response?.unassigned?.length > 0) return {
+        if (!response?.routes?.[0]?.steps || response?.unassigned?.length > 0) return {
             sharedItineraryStop: [],
             durationToNewTripStart: durationToNewTripStart,
             durationToNewTripEnd: durationToNewTripEnd,
@@ -231,10 +231,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
         distance = response.summary.distance;
         console.log('originalStops', originalStops);
 
-        console.log('response', response.itinerarys[0].steps);
-        for (const step of response.itinerarys[0].steps) {
-            console.log('step175', step);
-
+        console.log('response234', response.routes[0].steps);
+        for (const step of response.routes[0].steps) {
             if (!['pickup', 'delivery'].includes(step.type) || step.description === TripIdForAtVehiclePosition) {
                 continue;
             }
@@ -249,27 +247,26 @@ export class RoutingOSRService implements IRoutingOSRMService {
                 s.pointType === (isPickup ? SharedItineraryStopsType.START_POINT : SharedItineraryStopsType.END_POINT)
             );
 
-            console.log('originalStop180', originalStop);
             if (!originalStop) return;
 
             // Cập nhật duration & distance nếu là trip cần tìm
             if (tripId === TempTripId) {
                 if (isPickup) {
-                    console.log('duration183', step.duration);
+                    console.log('distance183', step.distance);
                     durationToNewTripStart = step.duration;
                     distanceToNewTripStart = step.distance;
                 } else {
-                    console.log('duration188', step.duration);
+                    console.log('distance188', step.distance);
                     durationToNewTripEnd = step.duration;
                     distanceToNewTripEnd = step.distance;
                 }
             }
             step.distance = step.distance / 1000;
             if (isDelivery) {
-                const pickupStep = response.itinerarys[0].steps.find(step => step.type === 'pickup' && step.description === tripId);
+                const pickupStep = response.routes[0].steps.find(step => step.type === 'pickup' && step.description === tripId);
                 let tripDistanceAfterChange = 0
                 if (!pickupStep) {
-                    const startStep = response.itinerarys[0].steps.find(step => step.description === TripIdForAtVehiclePosition);
+                    const startStep = response.routes[0].steps.find(step => step.description === TripIdForAtVehiclePosition);
                     startStep.distance = startStep.distance / 1000;
                     console.log('startStep', startStep);
                     const tripDistanceFromVehicleToStop = step.distance - startStep.distance;
@@ -289,7 +286,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
                     tripDistanceAfterChange = trip.servicePayload.bookingShare.distance + distanceChange;
                     console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + trip.servicePayload.bookingShare.distance + '+' + distanceChange);
                 } else {
-                    pickupStep.distance = pickupStep.distance / 1000;
+                    pickupStep.distance = pickupStep.distance;
                     tripDistanceAfterChange = step.distance - pickupStep.distance;
                     console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + step.distance + '-' + pickupStep.distance);
                 }
