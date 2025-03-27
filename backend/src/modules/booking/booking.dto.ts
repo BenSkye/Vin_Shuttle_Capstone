@@ -48,7 +48,7 @@ export interface IBookingDestinationBody {
     paymentMethod: PaymentMethod
 }
 
-export interface IBookingSharedRouteBody {
+export interface IBookingSharedItineraryBody {
     startPoint: StartOrEndPoint,
     endPoint: StartOrEndPoint;
     durationEstimate: number

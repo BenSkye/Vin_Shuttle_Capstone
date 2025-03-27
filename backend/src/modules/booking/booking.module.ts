@@ -13,7 +13,7 @@ import { NotificationModule } from 'src/modules/notification/notification.module
 import { PricingModule } from 'src/modules/pricing/pricing.module';
 import { ScenicRouteModule } from 'src/modules/scenic-route/scenic-route.module';
 import { SearchModule } from 'src/modules/search/search.module';
-import { ShareRouteModule } from 'src/modules/shared-route/shared-route.module';
+import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 import { TripModule } from 'src/modules/trip/trip.module';
 import { VehicleCategoryModule } from 'src/modules/vehicle-categories/vehicle-category.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
@@ -48,7 +48,7 @@ const dependencies = [
     forwardRef(() => CheckoutModule),
     ShareModule,
     KeytokenModule,
-    ShareRouteModule,
+    SharedItineraryModule,
     NotificationModule,
     ConversationModule
   ],

@@ -20,8 +20,8 @@ import { IUserRepository } from 'src/modules/users/users.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { IRedisService } from 'src/share/share.port';
-import { SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
-import { ISharedRouteService } from 'src/modules/shared-route/shared-route.port';
+import { SHARE_ITINERARY_SERVICE } from 'src/modules/shared-itinerary/shared-itinerary.di-token';
+import { ISharedItineraryService } from 'src/modules/shared-itinerary/shared-itinerary.port';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { processQueryParams } from 'src/share/utils/query-params.util';
 
@@ -42,8 +42,8 @@ export class TripService implements ITripService {
     private readonly userRepository: IUserRepository,
     @Inject(VEHICLE_REPOSITORY)
     private readonly vehicleRepository: IVehiclesRepository,
-    @Inject(SHARE_ROUTE_SERVICE)
-    private readonly shareRouteService: ISharedRouteService,
+    @Inject(SHARE_ITINERARY_SERVICE)
+    private readonly shareRouteService: ISharedItineraryService,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -364,7 +364,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
+      await this.shareRouteService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
@@ -428,7 +428,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
+      await this.shareRouteService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),

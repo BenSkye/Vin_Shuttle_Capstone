@@ -1,15 +1,15 @@
-import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 import { StartOrEndPoint } from "src/share/interface";
 
-export interface sharedRouteStop {
+export interface sharedItineraryStop {
     order: number;
-    pointType: SharedRouteStopsType;
+    pointType: SharedItineraryStopsType;
     trip: string;
     point: StartOrEndPoint;
     isPass: boolean;
 }
 
-export interface searchSharedRouteDTO {
+export interface searchSharedItineraryDTO {
     startPoint: StartOrEndPoint;
     endPoint: StartOrEndPoint;
     distanceEstimate: number;
@@ -17,27 +17,27 @@ export interface searchSharedRouteDTO {
 }
 
 
-export interface ICreateSharedRouteDTO {
+export interface ICreateSharedItineraryDTO {
     driverId: string;
     vehicleId: string;
     scheduleId: string;
-    stops?: sharedRouteStop[];
+    stops?: sharedItineraryStop[];
     // distanceEstimate: number;
     // durationEstimate: number;
 }
 
-export interface IUpdateSharedRouteDTO {
+export interface IUpdateSharedItineraryDTO {
     driverId?: string;
     vehicleId?: string;
     scheduleId?: string;
-    stops?: sharedRouteStop[];
+    stops?: sharedItineraryStop[];
     distanceEstimate?: number;
     // distanceActual?: number;
     // durationEstimate?: number;
     durationActual?: number;
-    status?: SharedRouteStatus;
+    status?: SharedItineraryStatus;
     statusHistory?: {
-        status: SharedRouteStatus;
+        status: SharedItineraryStatus;
         changedAt: Date;
         reason?: string;
     }[];
