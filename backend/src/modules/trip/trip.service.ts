@@ -43,7 +43,7 @@ export class TripService implements ITripService {
     @Inject(VEHICLE_REPOSITORY)
     private readonly vehicleRepository: IVehiclesRepository,
     @Inject(SHARE_ITINERARY_SERVICE)
-    private readonly shareRouteService: ISharedItineraryService,
+    private readonly shareItineraryService: ISharedItineraryService,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -364,7 +364,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
+      await this.shareItineraryService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
@@ -428,7 +428,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
+      await this.shareItineraryService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
