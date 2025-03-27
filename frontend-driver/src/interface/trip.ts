@@ -145,3 +145,4 @@ export interface Rating {
   createdAt: string;
   updatedAt: string;
 }
+

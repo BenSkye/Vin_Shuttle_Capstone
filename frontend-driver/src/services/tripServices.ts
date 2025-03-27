@@ -81,9 +81,6 @@ export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
 /**
  * Hủy chuyến đi
  */
-/**
- * Hủy chuyến đi
- */
 export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
   try {
     const response = await apiClient.post('/trip/cancel-trip', { 
@@ -96,5 +93,23 @@ export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> 
     throw error;
   }
 };
+export const getShareRouteById = async (Id: string): Promise<Trip> => {
+  try {
+    const response = await apiClient.get(`/share-route/get-by-id/${Id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching shared route:', error);
+    throw error;
+  }
+}
+export const getShareRouteByTripId = async (tripId: string): Promise<Trip> => {
+  try {
+    const response = await apiClient.get(`/share-route/get-by-trip-id/${tripId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching shared route:', error);
+    throw error;
+  }
+}
 
 export { Trip };
