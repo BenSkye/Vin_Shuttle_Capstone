@@ -6,6 +6,7 @@ import { ICreateVehicle, IUpdateVehicle, vehicleParams } from 'src/modules/vehic
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository, IVehiclesService } from 'src/modules/vehicles/vehicles.port';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class VehiclesService implements IVehiclesService {
@@ -70,14 +71,13 @@ export class VehiclesService implements IVehiclesService {
   }
 
   async getListVehicles(query: vehicleParams): Promise<VehicleDocument[] | null> {
+    console.log('query', query);
+    const { filter, options } = processQueryParams(query, ['name']);
 
-    const filter: any = query;
-    if (query.name) {
-      filter.name = { $regex: query.name, $options: 'i' };
-    }
-    const result = await this.vehicleRepository.getListVehicles(filter, []);
+    const result = await this.vehicleRepository.getListVehicles(filter, [], options);
     return result;
   }
+
   async getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null> {
     const vehicle = await this.vehicleRepository.getVehicle({ _id: vehicleId }, ['categoryId']);
     const vehicleCategoryRepository = await this.vehicleCategoryRepository.getById(

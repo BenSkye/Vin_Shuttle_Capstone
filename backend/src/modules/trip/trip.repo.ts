@@ -5,7 +5,9 @@ import { ICreateTripDto, IUpdateTripDto } from 'src/modules/trip/trip.dto';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { Trip, TripDocument } from 'src/modules/trip/trip.schema';
 import { TripStatus } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 import { getSelectData } from 'src/share/utils';
+import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class TripRepository implements ITripRepository {
@@ -24,8 +26,14 @@ export class TripRepository implements ITripRepository {
   async findByDriverId(driverId: string): Promise<TripDocument[]> {
     return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
   }
-  async find(query: any, select: string[]): Promise<TripDocument[]> {
-    return await this.tripModel.find(query).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
+  async find(query: any, select: string[], options?: QueryOptions): Promise<TripDocument[]> {
+    let queryBuilder = this.tripModel.find(query).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId');
+    if (select && select.length > 0) {
+      queryBuilder = queryBuilder.select(getSelectData(select));
+    }
+    queryBuilder = applyQueryOptions(queryBuilder, options);
+    const result = await queryBuilder.exec();
+    return result
   }
 
   async findOne(query: any, select: string[]): Promise<TripDocument> {

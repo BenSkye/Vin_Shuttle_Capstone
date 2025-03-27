@@ -20,9 +20,10 @@ import { IUserRepository } from 'src/modules/users/users.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
 import { IRedisService } from 'src/share/share.port';
-import { SHARE_ROUTE_SERVICE } from 'src/modules/shared-route/shared-route.di-token';
-import { ISharedRouteService } from 'src/modules/shared-route/shared-route.port';
+import { SHARE_ITINERARY_SERVICE } from 'src/modules/shared-itinerary/shared-itinerary.di-token';
+import { ISharedItineraryService } from 'src/modules/shared-itinerary/shared-itinerary.port';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -41,8 +42,8 @@ export class TripService implements ITripService {
     private readonly userRepository: IUserRepository,
     @Inject(VEHICLE_REPOSITORY)
     private readonly vehicleRepository: IVehiclesRepository,
-    @Inject(SHARE_ROUTE_SERVICE)
-    private readonly shareRouteService: ISharedRouteService,
+    @Inject(SHARE_ITINERARY_SERVICE)
+    private readonly shareItineraryService: ISharedItineraryService,
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -363,7 +364,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
+      await this.shareItineraryService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
@@ -427,7 +428,7 @@ export class TripService implements ITripService {
       );
     }
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
-      await this.shareRouteService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedRoute.toString(), updatedTrip._id.toString());
+      await this.shareItineraryService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
@@ -454,7 +455,7 @@ export class TripService implements ITripService {
   }
 
   async getTripByQuery(query: tripParams): Promise<TripDocument[]> {
-    const filter: any = query;
+    const filterProcessed: any = query;
     if (query.customerPhone) {
       const customer = await this.userRepository.findUser({
         phone: query.customerPhone,
@@ -471,9 +472,9 @@ export class TripService implements ITripService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      filter.customerId = customer._id.toString();
+      filterProcessed.customerId = customer._id.toString();
       //loại bỏ field customerPhone
-      delete filter.customerPhone;
+      delete filterProcessed.customerPhone;
     }
     if (query.driverName) {
       const driver = await this.userRepository.findUser({
@@ -490,8 +491,8 @@ export class TripService implements ITripService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      filter.driverId = driver._id.toString();
-      delete filter.driverName;
+      filterProcessed.driverId = driver._id.toString();
+      delete filterProcessed.driverName;
     }
     if (query.vehicleName) {
       const vehicle = await this.vehicleRepository.getVehicle({
@@ -507,11 +508,12 @@ export class TripService implements ITripService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      filter.vehicleId = vehicle._id.toString();
-      delete filter.vehicleName;
+      filterProcessed.vehicleId = vehicle._id.toString();
+      delete filterProcessed.vehicleName;
     }
-    console.log('filter', filter);
-    return await this.tripRepository.find(filter, []);
+    console.log('filterProcessed', filterProcessed);
+    const { filter, options } = processQueryParams(filterProcessed, []);
+    return await this.tripRepository.find(filter, [], options);
   }
 
   async cancelTrip(userId: string, id: string, reason: string): Promise<TripDocument> {
@@ -566,25 +568,26 @@ export class TripService implements ITripService {
 
 
   // run every minute
-  @Cron(CronExpression.EVERY_MINUTE, {
-    name: 'handleTripStartTimeout'
-  })
-  async handleTripStartTimeout() {
-    const now = new Date();
-    const startTimeoutAt = new Date(now.getTime() + 15 * 60 * 1000);
-    const trips = await this.tripRepository.find({
-      status: TripStatus.PAYED,
-      timeStartEstimate: { $lte: startTimeoutAt },
-      timeStart: null,
-    }, []);
-    for (const trip of trips) {
-      await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
-      this.tripGateway.emitTripUpdate(
-        trip.customerId.toString(),
-        await this.getPersonalCustomerTrip(trip.customerId.toString())
-      );
-    }
-  }
+  // @Cron(CronExpression.EVERY_MINUTE, {
+  //   name: 'handleTripStartTimeout'
+  // })
+  // async handleTripStartTimeout() {
+  //   const now = new Date();
+  //   const endTimeOut = new Date(now.getTime() - 15 * 60 * 1000);
+  //   console.log('endTimeOut', endTimeOut);
+  //   const trips = await this.tripRepository.find({
+  //     status: TripStatus.PAYED,
+  //     timeEndEstimate: { $lte: endTimeOut },
+  //     timeStart: null,
+  //   }, []);
+  //   for (const trip of trips) {
+  //     await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
+  //     this.tripGateway.emitTripUpdate(
+  //       trip.customerId.toString(),
+  //       await this.getPersonalCustomerTrip(trip.customerId.toString())
+  //     );
+  //   }
+  // }
 
 
 }

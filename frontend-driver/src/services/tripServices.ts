@@ -81,9 +81,12 @@ export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
 /**
  * Hủy chuyến đi
  */
+/**
+ * Hủy chuyến đi
+ */
 export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
   try {
-    const response = await apiClient.post('/trip/driver-cancel-trip', { 
+    const response = await apiClient.post('/trip/cancel-trip', { 
       tripId,
       reason 
     });
