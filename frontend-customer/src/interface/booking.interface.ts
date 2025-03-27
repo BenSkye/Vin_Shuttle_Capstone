@@ -111,3 +111,25 @@ export interface BookingRouteRequest {
   }[]
   paymentMethod: 'pay_os' | 'cash' | 'momo'
 }
+
+
+export interface BookingSharedRequest {
+  startPoint: {
+    position: {
+      lat: number
+      lng: number
+    }
+    address: string
+  }
+  endPoint: {
+    position: {
+      lat: number
+      lng: number
+    }
+    address: string
+  }
+  durationEstimate: number
+  distanceEstimate: number
+  numberOfSeat: number
+  paymentMethod: 'pay_os' | 'cash' | 'momo'
+}
