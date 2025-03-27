@@ -12,29 +12,29 @@ const useTripSocket = (id?: string) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true)
-      try {
-        if (id) {
-          const tripDetailData = await getPersonalTripById(id)
-          setTripDetail(tripDetailData)
-        } else {
-          const initialTrips = await getPersonalTrip()
-          setTrips(initialTrips)
-        }
-        setLoading(false)
-      } catch (err) {
-        setError(err as Error)
-        setLoading(false)
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      if (id) {
+        const tripDetailData = await getPersonalTripById(id)
+        setTripDetail(tripDetailData)
+      } else {
+        const initialTrips = await getPersonalTrip()
+        setTrips(initialTrips)
       }
+      setLoading(false)
+    } catch (err) {
+      setError(err as Error)
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     const socket = initSocket(SOCKET_NAMESPACE.TRIPS)
 
     const handleConnect = () => {
       console.log('Socket connected:', socket.id)
-      fetchInitialData()
+      fetchData()
     }
 
     console.log('Attempting to connect to socket...')
@@ -60,7 +60,7 @@ const useTripSocket = (id?: string) => {
       })
     }
 
-    fetchInitialData()
+    fetchData()
 
     return () => {
       if (id) {
@@ -73,7 +73,7 @@ const useTripSocket = (id?: string) => {
     }
   }, [id])
 
-  return { data: id ? tripDetail : trips, isLoading: loading, error }
+  return { data: id ? tripDetail : trips, isLoading: loading, error, refetch: fetchData }
 }
 
 export default useTripSocket
