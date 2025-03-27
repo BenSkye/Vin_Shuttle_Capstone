@@ -37,7 +37,6 @@ export class DriverScheduleController {
   @Roles(UserRole.MANAGER)
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
-  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create a list of driver schedules' })
   @ApiBody({
     type: CreateDriverScheduleDto,
