@@ -4,7 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
-import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody, IBookingSharedRouteBody } from "src/modules/booking/booking.dto";
+import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody, IBookingSharedItineraryBody } from "src/modules/booking/booking.dto";
 import { IBookingService } from "src/modules/booking/booking.port";
 import { BookingStatus, UserRole } from "src/share/enums";
 import { PaymentMethod } from "src/share/enums/payment.enum";
@@ -192,11 +192,11 @@ export class BookingController {
             }
         }
     })
-    async bookingSharedRoute(
+    async bookingSharedItinerary(
         @Request() req,
-        @Body() data: IBookingSharedRouteBody,
+        @Body() data: IBookingSharedItineraryBody,
     ) {
-        return await this.bookingService.bookingSharedRoute(
+        return await this.bookingService.bookingSharedItinerary(
             req.user._id,
             data
         )

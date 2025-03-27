@@ -1,4 +1,4 @@
-export interface OpenRouteDTO {
+export interface OpenItineraryDTO {
     id: number;
     description: string;
     profile: string;
@@ -6,7 +6,7 @@ export interface OpenRouteDTO {
     capacity: number[];
 }
 
-export interface OpenRouteShipmentDTO {
+export interface OpenItineraryShipmentDTO {
     id: number;
     pickup: {
         id: number;
@@ -21,9 +21,9 @@ export interface OpenRouteShipmentDTO {
     amount: number[];
 }
 
-export interface OpenRouteOptimizationRequestDTO {
-    vehicles: OpenRouteDTO[];
-    shipments: OpenRouteShipmentDTO[];
+export interface OpenItineraryOptimizationRequestDTO {
+    vehicles: OpenItineraryDTO[];
+    shipments: OpenItineraryShipmentDTO[];
 }
 
 export interface tripAmount {

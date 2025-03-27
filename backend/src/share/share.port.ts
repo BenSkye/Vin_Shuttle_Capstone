@@ -1,5 +1,5 @@
 import { CheckoutResponseDataType } from "@payos/node/lib/type";
-import { sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
+import { sharedItineraryStop } from "src/modules/shared-itinerary/shared-itinerary.dto";
 import { tokenDTO, TokenPayload } from "src/share/interface";
 
 export interface ITokenProvider {

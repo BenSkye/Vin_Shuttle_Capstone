@@ -1,7 +1,7 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { BOOKING_REPOSITORY } from "src/modules/booking/booking.di-token";
-import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody, bookingParams, IBookingSharedRouteBody } from "src/modules/booking/booking.dto";
+import { IBookingHourBody, IBookingScenicRouteBody, IBookingDestinationBody, bookingParams, IBookingSharedItineraryBody } from "src/modules/booking/booking.dto";
 import { IBookingRepository, IBookingService } from "src/modules/booking/booking.port";
 import { BookingDocument } from "src/modules/booking/booking.schema";
 import { CHECKOUT_SERVICE } from "src/modules/checkout/checkout.di-token";
@@ -16,9 +16,9 @@ import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.d
 import { IScenicRouteRepository } from "src/modules/scenic-route/scenic-route.port";
 import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
-import { SHARE_ROUTE_SERVICE } from "src/modules/shared-route/shared-route.di-token";
-import { ICreateSharedRouteDTO, searchSharedRouteDTO } from "src/modules/shared-route/shared-route.dto";
-import { ISharedRouteService } from "src/modules/shared-route/shared-route.port";
+import { SHARE_ITINERARY_SERVICE } from "src/modules/shared-itinerary/shared-itinerary.di-token";
+import { ICreateSharedItineraryDTO, searchSharedItineraryDTO } from "src/modules/shared-itinerary/shared-itinerary.dto";
+import { ISharedItineraryService } from "src/modules/shared-itinerary/shared-itinerary.port";
 import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ICreateTripDto } from "src/modules/trip/trip.dto";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
@@ -27,7 +27,7 @@ import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripStatus } from "src/share/enums";
 import { timeToCloseConversation, timeToOpenConversation } from "src/share/enums/conversation.enum";
-import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 import { QueryOptions } from "src/share/interface";
 
 import { DateUtils, generateBookingCode } from "src/share/utils";
@@ -48,8 +48,8 @@ export class BookingService implements IBookingService {
         private readonly scenicRouteRepository: IScenicRouteRepository,
         @Inject(forwardRef(() => CHECKOUT_SERVICE))
         private readonly checkoutService: ICheckoutService,
-        @Inject(SHARE_ROUTE_SERVICE)
-        private readonly sharedRouteService: ISharedRouteService,
+        @Inject(SHARE_ITINERARY_SERVICE)
+        private readonly sharedItineraryService: ISharedItineraryService,
         @Inject(PRICING_SERVICE)
         private readonly pricingService: IPricingService,
         @Inject(VEHICLE_REPOSITORY)
@@ -539,9 +539,9 @@ export class BookingService implements IBookingService {
         }
     }
 
-    async bookingSharedRoute(
+    async bookingSharedItinerary(
         customerId: string,
-        data: IBookingSharedRouteBody,
+        data: IBookingSharedItineraryBody,
     ): Promise<{ newBooking: BookingDocument; paymentUrl: string }> {
         const {
             startPoint,
@@ -564,32 +564,32 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'You have a trip in progress',
-                vnMessage: 'Bạn đang có một chuyến đi đang diễn ra'
+                vnMessage: 'Bạn đang có chuyến đi khác đang diễn ra'
             }, HttpStatus.BAD_REQUEST
             )
         }
 
-        const searchShareRouteDto: searchSharedRouteDTO = {
+        const searchSharedItineraryDto: searchSharedItineraryDTO = {
             startPoint: startPoint,
             endPoint: endPoint,
             distanceEstimate: distanceEstimate,
             numberOfSeats: numberOfSeat
         }
         // Lấy thông tin shared route phù hợp nhất để ghép với trip
-        const sharedRouteFinded = await this.sharedRouteService.findBestRouteForNewTrip(searchShareRouteDto);
+        const sharedItineraryFinded = await this.sharedItineraryService.findBestItineraryForNewTrip(searchSharedItineraryDto);
         const ListTrip = [];
         let totalAmount = 0;
         let TripDto: ICreateTripDto = null
         let newTrip: TripDocument = null
-        if (sharedRouteFinded) {
+        if (sharedItineraryFinded) {
             const now = dayjs();
-            console.log('durationToNewTripStart', sharedRouteFinded.durationToNewTripStart)
-            console.log('durationToNewTripEnd', sharedRouteFinded.durationToNewTripEnd)
-            const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripStart) / 60, 'minute');
-            const bookingEndTime = now.add(BOOKING_BUFFER_MINUTES + (sharedRouteFinded.durationToNewTripEnd / 60), 'minute');
-            console.log('distanceToNewTripEnd', sharedRouteFinded.distanceToNewTripEnd)
-            console.log('distanceToNewTripStart', sharedRouteFinded.distanceToNewTripStart)
-            const vehicle = await this.vehicleRepository.getById(sharedRouteFinded.SharedRouteDocument.vehicleId.toString())
+            console.log('durationToNewTripStart', sharedItineraryFinded.durationToNewTripStart)
+            console.log('durationToNewTripEnd', sharedItineraryFinded.durationToNewTripEnd)
+            const bookingStartTime = now.add(BOOKING_BUFFER_MINUTES + (sharedItineraryFinded.durationToNewTripStart) / 60, 'minute');
+            const bookingEndTime = now.add(BOOKING_BUFFER_MINUTES + (sharedItineraryFinded.durationToNewTripEnd / 60), 'minute');
+            console.log('distanceToNewTripEnd', sharedItineraryFinded.distanceToNewTripEnd)
+            console.log('distanceToNewTripStart', sharedItineraryFinded.distanceToNewTripStart)
+            const vehicle = await this.vehicleRepository.getById(sharedItineraryFinded.SharedItineraryDocument.vehicleId.toString())
             const newTripPrice = await this.pricingService.calculatePrice(
                 ServiceType.BOOKING_SHARE,
                 vehicle.categoryId.toString(),
@@ -599,22 +599,22 @@ export class BookingService implements IBookingService {
 
             TripDto = {
                 customerId,
-                driverId: sharedRouteFinded.SharedRouteDocument.driverId.toString(),
+                driverId: sharedItineraryFinded.SharedItineraryDocument.driverId.toString(),
                 timeStartEstimate: bookingStartTime.toDate(),
                 timeEndEstimate: bookingEndTime.toDate(),
-                vehicleId: sharedRouteFinded.SharedRouteDocument.vehicleId.toString(),
-                scheduleId: sharedRouteFinded.SharedRouteDocument.scheduleId.toString(),
+                vehicleId: sharedItineraryFinded.SharedItineraryDocument.vehicleId.toString(),
+                scheduleId: sharedItineraryFinded.SharedItineraryDocument.scheduleId.toString(),
                 serviceType: ServiceType.BOOKING_SHARE,
                 amount: newTripPrice,
                 servicePayload: {
                     bookingShare: {
-                        sharedRoute: sharedRouteFinded.SharedRouteDocument._id.toString(),
+                        sharedItinerary: sharedItineraryFinded.SharedItineraryDocument._id.toString(),
                         numberOfSeat: numberOfSeat,
                         startPoint: startPoint,
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedRouteMain: false
+                        isSharedItineraryMain: false
                     }
                 }
             };
@@ -706,19 +706,19 @@ export class BookingService implements IBookingService {
                 amount: vehicleCategory.price,
                 servicePayload: {
                     bookingShare: {
-                        sharedRoute: null,
+                        sharedItinerary: null,
                         numberOfSeat: numberOfSeat,
                         startPoint: startPoint,
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedRouteMain: true
+                        isSharedItineraryMain: true
                     }
                 }
             };
 
 
-            const createSharedRouteDto: ICreateSharedRouteDTO = {
+            const createSharedItineraryDto: ICreateSharedItineraryDTO = {
                 driverId: TripDto.driverId.toString(),
                 vehicleId: TripDto.vehicleId.toString(),
                 scheduleId: TripDto.scheduleId.toString(),
@@ -727,19 +727,19 @@ export class BookingService implements IBookingService {
             }
 
 
-            const newSharedRoute = await this.sharedRouteService.createSharedRoute(createSharedRouteDto)
+            const newSharedItinerary = await this.sharedItineraryService.createSharedItinerary(createSharedItineraryDto)
 
             TripDto = {
                 ...TripDto,
                 servicePayload: {
                     bookingShare: {
-                        sharedRoute: newSharedRoute._id.toString(),
+                        sharedItinerary: newSharedItinerary._id.toString(),
                         numberOfSeat: numberOfSeat,
                         startPoint: startPoint,
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedRouteMain: true
+                        isSharedItineraryMain: true
                     }
                 }
             }
@@ -751,25 +751,25 @@ export class BookingService implements IBookingService {
 
             //create new shared route
 
-            const sharedRouteStop = [{
+            const sharedItineraryStop = [{
                 order: 1,
-                pointType: SharedRouteStopsType.START_POINT,
+                pointType: SharedItineraryStopsType.START_POINT,
                 trip: newTrip._id.toString(),
                 point: newTrip.servicePayload.bookingShare.startPoint,
                 isPass: false
             }, {
                 order: 2,
-                pointType: SharedRouteStopsType.END_POINT,
+                pointType: SharedItineraryStopsType.END_POINT,
                 trip: newTrip._id.toString(),
                 point: newTrip.servicePayload.bookingShare.endPoint,
                 isPass: false
             }]
 
-            const updateSharedRouteDto: ICreateSharedRouteDTO = {
-                ...createSharedRouteDto,
-                stops: sharedRouteStop
+            const updateSharedItineraryDto: ICreateSharedItineraryDTO = {
+                ...createSharedItineraryDto,
+                stops: sharedItineraryStop
             }
-            await this.sharedRouteService.updateSharedRoute(newSharedRoute._id.toString(), updateSharedRouteDto)
+            await this.sharedItineraryService.updateSharedItinerary(newSharedItinerary._id.toString(), updateSharedItineraryDto)
         }
 
         ListTrip.push(newTrip._id);
@@ -821,13 +821,13 @@ export class BookingService implements IBookingService {
                 }, HttpStatus.BAD_REQUEST);
             }
             if (tripUpdate.serviceType === ServiceType.BOOKING_SHARE) {
-                if (tripUpdate.servicePayload.bookingShare.isSharedRouteMain) {
-                    await this.sharedRouteService.updateStatusShareRoute(
-                        tripUpdate.servicePayload.bookingShare.sharedRoute.toString(),
-                        SharedRouteStatus.PLANNED
+                if (tripUpdate.servicePayload.bookingShare.isSharedItineraryMain) {
+                    await this.sharedItineraryService.updateStatusSharedItinerary(
+                        tripUpdate.servicePayload.bookingShare.sharedItinerary.toString(),
+                        SharedItineraryStatus.PLANNED
                     )
                 } else {
-                    await this.sharedRouteService.saveASharedRouteFromRedisToDBByTripID(tripId.toString())
+                    await this.sharedItineraryService.saveASharedItineraryFromRedisToDBByTripID(tripId.toString())
                 }
             }
             const notificationForCustomer = {

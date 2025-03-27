@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Inject } from "@nestjs/common";
 import { OSR_SERVICE } from "src/modules/OSR/osr.di-token";
 import { IRoutingOSRMService } from "src/modules/OSR/osr.port";
-import { SHARE_ROUTE_REPOSITORY } from "src/modules/shared-route/shared-route.di-token";
-import { ICreateSharedRouteDTO, searchSharedRouteDTO, sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
-import { ISharedRouteRepository, ISharedRouteService } from "src/modules/shared-route/shared-route.port";
-import { SharedRouteDocument } from "src/modules/shared-route/shared-route.schema";
+import { SHARE_ITINERARY_REPOSITORY } from "src/modules/shared-itinerary/shared-itinerary.di-token";
+import { ICreateSharedItineraryDTO, searchSharedItineraryDTO, sharedItineraryStop } from "src/modules/shared-itinerary/shared-itinerary.dto";
+import { ISharedItineraryRepository, ISharedItineraryService } from "src/modules/shared-itinerary/shared-itinerary.port";
+import { SharedItineraryDocument } from "src/modules/shared-itinerary/shared-itinerary.schema";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
 import { ITrackingService } from "src/modules/tracking/tracking.port";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
@@ -13,13 +13,13 @@ import { VEHICLE_SERVICE } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesService } from "src/modules/vehicles/vehicles.port";
 import { ServiceType } from "src/share/enums";
 import { TempTripId } from "src/share/enums/osr.enum";
-import { MaxDistancePercentAvailableToChange, SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { MaxDistancePercentAvailableToChange, SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 
 
-export class SharedRouteService implements ISharedRouteService {
+export class SharedItineraryService implements ISharedItineraryService {
     constructor(
-        @Inject(SHARE_ROUTE_REPOSITORY)
-        private readonly sharedRouteRepository: ISharedRouteRepository,
+        @Inject(SHARE_ITINERARY_REPOSITORY)
+        private readonly sharedItineraryRepository: ISharedItineraryRepository,
         @Inject(OSR_SERVICE)
         private readonly osrService: IRoutingOSRMService,
         @Inject(TRIP_REPOSITORY)
@@ -30,8 +30,8 @@ export class SharedRouteService implements ISharedRouteService {
         private readonly trackingService: ITrackingService
     ) { }
 
-    async findBestRouteForNewTrip(searchDto: searchSharedRouteDTO): Promise<{
-        SharedRouteDocument: SharedRouteDocument,
+    async findBestItineraryForNewTrip(searchDto: searchSharedItineraryDTO): Promise<{
+        SharedItineraryDocument: SharedItineraryDocument,
         durationToNewTripStart: number,
         durationToNewTripEnd: number,
         distanceToNewTripStart: number,
@@ -41,35 +41,35 @@ export class SharedRouteService implements ISharedRouteService {
         let durationToNewTripEnd = 0;
         let distanceToNewTripStart = 0;
         let distanceToNewTripEnd = 0
-        const listSharedRoute = await this.sharedRouteRepository.find(
+        const listSharedItinerary = await this.sharedItineraryRepository.find(
             {
-                status: { $in: [SharedRouteStatus.PLANNED, SharedRouteStatus.IN_PROGRESS] }
+                status: { $in: [SharedItineraryStatus.PLANNED, SharedItineraryStatus.IN_PROGRESS] }
             },
             ['_id', 'stops', 'vehicleId']
         );
 
-        const newStartStop: sharedRouteStop = {
+        const newStartStop: sharedItineraryStop = {
             order: 0,
-            pointType: SharedRouteStopsType.START_POINT,
+            pointType: SharedItineraryStopsType.START_POINT,
             trip: TempTripId,
             point: searchDto.startPoint,
             isPass: false
         }
 
-        const newEndStop: sharedRouteStop = {
+        const newEndStop: sharedItineraryStop = {
             order: 0,
-            pointType: SharedRouteStopsType.END_POINT,
+            pointType: SharedItineraryStopsType.END_POINT,
             trip: TempTripId,
             point: searchDto.endPoint,
             isPass: false
         }
 
-        let bestRouteForNewTripId = null;
-        let bestStopArray: sharedRouteStop[] = []
+        let bestItineraryForNewTripId = null;
+        let bestStopArray: sharedItineraryStop[] = []
         let shortestLength = 0;
-        console.log('listSharedRoute', listSharedRoute);
-        for (const sharedRoute of listSharedRoute) { // loop through all shared routes
-            const vehicleId = sharedRoute.vehicleId.toString();
+        console.log('listSharedItinerary', listSharedItinerary);
+        for (const sharedItinerary of listSharedItinerary) { // loop through all shared itinerarys
+            const vehicleId = sharedItinerary.vehicleId.toString();
             const lastVehicleLocation = await this.trackingService.getLastVehicleLocation(vehicleId);
             console.log('lastVehicleLocation', lastVehicleLocation);
             if (!lastVehicleLocation) {
@@ -89,10 +89,10 @@ export class SharedRouteService implements ISharedRouteService {
             if (vehicleCategory.numberOfSeat < searchDto.numberOfSeats) {
                 continue;
             }
-            let stops = sharedRoute.stops;
+            let stops = sharedItinerary.stops;
             stops.filter(stop => stop.isPass === false);
             //get all stops have pointType endPoint
-            const stopsEndPoint = stops.filter(stop => stop.pointType === SharedRouteStopsType.END_POINT);
+            const stopsEndPoint = stops.filter(stop => stop.pointType === SharedItineraryStopsType.END_POINT);
             const listTripsAmount = []
             for (const endPoint of stopsEndPoint) {
                 const trip = await this.tripRepository.findById(endPoint.trip, ['servicePayload']);
@@ -109,23 +109,23 @@ export class SharedRouteService implements ISharedRouteService {
                 amount: searchDto.numberOfSeats
             })
 
-            const route = await this.osrService.getRoute(
+            const itinerary = await this.osrService.getItinerary(
                 stops,
                 vehicleId,
                 vehicleCategory.numberOfSeat,
                 listTripsAmount
             );
-            console.log('route', route);
-            if (!route || route.distance === 0) {
-                console.error('Failed to get route for vehicle:', vehicleId);
+            console.log('itinerary', itinerary);
+            if (!itinerary || itinerary.distance === 0) {
+                console.error('Failed to get itinerary for vehicle:', vehicleId);
                 continue;
             }
-            console.log('sharedRouteStop', route.sharedRouteStop);
-            console.log('perTripDistanceAfterChange71', route.perTripDistanceAfterChange);
+            console.log('sharedItineraryStop', itinerary.sharedItineraryStop);
+            console.log('perTripDistanceAfterChange71', itinerary.perTripDistanceAfterChange);
 
-            if (!bestRouteForNewTripId || route.distance < shortestLength) {
-                const perTripDistanceAfterChange = route.perTripDistanceAfterChange;
-                let isValidRoute = true;
+            if (!bestItineraryForNewTripId || itinerary.distance < shortestLength) {
+                const perTripDistanceAfterChange = itinerary.perTripDistanceAfterChange;
+                let isValidItinerary = true;
                 for (const perTripDistance of perTripDistanceAfterChange) {
                     if (perTripDistance.tripId === TempTripId) {
                         console.log('perTripDistance.distance', perTripDistance.distance)
@@ -133,7 +133,7 @@ export class SharedRouteService implements ISharedRouteService {
                             searchDto.distanceEstimate + (searchDto.distanceEstimate * MaxDistancePercentAvailableToChange))
                         if (perTripDistance.distance > searchDto.distanceEstimate + (searchDto.distanceEstimate * MaxDistancePercentAvailableToChange)) {
                             console.log('is larger than max distance available to change')
-                            isValidRoute = false;
+                            isValidItinerary = false;
                             break
                         }
                     } else {
@@ -141,35 +141,35 @@ export class SharedRouteService implements ISharedRouteService {
                         if (trip) {
                             if (perTripDistance.distance >
                                 trip.servicePayload.bookingShare.distanceEstimate + (trip.servicePayload.bookingShare.distanceEstimate * MaxDistancePercentAvailableToChange)) {
-                                isValidRoute = false;
+                                isValidItinerary = false;
                                 break;
                             }
                         }
                     }
                 }
-                //Check sharedRouteStop is valid
-                if (!isValidRoute) {
+                //Check sharedItineraryStop is valid
+                if (!isValidItinerary) {
                     continue;
                 }
-                shortestLength = route.distance;
-                bestRouteForNewTripId = sharedRoute._id;
-                bestStopArray = route.sharedRouteStop;
-                durationToNewTripStart = route.durationToNewTripStart;
-                durationToNewTripEnd = route.durationToNewTripEnd;
-                distanceToNewTripStart = route.distanceToNewTripStart;
-                distanceToNewTripEnd = route.distanceToNewTripEnd;
+                shortestLength = itinerary.distance;
+                bestItineraryForNewTripId = sharedItinerary._id;
+                bestStopArray = itinerary.sharedItineraryStop;
+                durationToNewTripStart = itinerary.durationToNewTripStart;
+                durationToNewTripEnd = itinerary.durationToNewTripEnd;
+                distanceToNewTripStart = itinerary.distanceToNewTripStart;
+                distanceToNewTripEnd = itinerary.distanceToNewTripEnd;
             }
         }
-        console.log('bestRouteForNewTripId', bestRouteForNewTripId);
-        if (bestRouteForNewTripId === null) {
+        console.log('bestItineraryForNewTripId', bestItineraryForNewTripId);
+        if (bestItineraryForNewTripId === null) {
             return null;
         }
-        const bestSharedRoute = await this.sharedRouteRepository.findById(bestRouteForNewTripId);
-        const shareRouteTemp = bestSharedRoute;
-        shareRouteTemp.stops = bestStopArray;
-        await this.sharedRouteRepository.saveToRedis(shareRouteTemp)
+        const bestSharedItinerary = await this.sharedItineraryRepository.findById(bestItineraryForNewTripId);
+        const shareItineraryTemp = bestSharedItinerary;
+        shareItineraryTemp.stops = bestStopArray;
+        await this.sharedItineraryRepository.saveToRedis(shareItineraryTemp)
         return {
-            SharedRouteDocument: bestSharedRoute,
+            SharedItineraryDocument: bestSharedItinerary,
             durationToNewTripStart,
             durationToNewTripEnd,
             distanceToNewTripStart,
@@ -177,81 +177,81 @@ export class SharedRouteService implements ISharedRouteService {
         }
     }
 
-    async createSharedRoute(createSharedRouteDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument> {
-        return await this.sharedRouteRepository.create(createSharedRouteDto);
+    async createSharedItinerary(createSharedItineraryDto: ICreateSharedItineraryDTO): Promise<SharedItineraryDocument> {
+        return await this.sharedItineraryRepository.create(createSharedItineraryDto);
     }
 
-    async passStartPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument> {
-        const sharedRoute = await this.sharedRouteRepository.findById(shareRouteId);
-        if (!sharedRoute) {
+    async passStartPoint(shareItineraryId: string, tripId: string): Promise<SharedItineraryDocument> {
+        const sharedItinerary = await this.sharedItineraryRepository.findById(shareItineraryId);
+        if (!sharedItinerary) {
             return null;
         }
-        const stops = sharedRoute.stops;
+        const stops = sharedItinerary.stops;
         const newStop = stops.map(stop => {
-            if (stop.trip === tripId && stop.pointType === SharedRouteStopsType.START_POINT) {
+            if (stop.trip === tripId && stop.pointType === SharedItineraryStopsType.START_POINT) {
                 stop.isPass = true;
             }
             return stop;
         });
-        //if stop is the first stop of share route change status to in progress
+        //if stop is the first stop of share itinerary change status to in progress
         if (newStop[0].trip === tripId) {
-            await this.sharedRouteRepository.updateStatusShareRoute(
-                shareRouteId,
-                SharedRouteStatus.IN_PROGRESS
+            await this.sharedItineraryRepository.updateStatusSharedItinerary(
+                shareItineraryId,
+                SharedItineraryStatus.IN_PROGRESS
             );
         }
-        return await this.sharedRouteRepository.update(shareRouteId, {
+        return await this.sharedItineraryRepository.update(shareItineraryId, {
             stops: newStop
         });
     }
 
-    async passEndPoint(shareRouteId: string, tripId: string): Promise<SharedRouteDocument> {
-        const sharedRoute = await this.sharedRouteRepository.findById(shareRouteId);
-        if (!sharedRoute) {
+    async passEndPoint(shareItineraryId: string, tripId: string): Promise<SharedItineraryDocument> {
+        const sharedItinerary = await this.sharedItineraryRepository.findById(shareItineraryId);
+        if (!sharedItinerary) {
             return null;
         }
-        const stops = sharedRoute.stops;
+        const stops = sharedItinerary.stops;
         const newStop = stops.map(stop => {
-            if (stop.trip === tripId && stop.pointType === SharedRouteStopsType.END_POINT) {
+            if (stop.trip === tripId && stop.pointType === SharedItineraryStopsType.END_POINT) {
                 stop.isPass = true;
             }
             return stop;
         }
         );
-        //if the stop is the last stop of share route change status to completed
-        if (newStop[newStop.length - 1].trip === tripId && newStop[newStop.length - 1].pointType === SharedRouteStopsType.END_POINT) {
-            await this.sharedRouteRepository.updateStatusShareRoute(
-                shareRouteId,
-                SharedRouteStatus.COMPLETED
+        //if the stop is the last stop of share itinerary change status to completed
+        if (newStop[newStop.length - 1].trip === tripId && newStop[newStop.length - 1].pointType === SharedItineraryStopsType.END_POINT) {
+            await this.sharedItineraryRepository.updateStatusSharedItinerary(
+                shareItineraryId,
+                SharedItineraryStatus.COMPLETED
             );
         }
-        return await this.sharedRouteRepository.update(shareRouteId, {
+        return await this.sharedItineraryRepository.update(shareItineraryId, {
             stops: newStop
         });
     }
 
-    async updateSharedRoute(shareRouteId: string, updateDto: ICreateSharedRouteDTO): Promise<SharedRouteDocument> {
-        return await this.sharedRouteRepository.update(shareRouteId, updateDto);
+    async updateSharedItinerary(shareItineraryId: string, updateDto: ICreateSharedItineraryDTO): Promise<SharedItineraryDocument> {
+        return await this.sharedItineraryRepository.update(shareItineraryId, updateDto);
     }
 
-    async updateStatusShareRoute(shareRouteId: string, status: SharedRouteStatus): Promise<SharedRouteDocument> {
-        return await this.sharedRouteRepository.updateStatusShareRoute(shareRouteId, status);
+    async updateStatusSharedItinerary(shareItineraryId: string, status: SharedItineraryStatus): Promise<SharedItineraryDocument> {
+        return await this.sharedItineraryRepository.updateStatusSharedItinerary(shareItineraryId, status);
     }
 
-    async saveASharedRouteFromRedisToDBByTripID(tripId: string): Promise<SharedRouteDocument> {
+    async saveASharedItineraryFromRedisToDBByTripID(tripId: string): Promise<SharedItineraryDocument> {
 
         const trip = await this.tripRepository.findById(tripId, ['servicePayload']);
         if (!trip) {
             return null;
         }
-        const sharedRouteId = trip.servicePayload.bookingShare.sharedRoute.toString();
-        const oldSharedRoute = await this.sharedRouteRepository.findById(sharedRouteId);
-        const sharedRoute = await this.sharedRouteRepository.findInRedis(sharedRouteId);
-        if (!sharedRoute) {
+        const sharedItineraryId = trip.servicePayload.bookingShare.sharedItinerary.toString();
+        const oldSharedItinerary = await this.sharedItineraryRepository.findById(sharedItineraryId);
+        const sharedItinerary = await this.sharedItineraryRepository.findInRedis(sharedItineraryId);
+        if (!sharedItinerary) {
             return null;
         }
-        const stops = sharedRoute.stops;
-        const stopHasPass = oldSharedRoute.stops.filter(stop => {
+        const stops = sharedItinerary.stops;
+        const stopHasPass = oldSharedItinerary.stops.filter(stop => {
             return stop.isPass === true
         })
         console.log('stopHasPass', stopHasPass);
@@ -266,17 +266,17 @@ export class SharedRouteService implements ISharedRouteService {
             console.log('baseOrder', baseOrder);
         });
         console.log('newStop', newStop);
-        return await this.sharedRouteRepository.update(sharedRouteId, {
+        return await this.sharedItineraryRepository.update(sharedItineraryId, {
             stops: newStop
         });
     }
 
-    async getSharedRouteById(shareRouteId: string): Promise<SharedRouteDocument> {
-        return await this.sharedRouteRepository.findById(shareRouteId);
+    async getSharedItineraryById(shareItineraryId: string): Promise<SharedItineraryDocument> {
+        return await this.sharedItineraryRepository.findById(shareItineraryId);
     }
 
 
-    async getSharedRouteByTripId(tripId: string): Promise<SharedRouteDocument> {
+    async getSharedItineraryByTripId(tripId: string): Promise<SharedItineraryDocument> {
         const trip = await this.tripRepository.findById(tripId, ['serviceType', 'servicePayload']);
         if (!trip) {
             throw new HttpException(
@@ -292,14 +292,14 @@ export class SharedRouteService implements ISharedRouteService {
             throw new HttpException(
                 {
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: 'Trip is not shared route',
+                    message: 'Trip is not shared itinerary',
                     vnMessage: 'Chuyến đi không phải là chuyến đi chia sẻ',
                 },
                 HttpStatus.BAD_REQUEST,
             );
         }
-        const sharedRouteId = trip.servicePayload.bookingShare.sharedRoute.toString();
-        return await this.sharedRouteRepository.findById(sharedRouteId);
+        const sharedItineraryId = trip.servicePayload.bookingShare.sharedItinerary.toString();
+        return await this.sharedItineraryRepository.findById(sharedItineraryId);
     }
 
 }
