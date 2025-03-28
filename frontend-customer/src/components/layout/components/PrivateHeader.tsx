@@ -20,8 +20,11 @@ const privateNavItems = [
     { label: 'Trang Chủ', href: Routes.HOME },
     { label: 'Đặt xe theo giờ', href: Routes.RIDE.HOURLY },
     { label: 'Đặt xe theo tuyến cố định', href: Routes.RIDE.ROUTES },
+    { label: 'Đặt xe chung', href: Routes.RIDE.SHARED },
     { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
     { label: 'Tính năng', href: Routes.FEATURES },
+
+
 ]
 
 export function PrivateHeader({

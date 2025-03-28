@@ -47,6 +47,8 @@ export interface Driver {
     classes: string[];
     address: string;
     action: string;
+    avatar: string;
+    createdAt?: string; // ISO date string format: 2025-03-28T13:09:36.533+00:00
 };
 
 export interface Customer {
