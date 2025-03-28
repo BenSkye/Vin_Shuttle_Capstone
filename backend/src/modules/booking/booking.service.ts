@@ -19,8 +19,9 @@ import { ISearchService } from "src/modules/search/search.port";
 import { SHARE_ITINERARY_SERVICE } from "src/modules/shared-itinerary/shared-itinerary.di-token";
 import { ICreateSharedItineraryDTO, searchSharedItineraryDTO } from "src/modules/shared-itinerary/shared-itinerary.dto";
 import { ISharedItineraryService } from "src/modules/shared-itinerary/shared-itinerary.port";
-import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
+import { TRIP_GATEWAY, TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ICreateTripDto } from "src/modules/trip/trip.dto";
+import { TripGateway } from "src/modules/trip/trip.gateway";
 import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
 import { TripDocument } from "src/modules/trip/trip.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
@@ -57,7 +58,9 @@ export class BookingService implements IBookingService {
         @Inject(NOTIFICATION_SERVICE)
         private readonly notificationService: INotificationService,
         @Inject(CONVERSATION_SERVICE)
-        private readonly conversationService: IConversationService
+        private readonly conversationService: IConversationService,
+        @Inject(TRIP_GATEWAY)
+        private readonly tripGateway: TripGateway
     ) { }
 
     async bookingHour(
@@ -849,6 +852,10 @@ export class BookingService implements IBookingService {
                 timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start
                 timeToClose: new Date(tripUpdate.timeEndEstimate.getTime() + timeToCloseConversation) //30 minutes after trip end
             })
+            this.tripGateway.emitTripUpdate(
+                tripUpdate.driverId.toString(),
+                await this.tripService.getPersonalDriverTrip(tripUpdate.driverId.toString())
+            );
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(
             booking._id.toString(),
