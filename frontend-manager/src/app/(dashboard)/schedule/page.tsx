@@ -499,6 +499,11 @@ const SchedulePage = () => {
                             <span className="w-4 h-4 bg-yellow-500 inline-block mr-2"></span>
                             <span>Chưa checkin</span>
                         </div>
+                        <div className='flex items-center'>
+                            <span className="w-4 h-4 bg-gray-500 inline-block mr-2"></span>
+                            <span>Không đi làm</span>
+
+                        </div>
                     </div>
                 </div>
                 <ScheduleCalendar

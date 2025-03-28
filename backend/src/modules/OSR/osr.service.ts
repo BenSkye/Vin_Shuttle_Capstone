@@ -1,14 +1,14 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, HttpStatus, Inject } from "@nestjs/common";
-import { OpenRouteOptimizationRequestDTO, OpenRouteShipmentDTO, tripAmount } from "src/modules/OSR/osr.dto";
+import { OpenItineraryOptimizationRequestDTO, OpenItineraryShipmentDTO, tripAmount } from "src/modules/OSR/osr.dto";
 import { IRoutingOSRMService } from "src/modules/OSR/osr.port";
-import { sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
+import { sharedItineraryStop } from "src/modules/shared-itinerary/shared-itinerary.dto";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
 import { ITrackingService } from "src/modules/tracking/tracking.port";
 import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
 import { ITripRepository } from "src/modules/trip/trip.port";
 import { TempTripId, TripIdForAtVehiclePosition } from "src/share/enums/osr.enum";
-import { SharedRouteStopsType } from "src/share/enums/shared-route.enum";
+import { SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 import { Position } from "src/share/interface";
 
 export class RoutingOSRService implements IRoutingOSRMService {
@@ -24,14 +24,14 @@ export class RoutingOSRService implements IRoutingOSRMService {
         private readonly tripRepository: ITripRepository
     ) { }
 
-    async getRoute(
-        stops: sharedRouteStop[],
+    async getItinerary(
+        stops: sharedItineraryStop[],
         vehicleId: string,
         vehicleCapacity: number,
         listTripsAmount: tripAmount[]
     ): Promise<
         {
-            sharedRouteStop: sharedRouteStop[],
+            sharedItineraryStop: sharedItineraryStop[],
             durationToNewTripStart: number,
             durationToNewTripEnd: number,
             distanceToNewTripStart: number,
@@ -43,7 +43,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
             }[]
         }> {
         try {
-            let requestBody: any = await this.convertToOpenRouteFormat(
+            let requestBody: any = await this.convertToOpenItineraryFormat(
                 stops,
                 vehicleId,
                 vehicleCapacity,
@@ -63,7 +63,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
                 requestBody,
                 { headers: { 'Authorization': this.OSR_API_KEY } }
             ).toPromise();
-            const result = await this.parseOpenRouteResponse(response.data, stops);
+            const result = await this.parseOpenItineraryResponse(response.data, stops);
             console.log('result57', result);
             return result;
         } catch (error) {
@@ -71,7 +71,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
             throw new HttpException(
                 {
                     statusCode: HttpStatus.BAD_REQUEST,
-                    message: 'Failed to get route',
+                    message: 'Failed to get itinerary',
                     vnMessage: 'Không thể lấy tuyến đường',
                 },
                 HttpStatus.BAD_REQUEST,
@@ -100,26 +100,28 @@ export class RoutingOSRService implements IRoutingOSRMService {
         }
     }
 
-    private async convertToOpenRouteFormat(
-        stops: sharedRouteStop[],
+    private async convertToOpenItineraryFormat(
+        stops: sharedItineraryStop[],
         vehicleId: string,
         vehicleCapacity: number,
         listTripsAmount: tripAmount[]
-    ): Promise<OpenRouteOptimizationRequestDTO> {
+    ): Promise<OpenItineraryOptimizationRequestDTO> {
+        const listTrips: OpenItineraryShipmentDTO[] = [];
+
         const lastVehicleLocation = await this.trackingService.getLastVehicleLocation(vehicleId);
         console.log('lastVehicleLocation', lastVehicleLocation);
         // Nhóm các stop theo trip
         const stopsByTrip: Record<
             string,//tripId
             {
-                pickup: sharedRouteStop,//trip startPoint
-                delivery: sharedRouteStop//trip endPoint
+                pickup: sharedItineraryStop,//trip startPoint
+                delivery: sharedItineraryStop//trip endPoint
             }
         > = stops.reduce((acc, stop) => {
             const tripId = stop.trip.toString();
             if (!acc[tripId]) acc[tripId] = { pickup: null, delivery: null };
 
-            if (stop.pointType === SharedRouteStopsType.START_POINT) {
+            if (stop.pointType === SharedItineraryStopsType.START_POINT) {
                 acc[tripId].pickup = stop;
             } else {
                 acc[tripId].delivery = stop;
@@ -128,10 +130,9 @@ export class RoutingOSRService implements IRoutingOSRMService {
             return acc;
         }, {});
 
-        // Tạo danh sách trips theo định dạng shipment của OpenRouteService
+        // Tạo danh sách trips theo định dạng shipment của OpenItineraryService
         // Danh sách cuốc xe bao gôm pickup(startPoint) và delivery(endPoint)
-        const listTrips: OpenRouteShipmentDTO[] = [];
-        // Đánh ID cho các trip trong OpenRouteService theo index
+        // Đánh ID cho các trip trong OpenItineraryService theo index
         // Lưu Id của trip vào trong description của pickup và delivery
         let tripIndexId = 1;
 
@@ -197,8 +198,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
         };
     }
 
-    private async parseOpenRouteResponse(response: any, originalStops: sharedRouteStop[]): Promise<{
-        sharedRouteStop: sharedRouteStop[];
+    private async parseOpenItineraryResponse(response: any, originalStops: sharedItineraryStop[]): Promise<{
+        sharedItineraryStop: sharedItineraryStop[];
         durationToNewTripStart: number,
         durationToNewTripEnd: number,
         distanceToNewTripStart: number,
@@ -216,9 +217,9 @@ export class RoutingOSRService implements IRoutingOSRMService {
         let distanceToNewTripEnd = 0;
         let distance = 0;
         const perTripDistanceAfterChange = [];
-        const optimizedStops: sharedRouteStop[] = [];
+        const optimizedStops: sharedItineraryStop[] = [];
         if (!response?.routes?.[0]?.steps || response?.unassigned?.length > 0) return {
-            sharedRouteStop: [],
+            sharedItineraryStop: [],
             durationToNewTripStart: durationToNewTripStart,
             durationToNewTripEnd: durationToNewTripEnd,
             distanceToNewTripStart: distanceToNewTripStart,
@@ -230,10 +231,8 @@ export class RoutingOSRService implements IRoutingOSRMService {
         distance = response.summary.distance;
         console.log('originalStops', originalStops);
 
-        console.log('response', response.routes[0].steps);
+        console.log('response234', response.routes[0].steps);
         for (const step of response.routes[0].steps) {
-            console.log('step175', step);
-
             if (!['pickup', 'delivery'].includes(step.type) || step.description === TripIdForAtVehiclePosition) {
                 continue;
             }
@@ -245,20 +244,19 @@ export class RoutingOSRService implements IRoutingOSRMService {
             // Tìm điểm gốc tương ứng
             const originalStop = originalStops.find(s =>
                 s.trip.toString() === tripId &&
-                s.pointType === (isPickup ? SharedRouteStopsType.START_POINT : SharedRouteStopsType.END_POINT)
+                s.pointType === (isPickup ? SharedItineraryStopsType.START_POINT : SharedItineraryStopsType.END_POINT)
             );
 
-            console.log('originalStop180', originalStop);
             if (!originalStop) return;
 
             // Cập nhật duration & distance nếu là trip cần tìm
             if (tripId === TempTripId) {
                 if (isPickup) {
-                    console.log('duration183', step.duration);
+                    console.log('distance183', step.distance);
                     durationToNewTripStart = step.duration;
                     distanceToNewTripStart = step.distance;
                 } else {
-                    console.log('duration188', step.duration);
+                    console.log('distance188', step.distance);
                     durationToNewTripEnd = step.duration;
                     distanceToNewTripEnd = step.distance;
                 }
@@ -288,7 +286,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
                     tripDistanceAfterChange = trip.servicePayload.bookingShare.distance + distanceChange;
                     console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + trip.servicePayload.bookingShare.distance + '+' + distanceChange);
                 } else {
-                    pickupStep.distance = pickupStep.distance / 1000;
+                    pickupStep.distance = pickupStep.distance;
                     tripDistanceAfterChange = step.distance - pickupStep.distance;
                     console.log('tripDistanceAfterChange', tripDistanceAfterChange + '=' + step.distance + '-' + pickupStep.distance);
                 }
@@ -307,7 +305,7 @@ export class RoutingOSRService implements IRoutingOSRMService {
         console.log('optimizedStops', optimizedStops);
 
         return {
-            sharedRouteStop: optimizedStops,
+            sharedItineraryStop: optimizedStops,
             durationToNewTripStart,
             durationToNewTripEnd,
             distanceToNewTripStart,

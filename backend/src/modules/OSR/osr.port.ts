@@ -1,16 +1,16 @@
 import { tripAmount } from "src/modules/OSR/osr.dto";
-import { sharedRouteStop } from "src/modules/shared-route/shared-route.dto";
+import { sharedItineraryStop } from "src/modules/shared-itinerary/shared-itinerary.dto";
 import { Position } from "src/share/interface";
 
 export interface IRoutingOSRMService {
-    getRoute(
-        stop: sharedRouteStop[],
+    getItinerary(
+        stop: sharedItineraryStop[],
         vehicleId: string,
         vehicleCapacity: number,
         listTripsAmount: tripAmount[]
     ): Promise<
         {
-            sharedRouteStop: sharedRouteStop[],
+            sharedItineraryStop: sharedItineraryStop[],
             durationToNewTripStart: number,
             durationToNewTripEnd: number,
             distanceToNewTripStart: number,

@@ -11,6 +11,8 @@ import { ServiceType } from '@/constants/service-type.enum';
 import { TripStatus } from '@/constants/trip.enum';
 
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap';
+import TripRatingForm from '@/views/Trips/components/tripRatingForm';
+import TripRatingView from '@/views/Trips/components/tripRatingView';
 
 import {
   BookingHourPayloadDto,
@@ -19,7 +21,7 @@ import {
   Trip,
 } from '@/interface/trip.interface';
 import { cancelTrip } from '../../../service/trip.service';
-import { useTripSocket } from '@/hooks/useTripSocket';
+import useTripSocket from '../../../hooks/useTripSocket';
 
 export default function DetailTripPage({ id }: { id: string }) {
   const { data, isLoading, error, refetch } = useTripSocket(id as string);

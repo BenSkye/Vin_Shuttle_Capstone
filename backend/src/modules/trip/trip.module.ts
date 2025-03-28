@@ -12,7 +12,7 @@ import { BusRouteModule } from '../bus-route/bus-route.module';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
 import { UsersModule } from 'src/modules/users/users.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
-import { ShareRouteModule } from 'src/modules/shared-route/shared-route.module';
+import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 
 const dependencies = [
   {
@@ -43,7 +43,7 @@ const dependencies = [
     ShareModule,
     KeytokenModule,
     BusRouteModule,
-    forwardRef(() => ShareRouteModule),
+    forwardRef(() => SharedItineraryModule),
   ],
   controllers: [TripController],
   providers: [...dependencies],

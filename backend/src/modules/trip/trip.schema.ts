@@ -62,13 +62,13 @@ export class Trip {
                 distance: Number
             },
             bookingShare: {
-                sharedRoute: Types.ObjectId,
+                sharedItinerary: Types.ObjectId,
                 numberOfSeat: Number,
                 startPoint: StartOrEndPointSchema,
                 endPoint: StartOrEndPointSchema,
                 distanceEstimate: Number,
                 distance: Number,
-                isSharedRouteMain: Boolean
+                isSharedItineraryMain: Boolean
             },
             bookingBusRoute: {
                 routeId: Types.ObjectId,
@@ -111,7 +111,7 @@ export class Trip {
             distance: number
         };
         bookingShare?: {
-            sharedRoute: Types.ObjectId;
+            sharedItinerary: Types.ObjectId;
             numberOfSeat: number;
             startPoint: {
                 position: Position;
@@ -123,7 +123,7 @@ export class Trip {
             };
             distanceEstimate: number;
             distance: number,
-            isSharedRouteMain: boolean
+            isSharedItineraryMain: boolean
         };
         bookingBusRoute?: {
             routeId: Types.ObjectId;
