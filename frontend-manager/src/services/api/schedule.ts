@@ -45,3 +45,14 @@ export const updateDriverSchedule = async (
     }
 }
 
+export const getPersonalDriverSchedule = async () => {
+    const startDate = '2024-01-01';
+    const endDate = '2030-01-01';
+
+    try {
+        const response = await axiosInstance.get(`/driver-schedules/get-personal-schedules-from-start-to-end/${startDate}/${endDate}`);
+        return response.data;
+    } catch (error) {
+        console.log('lỗi fetch lịch driver', error)
+    }
+}

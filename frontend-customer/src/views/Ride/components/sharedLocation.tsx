@@ -101,6 +101,71 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
     }
 }
 
+// Add custom hook for geolocation
+const useGeolocation = () => {
+    const [position, setPosition] = useState<L.LatLng | null>(null)
+    const [error, setError] = useState<string | null>(null)
+    const [loading, setLoading] = useState(false)
+
+    const getCurrentPosition = () => {
+        setLoading(true)
+        setError(null)
+
+        if (!navigator.geolocation) {
+            setError('Trình duyệt của bạn không hỗ trợ định vị')
+            setLoading(false)
+            return
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords
+                setPosition(L.latLng(latitude, longitude))
+                setLoading(false)
+            },
+            (error) => {
+                let errorMessage = 'Không thể lấy vị trí của bạn'
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Bạn đã từ chối cho phép truy cập vị trí'
+                        break
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Không thể lấy thông tin vị trí'
+                        break
+                    case error.TIMEOUT:
+                        errorMessage = 'Yêu cầu vị trí đã hết thời gian chờ'
+                        break
+                    default:
+                        errorMessage = 'Đã xảy ra lỗi không xác định'
+                }
+                setError(errorMessage)
+                setLoading(false)
+            }
+        )
+    }
+
+    return { position, error, loading, getCurrentPosition }
+}
+
+// Add custom component for current location marker
+const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
+    const map = useMap()
+    const [icon] = useState(
+        L.divIcon({
+            className: 'current-location-marker',
+            html: '<div class="current-location-dot"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+        })
+    )
+
+    useEffect(() => {
+        map.setView(position, 15)
+    }, [position, map])
+
+    return <Marker position={position} icon={icon} />
+}
+
 const SharedLocation = ({
     startPoint,
     endPoint,
@@ -116,6 +181,7 @@ const SharedLocation = ({
     const [startSearchQuery, setStartSearchQuery] = useState(startPoint.address)
     const [endSearchQuery, setEndSearchQuery] = useState(endPoint.address)
     const [activePoint, setActivePoint] = useState<'start' | 'end'>('start')
+    const { position: currentPosition, error: locationError, loading: locationLoading, getCurrentPosition } = useGeolocation()
 
     useEffect(() => {
         setIsClient(true)
@@ -171,6 +237,34 @@ const SharedLocation = ({
         }
     }
 
+    const handleDetectLocation = async () => {
+        try {
+            setIsFetching(true);
+            getCurrentPosition();
+
+            // Wait for geolocation API to respond
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+
+            const { latitude, longitude } = position.coords;
+            const address = await reverseGeocodeOSM(latitude, longitude);
+
+            // Update the location and address immediately
+            if (activePoint === 'start') {
+                onStartLocationChange({ lat: latitude, lng: longitude }, address);
+                setStartSearchQuery(address);
+            } else {
+                onEndLocationChange({ lat: latitude, lng: longitude }, address);
+                setEndSearchQuery(address);
+            }
+        } catch (error) {
+            console.error('Error getting location:', error);
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
     if (!isClient) return null
 
     // Calculate center point between start and end points
@@ -196,12 +290,14 @@ const SharedLocation = ({
                             value={startSearchQuery}
                             onChange={(e) => setStartSearchQuery(e.target.value)}
                         />
+
                         <button
-                            type="submit"
-                            className="rounded-lg bg-blue-500 px-4 text-white hover:bg-blue-600 disabled:bg-gray-400"
+                            type="button"
+                            className="rounded-lg bg-blue-500 px-4 text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400"
+                            onClick={handleDetectLocation}
                             disabled={isFetching || loading}
                         >
-                            {isFetching ? '...' : 'Tìm'}
+                            {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
                         </button>
                     </form>
                 </div>
@@ -284,13 +380,6 @@ const SharedLocation = ({
                 >
                     Chọn điểm đến
                 </button>
-                <button
-                    className="rounded-lg bg-green-500 px-4 py-2 text-white shadow-md transition-all hover:bg-green-600"
-                    onClick={detectUserLocation}
-                    disabled={isFetching || loading}
-                >
-                    {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
-                </button>
             </div>
 
             <div className="map-container">
@@ -304,6 +393,8 @@ const SharedLocation = ({
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
+
+                    {currentPosition && <CurrentLocationMarker position={currentPosition} />}
 
                     {startPoint.position.lat && startPoint.position.lng && (
                         <Marker position={[startPoint.position.lat, startPoint.position.lng]}>
@@ -320,6 +411,12 @@ const SharedLocation = ({
                     <MapClickHandler onMapClick={handleMapClick} activePoint={activePoint} />
                 </MapContainer>
             </div>
+
+            {locationError && (
+                <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+                    {locationError}
+                </div>
+            )}
         </div>
     )
 }
