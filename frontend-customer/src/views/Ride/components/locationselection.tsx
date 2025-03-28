@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, memo } from 'react'
 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -57,6 +57,71 @@ const MapClickHandler = ({ onMapClick }: { onMapClick: (latlng: L.LatLng) => voi
   return null
 }
 
+// Add custom hook for geolocation
+const useGeolocation = () => {
+  const [position, setPosition] = useState<L.LatLng | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const getCurrentPosition = () => {
+    setLoading(true)
+    setError(null)
+
+    if (!navigator.geolocation) {
+      setError('Trình duyệt của bạn không hỗ trợ định vị')
+      setLoading(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        setPosition(L.latLng(latitude, longitude))
+        setLoading(false)
+      },
+      (error) => {
+        let errorMessage = 'Không thể lấy vị trí của bạn'
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Bạn đã từ chối cho phép truy cập vị trí'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Không thể lấy thông tin vị trí'
+            break
+          case error.TIMEOUT:
+            errorMessage = 'Yêu cầu vị trí đã hết thời gian chờ'
+            break
+          default:
+            errorMessage = 'Đã xảy ra lỗi không xác định'
+        }
+        setError(errorMessage)
+        setLoading(false)
+      }
+    )
+  }
+
+  return { position, error, loading, getCurrentPosition }
+}
+
+// Add custom component for current location marker
+const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
+  const map = useMap()
+  const [icon] = useState(
+    L.divIcon({
+      className: 'current-location-marker',
+      html: '<div class="current-location-dot"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    })
+  )
+
+  useEffect(() => {
+    map.setView(position, 15)
+  }, [position, map])
+
+  return <Marker position={position} icon={icon} />
+}
+
 // Hàm geocode để tìm kiếm địa chỉ
 const geocode = async (query: string): Promise<[number, number]> => {
   try {
@@ -80,11 +145,7 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
     )
-    console.log(
-      `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
-    )
     const data = await response.json()
-    console.log('data', data)
     return data.display_name || 'Không xác định được địa chỉ'
   } catch (error) {
     console.error('Reverse geocoding error:', error)
@@ -92,7 +153,7 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
   }
 }
 
-const LocationSelection = ({
+const LocationSelection = memo(({
   startPoint,
   onLocationChange,
   detectUserLocation,
@@ -101,6 +162,7 @@ const LocationSelection = ({
   const [isFetching, setIsFetching] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const [searchQuery, setSearchQuery] = useState(startPoint.address)
+  const { position: currentPosition, error: locationError, loading: locationLoading, getCurrentPosition } = useGeolocation()
 
   useEffect(() => {
     setIsClient(true)
@@ -114,11 +176,13 @@ const LocationSelection = ({
     }
   }, [])
 
-  // useEffect(() => {
-  //     setIsClient(true);
-  // }, []);
+  useEffect(() => {
+    if (startPoint.address && startPoint.address !== searchQuery) {
+      setSearchQuery(startPoint.address)
+    }
+  }, [startPoint.address])
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!searchQuery) return
 
@@ -131,24 +195,43 @@ const LocationSelection = ({
     } finally {
       setIsFetching(false)
     }
-  }
+  }, [searchQuery, onLocationChange])
 
-  const handleMapClick = async (latlng: L.LatLng) => {
+  const handleMapClick = useCallback(async (latlng: L.LatLng) => {
     try {
       setIsFetching(true)
       const address = await reverseGeocodeOSM(latlng.lat, latlng.lng)
       onLocationChange({ lat: latlng.lat, lng: latlng.lng }, address)
       setSearchQuery(address)
-
-      // Force update map view
-      const map = L.map('map')
-      map.setView(latlng, 15)
     } catch (error) {
       console.error('Map click error:', error)
     } finally {
       setIsFetching(false)
     }
-  }
+  }, [onLocationChange])
+
+  const handleDetectLocation = useCallback(async () => {
+    try {
+      setIsFetching(true);
+      getCurrentPosition();
+
+      // Wait for geolocation API to respond
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+
+      const { latitude, longitude } = position.coords;
+      const address = await reverseGeocodeOSM(latitude, longitude);
+
+      // Update the location and address immediately
+      onLocationChange({ lat: latitude, lng: longitude }, address);
+      setSearchQuery(address);
+    } catch (error) {
+      console.error('Error getting location:', error);
+    } finally {
+      setIsFetching(false);
+    }
+  }, [getCurrentPosition, onLocationChange]);
 
   if (!isClient) return null
 
@@ -172,8 +255,8 @@ const LocationSelection = ({
           </button>
         </form>
         <button
-          className="rounded-lg bg-blue-500 p-3 text-white shadow-md transition-all hover:bg-blue-600"
-          onClick={detectUserLocation}
+          className="rounded-lg bg-blue-500 p-3 text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400"
+          onClick={handleDetectLocation}
           disabled={isFetching || loading}
         >
           {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
@@ -192,6 +275,8 @@ const LocationSelection = ({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
+          {currentPosition && <CurrentLocationMarker position={currentPosition} />}
+
           {startPoint.position.lat && startPoint.position.lng && (
             <Marker position={[startPoint.position.lat, startPoint.position.lng]}>
               <Popup className="font-semibold">📍 Điểm đón của bạn</Popup>
@@ -201,8 +286,14 @@ const LocationSelection = ({
           <MapClickHandler onMapClick={handleMapClick} />
         </MapContainer>
       </div>
+
+      {locationError && (
+        <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+          {locationError}
+        </div>
+      )}
     </div>
   )
-}
+})
 
 export default LocationSelection
