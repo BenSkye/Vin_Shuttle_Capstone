@@ -1,17 +1,19 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
-import { IUpdateUserDto } from 'src/modules/users/users.dto';
+import { IUpdateUserDto, userParams } from 'src/modules/users/users.dto';
 import { IUserRepository, IUserService } from 'src/modules/users/users.port';
 import { UserDocument } from 'src/modules/users/users.schema';
 import { UserRole } from 'src/share/enums';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class UsersService implements IUserService {
   constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) { }
 
-  async listUsers(): Promise<UserDocument[]> {
+  async listUsers(query: userParams): Promise<UserDocument[]> {
+    const { filter, options } = processQueryParams(query, ['name', 'phone', 'email']);
     const select = ['name', 'phone', 'email', 'role', 'status', 'avatar'];
-    const listUsers = await this.userRepository.listUsers(select);
+    const listUsers = await this.userRepository.listUsers(select, filter, options);
     return listUsers;
   }
 

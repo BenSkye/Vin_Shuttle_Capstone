@@ -13,6 +13,17 @@ export const getPersonalTrips = async (): Promise<Trip[]> => {
   }
 };
 
+
+export const getPersonalTripById = async (id: string): Promise<Trip> => {
+  try {
+    const response = await apiClient.get(`/trip/driver-personal-trip/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching personal trip by ID:', error);
+    throw error;
+  }
+}
+
 /**
  * Cập nhật trạng thái đón khách
  */
@@ -81,11 +92,14 @@ export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
 /**
  * Hủy chuyến đi
  */
+/**
+ * Hủy chuyến đi
+ */
 export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
   try {
-    const response = await apiClient.post('/trip/driver-cancel-trip', { 
+    const response = await apiClient.post('/trip/cancel-trip', {
       tripId,
-      reason 
+      reason
     });
     return response.data;
   } catch (error) {

@@ -21,7 +21,7 @@ import {
   unregisterLogout,
 } from '@/service/user.service'
 
-// Define types for user and auth data
+
 type User = {
   id: string
   phone?: string

@@ -1,9 +1,14 @@
-import { ICreateUserDto, IUpdateUserDto } from 'src/modules/users/users.dto';
+import { ICreateUserDto, IUpdateUserDto, userParams } from 'src/modules/users/users.dto';
 import { UserDocument } from 'src/modules/users/users.schema';
 import { UserRole } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 
 export interface IUserRepository {
-  listUsers(select: string[]): Promise<UserDocument[]>;
+  listUsers(
+    select: string[],
+    query?: object,
+    options?: QueryOptions,
+  ): Promise<UserDocument[]>;
   getUserById(id: string, select: string[]): Promise<UserDocument>;
   findUser(query: any): Promise<UserDocument>;
   findManyUsers(query: any, select: string[]): Promise<UserDocument[]>;
@@ -15,7 +20,7 @@ export interface IUserRepository {
 }
 
 export interface IUserService {
-  listUsers(): Promise<object>;
+  listUsers(query: userParams): Promise<UserDocument[]>;
   getUserByRole(role: UserRole): Promise<UserDocument[]>;
   viewProfile(id: string): Promise<object>;
   updateProfile(id: string, user: IUpdateUserDto): Promise<object>;

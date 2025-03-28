@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
 import { paymentTime } from "src/share/enums/payment.enum";
-import { SharedRouteStatus, SharedRouteStopsType } from "src/share/enums/shared-route.enum";
-import { Position, PositionSchema, StartOrEndPointSchema } from "src/share/share.schema";
+import { SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
+import { Position, StartOrEndPointSchema } from "src/share/share.schema";
 
-export type SharedRouteDocument = HydratedDocument<SharedRoute>;
+export type SharedItineraryDocument = HydratedDocument<SharedItinerary>;
 
-@Schema({ collection: 'SharedRoutes', timestamps: true })
-export class SharedRoute {
+@Schema({ collection: 'SharedItineraries', timestamps: true })
+export class SharedItinerary {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     driverId: Types.ObjectId;
 
@@ -23,7 +23,7 @@ export class SharedRoute {
             order: { type: Number, required: true },
             pointType: {
                 type: String,
-                enum: SharedRouteStopsType,
+                enum: SharedItineraryStopsType,
                 required: true
             },
             trip: {
@@ -39,7 +39,7 @@ export class SharedRoute {
     })
     stops: Array<{
         order: number;
-        pointType: SharedRouteStopsType;
+        pointType: SharedItineraryStopsType;
         trip: string;
         point: {
             position: Position;
@@ -48,32 +48,32 @@ export class SharedRoute {
         isPass: boolean;
     }>;
 
-    @Prop({ type: [PositionSchema] })
-    optimizedCoordinates: Position[];
+    // @Prop({ type: [PositionSchema] })
+    // optimizedCoordinates: Position[];
 
-    @Prop({ type: Number, required: true })
-    distanceEstimate: number;
+    // @Prop({ type: Number, required: true })
+    // distanceEstimate: number;
 
-    @Prop({ type: Number })
-    distanceActual: number;
+    // @Prop({ type: Number })
+    // distanceActual: number;
 
-    @Prop({ type: Number, required: true })
-    durationEstimate: number;
+    // @Prop({ type: Number, required: true })
+    // durationEstimate: number;
 
-    @Prop({ type: Number })
-    durationActual: number;
+    // @Prop({ type: Number })
+    // durationActual: number;
 
     @Prop({
         type: String,
-        enum: SharedRouteStatus,
-        default: SharedRouteStatus.PENDING
+        enum: SharedItineraryStatus,
+        default: SharedItineraryStatus.PENDING
     })
-    status: SharedRouteStatus;
+    status: SharedItineraryStatus;
 
     @Prop({
         type: [
             {
-                status: { type: String, enum: SharedRouteStatus },
+                status: { type: String, enum: SharedItineraryStatus },
                 changedAt: Date,
                 reason: String,
             },
@@ -81,7 +81,7 @@ export class SharedRoute {
         default: [],
     })
     statusHistory: Array<{
-        status: SharedRouteStatus;
+        status: SharedItineraryStatus;
         changedAt: Date;
         reason?: string;
     }>;
@@ -91,18 +91,18 @@ export class SharedRoute {
 
 }
 
-export const SharedRouteSchema = SchemaFactory.createForClass(SharedRoute);
+export const SharedItinerarySchema = SchemaFactory.createForClass(SharedItinerary);
 
-SharedRouteSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+SharedItinerarySchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
-SharedRouteSchema.pre<SharedRoute>('save', function (next) {
+SharedItinerarySchema.pre<SharedItinerary>('save', function (next) {
     const modifiedPaths = (this as any).modifiedPaths();
     console.log('modifiedPaths', modifiedPaths)
     // Kiểm tra cả trường hợp tạo mới và cập nhật
     if ((this as any).isNew || modifiedPaths.includes('status')) {
         const currentStatus = this.status;
 
-        if (currentStatus === SharedRouteStatus.PLANNED) {
+        if (currentStatus === SharedItineraryStatus.PLANNED) {
             this.expireAt = null;
         } else if ((this as any).isNew) {
             // Nếu là bản ghi mới, đặt expireAt là 2 phút sau

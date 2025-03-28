@@ -6,7 +6,9 @@ import { ICreateUserDto, IUpdateUserDto } from 'src/modules/users/users.dto';
 import { IUserRepository } from 'src/modules/users/users.port';
 import { User, UserDocument } from 'src/modules/users/users.schema';
 import { REDIS_CLIENT } from 'src/share/di-token';
+import { QueryOptions } from 'src/share/interface';
 import { getSelectData } from 'src/share/utils';
+import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class UsersRepository implements IUserRepository {
@@ -17,8 +19,19 @@ export class UsersRepository implements IUserRepository {
     private readonly redisClient: Redis,
   ) { }
 
-  async listUsers(select: string[]): Promise<UserDocument[]> {
-    const result = await this.userModel.find().select(getSelectData(select)).exec();
+  async listUsers(
+    select: string[],
+    query?: any,
+    options?: QueryOptions,
+  ): Promise<UserDocument[]> {
+    let queryBuilder;
+    if (query) {
+      queryBuilder = this.userModel.find(query);
+    } else {
+      queryBuilder = this.userModel.find();
+    }
+    queryBuilder = applyQueryOptions(queryBuilder, options);
+    const result = await queryBuilder.exec();
     return result;
   }
   async getUserById(id: string, select: string[]): Promise<UserDocument> {

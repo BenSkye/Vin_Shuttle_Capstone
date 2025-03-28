@@ -1,3 +1,4 @@
+import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
 
 
 export interface tokenDTO {
@@ -35,6 +36,17 @@ export interface TrackingData {
   location: LocationData;
 }
 
+export interface QueryOptions {
+  limit?: number;
+  skip?: number;
+  orderBy?: string;
+  sortOrder?: SortOrderOption;
+}
+
+export interface ProcessedQueryParams<T> {
+  filter: T;
+  options: QueryOptions;
+}
 
 
 export const HEADER = {

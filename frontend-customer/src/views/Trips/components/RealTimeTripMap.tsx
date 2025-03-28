@@ -28,10 +28,10 @@ if (typeof window !== 'undefined') {
 }
 
 interface RealTimeTripMapProps {
-  pickupLocation: [number, number]
-  vehicleId: string
+  pickupLocation: [number, number];
+  destinationLocation?: [number, number];
+  vehicleId: string;
 }
-
 const RealTimeTripMap = ({ pickupLocation, vehicleId }: RealTimeTripMapProps) => {
   const mapRef = useRef<L.Map | null>(null)
   const markerRef = useRef<L.Marker | null>(null)

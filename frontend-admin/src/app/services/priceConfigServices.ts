@@ -1,40 +1,94 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 import { PriceManagement, UpdateServiceConfigRequest } from './interface';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
-
 export const priceManagementServices = {
+  /**
+   * Lấy danh sách cấu hình giá
+   */
   async getPrices(): Promise<PriceManagement[]> {
     try {
-      const response = await axios.get(`${API_URL}/pricing/vehicle-pricings`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      const response = await apiClient.get('/pricing/vehicle-pricings');
       return response.data;
     } catch (error) {
+      console.error('Error fetching price configurations:', error);
       throw error;
     }
   },
 
+  /**
+   * Cập nhật cấu hình dịch vụ
+   * @param serviceType Loại dịch vụ (booking_hour/booking_trip/booking_share)
+   * @param data Dữ liệu cập nhật
+   */
   async updateServiceConfig(
     serviceType: 'booking_hour' | 'booking_trip' | 'booking_share',
     data: UpdateServiceConfigRequest
   ): Promise<UpdateServiceConfigRequest> {
     try {
-      const response = await axios.put(
-        `${API_URL}/pricing/service-configs/${serviceType}`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json'
-          }
-        }
+      const response = await apiClient.put(
+        `/pricing/service-configs/${serviceType}`,
+        data
       );
       return response.data;
     } catch (error) {
+      console.error(`Error updating ${serviceType} service config:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Lấy cấu hình dịch vụ theo loại
+   * @param serviceType Loại dịch vụ (booking_hour/booking_trip/booking_share)
+   */
+  async getServiceConfig(
+    serviceType: 'booking_hour' | 'booking_trip' | 'booking_share'
+  ): Promise<UpdateServiceConfigRequest> {
+    try {
+      const response = await apiClient.get(
+        `/pricing/service-configs/${serviceType}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching ${serviceType} service config:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cập nhật giá theo ID
+   * @param priceId ID của cấu hình giá
+   * @param data Dữ liệu cập nhật
+   */
+  async updatePrice(
+    priceId: string,
+    data: Partial<PriceManagement>
+  ): Promise<PriceManagement> {
+    try {
+      const response = await apiClient.put(
+        `/pricing/vehicle-pricings/${priceId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating price configuration with ID ${priceId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Lấy chi tiết cấu hình giá theo ID
+   * @param priceId ID của cấu hình giá
+   */
+  async getPriceById(priceId: string): Promise<PriceManagement> {
+    try {
+      const response = await apiClient.get(`/pricing/vehicle-pricings/${priceId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching price configuration with ID ${priceId}:`, error);
       throw error;
     }
   }
 };
+
+// Re-export các interface để sử dụng nơi khác nếu cần
+export type { PriceManagement, UpdateServiceConfigRequest };

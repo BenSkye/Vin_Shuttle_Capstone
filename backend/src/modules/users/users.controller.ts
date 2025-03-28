@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, Inject, Param, Put, Request, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Inject, Param, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/modules/auth/role.guard';
 import { USER_SERVICE } from 'src/modules/users/users.di-token';
-import { UpdateUserDto } from 'src/modules/users/users.dto';
+import { UpdateUserDto, userParams } from 'src/modules/users/users.dto';
 import { IUserService } from 'src/modules/users/users.port';
 import { UserRole } from 'src/share/enums';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { HEADER } from 'src/share/interface';
 
 @ApiTags('users')
@@ -16,12 +17,45 @@ export class UsersController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'View  profile user' })
-  async getAllUsers() {
-    return await this.service.listUsers();
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: 'Filter by user name',
+  })
+  @ApiQuery({
+    name: 'email',
+    required: false,
+    type: String,
+    description: 'Filter by user email',
+  })
+  @ApiQuery({
+    name: 'phone',
+    required: false,
+    type: String,
+    description: 'Filter by user phone',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: UserRole,
+    description: 'Filter by user role',
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)'
+  })
+  async getAllUsers(@Query() query: userParams) {
+    return await this.service.listUsers(query);
   }
   @Get('get-user-by-role/:role')
   @UseGuards(AuthGuard, RolesGuard)

@@ -1,4 +1,5 @@
-import { Position } from 'src/share/interface';
+import { ScenicRouteStatus } from 'src/share/enums/scenic-routes.enum';
+import { Position, QueryOptions } from 'src/share/interface';
 
 export interface Waypoint {
   id: number;
@@ -29,4 +30,11 @@ export interface IUpdateScenicRouteDto {
   totalDistance?: number; // in kilometers
   // vehicleCategories?: string[];
   // tags?: string[];
+}
+
+
+export interface scenicRouteParams extends QueryOptions {
+  name?: string;
+  status?: ScenicRouteStatus;
+  totalDistance?: number;
 }

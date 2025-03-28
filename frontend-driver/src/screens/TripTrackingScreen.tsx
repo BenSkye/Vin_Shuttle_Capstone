@@ -29,14 +29,18 @@ import {
 } from '~/components/TripTracking';
 import { RouteProp } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import useTripSocket from '~/hook/useTripSocket';
 
 // First, properly type the route params
 interface RouteParams {
-  trip: Trip;
+  tripID: string;
 }
 
 const TripTrackingScreen = () => {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
+  const tripId = route.params.tripID;
+  const { data, error, isLoading } = useTripSocket(tripId);
+  const [trip, setTrip] = useState<Trip | null>(null);
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
 
@@ -47,7 +51,6 @@ const TripTrackingScreen = () => {
   });
   const [customerDestination, setCustomerDestination] = useState<Position | null>(null);
   const [showDestination, setShowDestination] = useState(false);
-  const [trip, setTrip] = useState<Trip | undefined>(route.params?.trip);
   const [showCustomerInfo, setShowCustomerInfo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [routeToDestination, setRouteToDestination] = useState(false);
@@ -69,12 +72,19 @@ const TripTrackingScreen = () => {
     }
   }, [trip]);
 
-  // Effect to set trip from route params
-  React.useEffect(() => {
-    if (route.params?.trip) {
-      setTrip(route.params.trip as Trip);
+  useEffect(() => {
+    if (data) {
+      console.log('Trip data:', data);
+      setTrip(data as Trip);
     }
-  }, [route.params]);
+  }, [data]);
+
+  // Effect to set trip from route params
+  // React.useEffect(() => {
+  //   if (route.params?.trip) {
+  //     setTrip(route.params.trip as Trip);
+  //   }
+  // }, [route.params]);
 
   // Initialize location data based on trip type
   const initializeLocationData = () => {
@@ -109,7 +119,7 @@ const TripTrackingScreen = () => {
       } else if (isInProgress && payload.bookingScenicRoute.routeId) {
         fetchScenicRouteData(
           payload.bookingScenicRoute.routeId._id ||
-            (payload.bookingScenicRoute.routeId as unknown as string)
+          (payload.bookingScenicRoute.routeId as unknown as string)
         );
       }
     }
@@ -327,7 +337,25 @@ const TripTrackingScreen = () => {
     setIsScenicRouteCollapsed(!isScenicRouteCollapsed);
   };
 
-  if (!route.params?.trip) {
+
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text className="p-2 text-gray-800">Loading...</Text>
+      </View>
+    );
+  }
+
+  // if (error) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <Text className="p-2 text-gray-800">Error: {error.message}</Text>
+  //     </View>
+  //   );
+  // }
+
+  if (!trip) {
     return (
       <View style={styles.container}>
         <Text className="p-2 text-gray-800">No trip details provided</Text>
@@ -363,6 +391,7 @@ const TripTrackingScreen = () => {
       )}
 
       {/* Bottom info card */}
+
       <View style={styles.bottomCard}>
         {/* Tracking status warning */}
         <TrackingStatusWarning isTracking={isTracking} />
@@ -443,6 +472,7 @@ const TripTrackingScreen = () => {
           />
         </View>
       </View>
+
 
       {/* Modals */}
       <CustomerInfoModal visible={showCustomerInfo} onClose={toggleCustomerInfo} trip={trip} />

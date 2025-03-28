@@ -53,3 +53,20 @@ export const createRating = async (tripId: string, rate: number, feedback: strin
     console.log(e)
   }
 }
+
+
+export const cancelTrip = async (tripId: string, reason: string) => {
+  try {
+    const response = await apiClient.post(`/trip/cancel-trip/`, {
+      tripId,
+      reason,
+    })
+    return response.data
+  } catch (error: unknown) {
+    if (error.response) {
+      const serverError = error.response.data
+      throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định')
+    }
+    throw new Error('Lỗi kết nối máy chủ')
+  }
+}

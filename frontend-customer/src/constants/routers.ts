@@ -13,6 +13,7 @@ export const Routes = {
     DESTINATION: '/ride/destination',
     ROUTES: '/ride/routes',
     HOURLY: '/ride/hourly',
+    SHARED: '/ride/shared',
   },
   FEATURES: '/features',
   PROFILE: '/profile',

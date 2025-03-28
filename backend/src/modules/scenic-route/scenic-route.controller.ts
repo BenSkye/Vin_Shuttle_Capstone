@@ -8,9 +8,10 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IScenicRouteService } from './scenic-route.port';
 import { SCENIC_ROUTE_SERVICE } from './scenic-route.di-token';
 import { RolesGuard } from 'src/modules/auth/role.guard';
@@ -19,8 +20,11 @@ import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import {
   ICreateScenicRouteDto,
   IUpdateScenicRouteDto,
+  scenicRouteParams,
 } from 'src/modules/scenic-route/scenic-route.dto';
 import { HEADER } from 'src/share/interface';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
+import { ScenicRouteStatus } from 'src/share/enums/scenic-routes.enum';
 
 @ApiTags('scenic-routes')
 @Controller('scenic-routes')
@@ -75,16 +79,25 @@ export class ScenicRouteController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @Roles('admin')
-  // @ApiBearerAuth('authorization')
   @ApiOperation({ summary: 'Get all routes' })
   @ApiResponse({
     status: 200,
     description: 'Returns all routes',
   })
-  async getAllScenicRoutes() {
-    return this.routeService.getAllScenicRoutes();
+  @ApiQuery({ name: 'name', required: false, type: String, description: 'Filter by route name' })
+  @ApiQuery({ name: 'status', required: false, enum: ScenicRouteStatus, description: 'Filter by route status' })
+  @ApiQuery({ name: 'totalDistance', required: false, type: Number, description: 'Filter by route total distance' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)'
+  })
+  async getAllScenicRoutes(@Query() query: scenicRouteParams) {
+    return this.routeService.getAllScenicRoutes(query);
   }
 
   @Get(':id')

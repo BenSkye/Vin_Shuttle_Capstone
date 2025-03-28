@@ -11,13 +11,11 @@ import { ValidationErrorResponse } from 'src/common/swagger/responses';
 
 @ApiTags('bus-stops')
 @Controller('bus-stops')
-@UseGuards(AuthGuard, RolesGuard)
-@ApiBearerAuth('authorization')
 export class BusStopController {
   constructor(
     @Inject(BUS_STOP_SERVICE)
     private readonly busStopService: IBusStopService,
-  ) {}
+  ) { }
 
   @Post()
   @Roles(UserRole.ADMIN)

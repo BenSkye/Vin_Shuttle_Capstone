@@ -1,4 +1,4 @@
-export enum SharedRouteStatus {
+export enum SharedItineraryStatus {
     PENDING = 'pending',
     PLANNED = 'planned',
     IN_PROGRESS = 'in_progress',
@@ -6,9 +6,9 @@ export enum SharedRouteStatus {
     CANCELLED = 'cancelled',
 }
 
-export enum SharedRouteStopsType {
+export enum SharedItineraryStopsType {
     START_POINT = 'startPoint',
     END_POINT = 'endPoint',
 }
 
-export const MaxDistanceAvailableToChange = 2; // 2 km
+export const MaxDistancePercentAvailableToChange = 0.5; // 50%

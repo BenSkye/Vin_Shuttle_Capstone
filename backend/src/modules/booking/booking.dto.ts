@@ -1,6 +1,6 @@
 import { BookingStatus } from "src/share/enums"
 import { PaymentMethod } from "src/share/enums/payment.enum"
-import { StartOrEndPoint } from "src/share/interface"
+import { QueryOptions, StartOrEndPoint } from "src/share/interface"
 
 export interface ICreateBooking {
     bookingCode: number
@@ -48,7 +48,7 @@ export interface IBookingDestinationBody {
     paymentMethod: PaymentMethod
 }
 
-export interface IBookingSharedRouteBody {
+export interface IBookingSharedItineraryBody {
     startPoint: StartOrEndPoint,
     endPoint: StartOrEndPoint;
     durationEstimate: number
@@ -57,7 +57,7 @@ export interface IBookingSharedRouteBody {
     paymentMethod: PaymentMethod
 }
 
-export interface bookingParams {
+export interface bookingParams extends QueryOptions {
     status?: BookingStatus
     customerId?: string
     bookingCode?: number

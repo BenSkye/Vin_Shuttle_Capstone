@@ -7,6 +7,10 @@ export interface DriverScheduleEvent {
 }
 
 export interface Activity {
+    name: string;
+    vehicleName: string;
+    driverName: string;
+    vehicleId: string;
     id: string;
     driverId: string;
     title: string;
@@ -43,6 +47,8 @@ export interface Driver {
     classes: string[];
     address: string;
     action: string;
+    avatar: string;
+    createdAt?: string; // ISO date string format: 2025-03-28T13:09:36.533+00:00
 };
 
 export interface Customer {
@@ -59,4 +65,5 @@ export interface Vehicle {
     description: string;
     vehicleCondition: string;
     operationStatus: string;
+
 }

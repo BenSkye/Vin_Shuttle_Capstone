@@ -21,10 +21,14 @@ const useNotificationSocket = () => {
       setLoading(true)
       try {
         const notificationData = await getPersonalNotification()
-        setNotifications(notificationData)
+        // Sort notifications by createdAt in descending order
+        const sortedNotifications = notificationData.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setNotifications(sortedNotifications)
 
         // Calculate unread count
-        const unreadNotifications = notificationData.filter((notification) => !notification.isRead)
+        const unreadNotifications = sortedNotifications.filter((notification) => !notification.isRead)
         setUnreadCount(unreadNotifications.length)
 
         setLoading(false)
@@ -53,7 +57,12 @@ const useNotificationSocket = () => {
 
     // Listen for new notifications
     socket.on('new_notification', (newNotification: INotification) => {
-      setNotifications((prevNotifications) => [newNotification, ...prevNotifications])
+      setNotifications((prevNotifications) => {
+        const updatedNotifications = [newNotification, ...prevNotifications]
+        return updatedNotifications.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
       setUnreadCount((prevCount) => prevCount + 1)
     })
 

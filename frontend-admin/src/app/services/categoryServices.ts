@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API;
+import apiClient from './apiClient';
 
 // Interface cho category
 interface VehicleCategory {
@@ -14,13 +12,11 @@ export const categoryService = {
   // Lấy danh sách categories
   async getCategories(): Promise<VehicleCategory[]> {
     try {
-      const response = await axios.get(`${API_URL}/vehicle-categories`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // Sửa từ post thành get vì đây là lấy danh sách
+      const response = await apiClient.get('/vehicle-categories');
       return response.data;
     } catch (error) {
+      console.error('Error fetching categories:', error);
       throw error;
     }
   },
@@ -28,14 +24,11 @@ export const categoryService = {
   // Thêm category mới
   async addCategory(categoryData: Omit<VehicleCategory, '_id'>): Promise<VehicleCategory> {
     try {
-      const response = await axios.post(`${API_URL}/vehicle-categories`, categoryData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Sử dụng apiClient thay vì axios trực tiếp
+      const response = await apiClient.post('/vehicle-categories', categoryData);
       return response.data;
     } catch (error) {
+      console.error('Error adding category:', error);
       throw error;
     }
   },
@@ -43,13 +36,11 @@ export const categoryService = {
   // Lấy chi tiết category theo ID
   async getCategoryById(id: string): Promise<VehicleCategory> {
     try {
-      const response = await axios.get(`${API_URL}/vehicle-categories/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      // Sử dụng apiClient thay vì axios trực tiếp
+      const response = await apiClient.get(`/vehicle-categories/${id}`);
       return response.data;
     } catch (error) {
+      console.error(`Error fetching category with ID ${id}:`, error);
       throw error;
     }
   },
@@ -57,15 +48,25 @@ export const categoryService = {
   // Cập nhật category
   async updateCategory(id: string, categoryData: Omit<VehicleCategory, '_id'>): Promise<VehicleCategory> {
     try {
-      const response = await axios.put(`${API_URL}/vehicle-categories/${id}`, categoryData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Sử dụng apiClient thay vì axios trực tiếp
+      const response = await apiClient.put(`/vehicle-categories/${id}`, categoryData);
       return response.data;
     } catch (error) {
+      console.error(`Error updating category with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Thêm hàm xóa category
+  async deleteCategory(id: string): Promise<void> {
+    try {
+      await apiClient.delete(`/vehicle-categories/${id}`);
+    } catch (error) {
+      console.error(`Error deleting category with ID ${id}:`, error);
       throw error;
     }
   }
 };
+
+// Export interface để sử dụng ở nơi khác
+export type { VehicleCategory };
