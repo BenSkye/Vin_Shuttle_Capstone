@@ -72,15 +72,51 @@ const HourlyBookingPage = () => {
   }, [])
 
   // Define detectUserLocation function
-  const detectUserLocation = () => {
+  const detectUserLocation = async () => {
     if (typeof window === 'undefined') return
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
+      try {
+        setLoading(true)
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject)
+        })
+
         const { latitude, longitude } = position.coords
-        console.log('User location:', latitude, longitude)
-      })
+
+        // Get address from the coordinates using reverse geocoding
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse.php?lat=${latitude}&lon=${longitude}&zoom=18&format=json`
+          )
+          const data = await response.json()
+          const address = data.display_name || 'Địa chỉ không xác định'
+
+          // Update location in state
+          setStartPoint({
+            position: { lat: latitude, lng: longitude },
+            address: address,
+          })
+        } catch (error) {
+          console.error('Error getting address:', error)
+          setStartPoint({
+            position: { lat: latitude, lng: longitude },
+            address: 'Không thể xác định địa chỉ',
+          })
+        }
+      } catch (error) {
+        console.error('Error getting location:', error)
+        notification.error({
+          message: 'Lỗi vị trí',
+          description: 'Không thể lấy vị trí hiện tại của bạn. Vui lòng kiểm tra quyền truy cập vị trí.',
+        })
+      } finally {
+        setLoading(false)
+      }
     } else {
-      console.error('Geolocation is not supported by this browser.')
+      notification.error({
+        message: 'Không hỗ trợ',
+        description: 'Trình duyệt của bạn không hỗ trợ định vị.',
+      })
     }
   }
 
@@ -93,7 +129,7 @@ const HourlyBookingPage = () => {
         }
         return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
       }
-      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity }] : prev
+      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity, name: "" }] : prev
     })
   }
 
