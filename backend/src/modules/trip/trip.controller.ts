@@ -56,6 +56,18 @@ export class TripController {
     return await this.tripService.getPersonalCustomerTripById(req.user._id, id)
   }
 
+
+  @Get('driver-personal-trip/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Get trip by id' })
+  async getDriverTripById(@Param('id') id: string, @Request() req) {
+    return await this.tripService.getPersonalDriverTripById(req.user._id, id)
+  }
+
   @Post('driver-pickup-customer')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)

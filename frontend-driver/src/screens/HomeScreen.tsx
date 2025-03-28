@@ -12,14 +12,17 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getPersonalTrips, pickUp, cancelTrip, Trip } from '../services/tripServices';
+import { pickUp, cancelTrip, Trip } from '../services/tripServices';
 import { format } from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 import { ServiceType } from '~/constants/service-type.enum';
 import { useSchedule } from '~/context/ScheduleContext';
+import useTripSocket from '~/hook/useTripSocket';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
+  const { data: trips, isLoading, resetHook } = useTripSocket();
   const [activeTrips, setActiveTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,13 +33,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [cancelReason, setCancelReason] = useState('');
   const [canceling, setCanceling] = useState(false);
 
-  const fetchActiveTrips = async () => {
+  const processTrips = (tripData: Trip[]) => {
     try {
-      setLoading(true);
-      const allTrips = await getPersonalTrips();
-
       // Filter only active trips - booking, payed, pickup, in_progress
-      const filteredTrips = allTrips.filter((trip) =>
+      const filteredTrips = tripData.filter((trip) =>
         ['booking', 'payed', 'pickup', 'in_progress'].includes(trip.status.toLowerCase())
       );
 
@@ -48,12 +48,19 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           payed: 3,
           booking: 4,
         };
-        return statusPriority[a.status.toLowerCase()] - statusPriority[b.status.toLowerCase()];
+        const statusA = statusPriority[a.status.toLowerCase()];
+        const statusB = statusPriority[b.status.toLowerCase()];
+        if (statusA !== statusB) {
+          return statusA - statusB;
+        }
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
       });
 
       setActiveTrips(filteredTrips);
     } catch (error) {
-      console.error('Error fetching active trips:', error);
+      console.error('Error processing trips:', error);
     } finally {
       setLoading(false);
     }
@@ -61,21 +68,26 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchActiveTrips();
+    resetHook();
     setRefreshing(false);
   };
 
   useEffect(() => {
-    fetchActiveTrips();
+    console.log('Trips68:', trips);
+    if (trips && Array.isArray(trips)) {
+      setLoading(true);
+      processTrips(trips);
+    }
+  }, [trips]);
 
-    // Refresh when returning to this screen
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchActiveTrips();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('HomeScreen focused');
+      resetHook();
+      return () => {
+      };
+    }, [])
+  );
   // Kiểm tra check-in trước khi thực hiện các hành động
   const handleActionWithCheckInValidation = (action: () => void) => {
     if (!isInProgress) {
@@ -91,7 +103,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     // Chỉ cho phép đi đến màn hình theo dõi cho trạng thái pickup và in_progress
     if (status === 'pickup' || status === 'in_progress') {
       handleActionWithCheckInValidation(() => {
-        navigation.navigate('TripTracking', { trip: trip });
+        navigation.navigate('TripTracking', { tripID: trip._id });
       });
     }
   };
@@ -102,7 +114,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         setLoading(true);
         await pickUp(tripId);
         // Refresh danh sách chuyến đi sau khi đón khách thành công
-        await fetchActiveTrips();
+        // await fetchActiveTrips();
       } catch (error) {
         console.error('Error picking up customer:', error);
         Alert.alert('Lỗi', 'Không thể đón khách. Vui lòng thử lại sau.');
@@ -117,7 +129,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       Alert.alert('Thông báo', 'Vui lòng nhập lý do hủy chuyến');
       return;
     }
-  
+
     handleActionWithCheckInValidation(async () => {
       try {
         setCanceling(true);
@@ -126,7 +138,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         setShowCancelModal(false);
         setCancelReason('');
         // Refresh danh sách chuyến đi
-        await fetchActiveTrips();
+        // await fetchActiveTrips();
+
       } catch (error) {
         console.error('Error canceling trip:', error);
         Alert.alert('Lỗi', 'Không thể hủy chuyến đi. Vui lòng thử lại sau.');
@@ -135,7 +148,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       }
     });
   };
-  
+
   const showCancelTripModal = (tripId: string) => {
     setSelectedTripId(tripId);
     setCancelReason('');
@@ -307,7 +320,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           {/* Hiển thị cảnh báo check-in */}
           {renderCheckInWarning()}
 
-          {loading ? (
+          {(loading || isLoading) ? (
             <ActivityIndicator size="large" color="#2563eb" />
           ) : activeTrips.length > 0 ? (
             activeTrips.map((trip) => {
@@ -420,7 +433,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                             <Text className="ml-2 font-medium text-white">Đón khách</Text>
                           </View>
                         </TouchableOpacity>
-                        
+
                         <TouchableOpacity
                           onPress={() => showCancelTripModal(trip._id)}
                           className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
@@ -444,7 +457,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                             <Text className="ml-2 font-medium text-white">Xem chuyến đi</Text>
                           </View>
                         </TouchableOpacity>
-                        
+
                         <TouchableOpacity
                           onPress={() => showCancelTripModal(trip._id)}
                           className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
