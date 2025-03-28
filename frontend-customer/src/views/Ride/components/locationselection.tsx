@@ -102,6 +102,7 @@ const useGeolocation = () => {
 
   return { position, error, loading, getCurrentPosition }
 }
+//yessir
 
 // Add custom component for current location marker
 const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
