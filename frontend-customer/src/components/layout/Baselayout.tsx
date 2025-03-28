@@ -29,8 +29,8 @@ export default function BaseLayout({ children }: BaseLayoutProps) {
             <Header />
 
             <Content
-                className="flex-1 bg-gray-50"
-                style={{ backgroundColor: '#f5f5f5', width: '100%' }}
+                className="flex-1"
+                style={{ backgroundColor: '#FFFFFF', width: '100%' }}
             >
                 <Suspense
                     fallback={

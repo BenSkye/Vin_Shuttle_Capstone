@@ -360,7 +360,7 @@ export default function DetailTripPage({ id }: { id: string }) {
           </div>
 
           {/* Cancel Trip Button */}
-          {trip.status === TripStatus.PAYED && (
+          {trip.status === TripStatus.PAYED && TripStatus.PICKUP && (
             <div className="mt-6 flex justify-center">
               <Button
                 type="primary"

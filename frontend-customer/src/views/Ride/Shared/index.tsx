@@ -43,25 +43,47 @@ const SharedBookingFlow = () => {
         setLoading(false)
     }
 
-    const handleDetectUserLocation = () => {
-        setLoading(true)
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords
-                    setStartPoint({
-                        position: { lat: latitude, lng: longitude },
-                        address: 'Vị trí hiện tại của bạn',
-                    })
-                    setLoading(false)
-                },
-                (error) => {
-                    console.error('Error getting location:', error)
-                    setLoading(false)
-                }
-            )
+    const handleDetectUserLocation = async () => {
+        setLoading(true);
+
+        try {
+            if ('geolocation' in navigator) {
+                // Get position from geolocation API
+                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+
+                const { latitude, longitude } = position.coords;
+
+                // Get the address from coordinates
+                const address = await fetchAddress(latitude, longitude);
+
+                // Update the start point with both position and address
+                setStartPoint({
+                    position: { lat: latitude, lng: longitude },
+                    address: address || 'Vị trí hiện tại của bạn',
+                });
+            }
+        } catch (error) {
+            console.error('Error getting location:', error);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
+
+    // Helper function to get address from coordinates
+    const fetchAddress = async (lat: number, lng: number): Promise<string> => {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lng}&zoom=18&format=json`
+            );
+            const data = await response.json();
+            return data.display_name || 'Vị trí hiện tại của bạn';
+        } catch (error) {
+            console.error('Error fetching address:', error);
+            return 'Vị trí hiện tại của bạn';
+        }
+    };
 
     const calculateDistance = () => {
         // Calculate distance in km between two points using Haversine formula
