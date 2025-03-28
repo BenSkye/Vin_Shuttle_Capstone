@@ -20,6 +20,7 @@ export interface ITripService {
   getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]>;
   getPersonalDriverTrip(driverId: string): Promise<TripDocument[]>;
   getPersonalCustomerTripById(customerId: string, id: string): Promise<TripDocument>;
+  getPersonalDriverTripById(driverId: string, id: string): Promise<TripDocument>;
   calculateBusRouteFare(
     routeId: string,
     fromStopId: string,
