@@ -194,6 +194,15 @@ export function PrivateHeader({
                                 <FiClock className="text-green-500" />
                                 <span>Lịch sử chuyến đi</span>
                             </Link>
+                            <Link
+                                href={Routes.BOOKING.ROOT}
+                                className="flex items-center gap-3 py-2 text-gray-600"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <FiClock className="text-green-500" />
+                                <span>Lịch sử thanh toán</span>
+                            </Link>
+
                             <button
                                 onClick={() => {
                                     setIsOpen(false)
