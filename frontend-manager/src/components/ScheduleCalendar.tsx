@@ -116,7 +116,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                         </div>
                         {days.map((day, dayIndex) => {
                             const dayActivities = getActivitiesForTimeAndDay(time, dayIndex);
-                            const isEmpty = dayActivities.length === 0;
+
 
                             return (
                                 <div
