@@ -126,14 +126,6 @@ export class CreateBusRouteDto {
   })
   @IsEnum(['active', 'inactive'])
   status: string;
-
-  @ApiProperty({
-    description: 'Base price for the route',
-    example: 50000,
-  })
-  @IsNumber()
-  @Min(0)
-  basePrice: number;
 }
 
 export class UpdateBusRouteDto {
@@ -207,13 +199,4 @@ export class UpdateBusRouteDto {
   })
   @IsEnum(['active', 'inactive'])
   status?: string;
-
-  @ApiProperty({
-    description: 'Base price for the route',
-    required: false,
-    example: 50000,
-  })
-  @IsNumber()
-  @Min(0)
-  basePrice?: number;
 }

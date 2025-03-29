@@ -11,6 +11,7 @@ import {
   Put,
 } from '@nestjs/common';
 import {
+  ICreateBusRoutePricingDto,
   ICreateServiceConfigDto,
   ICreateVehiclePricingDto,
   ITestPriceDto,
@@ -111,6 +112,64 @@ export class PricingController {
   @ApiOperation({ summary: 'Get all service configurations' })
   async listAllServiceConfigs() {
     return await this.pricingService.getAllServiceConfigs();
+  }
+
+  @Post('bus-routes')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Create pricing configuration for bus routes' })
+  @ApiBody({
+    description: 'Bus route pricing configuration',
+    examples: {
+      'Example': {
+        value: {
+          vehicle_category: '507f1f77bcf86cd799439011',
+          tiered_pricing: [
+            { range: 0, price: 5000 },   // 0-5km: 5,000 VND/km
+            { range: 5, price: 7000 },   // 5-10km: 7,000 VND/km
+            { range: 10, price: 10000 }  // >10km: 10,000 VND/km
+          ]
+        }
+      }
+    }
+  })
+  async createBusRoutePricing(
+    @Body(new JoiValidationPipe(PricingValidation.createBusRoutePricing))
+    dto: ICreateBusRoutePricingDto
+  ) {
+    return await this.pricingService.createBusRoutePricing(dto);
+  }
+
+  @Post('bus-routes/calculate-fare')
+  @ApiOperation({ summary: 'Calculate bus route fare' })
+  @ApiBody({
+    description: 'Calculate fare for bus route',
+    examples: {
+      'Example': {
+        value: {
+          vehicleCategoryId: '507f1f77bcf86cd799439011',
+          distance: 7.5,
+          numberOfSeats: 2
+        }
+      }
+    }
+  })
+  async calculateBusFare(
+    @Body() data: {
+      vehicleCategoryId: string;
+      distance: number;
+      numberOfSeats?: number;
+    }
+  ) {
+    const fare = await this.pricingService.calculateBusFare(
+      data.vehicleCategoryId,
+      data.distance,
+      data.numberOfSeats
+    );
+    return { fare };
   }
 
   @Put('service-configs/:serviceType')

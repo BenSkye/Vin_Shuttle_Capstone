@@ -256,18 +256,19 @@ export class TripService implements ITripService {
     toStopId: string,
     numberOfSeats: number,
   ): Promise<number> {
-    const route = await this.busRouteRepository.findById(routeId);
-    const fromStop = route.stops.find(s => s.stopId.toString() === fromStopId);
-    const toStop = route.stops.find(s => s.stopId.toString() === toStopId);
+    // const route = await this.busRouteRepository.findById(routeId);
+    // const fromStop = route.stops.find(s => s.stopId.toString() === fromStopId);
+    // const toStop = route.stops.find(s => s.stopId.toString() === toStopId);
 
-    const distance = toStop.distanceFromStart - fromStop.distanceFromStart;
-    const baseFare = (distance / route.totalDistance) * route.basePrice;
+    // const distance = toStop.distanceFromStart - fromStop.distanceFromStart;
+    // const baseFare = (distance / route.totalDistance) * route.basePrice;
 
-    console.log('====================================');
-    console.log(baseFare * numberOfSeats);
-    console.log('====================================');
+    // console.log('====================================');
+    // console.log(baseFare * numberOfSeats);
+    // console.log('====================================');
 
-    return Math.round(baseFare * numberOfSeats);
+    // return Math.round(baseFare * numberOfSeats);
+    return null;
   }
 
   async driverPickupCustomer(tripId: string, driverId: string): Promise<TripDocument> {

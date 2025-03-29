@@ -5,6 +5,8 @@ import { CreateBusRouteDto, RouteStopDto, UpdateBusRouteDto } from './bus-route.
 import { BUS_ROUTE_REPOSITORY } from './bus-route.di-token';
 import { IBusStopService } from '../bus-stop/bus-stop.port';
 import { BUS_STOP_SERVICE } from '../bus-stop/bus-stop.di-token';
+import { PRICING_SERVICE } from '../pricing/pricing.di-token';
+import { IPricingService } from '../pricing/pricing.port';
 
 @Injectable()
 export class BusRouteService implements IBusRouteService {
@@ -13,6 +15,8 @@ export class BusRouteService implements IBusRouteService {
     private readonly busRouteRepository: IBusRouteRepository,
     @Inject(BUS_STOP_SERVICE)
     private readonly busStopService: IBusStopService,
+    @Inject(PRICING_SERVICE)
+    private readonly pricingService: IPricingService,
   ) {}
 
    private async validateStops(stops: RouteStopDto[]): Promise<void> {
@@ -38,8 +42,19 @@ export class BusRouteService implements IBusRouteService {
   }
   
 
-  async createRoute(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
+   async createRoute(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
     await this.validateStops(dto.stops);
+    
+    // check if vehicle category has pricing config
+    const hasPricing = await this.pricingService.checkVehicleCategoryAndServiceType(
+      dto.vehicleCategory,
+      'booking_trip'
+    );
+
+    if (!hasPricing) {
+      throw new BadRequestException('Vehicle category does not have pricing configuration');
+    }
+
     return await this.busRouteRepository.create(dto);
   }
 
@@ -69,7 +84,7 @@ export class BusRouteService implements IBusRouteService {
     await this.busRouteRepository.delete(id);
   }
 
-  async calculateFare(
+ async calculateFare(
     routeId: string,
     fromStopId: string,
     toStopId: string,
@@ -84,9 +99,17 @@ export class BusRouteService implements IBusRouteService {
       throw new NotFoundException('Invalid bus stops');
     }
 
-    const distance = toStop.distanceFromStart - fromStop.distanceFromStart;
-    const baseFare = (distance / route.totalDistance) * route.basePrice;
+    // calculate distance between two stops
+    const distance = Math.abs(toStop.distanceFromStart - fromStop.distanceFromStart);
 
-    return Math.round(baseFare * numberOfSeats);
+    // use pricing service to calculate price
+    const fare = await this.pricingService.calculatePrice(
+      'booking_trip', // service_type for bus route
+      route.vehicleCategory.toString(),
+      distance // total_units is distance
+    );
+
+    // multiply by number of seats
+    return fare * numberOfSeats;
   }
 }
