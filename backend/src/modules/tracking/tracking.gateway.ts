@@ -11,6 +11,7 @@ import { UserRole } from 'src/share/enums';
 import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
 import { ITrackingService } from 'src/modules/tracking/tracking.port';
 import { IRedisService, ITokenProvider } from 'src/share/share.port';
+import { SocketUtils } from 'src/share/utils/socket.utils';
 
 
 
@@ -100,10 +101,16 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
 
     async emitLocationUpdate(userId: string, vehicleId: string, location: LocationData) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRACKING, userId);
-        if (socketId) {
-            console.log(`Emitting location update to: ${socketId} for vehicle: ${vehicleId} - ${location.latitude}, ${location.longitude}`);
-            this.server.to(socketId).emit(`update_location_${vehicleId}`, location);
-        }
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.TRACKING,
+            userId
+        );
+        await SocketUtils.safeEmit(
+            this.server,
+            socketIds,
+            `update_location_${vehicleId}`,
+            location
+        );
     }
 }
