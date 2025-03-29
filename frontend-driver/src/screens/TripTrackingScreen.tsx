@@ -7,6 +7,7 @@ import {
   BookingHourPayloadDto,
   BookingDestinationPayloadDto,
   BookingScenicRoutePayloadDto,
+  BookingSharePayloadDto,
   Position,
   Trip,
   ScenicRouteDto,
@@ -119,9 +120,17 @@ const TripTrackingScreen = () => {
       } else if (isInProgress && payload.bookingScenicRoute.routeId) {
         fetchScenicRouteData(
           payload.bookingScenicRoute.routeId._id ||
-          (payload.bookingScenicRoute.routeId as unknown as string)
+            (payload.bookingScenicRoute.routeId as unknown as string)
         );
       }
+    } else if (trip.serviceType === ServiceType.BOOKING_SHARE) {
+      const payload = trip.servicePayload as BookingSharePayloadDto;
+      setCustomerPickupLocation(payload.bookingShare.startPoint.position);
+      setCustomerDestination(payload.bookingShare.endPoint.position);
+      
+      const isInProgress = trip.status.toLowerCase() === 'in_progress';
+      setShowDestination(isInProgress);
+      setRouteToDestination(isInProgress);
     }
   };
 
@@ -337,8 +346,6 @@ const TripTrackingScreen = () => {
     setIsScenicRouteCollapsed(!isScenicRouteCollapsed);
   };
 
-
-
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -472,7 +479,6 @@ const TripTrackingScreen = () => {
           />
         </View>
       </View>
-
 
       {/* Modals */}
       <CustomerInfoModal visible={showCustomerInfo} onClose={toggleCustomerInfo} trip={trip} />
