@@ -15,11 +15,11 @@ import { format } from 'date-fns';
 import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
 
-// Define modal types for clarity
+// Định nghĩa các loại modal để rõ ràng
 type ModalType = 'view' | 'assign' | 'update' | 'none';
 
 const SchedulePage = () => {
-    // State definitions
+    // Định nghĩa state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTime, setSelectedTime] = useState('');
     const [selectedDay, setSelectedDay] = useState(0);
@@ -32,11 +32,11 @@ const SchedulePage = () => {
     const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
 
-    // Separate forms for assign and update operations
+    // Form riêng biệt cho thao tác gán và cập nhật
     const [assignForm] = Form.useForm();
     const [updateForm] = Form.useForm();
 
-    // Time slot mappings
+    // Bảng ánh xạ thời gian ca làm
     const shiftTimeRanges = {
         'A': '06:00 - 14:00',
         'B': '10:00 - 18:00',
@@ -44,10 +44,10 @@ const SchedulePage = () => {
         'D': '15:00 - 23:00',
     };
 
-    // Day names mapping
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    // Bảng ánh xạ tên ngày
+    const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
 
-    // Initial data loading
+    // Tải dữ liệu ban đầu
     useEffect(() => {
         fetchDriverSchedules();
     }, []);
@@ -56,13 +56,13 @@ const SchedulePage = () => {
         try {
             setError(null);
             setLoading(true);
-            console.log("Fetching vehicles for date:", date);
+            console.log("Đang tải xe cho ngày:", date);
             const response = await getAvailableVehicles(date);
-            console.log("Available vehicles:", response);
+            console.log("Xe khả dụng:", response);
             setVehicles(response);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to load vehicles";
-            console.error("Error fetching vehicles:", error);
+            const errorMessage = error instanceof Error ? error.message : "Không thể tải danh sách xe";
+            console.error("Lỗi khi tải xe:", error);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
@@ -70,18 +70,18 @@ const SchedulePage = () => {
         }
     };
 
-    // Fetch available drivers
+    // Tải danh sách tài xế khả dụng
     const fetchDrivers = async (date: string) => {
         try {
             setError(null);
             setLoading(true);
-            console.log("Fetching drivers for date:", date);
+            console.log("Đang tải tài xế cho ngày:", date);
             const response = await getAvailableDrivers(date);
-            console.log("Available drivers:", response);
+            console.log("Tài xế khả dụng:", response);
             setDrivers(response);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to load drivers";
-            console.error("Error fetching drivers:", error);
+            const errorMessage = error instanceof Error ? error.message : "Không thể tải danh sách tài xế";
+            console.error("Lỗi khi tải tài xế:", error);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
@@ -95,7 +95,7 @@ const SchedulePage = () => {
             const response = await getDriverSchedule();
 
             if (!Array.isArray(response)) {
-                const errorMessage = "Invalid response format for schedules";
+                const errorMessage = "Định dạng phản hồi không hợp lệ cho lịch trình";
                 console.error(errorMessage, response);
                 setError(errorMessage);
                 message.error(errorMessage);
@@ -103,43 +103,43 @@ const SchedulePage = () => {
             }
 
             const formattedActivities = response.map((schedule) => {
-                // Process date and convert to actual Date object
+                // Xử lý ngày và chuyển đổi thành đối tượng Date
                 const scheduleDate = new Date(schedule.date);
 
-                // Get day of week from the schedule's date (0 = Sunday, 1 = Monday, etc.)
-                // Convert to our day index system (0 = Monday, 6 = Sunday)
+                // Lấy ngày trong tuần từ ngày của lịch trình (0 = Chủ Nhật, 1 = Thứ Hai, v.v.)
+                // Chuyển đổi sang hệ thống chỉ mục ngày của chúng ta (0 = Thứ Hai, 6 = Chủ Nhật)
                 const dayOfWeek = scheduleDate.getDay();
                 const day = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
                 return {
                     id: schedule._id,
-                    driverId: schedule.driver?._id || "Unknown Driver ID",
-                    driverName: schedule.driver?.name || "Unknown Driver",
-                    title: schedule.driver?.name || "Unknown Driver",
-                    name: schedule.driver?.name || "Unknown Driver", // Added 'name' property
-                    description: `Vehicle: ${schedule.vehicle?.name || "N/A"}`,
+                    driverId: schedule.driver?._id || "ID Tài Xế Không Xác Định",
+                    driverName: schedule.driver?.name || "Tài Xế Không Xác Định",
+                    title: schedule.driver?.name || "Tài Xế Không Xác Định",
+                    name: schedule.driver?.name || "Tài Xế Không Xác Định", // Thêm thuộc tính 'name'
+                    description: `Xe: ${schedule.vehicle?.name || "N/A"}`,
                     startTime: schedule.shift,
                     endTime: schedule.shift,
                     day: day,
                     color: getStatusColor(schedule.status),
                     date: scheduleDate.toISOString().split('T')[0],
-                    // Store original date object to help with week calculations
+                    // Lưu trữ đối tượng ngày gốc để giúp tính toán tuần
                     originalDate: scheduleDate,
                     vehicleId: schedule.vehicle?._id,
-                    vehicleName: schedule.vehicle?.name || "Unknown Vehicle"
+                    vehicleName: schedule.vehicle?.name || "Xe Không Xác Định"
                 };
             });
 
             setActivities(formattedActivities);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to load schedules";
-            console.error("Error fetching driver schedules:", error);
+            const errorMessage = error instanceof Error ? error.message : "Không thể tải lịch trình tài xế";
+            console.error("Lỗi khi tải lịch trình tài xế:", error);
             setError(errorMessage);
             message.error(errorMessage);
         }
     };
 
-    // Get color based on status
+    // Lấy màu dựa trên trạng thái
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
@@ -153,30 +153,41 @@ const SchedulePage = () => {
         }
     };
 
-    // Event handlers
+    // Xử lý sự kiện
     const handleActivityClick = (activity: Activity) => {
         setError(null);
         setSelectedActivity(activity);
-        setModalType('update'); // Set modal type to 'update'
+        setModalType('update'); // Đặt loại modal thành 'update'
         setIsModalOpen(true);
 
-        // If the activity has a driver and vehicle ID, prepare for potential updates
+        // Nếu hoạt động có ID tài xế và xe, chuẩn bị cho các cập nhật tiềm năng
         if (activity.driverId) {
-            // Fetch available vehicles and drivers for the activity date
-            if (activity.date) {
-                fetchVehicles(activity.date);
-                fetchDrivers(activity.date);
-            }
-
-            updateForm.setFieldsValue({
-                driverId: activity.driverId ? { value: activity.driverId, label: activity.name } : undefined,
-                vehicleId: activity.vehicleId ? { value: activity.vehicleId, label: activity.name } : undefined,
-            });
-
+            // Đặt thời gian và ngày ngay lập tức
             setSelectedTime(activity.startTime);
             setSelectedDay(activity.day);
             if (activity.date) {
                 setSelectedDate(activity.date);
+
+                // Tải cả hai loại dữ liệu, sau đó đặt giá trị form một lần
+                Promise.all([
+                    fetchVehicles(activity.date),
+                    fetchDrivers(activity.date)
+                ]).then(() => {
+                    const selectedDriver = drivers.find(d => d._id === activity.driverId);
+                    const selectedVehicle = vehicles.find(v => v._id === activity.vehicleId);
+
+                    // Sau khi cả hai loại dữ liệu được tải, đặt giá trị form
+                    updateForm.setFieldsValue({
+                        driverId: {
+                            value: activity.driverId,
+                            label: selectedDriver?.name || activity.driverName
+                        },
+                        vehicleId: {
+                            value: activity.vehicleId,
+                            label: selectedVehicle?.name || activity.vehicleName
+                        }
+                    });
+                });
             }
         }
     };
@@ -188,12 +199,12 @@ const SchedulePage = () => {
         setSelectedActivity(null);
         setModalType('assign');
 
-        // Use the exact date from the calendar cell
+        // Sử dụng ngày chính xác từ ô lịch
         const formattedDate = format(date, 'yyyy-MM-dd');
 
-        console.log("Selected cell date:", formattedDate, "Day:", day, "Time:", time);
+        console.log("Ngày ô đã chọn:", formattedDate, "Ngày:", day, "Thời gian:", time);
 
-        // Fetch available vehicles for the selected date
+        // Tải xe khả dụng cho ngày đã chọn
         fetchVehicles(formattedDate);
         fetchDrivers(formattedDate);
 
@@ -209,25 +220,25 @@ const SchedulePage = () => {
             const values = await assignForm.validateFields();
 
             if (!selectedDate) {
-                const errorMessage = "Date calculation error";
+                const errorMessage = "Lỗi tính toán ngày";
                 setError(errorMessage);
                 message.error(errorMessage);
                 return;
             }
 
             const scheduleData = {
-                driver: values.driverId,
-                vehicle: values.vehicleId,
+                driver: values.driverId.value,
+                vehicle: values.vehicleId.value,
                 date: selectedDate,
                 shift: selectedTime
             };
 
             await DriverSchedule(scheduleData);
-            message.success("Driver scheduled successfully");
+            message.success("Đã lên lịch tài xế thành công");
             setIsModalOpen(false);
             fetchDriverSchedules();
         } catch (error: unknown) {
-            let errorMessage = "An unexpected error occurred";
+            let errorMessage = "Đã xảy ra lỗi không mong muốn";
 
             if (error instanceof Error) {
                 errorMessage = error.message;
@@ -238,7 +249,7 @@ const SchedulePage = () => {
                 errorMessage = err.response?.data?.vnMessage || errorMessage;
             }
 
-            console.error("Error assigning driver:", errorMessage);
+            console.error("Lỗi khi gán tài xế:", errorMessage);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
@@ -256,18 +267,18 @@ const SchedulePage = () => {
 
             await updateDriverSchedule(
                 selectedActivity.id,
-                values.driverId,
+                values.driverId.value,
                 selectedDate,
                 selectedTime,
-                values.vehicleId
+                values.vehicleId.value
             );
 
-            message.success("Schedule updated successfully");
+            message.success("Cập nhật lịch trình thành công");
             setIsModalOpen(false);
             fetchDriverSchedules();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to update schedule";
-            console.error("Error updating schedule:", error);
+            const errorMessage = error instanceof Error ? error.message : "Không thể cập nhật lịch trình";
+            console.error("Lỗi khi cập nhật lịch trình:", error);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
@@ -286,30 +297,30 @@ const SchedulePage = () => {
         setModalType('update');
     };
 
-    // Modal title based on the current mode
+    // Tiêu đề modal dựa trên chế độ hiện tại
     const getModalTitle = () => {
         switch (modalType) {
             case 'view':
-                return "Driver Schedule Details";
+                return "Chi Tiết Lịch Trình Tài Xế";
             case 'assign':
-                return "Assign Driver";
+                return "Phân Công Tài Xế";
             case 'update':
-                return "Update Schedule";
+                return "Cập Nhật Lịch Trình";
             default:
-                return "Schedule";
+                return "Lịch Trình";
         }
     };
 
-    // Render view mode content
+    // Hiển thị nội dung chế độ xem
     const renderViewContent = () => {
         if (!selectedActivity) return null;
 
         return (
             <div>
-                <p><strong>Driver:</strong> {selectedActivity.title}</p>
-                <p><strong>Description:</strong> {selectedActivity.description}</p>
+                <p><strong>Tài xế:</strong> {selectedActivity.title}</p>
+                <p><strong>Mô tả:</strong> {selectedActivity.description}</p>
                 <p>
-                    <strong>Shift:</strong> {selectedActivity.endTime}
+                    <strong>Ca:</strong> {selectedActivity.endTime}
                     ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
                 </p>
                 <Button
@@ -317,119 +328,120 @@ const SchedulePage = () => {
                     onClick={switchToUpdateMode}
                     className="mt-4"
                 >
-                    Edit Schedule
+                    Chỉnh Sửa Lịch Trình
                 </Button>
             </div>
         );
     };
 
-    // Render assign form
-    const renderAssignForm = () => {
-        return (
-            <Form form={assignForm} layout="vertical">
-                <div className="mb-4">
-                    <p className="text-base font-medium">
-                        Assigning driver for:
-                        <span className="font-bold ml-1">
-                            {dayNames[selectedDay]} - Shift {selectedTime}
-                            ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
-                        </span>
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">Date: {selectedDate}</p>
-                </div>
-
-                <Form.Item
-                    name="driverId"
-                    label="Select Driver"
-                    rules={[{ required: true, message: 'Please select a driver' }]}
-                >
-                    <Select
-                        placeholder="Choose a driver"
-                        showSearch
-                        optionFilterProp="children"
-                    >
-                        {drivers.map(driver => (
-                            <Select.Option key={driver._id} value={driver._id}>
-                                {driver.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-
-                <Form.Item
-                    name="vehicleId"
-                    label="Select Vehicle"
-                    rules={[{ required: true, message: 'Please select a vehicle' }]}
-                >
-                    <Select placeholder="Choose a vehicle">
-                        {vehicles.map(vehicle => (
-                            <Select.Option key={vehicle._id} value={vehicle._id}>
-                                {vehicle.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-            </Form>
-        );
-    };
-
-    // Render update form
+    // Hiển thị form cập nhật
     const renderUpdateForm = () => {
         return (
             <Form form={updateForm} layout="vertical">
                 <div className="mb-4">
                     <p className="text-base font-medium">
-                        Updating schedule for:
+                        Cập nhật lịch trình cho:
                         <span className="font-bold ml-1">
-                            {dayNames[selectedDay]} - Shift {selectedTime}
+                            {dayNames[selectedDay]} - Ca {selectedTime}
                             ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
                         </span>
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">Date: {selectedDate}</p>
+                    <p className="text-sm text-gray-500 mt-1">Ngày: {selectedDate}</p>
                 </div>
 
                 <Form.Item
                     name="driverId"
-                    label="Select Driver"
-                    rules={[{ required: true, message: 'Please select a driver' }]}
+                    label="Chọn Tài Xế"
+                    rules={[{ required: true, message: 'Vui lòng chọn tài xế' }]}
                 >
                     <Select
-                        placeholder="Choose a driver"
+                        placeholder="Chọn tài xế"
                         showSearch
-                        optionFilterProp="children"
-                    >
-                        {drivers.map(driver => (
-                            <Select.Option key={driver.name} value={driver._id}>
-                                {driver.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                        labelInValue
+                        optionFilterProp="label"
+                        options={drivers.map(driver => ({
+                            value: driver._id,
+                            label: driver.name
+                        }))}
+                    />
                 </Form.Item>
 
                 <Form.Item
                     name="vehicleId"
-                    label="Select Vehicle"
-                    rules={[{ required: true, message: 'Please select a vehicle' }]}
+                    label="Chọn Xe"
+                    rules={[{ required: true, message: 'Vui lòng chọn xe' }]}
                 >
-                    <Select placeholder="Choose a vehicle">
-                        {vehicles.map(vehicle => (
-                            <Select.Option key={vehicle._id} value={vehicle._id}>
-                                {vehicle.name}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                    <Select
+                        placeholder="Chọn xe"
+                        labelInValue
+                        options={vehicles.map(vehicle => ({
+                            value: vehicle._id,
+                            label: vehicle.name
+                        }))}
+                    />
+                </Form.Item>
+            </Form>
+        );
+    };
+    //yessir
+
+    // Hiển thị form gán
+    const renderAssignForm = () => {
+        return (
+            <Form form={assignForm} layout="vertical">
+                <div className="mb-4">
+                    <p className="text-base font-medium">
+                        Phân công tài xế cho:
+                        <span className="font-bold ml-1">
+                            {dayNames[selectedDay]} - Ca {selectedTime}
+                            ({shiftTimeRanges[selectedTime as keyof typeof shiftTimeRanges] || ''})
+                        </span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Ngày: {selectedDate}</p>
+                </div>
+
+                <Form.Item
+                    name="driverId"
+                    label="Chọn Tài Xế"
+                    rules={[{ required: true, message: 'Vui lòng chọn tài xế' }]}
+                >
+                    <Select
+                        placeholder="Chọn tài xế"
+                        showSearch
+                        labelInValue
+                        optionFilterProp="label"
+                        options={drivers.map(driver => ({
+                            value: driver._id,
+                            label: driver.name
+                        }))}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="vehicleId"
+                    label="Chọn Xe"
+                    rules={[{ required: true, message: 'Vui lòng chọn xe' }]}
+                >
+                    <Select
+                        placeholder="Chọn xe"
+                        labelInValue
+                        options={vehicles.map(vehicle => ({
+                            value: vehicle._id,
+                            label: vehicle.name
+                        }))}
+                    />
                 </Form.Item>
             </Form>
         );
     };
 
-    // Render modal content based on mode
+    // Hiển thị nội dung modal dựa trên chế độ
     const renderModalContent = () => {
         return (
             <>
                 {error && (
                     <Alert
-                        message="Error"
+                        message="Lỗi"
                         description={error}
                         type="error"
                         showIcon
@@ -446,11 +458,11 @@ const SchedulePage = () => {
         );
     };
 
-    // Modal footer buttons based on mode
+    // Các nút chân trang modal dựa trên chế độ
     const renderModalFooter = () => {
         const buttons = [
             <Button key="close" onClick={handleModalClose}>
-                Cancel
+                Hủy
             </Button>
         ];
 
@@ -462,7 +474,7 @@ const SchedulePage = () => {
                     onClick={handleAssignDriver}
                     loading={loading}
                 >
-                    Assign
+                    Phân Công
                 </Button>
             );
         } else if (modalType === 'update') {
@@ -473,7 +485,7 @@ const SchedulePage = () => {
                     onClick={handleUpdateSchedule}
                     loading={loading}
                 >
-                    Update
+                    Cập Nhật
                 </Button>
             );
         }
