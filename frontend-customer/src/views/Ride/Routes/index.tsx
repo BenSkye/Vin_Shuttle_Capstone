@@ -1,26 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-
-import { Steps } from 'antd'
-import dayjs from 'dayjs'
+import React, { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-// import { AvailableVehicle } from "@/interface/booking";
-
-import { FaCar, FaClock, FaMapMarkerAlt, FaMoneyBillWave } from 'react-icons/fa'
-
+import dayjs from 'dayjs'
+import { Typography } from 'antd'
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingRoute } from '@/service/booking.service'
 import { RouteResponse } from '@/service/mapScenic'
 import { vehicleSearchRoute } from '@/service/search.service'
 
-const steps = [
-  { title: 'Chọn ngày & giờ', icon: <FaClock /> },
-  { title: 'Chọn lộ trình', icon: <FaClock /> },
-  { title: 'Chọn loại xe', icon: <FaCar /> },
-  { title: 'Chọn địa điểm đón', icon: <FaMapMarkerAlt /> },
-  { title: 'Thanh toán', icon: <FaMoneyBillWave /> },
-]
+// Dynamic import components
+const { Title } = Typography
+
 
 const RouteDateTimeSelection = dynamic(
   () => import('@/views/Ride/components/routedatetimeselection'),
@@ -38,15 +29,19 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 })
 
 const RoutesBooking = () => {
-  const [current, setCurrent] = useState(0)
+  // Define all possible steps in the booking flow
+  const [currentStep, setCurrentStep] = useState<'datetime' | 'route' | 'vehicle' | 'location' | 'checkout'>('datetime')
+
+  // State for date and time selection
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null)
-
-  const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([])
-  const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>(
-    []
-  )
   const [duration, setDuration] = useState<number>(60)
+
+  // State for vehicle selection
+  const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([])
+  const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([])
+
+  // State for location and route selection
   const [startPoint, setStartPoint] = useState<{
     position: { lat: number; lng: number }
     address: string
@@ -54,77 +49,27 @@ const RoutesBooking = () => {
     position: { lat: 10.840405, lng: 106.843424 },
     address: '',
   })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null)
-  const [loading, setLoading] = useState(false)
   const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null)
 
-  const next = async () => {
-    // Log date selection information when moving from step 0 (date selection) to step 1
-    if (current === 0) {
-      // Validate date and time selection before proceeding
-      if (!selectedDate || !startTime) {
-        alert('Vui lòng chọn ngày và giờ đặt xe')
-        return
-      }
+  // State for UI management
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null)
 
-      console.log('Selected booking information:')
-      console.log('Date:', selectedDate ? selectedDate.format('YYYY-MM-DD') : 'Not selected')
-      console.log('Start time:', startTime ? startTime.format('HH:mm') : 'Not selected')
-      console.log('Duration:', duration, 'minutes')
-
-      // Calculate estimated end time if both start time and duration are available
-      if (startTime) {
-        const endTime = startTime.add(duration, 'minute')
-        console.log('Estimated end time:', endTime.format('HH:mm'))
-      }
-    }
-
-    // If moving from route selection to vehicle selection, fetch available vehicles
-    if (current === 1) {
-      // Validate route selection before proceeding
-      if (!selectedRoute) {
-        alert('Vui lòng chọn lộ trình')
-        return
-      }
-
-      // Fetch vehicles immediately before advancing to next step
-      await fetchAvailableVehicles()
-    }
-
-    // If moving from vehicle selection to location selection, check if vehicles are selected
-    if (current === 2 && selectedVehicles.length === 0) {
-      alert('Vui lòng chọn ít nhất một loại xe')
-      return
-    }
-
-    // If moving from location selection to checkout page, call handleFinish
-    if (current === 3) {
-      if (!startPoint.address) {
-        alert('Vui lòng chọn địa điểm đón')
-        return
-      }
-
-      return // Don't increment current here as handleFinish will call next() if successful
-    }
-
-    setCurrent((prev) => prev + 1)
-  }
-
-  const prev = () => setCurrent((prev) => prev - 1)
-
-  // You can also add logging when the date or time changes directly
-  const handleDateChange = (date: dayjs.Dayjs | null) => {
+  // Handler for date selection
+  const handleDateChange = useCallback((date: dayjs.Dayjs | null) => {
     setSelectedDate(date)
     console.log('Date changed to:', date ? date.format('YYYY-MM-DD') : 'None')
-  }
+  }, [])
 
-  const handleStartTimeChange = (time: dayjs.Dayjs | null) => {
+  // Handler for time selection
+  const handleStartTimeChange = useCallback((time: dayjs.Dayjs | null) => {
     setStartTime(time)
     console.log('Start time changed to:', time ? time.format('HH:mm') : 'None')
-  }
+  }, [])
 
-  const handleDurationChange = (newDuration: number) => {
+  // Handler for duration selection
+  const handleDurationChange = useCallback((newDuration: number) => {
     setDuration(newDuration)
     console.log('Duration changed to:', newDuration, 'minutes')
 
@@ -133,18 +78,18 @@ const RoutesBooking = () => {
       const endTime = startTime.add(newDuration, 'minute')
       console.log('Updated end time:', endTime.format('HH:mm'))
     }
-  }
+  }, [startTime])
 
-  const handleLocationChange = (newPosition: { lat: number; lng: number }, newAddress: string) => {
-    setLoading(true)
+  // Handler for location selection
+  const handleLocationChange = useCallback((newPosition: { lat: number; lng: number }, newAddress: string) => {
     setStartPoint({
       position: newPosition,
       address: newAddress,
     })
-    setLoading(false)
-  }
+  }, [])
 
-  const handleVehicleSelection = (categoryId: string, quantity: number) => {
+  // Handler for vehicle selection
+  const handleVehicleSelection = useCallback((categoryId: string, quantity: number) => {
     setSelectedVehicles((prev) => {
       const existing = prev.find((v) => v.categoryVehicleId === categoryId)
       if (existing) {
@@ -165,32 +110,90 @@ const RoutesBooking = () => {
         ]
         : prev
     })
-  }
+  }, [availableVehicles])
 
-  const detectUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords
-        console.log('User location:', latitude, longitude)
+  // Handler for route selection
+  const handleRouteSelection = useCallback((route: RouteResponse) => {
+    setSelectedRoute(route)
+    console.log('Selected route in parent component:', route._id)
+  }, [])
+
+  // Handler to detect user's current location
+  const detectUserLocation = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (!navigator.geolocation) {
+        throw new Error('Trình duyệt của bạn không hỗ trợ định vị')
+      }
+
+      // Get position from geolocation API
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        })
       })
-    } else {
-      console.error('Geolocation is not supported by this browser.')
+
+      const { latitude, longitude } = position.coords
+
+      // Get the address from coordinates
+      const address = await fetchAddress(latitude, longitude)
+
+      // Update the start point with both position and address
+      setStartPoint({
+        position: { lat: latitude, lng: longitude },
+        address: address || 'Vị trí hiện tại của bạn',
+      })
+    } catch (error) {
+      console.error('Error getting location:', error)
+      let errorMessage = 'Không thể lấy vị trí của bạn'
+
+      if (error instanceof GeolocationPositionError) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Bạn đã từ chối cho phép truy cập vị trí'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Không thể lấy thông tin vị trí'
+            break
+          case error.TIMEOUT:
+            errorMessage = 'Yêu cầu vị trí đã hết thời gian chờ'
+            break
+        }
+      }
+
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Helper function to get address from coordinates
+  const fetchAddress = async (lat: number, lng: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lng}&zoom=18&format=json`
+      )
+      const data = await response.json()
+      return data.display_name || 'Vị trí hiện tại của bạn'
+    } catch (error) {
+      console.error('Error fetching address:', error)
+      return 'Vị trí hiện tại của bạn'
     }
   }
 
-  const handleRouteSelection = (route: RouteResponse) => {
-    setSelectedRoute(route)
-    console.log('Selected route in parent component:', route._id)
-  }
-
-  const fetchAvailableVehicles = async () => {
+  // Function to fetch available vehicles based on selected route and time
+  const fetchAvailableVehicles = useCallback(async () => {
     if (!selectedDate || !startTime || !selectedRoute) {
-      console.warn('Cannot fetch vehicles: Missing date, time, or selected route')
-
-      return
+      setError('Vui lòng chọn đầy đủ thông tin ngày, giờ và lộ trình')
+      return false
     }
 
     setLoading(true)
+    setError(null)
 
     try {
       const response = await vehicleSearchRoute(
@@ -199,25 +202,34 @@ const RoutesBooking = () => {
         selectedRoute._id
       )
 
-      // Ensure vehicles is always an array
-
       console.log('Available vehicles:', response)
-      setAvailableVehicles(response)
-    } catch (error: unknown) {
+      setAvailableVehicles(Array.isArray(response) ? response : [response])
+      setCurrentStep('vehicle')
+      return true
+    } catch (error) {
       console.error('Error fetching available vehicles:', error)
-      setAvailableVehicles([])
+      setError(error instanceof Error ? error.message : 'Không thể tìm thấy phương tiện phù hợp')
+      return false
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedDate, startTime, selectedRoute])
 
-  const handleFinish = async () => {
+  // Function to handle final booking submission
+  const handleConfirmBooking = useCallback(async () => {
+    if (!selectedDate || !startTime || !selectedRoute || !startPoint.address || selectedVehicles.length === 0) {
+      setError('Vui lòng điền đầy đủ thông tin đặt xe')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
     try {
-      setLoading(true)
       const response = await bookingRoute({
-        date: selectedDate ? selectedDate.format('YYYY-MM-DD') : '',
-        startTime: startTime ? startTime.format('HH:mm') : '',
-        scenicRouteId: selectedRoute ? selectedRoute._id : '',
+        date: selectedDate.format('YYYY-MM-DD'),
+        startTime: startTime.format('HH:mm'),
+        scenicRouteId: selectedRoute._id,
         startPoint: {
           position: {
             lat: startPoint.position.lat,
@@ -228,115 +240,285 @@ const RoutesBooking = () => {
         vehicleCategories: selectedVehicles,
         paymentMethod: 'pay_os',
       })
+
       console.log('Booking response:', response)
       setBookingResponse(response)
-      setCurrent(4) // Directly set to checkout page (step 4)
-    } catch (e) {
-      console.error('Error booking route:', e)
-      alert('Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.')
+      setCurrentStep('checkout')
+    } catch (error) {
+      console.error('Error booking route:', error)
+      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.')
     } finally {
       setLoading(false)
+    }
+  }, [selectedDate, startTime, selectedRoute, startPoint, selectedVehicles])
+
+  // Handler for navigating to the next step
+  const handleNextStep = useCallback(() => {
+    if (currentStep === 'datetime') {
+      if (!selectedDate || !startTime) {
+        setError('Vui lòng chọn ngày và giờ')
+        return
+      }
+      setError(null)
+      setCurrentStep('route')
+    } else if (currentStep === 'route') {
+      if (!selectedRoute) {
+        setError('Vui lòng chọn lộ trình')
+        return
+      }
+      setError(null)
+      fetchAvailableVehicles()
+    } else if (currentStep === 'vehicle') {
+      if (selectedVehicles.length === 0) {
+        setError('Vui lòng chọn loại xe')
+        return
+      }
+      setError(null)
+      setCurrentStep('location')
+    } else if (currentStep === 'location') {
+      if (!startPoint.address) {
+        setError('Vui lòng chọn địa điểm đón')
+        return
+      }
+      setError(null)
+      handleConfirmBooking()
+    }
+  }, [
+    currentStep,
+    selectedDate,
+    startTime,
+    selectedRoute,
+    selectedVehicles,
+    startPoint.address,
+    fetchAvailableVehicles,
+    handleConfirmBooking
+  ])
+
+  // Handler for navigating to the previous step
+  const handleBackStep = useCallback(() => {
+    if (currentStep === 'route') {
+      setCurrentStep('datetime')
+    } else if (currentStep === 'vehicle') {
+      setCurrentStep('route')
+    } else if (currentStep === 'location') {
+      setCurrentStep('vehicle')
+    } else if (currentStep === 'checkout') {
+      setCurrentStep('location')
+    }
+  }, [currentStep])
+
+  // Render content based on the current step
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 'datetime':
+        return (
+          <div className="space-y-6">
+            <RouteDateTimeSelection
+              selectedDate={selectedDate}
+              startTime={startTime}
+              onDateChange={handleDateChange}
+              onStartTimeChange={handleStartTimeChange}
+              duration={duration}
+              onDurationChange={handleDurationChange}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleNextStep}
+                disabled={!selectedDate || !startTime || loading}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+              >
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'route':
+        return (
+          <div className="space-y-6">
+            <CreateRoute onRouteSelect={handleRouteSelection} selectedRoute={selectedRoute} />
+            <div className="flex justify-between">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                disabled={!selectedRoute || loading}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+              >
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'vehicle':
+        return (
+          <div className="space-y-6">
+            <VehicleSelection
+              availableVehicles={availableVehicles}
+              selectedVehicles={selectedVehicles}
+              onSelectionChange={handleVehicleSelection}
+            />
+            <div className="flex justify-between">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                disabled={selectedVehicles.length === 0 || loading}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+              >
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'location':
+        return (
+          <div className="space-y-6">
+            <LocationSelection
+              startPoint={startPoint}
+              onLocationChange={handleLocationChange}
+              loading={loading}
+              detectUserLocation={detectUserLocation}
+            />
+            <div className="flex justify-between">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                disabled={!startPoint.address || loading}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+              >
+                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'checkout':
+        return (
+          <div className="space-y-6">
+            {bookingResponse && (
+              <CheckoutPage bookingResponse={bookingResponse} />
+            )}
+            <div className="flex justify-start">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+              >
+                Quay lại
+              </button>
+            </div>
+          </div>
+        )
+      default:
+        return null
     }
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="w-full px-4 py-8">
-        <div className="container mx-auto">
-          <div className="rounded-lg bg-white p-6 shadow-md lg:p-8">
-            <h1 className="mb-8 text-center text-2xl font-bold text-gray-900 sm:text-3xl">
-              Đặt xe theo tuyến
-            </h1>
-
-            <div className="mb-10 w-full">
-              <div className="hidden sm:block">
-                <Steps current={current} items={steps} className="custom-steps" />
-              </div>
-              <div className="sm:hidden">
-                <p className="text-center text-gray-600">
-                  Bước {current + 1}/{steps.length}: {steps[current].title}
-                </p>
-              </div>
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
+        Đặt xe theo tuyến
+      </Title>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div
+            className={`flex-1 text-center ${currentStep === 'datetime' ? 'text-blue-500' : currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'datetime' || currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: '100%' }}
+              />
             </div>
+            <span>Chọn thời gian</span>
+          </div>
 
-            <div className="w-full transition-all duration-300 ease-in-out">
-              <div className="mb-8 w-full">
-                {current === 0 && (
-                  <RouteDateTimeSelection
-                    selectedDate={selectedDate}
-                    startTime={startTime}
-                    onDateChange={handleDateChange}
-                    onStartTimeChange={handleStartTimeChange}
-                  />
-                )}
-                {current === 1 && (
-                  <CreateRoute onRouteSelect={handleRouteSelection} selectedRoute={selectedRoute} />
-                )}
-                {current === 2 && (
-                  <VehicleSelection
-                    availableVehicles={availableVehicles || []}
-                    selectedVehicles={selectedVehicles}
-                    onSelectionChange={handleVehicleSelection}
-                  />
-                )}
-                {current === 3 && (
-                  <LocationSelection
-                    startPoint={startPoint}
-                    onLocationChange={handleLocationChange}
-                    loading={loading}
-                    detectUserLocation={detectUserLocation}
-                  />
-                )}
-                {current === 4 && bookingResponse && (
-                  <CheckoutPage bookingResponse={bookingResponse} />
-                )}
-              </div>
-
-              <div className="mt-8 flex justify-between gap-4">
-                {current > 0 && (
-                  <button
-                    onClick={prev}
-                    className="min-w-[120px] rounded-lg bg-gray-100 px-6 py-3 text-gray-700 transition-colors duration-200 ease-in-out hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  >
-                    Quay lại
-                  </button>
-                )}
-                <button
-                  onClick={current === 3 ? handleFinish : next}
-                  className="min-w-[120px] rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors duration-200 ease-in-out hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-blue-300"
-                  disabled={loading || current === steps.length - 1}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="mr-3 h-5 w-5 animate-spin" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Đang xử lý...
-                    </span>
-                  ) : current === 3 ? (
-                    'Xác nhận đặt xe'
-                  ) : (
-                    'Tiếp theo'
-                  )}
-                </button>
-              </div>
+          <div
+            className={`flex-1 text-center ${currentStep === 'route' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
+                  ? 'bg-blue-500'
+                  : 'bg-gray-300'
+                  }`}
+                style={{
+                  width: currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
+                    ? '100%'
+                    : '0%'
+                }}
+              />
             </div>
+            <span>Chọn lộ trình</span>
+          </div>
+
+          <div
+            className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
+                  ? 'bg-blue-500'
+                  : 'bg-gray-300'
+                  }`}
+                style={{
+                  width: currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
+                    ? '100%'
+                    : '0%'
+                }}
+              />
+            </div>
+            <span>Chọn xe</span>
+          </div>
+
+          <div
+            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                style={{
+                  width: currentStep === 'location' || currentStep === 'checkout' ? '100%' : '0%'
+                }}
+              />
+            </div>
+            <span>Chọn địa điểm</span>
+          </div>
+
+          <div
+            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
+              />
+            </div>
+            <span>Thanh toán</span>
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700" role="alert" aria-live="assertive">
+          {error}
+        </div>
+      )}
+
+      <div className="rounded-lg bg-white p-6 shadow-lg">{renderStepContent()}</div>
     </div>
   )
 }
