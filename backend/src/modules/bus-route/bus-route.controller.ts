@@ -60,7 +60,7 @@ export class BusRouteController {
           estimatedDuration: 15,
           vehicleCategory: '67a2f123e7e80dd43a68e5e7',
           status: 'active',
-          basePrice: 50000,
+          // basePrice: 50000,
         },
       },
     },
@@ -117,18 +117,24 @@ export class BusRouteController {
   }
 
   @Post('calculate-fare')
-  @ApiOperation({ summary: 'Calculate fare for route' })
+  @ApiOperation({ summary: 'Calculate fare for route based on distance and pricing config' })
   @ApiResponse({
     status: 200,
     description: 'Fare calculation result',
     schema: {
       type: 'object',
       properties: {
-        fare: {
-          type: 'number',
-          example: 50000,
-        },
+      fare: {
+        type: 'number',
+        example: 7000,
+        description: 'Calculated fare based on distance and pricing tiers'
       },
+      distance: {
+        type: 'number',
+        example: 5.2,
+        description: 'Distance between stops in kilometers'
+      }
+     },
     },
   })
   @ApiResponse({
