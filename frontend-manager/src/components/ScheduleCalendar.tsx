@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek } from 'date-fns';
 import { Button } from 'antd';
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
 import { Activity } from '@/interfaces';
 
 interface ScheduleCalendarProps {
@@ -114,24 +114,36 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                             <div className="font-medium">Shift {time}</div>
                             <div className="text-xs text-gray-500">{timeRanges[time]}</div>
                         </div>
-                        {days.map((day, dayIndex) => (
-                            <div
-                                key={`${time}-${dayIndex}`}
-                                className="relative p-2 border hover:bg-gray-50 cursor-pointer min-h-[120px]"
-                                onClick={() => handleSlotClick(time, dayIndex)}
-                            >
-                                {getActivitiesForTimeAndDay(time, dayIndex).map(activity => (
-                                    <div
-                                        key={activity.id}
-                                        className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
-                                        onClick={(e) => handleActivityClick(e, activity)}
-                                    >
-                                        <div className="font-medium truncate">{activity.title}</div>
-                                        <div className="text-xs truncate text-gray-600">{activity.description}</div>
+                        {days.map((day, dayIndex) => {
+                            const dayActivities = getActivitiesForTimeAndDay(time, dayIndex);
+
+
+                            return (
+                                <div
+                                    key={`${time}-${dayIndex}`}
+                                    className="relative p-2 border hover:bg-gray-50 cursor-pointer min-h-[120px]"
+                                    onClick={() => handleSlotClick(time, dayIndex)}
+                                >
+                                    {dayActivities.map(activity => (
+                                        <div
+                                            key={activity.id}
+                                            className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
+                                            onClick={(e) => handleActivityClick(e, activity)}
+                                        >
+                                            <div className="font-medium truncate">{activity.title}</div>
+                                            <div className="text-xs truncate text-gray-600">{activity.description}</div>
+                                        </div>
+                                    ))}
+
+                                    {/* Always show the plus icon in the bottom right corner */}
+                                    <div className="absolute bottom-2 right-2 flex items-center justify-center">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-100 transition-colors">
+                                            <PlusOutlined className="text-gray-500 hover:text-blue-600 text-base" />
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 ))}
             </div>

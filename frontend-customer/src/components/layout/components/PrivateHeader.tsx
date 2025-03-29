@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut } from 'react-icons/fi'
+import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard } from 'react-icons/fi'
 import { Routes } from '@/constants/routers'
 import { Logo } from '@/components/icons/Logo'
 import { NotificationDropdown } from '@/components/common/NotificationDropdown'
@@ -194,6 +194,15 @@ export function PrivateHeader({
                                 <FiClock className="text-green-500" />
                                 <span>Lịch sử chuyến đi</span>
                             </Link>
+                            <Link
+                                href={Routes.BOOKING.ROOT}
+                                className="flex items-center gap-3 py-2 text-gray-600"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <FiCreditCard className="text-green-500" />
+                                <span>Lịch sử thanh toán</span>
+                            </Link>
+
                             <button
                                 onClick={() => {
                                     setIsOpen(false)
