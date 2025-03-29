@@ -24,6 +24,18 @@ export class BusRouteController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create new bus route' })
+  @ApiResponse({
+    status: 201,
+    description: 'Bus route created successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin only',
+  })
   @ApiBody({
     type: CreateBusRouteDto,
     description: 'Create new bus route',
@@ -60,7 +72,6 @@ export class BusRouteController {
           estimatedDuration: 15,
           vehicleCategory: '67a2f123e7e80dd43a68e5e7',
           status: 'active',
-          // basePrice: 50000,
         },
       },
     },
@@ -93,7 +104,10 @@ export class BusRouteController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Delete bus route' })
   @ApiResponse({
     status: 200,
