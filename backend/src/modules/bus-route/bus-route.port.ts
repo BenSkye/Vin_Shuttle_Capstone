@@ -1,8 +1,11 @@
 import { BusRouteDocument } from './bus-route.schema';
 import { CreateBusRouteDto, UpdateBusRouteDto } from './bus-route.dto';
 
+export interface ICreateBusRouteData extends CreateBusRouteDto {
+  pricingConfig: string;
+}
 export interface IBusRouteRepository {
-  create(dto: CreateBusRouteDto): Promise<BusRouteDocument>;
+  create(data: ICreateBusRouteData): Promise<BusRouteDocument>;
   findAll(): Promise<BusRouteDocument[]>;
   findById(id: string): Promise<BusRouteDocument>;
   update(id: string, dto: UpdateBusRouteDto): Promise<BusRouteDocument>;

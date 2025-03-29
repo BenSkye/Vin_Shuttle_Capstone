@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { IBusRouteService, IBusRouteRepository } from './bus-route.port';
+import { IBusRouteService, IBusRouteRepository, ICreateBusRouteData } from './bus-route.port';
 import { BusRouteDocument } from './bus-route.schema';
 import { CreateBusRouteDto, RouteStopDto, UpdateBusRouteDto } from './bus-route.dto';
 import { BUS_ROUTE_REPOSITORY } from './bus-route.di-token';
@@ -7,6 +7,9 @@ import { IBusStopService } from '../bus-stop/bus-stop.port';
 import { BUS_STOP_SERVICE } from '../bus-stop/bus-stop.di-token';
 import { PRICING_SERVICE } from '../pricing/pricing.di-token';
 import { IPricingService } from '../pricing/pricing.port';
+import { VEHICLE_CATEGORY_SERVICE } from '../vehicle-categories/vehicle-category.di-token';
+import { IVehicleCategoryService } from '../vehicle-categories/vehicle-category.port';
+import { ServiceType } from 'src/share/enums';
 
 @Injectable()
 export class BusRouteService implements IBusRouteService {
@@ -17,7 +20,19 @@ export class BusRouteService implements IBusRouteService {
     private readonly busStopService: IBusStopService,
     @Inject(PRICING_SERVICE)
     private readonly pricingService: IPricingService,
+    @Inject(VEHICLE_CATEGORY_SERVICE)
+    private readonly vehicleCategoryService: IVehicleCategoryService,
   ) {}
+
+  private async validateVehicleCategory(vehicleCategoryId: string): Promise<void> {
+    const vehicleCategory = await this.vehicleCategoryService.getById(vehicleCategoryId);
+    if (!vehicleCategory) {
+      throw new BadRequestException({
+        message: 'Vehicle category not found',
+        vnMessage: 'Không tìm thấy loại phương tiện',
+      });
+    }
+  }
 
    private async validateStops(stops: RouteStopDto[]): Promise<void> {
     if (!stops || stops.length === 0) {
@@ -45,18 +60,40 @@ export class BusRouteService implements IBusRouteService {
    async createRoute(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
     await this.validateStops(dto.stops);
     
-    // check if vehicle category has pricing config
-    const hasPricing = await this.pricingService.checkVehicleCategoryAndServiceType(
-      dto.vehicleCategory,
-      'booking_trip'
-    );
+    await this.validateVehicleCategory(dto.vehicleCategory);
+    
+    
+      const busServiceConfig = await this.pricingService.getServiceConfig(ServiceType.BOOKING_BUS_ROUTE);
+      console.log('Bus Service Config:', busServiceConfig);
 
-    if (!hasPricing) {
-      throw new BadRequestException('Vehicle category does not have pricing configuration');
-    }
+      if (!busServiceConfig) {
+        throw new BadRequestException({
+          message: 'Bus route service config not found',
+          vnMessage: 'Không tìm thấy cấu hình dịch vụ xe buýt',
+        });
+      }
 
-    return await this.busRouteRepository.create(dto);
+      const pricing = await this.pricingService.findVehiclePricing({
+        vehicle_category: dto.vehicleCategory,
+        service_config: busServiceConfig._id,
+      });
+
+      if (!pricing) {
+        throw new BadRequestException({
+          message: 'Vehicle category does not have pricing configuration for bus route service',
+          vnMessage: 'Loại phương tiện chưa được cấu hình giá cho dịch vụ xe buýt',
+        });
+      }
+
+      const createData: ICreateBusRouteData = {
+        ...dto,
+        pricingConfig: pricing._id.toString(),
+      };
+
+      return await this.busRouteRepository.create(createData);
+
   }
+  
 
   async getAllRoutes(): Promise<BusRouteDocument[]> {
     return await this.busRouteRepository.findAll();

@@ -90,7 +90,7 @@ export class PricingController {
     name: 'serviceType',
     description: 'Service type',
     example: 'booking_hour',
-    enum: ['booking_hour', 'booking_trip', 'booking_share'],
+    enum: ['booking_hour', 'booking_trip', 'booking_share', 'booking_bus_route'],
   })
   async getServiceConfig(@Param('serviceType') serviceType: string) {
     const config = await this.pricingService.getServiceConfig(serviceType);
