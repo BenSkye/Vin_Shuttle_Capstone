@@ -32,7 +32,8 @@ export class RouteStopDto {
     description: 'Bus stop ID',
     example: '507f1f77bcf86cd799439011',
   })
-  @IsMongoId()
+  @IsNotEmpty({ message: 'Stop ID is required' })
+  @IsMongoId({ message: 'Stop ID must be a valid MongoDB ObjectId' })
   stopId: string;
 
   @ApiProperty({
