@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { QueryOptions } from "src/share/interface"
 
 export class ICreateNotification {
     @ApiProperty()
@@ -38,4 +39,11 @@ export class IUpdateNotification {
     @IsOptional()
     @IsBoolean()
     isRead?: boolean
+}
+
+export interface notificationParams extends QueryOptions {
+    title?: string
+    body?: string
+    isRead?: boolean
+    received?: string
 }
