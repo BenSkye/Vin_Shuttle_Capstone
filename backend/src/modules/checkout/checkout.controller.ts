@@ -12,7 +12,7 @@ export class CheckoutController {
   @Get('return-booking-payment')
   async getPayOsReturn(@Request() req, @Res() res) {
     await this.checkoutService.getPayOsReturn(req.query);
-    const redirectUrl = process.env.FRONTEND_URL + '/booking';
+    const redirectUrl = process.env.FRONTEND_URL + '/trips';
     return res.send(`
       <!DOCTYPE html>
       <html>
@@ -28,6 +28,8 @@ export class CheckoutController {
       </html>
     `);
   }
+
+
   @Get('cancel-booking-payment')
   async getPayOsCancel(@Request() req) {
     await this.checkoutService.getPayOsCancel(req.query);
