@@ -321,18 +321,21 @@ export class TripService implements ITripService {
     }
     const tripAfterUpdate = await this.tripRepository.findOne({ _id: tripId }, []);
     await this.notificationService.createNotification(notificationForCustomer)
+
+    const listDriverTrip = await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.driverId.toString(),
-      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+      listDriverTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.driverId.toString(),
       updatedTrip._id.toString(),
       tripAfterUpdate
     );
+    const listCustomerTrip = await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
-      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+      listCustomerTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
@@ -402,18 +405,20 @@ export class TripService implements ITripService {
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
       await this.shareItineraryService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
+    const listDriverTrip = await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.driverId.toString(),
-      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+      listDriverTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.driverId.toString(),
       updatedTrip._id.toString(),
       tripAfterUpdate
     );
+    const listCustomerTrip = await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
-      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+      listCustomerTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
@@ -483,18 +488,20 @@ export class TripService implements ITripService {
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
       await this.shareItineraryService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
+    const listDriverTrip = await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.driverId.toString(),
-      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+      listDriverTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.driverId.toString(),
       updatedTrip._id.toString(),
       tripAfterUpdate
     );
+    const listCustomerTrip = await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
-      await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
+      listCustomerTrip
     );
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
@@ -612,7 +619,7 @@ export class TripService implements ITripService {
     }
     console.log('tripUpdate', tripUpdate);
     const tripAfterUpdate = await this.tripRepository.findOne({ _id: id }, []);
-
+    const listDriverTrip = await this.getPersonalDriverTrip(tripUpdate.driverId.toString())
     if (tripUpdate.cancelledBy === TripCancelBy.CUSTOMER) {
       const notificationForDriver = {
         received: tripUpdate.driverId.toString(),
@@ -622,7 +629,7 @@ export class TripService implements ITripService {
       await this.notificationService.createNotification(notificationForDriver)
       this.tripGateway.emitTripUpdate(
         tripUpdate.driverId.toString(),
-        await this.getPersonalDriverTrip(tripUpdate.driverId.toString())
+        listDriverTrip
       );
       this.tripGateway.emitTripUpdateDetail(
         tripUpdate.driverId.toString(),
@@ -641,18 +648,20 @@ export class TripService implements ITripService {
       // }
       console.log('notificationForCustomer', notificationForCustomer);
       await this.notificationService.createNotification(notificationForCustomer)
+
       this.tripGateway.emitTripUpdate(
         tripUpdate.driverId.toString(),
-        await this.getPersonalDriverTrip(tripUpdate.driverId.toString())
+        listDriverTrip
       );
       this.tripGateway.emitTripUpdateDetail(
         tripUpdate.driverId.toString(),
         tripUpdate._id.toString(),
         tripAfterUpdate
       );
+      const listCustomerTrip = await this.getPersonalCustomerTrip(tripUpdate.customerId.toString())
       this.tripGateway.emitTripUpdate(
         tripUpdate.customerId.toString(),
-        await this.getPersonalCustomerTrip(tripUpdate.customerId.toString())
+        listCustomerTrip
       );
       this.tripGateway.emitTripUpdateDetail(
         tripUpdate.customerId.toString(),
