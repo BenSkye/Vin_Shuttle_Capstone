@@ -79,3 +79,4 @@ export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => 
     throw error;
   }
 };
+//yessir
