@@ -7,7 +7,7 @@ import { BookingBusRoutePayloadDto, ICreateTripDto, tripParams } from 'src/modul
 import { ITripRepository, ITripService } from 'src/modules/trip/trip.port';
 import { TripDocument } from 'src/modules/trip/trip.schema';
 
-import { DriverSchedulesStatus, ServiceType, Shift, ShiftHours, TripCancelBy, TripStatus, UserRole } from 'src/share/enums';
+import { DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripCancelBy, TripStatus, UserRole } from 'src/share/enums';
 
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
@@ -24,6 +24,8 @@ import { SHARE_ITINERARY_SERVICE } from 'src/modules/shared-itinerary/shared-iti
 import { ISharedItineraryService } from 'src/modules/shared-itinerary/shared-itinerary.port';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { processQueryParams } from 'src/share/utils/query-params.util';
+import { NOTIFICATION_SERVICE } from 'src/modules/notification/notification.di-token';
+import { INotificationService } from 'src/modules/notification/notification.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -44,6 +46,8 @@ export class TripService implements ITripService {
     private readonly vehicleRepository: IVehiclesRepository,
     @Inject(SHARE_ITINERARY_SERVICE)
     private readonly shareItineraryService: ISharedItineraryService,
+    @Inject(NOTIFICATION_SERVICE)
+    private readonly notificationService: INotificationService
   ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
@@ -239,6 +243,13 @@ export class TripService implements ITripService {
     }, [])
   }
 
+  async getPersonalDriverTripById(driverId: string, id: string): Promise<TripDocument> {
+    return await this.tripRepository.findOne({
+      _id: id,
+      driverId: driverId
+    }, [])
+  }
+
   async calculateBusRouteFare(
     routeId: string,
     fromStopId: string,
@@ -302,6 +313,22 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    const notificationForCustomer = {
+      received: updatedTrip.customerId.toString(),
+      title: `Cuốc xe ${updatedTrip._id.toString()} đang trên đường đến đón`,
+      body: `Cuốc xe ${serviceTypeText[updatedTrip.serviceType]} số hiệu  ${updatedTrip._id.toString()} của bạn đãng trên đường đến đón`,
+    }
+    const tripAfterUpdate = await this.tripRepository.findOne({ _id: tripId }, []);
+    await this.notificationService.createNotification(notificationForCustomer)
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.driverId.toString(),
+      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.driverId.toString(),
+      updatedTrip._id.toString(),
+      tripAfterUpdate
+    );
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
@@ -309,7 +336,7 @@ export class TripService implements ITripService {
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
       updatedTrip._id.toString(),
-      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
+      tripAfterUpdate
     );
     this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
@@ -363,9 +390,26 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    const notificationForCustomer = {
+      received: updatedTrip.customerId.toString(),
+      title: `Cuốc xe ${updatedTrip._id.toString()} đã bắt đầu`,
+      body: `Cuốc xe ${serviceTypeText[updatedTrip.serviceType]} số hiệu ${updatedTrip._id.toString()} của bạn đã bắt đầu`,
+    }
+    await this.notificationService.createNotification(notificationForCustomer)
+    const tripAfterUpdate = await this.tripRepository.findOne({ _id: tripId }, []);
+
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
       await this.shareItineraryService.passStartPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.driverId.toString(),
+      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.driverId.toString(),
+      updatedTrip._id.toString(),
+      tripAfterUpdate
+    );
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
@@ -373,7 +417,7 @@ export class TripService implements ITripService {
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
       updatedTrip._id.toString(),
-      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
+      tripAfterUpdate
     );
     this.redisService.setUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
@@ -427,9 +471,26 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    const notificationForCustomer = {
+      received: updatedTrip.customerId.toString(),
+      title: `Cuốc xe ${updatedTrip._id.toString()} đã kết thúc`,
+      body: `Cuốc xe ${serviceTypeText[updatedTrip.serviceType]} số hiệu ${updatedTrip._id.toString()} của bạn đã kết thúc`,
+    }
+    await this.notificationService.createNotification(notificationForCustomer)
+    const tripAfterUpdate = await this.tripRepository.findOne({ _id: tripId }, []);
+
     if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
       await this.shareItineraryService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
     }
+    this.tripGateway.emitTripUpdate(
+      updatedTrip.driverId.toString(),
+      await this.getPersonalDriverTrip(updatedTrip.driverId.toString())
+    );
+    this.tripGateway.emitTripUpdateDetail(
+      updatedTrip.driverId.toString(),
+      updatedTrip._id.toString(),
+      tripAfterUpdate
+    );
     this.tripGateway.emitTripUpdate(
       updatedTrip.customerId.toString(),
       await this.getPersonalCustomerTrip(updatedTrip.customerId.toString())
@@ -437,22 +498,13 @@ export class TripService implements ITripService {
     this.tripGateway.emitTripUpdateDetail(
       updatedTrip.customerId.toString(),
       updatedTrip._id.toString(),
-      await this.getPersonalCustomerTripById(updatedTrip.customerId.toString(), updatedTrip._id.toString())
+      tripAfterUpdate
     );
     this.redisService.deleteUserTrackingVehicle(updatedTrip.customerId.toString(), updatedTrip.vehicleId.toString());
     return updatedTrip;
   }
 
-  async totalAmount(): Promise<number> {
-    const Trips = await this.tripRepository.find({
-      status: {
-        $nin: [
-          TripStatus.BOOKING
-        ]
-      }
-    }, ['amount', 'refundAmount']);
-    return Trips.reduce((total, trip) => total + (trip.amount - (trip.refundAmount || 0)), 0);
-  }
+
 
   async getTripByQuery(query: tripParams): Promise<TripDocument[]> {
     const filterProcessed: any = query;
@@ -557,13 +609,72 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    this.tripGateway.emitTripUpdate(
-      tripUpdate.customerId.toString(),
-      await this.getPersonalCustomerTrip(tripUpdate.customerId.toString())
-    );
+    console.log('tripUpdate', tripUpdate);
+    const tripAfterUpdate = await this.tripRepository.findOne({ _id: id }, []);
+
+    if (tripUpdate.cancelledBy === TripCancelBy.CUSTOMER) {
+      const notificationForDriver = {
+        received: tripUpdate.driverId.toString(),
+        title: `Cuốc xe ${tripUpdate._id.toString()} đã bị hủy`,
+        body: `Khách hàng đã hủy cuốc xe ${serviceTypeText[tripUpdate.serviceType]} số hiệu ${tripUpdate._id.toString()}`,
+      }
+      await this.notificationService.createNotification(notificationForDriver)
+      this.tripGateway.emitTripUpdate(
+        tripUpdate.driverId.toString(),
+        await this.getPersonalDriverTrip(tripUpdate.driverId.toString())
+      );
+      this.tripGateway.emitTripUpdateDetail(
+        tripUpdate.driverId.toString(),
+        tripUpdate._id.toString(),
+        tripAfterUpdate
+      );
+    }
+    if (tripUpdate.cancelledBy === TripCancelBy.DRIVER) {
+      const notificationForCustomer = {
+        received: tripUpdate.customerId.toString(),
+        title: `Cuốc xe ${tripUpdate._id.toString()} đã bị hủy`,
+        body: `Tài xế đã hủy cuốc xe ${serviceTypeText[tripUpdate.serviceType]} số hiệu ${tripUpdate._id.toString()}`,
+      }
+      // if (updatedTrip.serviceType === ServiceType.BOOKING_SHARE) {
+      //   await this.shareItineraryService.passEndPoint(updatedTrip.servicePayload.bookingShare.sharedItinerary.toString(), updatedTrip._id.toString());
+      // }
+      console.log('notificationForCustomer', notificationForCustomer);
+      await this.notificationService.createNotification(notificationForCustomer)
+      this.tripGateway.emitTripUpdate(
+        tripUpdate.driverId.toString(),
+        await this.getPersonalDriverTrip(tripUpdate.driverId.toString())
+      );
+      this.tripGateway.emitTripUpdateDetail(
+        tripUpdate.driverId.toString(),
+        tripUpdate._id.toString(),
+        tripAfterUpdate
+      );
+      this.tripGateway.emitTripUpdate(
+        tripUpdate.customerId.toString(),
+        await this.getPersonalCustomerTrip(tripUpdate.customerId.toString())
+      );
+      this.tripGateway.emitTripUpdateDetail(
+        tripUpdate.customerId.toString(),
+        tripUpdate._id.toString(),
+        tripAfterUpdate
+      );
+      this.redisService.deleteUserTrackingVehicle(tripUpdate.customerId.toString(), tripUpdate.vehicleId.toString());
+    }
+
     return tripUpdate;
   }
 
+
+  async totalAmount(): Promise<number> {
+    const Trips = await this.tripRepository.find({
+      status: {
+        $nin: [
+          TripStatus.BOOKING
+        ]
+      }
+    }, ['amount', 'refundAmount']);
+    return Trips.reduce((total, trip) => total + (trip.amount - (trip.refundAmount || 0)), 0);
+  }
 
 
 

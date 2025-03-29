@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 
 import dynamic from 'next/dynamic'
 import { FaCar, FaClock, FaCreditCard, FaMapMarkerAlt } from 'react-icons/fa'
 
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import TripTypeSelection from '@/views/Ride/components/triptypeselection'
+import SharedLocation from '@/views/Ride/components/sharedLocation'
 
 import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingDestination } from '@/service/booking.service'
@@ -14,11 +15,15 @@ import { vehicleSearchDestination } from '@/service/search.service'
 
 const steps = [
   { title: 'Chọn số người', icon: <FaClock className="text-blue-500" /> },
-  { title: 'Chọn điểm đón', icon: <FaMapMarkerAlt className="text-blue-500" /> },
-  { title: 'Chọn điểm đến', icon: <FaMapMarkerAlt className="text-blue-500" /> },
+  { title: 'Chọn điểm đi & đến', icon: <FaMapMarkerAlt className="text-blue-500" /> },
   { title: 'Chọn xe', icon: <FaCar className="text-blue-500" /> },
   { title: 'Thanh toán', icon: <FaCreditCard className="text-blue-500" /> },
 ]
+
+// Dynamic import components outside the component to prevent reloading
+const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehicleselection'), {
+  ssr: false,
+})
 
 const DestinationBookingPage = () => {
   const [tripType, setTripType] = useState<'alone' | 'shared'>('alone')
@@ -47,6 +52,7 @@ const DestinationBookingPage = () => {
   const [selectedVehicles, setSelectedVehicles] = useState<
     {
       categoryVehicleId: string
+      name: string
       quantity: number
     }[]
   >([])
@@ -55,22 +61,12 @@ const DestinationBookingPage = () => {
   const [estimatedDistance, setEstimatedDistance] = useState<number>(2)
   const [estimatedDuration, setEstimatedDuration] = useState<number>(5)
 
-  const LocationSelection = dynamic(() => import('@/views/Ride/components/locationselection'), {
-    ssr: false,
-  })
-  const DestinationLocation = dynamic(() => import('@/views/Ride/components/destinationLocation'), {
-    ssr: false,
-  })
-  const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehicleselection'), {
-    ssr: false,
-  })
-
   // Check if code is running in browser
   useEffect(() => {
     setIsBrowser(true)
   }, [])
 
-  const handleStartLocationChange = (
+  const handleStartLocationChange = useCallback((
     newPosition: { lat: number; lng: number },
     newAddress: string
   ) => {
@@ -78,9 +74,9 @@ const DestinationBookingPage = () => {
       position: newPosition,
       address: newAddress,
     })
-  }
+  }, [])
 
-  const handleEndLocationChange = (
+  const handleEndLocationChange = useCallback((
     newPosition: { lat: number; lng: number },
     newAddress: string
   ) => {
@@ -88,9 +84,9 @@ const DestinationBookingPage = () => {
       position: newPosition,
       address: newAddress,
     })
-  }
+  }, [])
 
-  const calculateDistance = () => {
+  const calculateDistance = useCallback(() => {
     // Calculate distance in km between two points using Haversine formula
     const R = 6371 // Radius of the Earth in km
     const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
@@ -111,12 +107,12 @@ const DestinationBookingPage = () => {
     setEstimatedDuration(duration || 5)
 
     return { distance, duration }
-  }
+  }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
 
-  const next = () => setCurrent(current + 1)
-  const prev = () => setCurrent(current - 1)
+  const next = useCallback(() => setCurrent(current + 1), [current])
+  const prev = useCallback(() => setCurrent(current - 1), [current])
 
-  const detectUserLocation = async () => {
+  const detectUserLocation = useCallback(async () => {
     if (!isBrowser) return // Only run in browser
 
     setLoading(true)
@@ -131,6 +127,7 @@ const DestinationBookingPage = () => {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
           )
+
           const data = await response.json()
           setPickup(data.display_name)
         },
@@ -139,22 +136,40 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [isBrowser])
 
-  const handleVehicleSelection = (categoryId: string, quantity: number) => {
+  const handleVehicleSelection = useCallback((categoryId: string, quantity: number) => {
     setSelectedVehicles((prev) => {
       const existing = prev.find((v) => v.categoryVehicleId === categoryId)
+      const vehicleCategory = availableVehicles.find(v => v.vehicleCategory._id === categoryId)
+      const name = vehicleCategory ? vehicleCategory.vehicleCategory.name : ''
+
       if (existing) {
         if (quantity === 0) {
           return prev.filter((v) => v.categoryVehicleId !== categoryId)
         }
         return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
       }
-      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity }] : prev
+      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity, name }] : prev
     })
-  }
+  }, [availableVehicles])
 
-  const fetchAvailableVehicles = async () => {
+  const canProceedToNextStep = useCallback(() => {
+    switch (current) {
+      case 0:
+        return passengerCount > 0
+      case 1:
+        return !!startPoint.address.trim() && !!endPoint.address.trim()
+      case 2:
+        return selectedVehicles.length > 0
+      case 3:
+        return true
+      default:
+        return true
+    }
+  }, [current, passengerCount, startPoint.address, endPoint.address, selectedVehicles.length])
+
+  const fetchAvailableVehicles = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -194,24 +209,9 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [startPoint, endPoint, estimatedDuration, estimatedDistance, calculateDistance, next])
 
-  const canProceedToNextStep = () => {
-    switch (current) {
-      case 0:
-        return passengerCount > 0
-      case 1:
-        return !!startPoint.address.trim()
-      case 2:
-        return !!endPoint.address.trim()
-      case 3:
-        return selectedVehicles.length > 0
-      default:
-        return true
-    }
-  }
-
-  const handleFinish = async () => {
+  const handleFinish = useCallback(async () => {
     if (selectedVehicles.length === 0) {
       setError('Vui lòng chọn loại xe')
       return
@@ -227,7 +227,10 @@ const DestinationBookingPage = () => {
         endPoint: endPoint,
         estimatedDuration: estimatedDuration,
         distanceEstimate: estimatedDistance,
-        vehicleCategories: selectedVehicles,
+        vehicleCategories: {
+          categoryVehicleId: selectedVehicles[0].categoryVehicleId,
+          name: selectedVehicles[0].name
+        },
         paymentMethod: 'pay_os',
       }
 
@@ -244,7 +247,100 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedVehicles, startPoint, endPoint, estimatedDuration, estimatedDistance, next])
+
+  // Memoize components to prevent unnecessary re-renders
+  const currentStepContent = useMemo(() => {
+    switch (current) {
+      case 0:
+        return (
+          <TripTypeSelection
+            tripType={tripType}
+            onTripTypeChange={setTripType}
+            passengerCount={passengerCount}
+            onPassengerCountChange={setPassengerCount}
+          />
+        )
+      case 1:
+        return isBrowser ? (
+          <SharedLocation
+            startPoint={startPoint}
+            endPoint={endPoint}
+            onStartLocationChange={handleStartLocationChange}
+            onEndLocationChange={handleEndLocationChange}
+            loading={loading}
+            detectUserLocation={detectUserLocation}
+            numberOfSeats={passengerCount}
+            onNumberOfSeatsChange={setPassengerCount}
+          />
+        ) : null
+      case 2:
+        return isBrowser ? (
+          <VehicleSelection
+            availableVehicles={availableVehicles}
+            selectedVehicles={selectedVehicles}
+            onSelectionChange={handleVehicleSelection}
+          />
+        ) : null
+      case 3:
+        return bookingResponse ? <CheckoutPage bookingResponse={bookingResponse} /> : null
+      default:
+        return null
+    }
+  }, [
+    current,
+    isBrowser,
+    tripType,
+    passengerCount,
+    startPoint,
+    endPoint,
+    loading,
+    availableVehicles,
+    selectedVehicles,
+    bookingResponse,
+    handleStartLocationChange,
+    handleEndLocationChange,
+    detectUserLocation,
+    handleVehicleSelection
+  ])
+
+  const navigationButtons = useMemo(() => (
+    <div className="mt-8 flex justify-between">
+      {current > 0 && current < 4 && (
+        <button
+          onClick={prev}
+          className="rounded bg-gray-400 px-6 py-2 text-white"
+        >
+          Quay lại
+        </button>
+      )}
+      <div>
+        {current < steps.length - 1 && (
+          <button
+            onClick={() => {
+              if (current === 1) {
+                fetchAvailableVehicles();
+              } else if (current === 2) {
+                handleFinish()
+              } else {
+                next()
+              }
+            }}
+            className="ml-2 rounded bg-blue-500 px-6 py-2 text-white"
+            disabled={loading || !canProceedToNextStep()}
+          >
+            {loading
+              ? 'Đang xử lý...'
+              : current === 1
+                ? 'Tìm xe'
+                : current === 2
+                  ? 'Xác nhận đặt xe'
+                  : 'Tiếp theo'}
+          </button>
+        )}
+      </div>
+    </div>
+  ), [current, loading, canProceedToNextStep, prev, next, fetchAvailableVehicles, handleFinish])
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -268,72 +364,10 @@ const DestinationBookingPage = () => {
         )}
 
         <div>
-          {current === 0 && (
-            <TripTypeSelection
-              tripType={tripType}
-              onTripTypeChange={setTripType}
-              passengerCount={passengerCount}
-              onPassengerCountChange={setPassengerCount}
-            />
-          )}
-          {current === 1 && isBrowser && (
-            <LocationSelection
-              startPoint={startPoint}
-              onLocationChange={handleStartLocationChange}
-              loading={loading}
-              detectUserLocation={detectUserLocation}
-            />
-          )}
-          {current === 2 && (
-            <DestinationLocation
-              endPoint={endPoint}
-              onLocationChange={handleEndLocationChange}
-              loading={loading}
-              detectUserLocation={detectUserLocation}
-            />
-          )}
-          {current === 3 && isBrowser && (
-            <VehicleSelection
-              availableVehicles={availableVehicles}
-              selectedVehicles={selectedVehicles}
-              onSelectionChange={handleVehicleSelection}
-            />
-          )}
-          {current === 4 && bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
+          {currentStepContent}
         </div>
 
-        <div className="mt-8 flex justify-between">
-          {current > 0 && current < 5 && (
-            <button onClick={prev} className="rounded bg-gray-400 px-6 py-2 text-white">
-              Quay lại
-            </button>
-          )}
-          <div>
-            {current < steps.length - 1 && (
-              <button
-                onClick={() => {
-                  if (current === 2) {
-                    fetchAvailableVehicles()
-                  } else if (current === 3) {
-                    handleFinish()
-                  } else {
-                    next()
-                  }
-                }}
-                className="ml-2 rounded bg-blue-500 px-6 py-2 text-white"
-                disabled={loading || !canProceedToNextStep()}
-              >
-                {loading
-                  ? 'Đang xử lý...'
-                  : current === 2
-                    ? 'Tìm xe'
-                    : current === 3
-                      ? 'Xác nhận đặt xe'
-                      : 'Tiếp theo'}
-              </button>
-            )}
-          </div>
-        </div>
+        {navigationButtons}
       </div>
     </div>
   )

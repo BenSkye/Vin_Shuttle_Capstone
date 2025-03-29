@@ -30,10 +30,13 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     try {
       await markAsReadNotification(id)
 
-      // Update local state
-      setNotificationList((prev) =>
-        prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
-      )
+      // Update local state and maintain sorting
+      setNotificationList((prev) => {
+        const updated = prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
+        return updated.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
 
       setUnreadCountNumber((prev) => Math.max(0, prev - 1))
     } catch (error) {
@@ -46,8 +49,13 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     try {
       await markAllAsReadNotification()
 
-      // Update local state
-      setNotificationList((prev) => prev.map((notif) => ({ ...notif, isRead: true })))
+      // Update local state and maintain sorting
+      setNotificationList((prev) => {
+        const updated = prev.map((notif) => ({ ...notif, isRead: true }))
+        return updated.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      })
 
       setUnreadCountNumber(0)
     } catch (error) {
