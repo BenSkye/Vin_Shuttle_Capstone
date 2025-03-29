@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { NOTIFICATION_SERVICE } from "src/modules/notification/notification.di-token";
-import { ICreateNotification } from "src/modules/notification/notification.dto";
+import { ICreateNotification, notificationParams } from "src/modules/notification/notification.dto";
 import { INotificationService } from "src/modules/notification/notification.port";
+import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
 import { HEADER } from "src/share/interface";
 
 @ApiTags('notification')
@@ -57,10 +58,23 @@ export class NotificationController {
     @ApiBearerAuth(HEADER.AUTHORIZATION)
     @ApiBearerAuth(HEADER.CLIENT_ID)
     @ApiOperation({ summary: 'Get user notifications' })
+    @ApiQuery({ name: 'title', required: false, type: String, description: 'Title of the notification' })
+    @ApiQuery({ name: 'body', required: false, type: String, description: 'Body of the notification' })
+    @ApiQuery({ name: 'isRead', required: false, type: Boolean, description: 'Is read' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+    @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+    @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        enum: SortOrderOption,
+        description: 'Sort order (asc, desc)'
+    })
     async getUserNotifications(
-        @Request() req
+        @Request() req,
+        @Query() query: notificationParams
     ) {
-        return await this.notificationService.getUserNotifications(req.user._id)
+        return await this.notificationService.getUserNotifications(req.user._id, query)
     }
 
     @Patch('mark-read/:id')

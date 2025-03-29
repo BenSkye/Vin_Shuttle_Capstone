@@ -1,13 +1,14 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import Expo from "expo-server-sdk";
 import { NOTIFICATION_GATEWAY, NOTIFICATION_REPOSITORY } from "src/modules/notification/notification.di-token";
-import { ICreateNotification } from "src/modules/notification/notification.dto";
+import { ICreateNotification, notificationParams } from "src/modules/notification/notification.dto";
 import { NotificationGateway } from "src/modules/notification/notification.gateway";
 import { INotificationRepository, INotificationService } from "src/modules/notification/notification.port";
 import { NotificationDocument } from "src/modules/notification/notification.schema";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { UserRole } from "src/share/enums";
+import { processQueryParams } from "src/share/utils/query-params.util";
 
 @Injectable()
 export class NotificationService implements INotificationService {
@@ -43,8 +44,10 @@ export class NotificationService implements INotificationService {
         return notification
     }
 
-    async getUserNotifications(userId: string): Promise<NotificationDocument[]> {
-        return await this.notificationRepository.getNotifications({ received: userId }, [])
+    async getUserNotifications(userId: string, query: notificationParams): Promise<NotificationDocument[]> {
+        const { filter, options } = processQueryParams(query, ['title', 'body']);
+        filter.received = userId
+        return await this.notificationRepository.getNotifications(filter, [], options)
     }
 
     async markAsRead(id: string): Promise<NotificationDocument> {
