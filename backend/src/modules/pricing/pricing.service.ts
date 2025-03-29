@@ -15,6 +15,7 @@ import {
 import { VEHICLE_CATEGORY_REPOSITORY } from 'src/modules/vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryRepository } from 'src/modules/vehicle-categories/vehicle-category.port';
 import { ServiceType } from 'src/share/enums';
+import { VehiclePricingDocument } from './pricing.vehicle.schema';
 
 @Injectable()
 export class PricingService implements IPricingService {
@@ -26,6 +27,28 @@ export class PricingService implements IPricingService {
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepo: IVehicleCategoryRepository,
   ) { }
+
+
+  async findVehiclePricing(query: any): Promise<VehiclePricingDocument> {
+    const pricing = await this.vehiclePricingRepo.findVehiclePricing(
+      {
+        vehicle_category: query.vehicle_category.toString(),
+        service_config: query.service_config.toString(),
+      }
+    );
+
+    if (!pricing) {
+    throw new HttpException(
+      {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Vehicle pricing not found',
+        vnMessage: 'Không tìm thấy cấu hình giá cho loại xe này',
+      },
+      HttpStatus.NOT_FOUND,
+    );
+   }
+    return pricing;
+  }
 
   async createServiceConfig(config: ICreateServiceConfigDto) {
     const exists = await this.configRepo.findByServiceType(config.service_type);
@@ -197,7 +220,7 @@ export class PricingService implements IPricingService {
       throw new HttpException(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Service config not found',
+          message: 'Service config not found - check vehicle category and service type',
           vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
@@ -215,14 +238,13 @@ export class PricingService implements IPricingService {
 
   //function to calculate price by hour or distance
   async calculatePrice(serviceType: string, vehicleCategoryId: string, totalUnits: number) {
-    console.log('serviceType', serviceType);
-    console.log('vehicleCategoryId', vehicleCategoryId);
+   
     const config = await this.configRepo.findByServiceType(serviceType);
     if (!config) {
       throw new HttpException(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Service config not found',
+          message: 'Service config not found - calculate price',
           vnMessage: 'Không tìm thấy cấu hình dịch vụ',
         },
         HttpStatus.NOT_FOUND,
@@ -335,7 +357,7 @@ export class PricingService implements IPricingService {
       throw new HttpException(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Bus service configuration not found',
+          message: 'Bus service configuration not found - calculate bus fare',
           vnMessage: 'Không tìm thấy cấu hình dịch vụ xe buýt',
         },
         HttpStatus.NOT_FOUND,
