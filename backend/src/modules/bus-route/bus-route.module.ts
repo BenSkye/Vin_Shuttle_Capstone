@@ -8,6 +8,7 @@ import { BUS_ROUTE_REPOSITORY, BUS_ROUTE_SERVICE } from './bus-route.di-token';
 import { KeytokenModule } from '../keytoken/keytoken.module';
 import { ShareModule } from 'src/share/share.module';
 import { BusStopModule } from '../bus-stop/bus-stop.module';
+import { PricingModule } from '../pricing/pricing.module';
 
 const dependencies = [
   {
@@ -31,6 +32,7 @@ const dependencies = [
     BusStopModule,
     KeytokenModule,
     ShareModule,
+    PricingModule,
   ],
   controllers: [BusRouteController],
   providers: [...dependencies],
