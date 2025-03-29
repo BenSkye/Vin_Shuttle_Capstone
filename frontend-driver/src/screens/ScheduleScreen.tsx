@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, DateData } from 'react-native-calendars';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addWeeks,
+  subWeeks,
+  eachDayOfInterval,
+  isSameDay,
+  parseISO
+} from 'date-fns';
+import { vi } from 'date-fns/locale';
 import { getPersonalSchedules, driverCheckin, driverCheckout } from '../services/schedulesServices';
 import { useSchedule } from '~/context/ScheduleContext';
 
@@ -25,14 +35,6 @@ interface Schedule {
   updatedAt: string;
   checkinTime: string;
   checkoutTime: string;
-}
-
-interface MarkedDates {
-  [date: string]: {
-    marked: boolean;
-    dotColor: string;
-    selected?: boolean;
-  };
 }
 
 // Thêm enum và interface cho shifts
@@ -62,29 +64,18 @@ const getShiftTimeText = (shift: string): string => {
 export default function ScheduleScreen() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [markedDates, setMarkedDates] = useState<MarkedDates>({});
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const { updateIsInProgress } = useSchedule();
 
   const fetchSchedules = async (date: Date) => {
     try {
       setLoading(true);
-      const start = format(startOfMonth(date), 'yyyy-MM-dd');
-      const end = format(endOfMonth(date), 'yyyy-MM-dd');
+      const start = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const end = format(endOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
       const data = await getPersonalSchedules(start, end);
       setSchedules(data);
-
-      // Create marked dates object
-      const marked: MarkedDates = {};
-      data.forEach((schedule) => {
-        const scheduleDate = format(new Date(schedule.date), 'yyyy-MM-dd');
-        marked[scheduleDate] = {
-          marked: true,
-          dotColor: getStatusColor(schedule.status),
-        };
-      });
-      setMarkedDates(marked);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -119,30 +110,15 @@ export default function ScheduleScreen() {
   };
 
   useEffect(() => {
-    fetchSchedules(new Date());
-  }, []);
+    fetchSchedules(currentWeek);
+  }, [currentWeek]);
 
-  const handleDayPress = (day: DateData) => {
-    // Clear previous selection and set new one
-    const newMarkedDates: MarkedDates = {};
+  const handleDayPress = (date: string) => {
+    setSelectedDate(date);
+  };
 
-    // Preserve the dots for all scheduled dates
-    schedules.forEach((schedule) => {
-      const scheduleDate = format(new Date(schedule.date), 'yyyy-MM-dd');
-      newMarkedDates[scheduleDate] = {
-        marked: true,
-        dotColor: getStatusColor(schedule.status),
-      };
-    });
-
-    // Add selection for the new date
-    newMarkedDates[day.dateString] = {
-      ...newMarkedDates[day.dateString],
-      selected: true,
-    };
-
-    setSelectedDate(day.dateString);
-    setMarkedDates(newMarkedDates);
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(format(date, 'yyyy-MM-dd'));
   };
 
   const getSelectedSchedule = (): Schedule | undefined => {
@@ -152,6 +128,19 @@ export default function ScheduleScreen() {
   };
 
   const selectedSchedule = getSelectedSchedule();
+
+  // Navigation functions for week view
+  const handlePreviousWeek = () => {
+    setCurrentWeek(subWeeks(currentWeek, 1));
+  };
+
+  const handleNextWeek = () => {
+    setCurrentWeek(addWeeks(currentWeek, 1));
+  };
+
+  const handleCurrentWeek = () => {
+    setCurrentWeek(new Date());
+  };
 
   const handleCheckin = async (scheduleId: string) => {
     try {
@@ -224,23 +213,96 @@ export default function ScheduleScreen() {
     }
   };
 
+  // Generate days for the current week
+  const weekDays = eachDayOfInterval({
+    start: startOfWeek(currentWeek, { weekStartsOn: 1 }),
+    end: endOfWeek(currentWeek, { weekStartsOn: 1 }),
+  });
+
+  // Check if a day has a schedule
+  const getDaySchedule = (date: Date): Schedule | undefined => {
+    return schedules.find((schedule) =>
+      isSameDay(new Date(schedule.date), date)
+    );
+  };
+
+  // Render a single day cell
+  const renderDayCell = (date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    const isSelected = formattedDate === selectedDate;
+    const daySchedule = getDaySchedule(date);
+    const isToday = isSameDay(date, new Date());
+
+    return (
+      <TouchableOpacity
+        key={formattedDate}
+        className={`flex-1 min-h-[80px] p-2 border border-gray-200 ${isSelected ? 'border-blue-500 bg-blue-50' : ''
+          } ${isToday ? 'bg-blue-100' : ''}`}
+        onPress={() => handleDayPress(formattedDate)}
+      >
+        <Text className={`text-center font-medium ${isToday ? 'text-blue-600' : ''}`}>
+          {format(date, 'EEE', { locale: vi })}
+        </Text>
+        <Text className="text-center">{format(date, 'd')}</Text>
+        {daySchedule && (
+          <View
+            className="mt-1 p-1 rounded-md"
+            style={{ backgroundColor: getStatusColor(daySchedule.status) + '30' }}
+          >
+            <Text className="text-xs text-center">
+              Ca {daySchedule.shift}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
         <View className="p-4">
           <Text className="mb-4 text-xl font-bold">Lịch làm việc</Text>
 
-          <Calendar
-            onDayPress={handleDayPress}
-            markedDates={markedDates}
-            theme={{
-              todayTextColor: '#2563eb',
-              selectedDayBackgroundColor: '#2563eb',
-            }}
-            onMonthChange={(month: DateData) => {
-              fetchSchedules(new Date(month.timestamp));
-            }}
-          />
+          {/* Current week button */}
+          <TouchableOpacity
+            onPress={handleCurrentWeek}
+            className="mb-3 py-2 bg-blue-600 rounded-lg"
+          >
+            <Text className="font-semibold text-center text-white">
+              Tuần hiện tại
+            </Text>
+          </TouchableOpacity>
+
+          {/* Week navigation */}
+          <View className="flex-row justify-between items-center mb-4 bg-gray-100 p-3 rounded-lg">
+            <TouchableOpacity
+              onPress={handlePreviousWeek}
+              className="bg-white px-3 py-2 rounded-md shadow-sm"
+            >
+              <Text className="text-blue-600 font-medium">← Tuần trước</Text>
+            </TouchableOpacity>
+
+            <Text className="font-semibold text-center">
+              {format(weekDays[0], 'dd/MM')} - {format(weekDays[6], 'dd/MM')}
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleNextWeek}
+              className="bg-white px-3 py-2 rounded-md shadow-sm"
+            >
+              <Text className="text-blue-600 font-medium">Tuần sau →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Week calendar */}
+          {loading ? (
+            <ActivityIndicator size="large" color="#2563eb" className="py-8" />
+          ) : (
+            <View className="flex-row mb-4">
+              {weekDays.map(renderDayCell)}
+            </View>
+          )}
 
           {loading ? (
             <ActivityIndicator className="mt-4" size="large" color="#2563eb" />
@@ -266,6 +328,12 @@ export default function ScheduleScreen() {
               )}
 
               <View className="mt-4">{renderActionButtons(selectedSchedule)}</View>
+            </View>
+          ) : selectedDate ? (
+            <View className="mt-4 rounded-lg bg-gray-50 p-4">
+              <Text className="text-center text-gray-500">
+                Không có lịch làm việc cho ngày {format(new Date(selectedDate), 'dd/MM/yyyy')}
+              </Text>
             </View>
           ) : null}
         </View>

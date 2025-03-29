@@ -22,3 +22,4 @@ export const initSocket = async (namespace: string) => {
         transports: ['websocket']
     });
 };
+//yessir

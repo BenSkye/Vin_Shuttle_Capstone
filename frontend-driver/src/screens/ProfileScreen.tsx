@@ -4,12 +4,11 @@ import { View, Text, Image, ActivityIndicator, ScrollView, TouchableOpacity } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserProfile, UserProfile } from '../services/userServices';
 import { Ionicons } from '@expo/vector-icons';
-import { authService } from '../services/authServices';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '~/context/AuthContext';
 
-// Định nghĩa type cho navigation
+// Define type for navigation
 type RootStackParamList = {
   Profile: undefined;
   TripHistory: undefined;
@@ -19,6 +18,16 @@ type RootStackParamList = {
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
+const settingsOptions = [
+  { title: 'Thông tin cá nhân', icon: 'person', color: '#1E88E5' },
+  { title: 'Thông báo', icon: 'notifications', color: '#FB8C00' },
+  { title: 'Lịch sử chuyến đi', icon: 'time', color: '#29B6F6' },
+  { title: 'Thay đổi mật khẩu', icon: 'lock-closed', color: '#8E24AA' },
+  { title: 'Hỗ trợ', icon: 'help-circle', color: '#43A047' },
+  { title: 'Điều khoản sử dụng', icon: 'document-text', color: '#EC407A' },
+  { title: 'Đăng xuất', icon: 'log-out', color: '#F4511E' },
+];
+
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +35,7 @@ export default function ProfileScreen() {
   const [imageError, setImageError] = useState(false);
   const navigation = useNavigation<NavigationProp>();
   const { userHaslogout } = useAuth();
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -45,24 +55,28 @@ export default function ProfileScreen() {
     fetchProfile();
   }, []);
 
+  const handleOptionPress = async (option: string) => {
+    if (option === 'Đăng xuất') {
+      await handleLogout();
+    } else if (option === 'Lịch sử chuyến đi') {
+      navigation.navigate('TripHistory');
+    }
+    // Add other option handlers as needed
+  };
+
   const handleLogout = async () => {
     try {
-      setLoading(true); // Hiển thị loading khi đăng xuất
-
-      // Cập nhật context (sẽ xóa push token và thông tin đăng nhập)
+      setLoading(true);
       await userHaslogout();
-
-      // Điều hướng về Login
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
       });
     } catch (error) {
       console.error('Logout error:', error);
-      // Hiển thị thông báo lỗi nếu cần
       setError('Đã xảy ra lỗi khi đăng xuất. Vui lòng thử lại.');
     } finally {
-      setLoading(false); // Đảm bảo tắt loading kể cả khi có lỗi
+      setLoading(false);
     }
   };
 
@@ -75,66 +89,46 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView>
-        <View className="bg-white px-4 pb-8 pt-6">
-          <Text className="mb-6 text-2xl font-bold text-gray-800">Thông tin cá nhân</Text>
-          <View className="items-center">
-            <View className="relative">
-              <Image
-                source={
-                  imageError || !profile?.avatar
-                    ? require('../assets/default-avatar.png')
-                    : { uri: profile.avatar }
-                }
-                className="h-28 w-28 rounded-full"
-                onError={() => setImageError(true)}
-              />
-              <View className="absolute bottom-0 right-0 rounded-full border-2 border-white bg-gray-100 p-2">
-                <Ionicons name="camera" size={20} color="#00C000" />
-              </View>
-            </View>
-            <Text className="mt-4 text-xl font-semibold text-gray-800">{profile?.name}</Text>
-            <Text className="mt-1 text-gray-500">Tài xế</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1">
+        {/* Profile Section */}
+        <View className="m-4 flex-row items-center rounded-xl bg-gray-100 p-5">
+          <Image
+            source={
+              imageError || !profile?.avatar
+                ? require('../assets/default-avatar.png')
+                : { uri: profile.avatar }
+            }
+            className="h-14 w-14 rounded-full"
+            onError={() => setImageError(true)}
+          />
+          <View className="ml-4">
+            <Text className="text-base font-bold text-gray-800">{profile?.name || 'Tài xế'}</Text>
+            <TouchableOpacity>
+              <Text className="mt-1 text-blue-500">Chỉnh sửa tài khoản</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <View className="mt-4 px-4">
-          <View className="rounded-xl bg-white shadow-sm">
-            <View className="border-b border-gray-100 p-4">
-              <Text className="mb-4 text-lg font-semibold text-gray-800">Thông tin liên hệ</Text>
-              <View className="space-y-4">
-                <View className="flex-row items-center">
-                  <View className="h-10 w-10 items-center justify-center rounded-full bg-green-50">
-                    <Ionicons name="call-outline" size={20} color="#00C000" />
-                  </View>
-                  <View className="ml-3">
-                    <Text className="text-sm text-gray-500">Số điện thoại</Text>
-                    <Text className="font-medium text-gray-800">{profile?.phone}</Text>
-                  </View>
-                </View>
-                <View className="flex-row items-center">
-                  <View className="h-10 w-10 items-center justify-center rounded-full bg-green-50">
-                    <Ionicons name="mail-outline" size={20} color="#00C000" />
-                  </View>
-                  <View className="ml-3">
-                    <Text className="text-sm text-gray-500">Email</Text>
-                    <Text className="font-medium text-gray-800">{profile?.email}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
+        {/* Settings Options */}
+        {settingsOptions.map((item, index) => (
           <TouchableOpacity
-            onPress={handleLogout}
-            className="mt-6 flex-row items-center justify-center rounded-xl bg-red-500 p-4">
-            <Ionicons name="log-out-outline" size={20} color="white" />
-            <Text className="ml-2 font-medium text-white">Đăng xuất</Text>
+            key={index}
+            className="flex-row items-center border-b border-gray-200 px-5 py-4"
+            onPress={() => handleOptionPress(item.title)}
+          >
+            <View
+              className="mr-4 h-9 w-9 items-center justify-center rounded-full"
+              style={{ backgroundColor: item.color }}
+            >
+              <Ionicons name={item.icon} size={20} color="#fff" />
+            </View>
+            <Text className="flex-1 text-base text-gray-800">{item.title}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#777" />
           </TouchableOpacity>
+        ))}
 
-          {error && <Text className="mt-4 px-4 text-center text-red-500">{error}</Text>}
-        </View>
+        {error && <Text className="mt-4 text-center text-red-500">{error}</Text>}
       </ScrollView>
     </SafeAreaView>
   );
