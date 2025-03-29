@@ -15,6 +15,7 @@ const { Title } = Typography
 const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehicleselection'), {
   ssr: false,
 })
+//yessir
 
 const DestinationBookingPage = () => {
   const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'checkout'>('location')
