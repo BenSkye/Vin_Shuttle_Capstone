@@ -8,6 +8,7 @@ import { BUS_STOP_SERVICE } from './bus-stop.di-token';
 import { IBusStopService } from './bus-stop.port';
 import { CreateBusStopDto, UpdateBusStopDto } from './bus-stop.dto';
 import { ValidationErrorResponse } from 'src/common/swagger/responses';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('bus-stops')
 @Controller('bus-stops')
@@ -18,7 +19,10 @@ export class BusStopController {
   ) { }
 
   @Post()
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Create new bus stop' })
   @ApiResponse({
     status: 201,
@@ -77,7 +81,10 @@ export class BusStopController {
   }
 
   @Put(':id')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Update bus stop' })
   @ApiResponse({
     status: 200,
@@ -106,7 +113,10 @@ export class BusStopController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Delete bus stop' })
   @ApiResponse({
     status: 200,
