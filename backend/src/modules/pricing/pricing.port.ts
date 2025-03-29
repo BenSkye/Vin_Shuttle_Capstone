@@ -50,4 +50,5 @@ export interface IPricingService {
     numberOfSeats?: number,
   ): Promise<number>;
   createBusRoutePricing(pricing: ICreateBusRoutePricingDto): Promise<any>;
+  findVehiclePricing(query: any): Promise<VehiclePricingDocument>;
 }

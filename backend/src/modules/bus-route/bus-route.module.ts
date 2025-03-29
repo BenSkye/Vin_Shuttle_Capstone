@@ -9,6 +9,7 @@ import { KeytokenModule } from '../keytoken/keytoken.module';
 import { ShareModule } from 'src/share/share.module';
 import { BusStopModule } from '../bus-stop/bus-stop.module';
 import { PricingModule } from '../pricing/pricing.module';
+import { VehicleCategoryModule } from '../vehicle-categories/vehicle-category.module';
 
 const dependencies = [
   {
@@ -33,6 +34,7 @@ const dependencies = [
     KeytokenModule,
     ShareModule,
     PricingModule,
+    VehicleCategoryModule,
   ],
   controllers: [BusRouteController],
   providers: [...dependencies],
