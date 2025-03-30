@@ -1,5 +1,5 @@
-import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
-import { Card, DatePicker, TimePicker } from 'antd'
+import { CalendarOutlined, ClockCircleOutlined, FieldTimeOutlined } from '@ant-design/icons'
+import { Card, DatePicker, TimePicker, Select } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
@@ -9,6 +9,8 @@ interface DateTimeSelectionProps {
   startTime: dayjs.Dayjs | null
   onDateChange: (date: dayjs.Dayjs | null) => void
   onStartTimeChange: (time: dayjs.Dayjs | null) => void
+  duration?: number
+  onDurationChange?: (duration: number) => void
 }
 
 const RouteDateTimeSelection = ({
@@ -16,6 +18,8 @@ const RouteDateTimeSelection = ({
   startTime,
   onDateChange,
   onStartTimeChange,
+  duration = 60,
+  onDurationChange,
 }: DateTimeSelectionProps) => {
   // Disallow past dates
   const disabledDate = (current: dayjs.Dayjs) => {
@@ -87,6 +91,37 @@ const RouteDateTimeSelection = ({
             showNow={false}
           />
         </Card>
+
+        {/* Duration Selection Card */}
+        {onDurationChange && (
+          <Card
+            className="shadow-sm transition-shadow duration-300 hover:shadow-md sm:col-span-2"
+            title={
+              <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
+                <FieldTimeOutlined className="text-blue-500" />
+                <span>Thời gian thuê xe</span>
+              </div>
+            }
+            styles={{ body: { padding: '12px' } }}
+          >
+            <Select
+              className="w-full"
+              value={duration}
+              onChange={onDurationChange}
+              options={[
+                { value: 60, label: '1 giờ' },
+                { value: 120, label: '2 giờ' },
+                { value: 180, label: '3 giờ' },
+                { value: 240, label: '4 giờ' },
+                { value: 300, label: '5 giờ' },
+                { value: 360, label: '6 giờ' },
+                { value: 420, label: '7 giờ' },
+                { value: 480, label: '8 giờ' },
+              ]}
+              size="large"
+            />
+          </Card>
+        )}
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { IRedisService, ITokenProvider } from 'src/share/share.port';
+import { SocketUtils } from 'src/share/utils/socket.utils';
 
 
 
@@ -79,19 +80,38 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     async emitTripUpdate(userId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
-        if (socketId) {
-            console.log('socketId84', socketId)
-            this.server.to(socketId).emit('trip_updated', tripData);
-        }
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.TRIPS,
+            userId
+        );
+        await SocketUtils.safeEmit(this.server, socketIds, 'trip_updated', tripData, {
+            debug: true,
+        });
     }
 
     async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
-        console.log('socketId', socketId)
-        console.log('trip_updated_detail_', tripId)
-        if (socketId) {
-            this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData);
-        }
+        // const socketIds = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
+        // console.log('socketIds', socketIds)
+        // console.log('trip_updated_detail_', tripId)
+        // if (socketIds && socketIds.length > 0) {
+        //     for (const socketId of socketIds) {
+        //         console.log('socketId84', socketId)
+        //         await new Promise<void>((resolve) => {
+        //             this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData, () => {
+        //                 resolve();
+        //             });
+        //         });
+        //     }
+        // }
+
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.TRIPS,
+            userId
+        );
+        await SocketUtils.safeEmit(this.server, socketIds, `trip_updated_detail_${tripId}`, tripData, {
+            debug: true,
+        });
     }
 }

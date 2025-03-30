@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import NotificationCard from '~/components/NotificationCard';
 import { useNotification } from '~/context/NotificationContext';
-import { styles } from '~/styles/NotificationStyle';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function NotificationScreen() {
@@ -26,7 +25,7 @@ export default function NotificationScreen() {
   }, [notifications]);
 
   const handleMarkAllRead = async () => {
-    if (unreadCount === 0) return; // Không làm gì nếu không có thông báo chưa đọc
+    if (unreadCount === 0) return; // Don't do anything if there are no unread notifications
 
     setLoading(true);
     try {
@@ -44,44 +43,63 @@ export default function NotificationScreen() {
     setRefreshing(false);
   };
 
-  if (notifications.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.emptyText}>Không có thông báo nào.</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.unreadCountText}>Số thông báo chưa đọc: {unreadCount}</Text>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="flex-1 px-4 pt-2">
+        {/* Header with unread count and mark all as read button */}
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center">
+            <Text className="text-base font-semibold text-gray-800">
+              {unreadCount > 0 ? (
+                <>Thông báo chưa đọc: <Text className="text-blue-500">{unreadCount}</Text></>
+              ) : (
+                'Tất cả thông báo đã đọc'
+              )}
+            </Text>
+          </View>
 
-        {/* <TouchableOpacity 
-          style={[
-            styles.markAllButton,
-            unreadCount === 0 ? styles.markAllButtonDisabled : {}
-          ]} 
-          onPress={handleMarkAllRead}
-          disabled={unreadCount === 0 || loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="checkmark-done" size={18} color="#fff" />
-              <Text style={styles.markAllButtonText}>Đọc tất cả</Text>
-            </>
+          {unreadCount > 0 && (
+            <TouchableOpacity
+              className={`flex-row items-center rounded-full ${loading ? 'bg-blue-300' : 'bg-blue-500'} px-4 py-2`}
+              onPress={handleMarkAllRead}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-done" size={16} color="#ffffff" />
+                  <Text className="ml-1 text-sm font-medium text-white">Đọc tất cả</Text>
+                </>
+              )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity> */}
-      </View>
+        </View>
 
-      <FlatList
-        data={sortedNotifications}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <NotificationCard notification={item} />}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      />
-    </View>
+        {/* Notification list */}
+        {notifications.length > 0 ? (
+          <FlatList
+            data={sortedNotifications}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => <NotificationCard notification={item} />}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#1877F2"]}
+                tintColor="#1877F2"
+              />
+            }
+            className="pt-1"
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="notifications-off-outline" size={48} color="#d1d5db" />
+            <Text className="mt-4 text-base text-gray-500">Không có thông báo nào.</Text>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }

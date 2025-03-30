@@ -32,7 +32,8 @@ export class RouteStopDto {
     description: 'Bus stop ID',
     example: '507f1f77bcf86cd799439011',
   })
-  @IsMongoId()
+  @IsNotEmpty({ message: 'Stop ID is required' })
+  @IsMongoId({ message: 'Stop ID must be a valid MongoDB ObjectId' })
   stopId: string;
 
   @ApiProperty({
@@ -125,14 +126,6 @@ export class CreateBusRouteDto {
   })
   @IsEnum(['active', 'inactive'])
   status: string;
-
-  @ApiProperty({
-    description: 'Base price for the route',
-    example: 50000,
-  })
-  @IsNumber()
-  @Min(0)
-  basePrice: number;
 }
 
 export class UpdateBusRouteDto {
@@ -206,13 +199,4 @@ export class UpdateBusRouteDto {
   })
   @IsEnum(['active', 'inactive'])
   status?: string;
-
-  @ApiProperty({
-    description: 'Base price for the route',
-    required: false,
-    example: 50000,
-  })
-  @IsNumber()
-  @Min(0)
-  basePrice?: number;
 }

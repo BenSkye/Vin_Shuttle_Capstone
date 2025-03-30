@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BusRoute, BusRouteDocument } from './bus-route.schema';
-import { IBusRouteRepository } from './bus-route.port';
-import { CreateBusRouteDto, UpdateBusRouteDto } from './bus-route.dto';
+import { IBusRouteRepository, ICreateBusRouteData } from './bus-route.port';
+import { UpdateBusRouteDto } from './bus-route.dto';
 
 @Injectable()
 export class BusRouteRepository implements IBusRouteRepository {
@@ -12,8 +12,8 @@ export class BusRouteRepository implements IBusRouteRepository {
     private readonly busRouteModel: Model<BusRoute>,
   ) {}
 
-  async create(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
-    const busRoute = new this.busRouteModel(dto);
+  async create(data: ICreateBusRouteData): Promise<BusRouteDocument> {
+    const busRoute = new this.busRouteModel(data);
     return await busRoute.save();
   }
 

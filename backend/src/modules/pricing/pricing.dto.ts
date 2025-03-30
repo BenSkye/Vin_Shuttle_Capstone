@@ -38,3 +38,11 @@ export interface ITestPriceDto {
   }>;
   total_units: number;
 }
+
+export interface ICreateBusRoutePricingDto {
+  vehicle_category: string;
+  tiered_pricing: Array<{
+    range: number;
+    price: number;
+  }>;
+}

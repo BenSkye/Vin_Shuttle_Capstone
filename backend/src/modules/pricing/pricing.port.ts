@@ -6,6 +6,7 @@ import {
   IUpdateVehiclePricingDto,
 } from './pricing.dto';
 import { VehiclePricingDocument } from 'src/modules/pricing/pricing.vehicle.schema';
+import { ICreateBusRoutePricingDto } from './pricing.dto';
 
 export interface IPricingConfigRepository {
   create(config: ICreateServiceConfigDto): Promise<ServiceConfigDocument>;
@@ -43,4 +44,11 @@ export interface IPricingService {
   updateServiceConfig(serviceType: string, config: IUpdateServiceConfigDto): Promise<any>;
   updateVehiclePricing(pricing: IUpdateVehiclePricingDto): Promise<any>;
   checkVehicleCategoryAndServiceType(vehicleCategoryId: string, serviceType: string): Promise<boolean>;
+  calculateBusFare(
+    vehicleCategoryId: string,
+    distance: number,
+    numberOfSeats?: number,
+  ): Promise<number>;
+  createBusRoutePricing(pricing: ICreateBusRoutePricingDto): Promise<any>;
+  findVehiclePricing(query: any): Promise<VehiclePricingDocument>;
 }

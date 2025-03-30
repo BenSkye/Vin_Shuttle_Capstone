@@ -4,11 +4,12 @@ import React, { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
+import { Typography } from 'antd'
 import SharedLocation from '../components/sharedLocation'
 import CheckoutPage from '../components/checkoutpage'
 import { bookingShared } from '../../../service/booking.service'
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
-
+const { Title } = Typography
 // Define location point type for reuse
 type LocationPoint = {
     position: { lat: number; lng: number }
@@ -240,6 +241,9 @@ const SharedBookingFlow = () => {
 
     return (
         <div className="container mx-auto max-w-6xl px-4 py-8">
+            <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
+                Đặt xe theo tuyến
+            </Title>
             <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <div

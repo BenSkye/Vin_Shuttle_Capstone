@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, Pressable } from 'react-native';
 import { INotification } from '~/interface/notification';
 import { markNotificationAsRead, getNotificationDetail } from '~/services/notificationService';
 import { useNotification } from '~/context/NotificationContext';
@@ -42,157 +42,81 @@ const NotificationCard = ({ notification }: NotificationCardProps) => {
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, notification.isRead ? styles.readCard : {}]}
+        className={`relative mb-2 rounded-xl p-4 ${notification.isRead
+          ? 'bg-white border border-gray-100'
+          : 'bg-[#e7f4fd] border border-blue-200'
+          } shadow-sm`}
         onPress={handlePress}
-        disabled={loading}>
-        <Text style={styles.title}>{notification.title}</Text>
-        <Text style={styles.body} numberOfLines={2}>
-          {notification.body}
-        </Text>
-        <Text style={styles.date}>{new Date(notification.createdAt).toLocaleString()}</Text>
-        {!notification.isRead && <View style={styles.unreadIndicator} />}
-        {loading && <View style={styles.loadingOverlay} />}
+        disabled={loading}
+      >
+        <View className="flex-row items-start space-x-3">
+          {/* Avatar/Icon placeholder - can be replaced with actual user avatar if available */}
+
+
+          <View className="flex-1">
+            <Text className="mb-1 font-medium text-gray-900">{notification.title}</Text>
+            <Text className="mb-1 text-sm text-gray-600" numberOfLines={2}>
+              {notification.body}
+            </Text>
+            <Text className="text-xs text-gray-500">
+              {new Date(notification.createdAt).toLocaleString()}
+            </Text>
+          </View>
+
+          {/* Unread indicator */}
+          {!notification.isRead && (
+            <View className="h-3 w-3 rounded-full bg-blue-500" />
+          )}
+        </View>
+
+        {loading && (
+          <View className="absolute inset-0 items-center justify-center rounded-xl bg-gray-100/70">
+            <Ionicons name="sync" size={24} color="#1877F2" className="animate-spin" />
+          </View>
+        )}
       </TouchableOpacity>
 
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Thông báo</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50"
+          onPress={() => setModalVisible(false)}
+        >
+          <View className="flex-1 items-center justify-center p-4">
+            <Pressable className="w-full max-h-[80%] rounded-xl bg-white shadow-md" onPress={e => e.stopPropagation()}>
+              {/* Modal Header */}
+              <View className="flex-row items-center justify-between border-b border-gray-200 p-4">
+                <Text className="text-lg font-bold text-gray-900">Thông báo</Text>
+                <TouchableOpacity
+                  className="rounded-full p-1 active:bg-gray-200"
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="#374151" />
+                </TouchableOpacity>
+              </View>
 
-            <ScrollView style={styles.modalBody}>
-              {detailNotification && (
-                <>
-                  <Text style={styles.detailTitle}>{detailNotification.title}</Text>
-                  <Text style={styles.detailDate}>
-                    {new Date(detailNotification.createdAt).toLocaleString()}
-                  </Text>
-                  <Text style={styles.detailBody}>{detailNotification.body}</Text>
-                </>
-              )}
-            </ScrollView>
+              {/* Modal Body */}
+              <ScrollView className="p-4">
+                {detailNotification && (
+                  <>
+                    <Text className="mb-2 text-xl font-bold text-gray-900">{detailNotification.title}</Text>
+                    <Text className="mb-4 text-xs text-gray-500">
+                      {new Date(detailNotification.createdAt).toLocaleString()}
+                    </Text>
+                    <Text className="text-base leading-6 text-gray-800">{detailNotification.body}</Text>
+                  </>
+                )}
+              </ScrollView>
+            </Pressable>
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </>
   );
 };
-
-// Styles remain unchanged
-
-const styles = StyleSheet.create({
-  // ...existing styles remain unchanged
-  card: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    position: 'relative',
-    backgroundColor: '#fff',
-    marginBottom: 8,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  readCard: {
-    backgroundColor: '#f9f9f9',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  body: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 4,
-  },
-  date: {
-    fontSize: 12,
-    color: '#888',
-  },
-  unreadIndicator: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'red',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 8,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    width: '100%',
-    maxHeight: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  modalBody: {
-    padding: 15,
-    maxHeight: 500,
-  },
-  detailTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  detailDate: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 16,
-  },
-  detailBody: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-  },
-});
 
 export default NotificationCard;

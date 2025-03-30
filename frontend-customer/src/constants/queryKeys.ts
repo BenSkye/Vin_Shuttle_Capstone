@@ -6,5 +6,6 @@ export const QUERY_KEYS = {
     },
     RATING: {
         BY_TRIP: (tripId: string) => ['rating', 'byTrip', tripId] as const,
-    }
+    },
+
 }
