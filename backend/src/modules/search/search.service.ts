@@ -205,7 +205,7 @@ export class SearchService implements ISearchService {
     const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
 
     await this.validateBookingTime(bookingStartTime, bookingEndTime);
-
+    console.log('bookingStartTime', bookingStartTime.toDate())
     const matchingShifts = this.getMatchingShifts(bookingStartTime, bookingEndTime);
     const midnightUTC = now.startOf('day');
     console.log('midnightUTC', midnightUTC.toISOString());
@@ -255,6 +255,8 @@ export class SearchService implements ISearchService {
   }
 
   getMatchingShifts(bookingStartTime: dayjs.Dayjs, bookingEndTime: dayjs.Dayjs): Shift[] {
+    console.log('bookingStartTime', bookingStartTime.toDate())
+    console.log('bookingEndTime', bookingEndTime.toDate())
     const matchingShifts = Object.values(Shift).filter(shift => {
       const shiftStart = bookingStartTime.startOf('day').add(ShiftHours[shift].start, 'hour');
       const shiftEnd = bookingStartTime.startOf('day').add(ShiftHours[shift].end, 'hour');
