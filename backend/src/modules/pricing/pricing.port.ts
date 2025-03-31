@@ -43,7 +43,10 @@ export interface IPricingService {
   getAllVehiclePricings(): Promise<VehiclePricingDocument[]>;
   updateServiceConfig(serviceType: string, config: IUpdateServiceConfigDto): Promise<any>;
   updateVehiclePricing(pricing: IUpdateVehiclePricingDto): Promise<any>;
-  checkVehicleCategoryAndServiceType(vehicleCategoryId: string, serviceType: string): Promise<boolean>;
+  checkVehicleCategoryAndServiceType(
+    vehicleCategoryId: string,
+    serviceType: string,
+  ): Promise<boolean>;
   calculateBusFare(
     vehicleCategoryId: string,
     distance: number,

@@ -17,13 +17,9 @@ export class UsersRepository implements IUserRepository {
     private readonly userModel: Model<User>,
     @Inject(REDIS_CLIENT)
     private readonly redisClient: Redis,
-  ) { }
+  ) {}
 
-  async listUsers(
-    select: string[],
-    query?: any,
-    options?: QueryOptions,
-  ): Promise<UserDocument[]> {
+  async listUsers(select: string[], query?: any, options?: QueryOptions): Promise<UserDocument[]> {
     let queryBuilder;
     if (query) {
       queryBuilder = this.userModel.find(query);

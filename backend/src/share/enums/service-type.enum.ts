@@ -6,7 +6,6 @@ export enum ServiceType {
   BOOKING_BUS_ROUTE = 'booking_bus_route',
 }
 
-
 export const serviceTypeText: Record<ServiceType, string> = {
   [ServiceType.BOOKING_HOUR]: 'Đặt theo giờ',
   [ServiceType.BOOKING_SCENIC_ROUTE]: 'Đặt theo tuyến',

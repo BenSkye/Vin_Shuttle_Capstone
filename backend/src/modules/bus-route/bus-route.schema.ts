@@ -5,8 +5,6 @@ import { Position, PositionSchema } from 'src/share/share.schema';
 
 export type BusRouteDocument = HydratedDocument<BusRoute>;
 
-
-
 @Schema({ _id: false })
 class RouteStop {
   @Prop({ type: Types.ObjectId, ref: 'BusStop', required: true })
@@ -45,11 +43,11 @@ export class BusRoute {
   @Prop({ type: Types.ObjectId, ref: 'VehicleCategory' })
   vehicleCategory: Types.ObjectId;
 
-   @Prop({ 
-    required: true, 
-    type: String, 
-    enum: Object.values(BusRouteStatus), 
-    default: BusRouteStatus.ACTIVE 
+  @Prop({
+    required: true,
+    type: String,
+    enum: Object.values(BusRouteStatus),
+    default: BusRouteStatus.ACTIVE,
   })
   status: string;
 

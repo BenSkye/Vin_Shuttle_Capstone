@@ -20,7 +20,7 @@ export class AuthService implements IAuthService {
     @Inject(OTP_SERVICE) private readonly otpService: IOTPService,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(SMS_PROVIDER) private readonly smsService: ISMSProvider,
-  ) { }
+  ) {}
 
   async registerCustomer(data: ICreateUserDto): Promise<object> {
     //check if phone allready exist

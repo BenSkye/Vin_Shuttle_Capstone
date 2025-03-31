@@ -11,7 +11,7 @@ import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class VehiclesRepository implements IVehiclesRepository {
-  constructor(@InjectModel(Vehicle.name) private readonly vehicleModel: Model<Vehicle>) { }
+  constructor(@InjectModel(Vehicle.name) private readonly vehicleModel: Model<Vehicle>) {}
 
   async list(): Promise<VehicleDocument[]> {
     const result = await this.vehicleModel.find().exec();
@@ -33,7 +33,7 @@ export class VehiclesRepository implements IVehiclesRepository {
   async getListVehicles(
     query: any,
     select: string[],
-    options?: QueryOptions
+    options?: QueryOptions,
   ): Promise<VehicleDocument[] | null> {
     console.log('query', query);
     let queryBuilder = this.vehicleModel.find(query);
@@ -50,8 +50,15 @@ export class VehiclesRepository implements IVehiclesRepository {
     return result;
   }
 
-  async updateOperationStatus(id: string, status: VehicleOperationStatus): Promise<VehicleDocument> {
-    const updatedVehicle = await this.vehicleModel.findByIdAndUpdate(id, { operationStatus: status }, { new: true });
+  async updateOperationStatus(
+    id: string,
+    status: VehicleOperationStatus,
+  ): Promise<VehicleDocument> {
+    const updatedVehicle = await this.vehicleModel.findByIdAndUpdate(
+      id,
+      { operationStatus: status },
+      { new: true },
+    );
     return updatedVehicle;
   }
 }

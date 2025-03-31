@@ -27,7 +27,6 @@ import { NotificationModule } from 'src/modules/notification/notification.module
 import { ConversationModule } from 'src/modules/conversation/conversation.module';
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -61,9 +60,9 @@ import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itine
     RatingModule,
     NotificationModule,
     ConversationModule,
-    SharedItineraryModule
+    SharedItineraryModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

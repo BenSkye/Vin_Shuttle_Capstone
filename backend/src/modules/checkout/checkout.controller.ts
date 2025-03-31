@@ -7,7 +7,7 @@ export class CheckoutController {
   constructor(
     @Inject(CHECKOUT_SERVICE)
     private readonly checkoutService: ICheckoutService,
-  ) { }
+  ) {}
 
   @Get('return-booking-payment')
   async getPayOsReturn(@Request() req, @Res() res) {
@@ -28,7 +28,6 @@ export class CheckoutController {
       </html>
     `);
   }
-
 
   @Get('cancel-booking-payment')
   async getPayOsCancel(@Request() req) {

@@ -40,9 +40,15 @@ export interface ISearchService {
 
   getVehiclesFromSchedules(schedules: DriverScheduleDocument[]): Promise<VehicleDocument[]>;
 
-  groupByVehicleType(vehicles: Vehicle[], serviceType: string, totalUnit: number): Promise<{
-    vehicleCategory: VehicleCategoryDocument;
-    availableCount: number;
-    price: number;
-  }[]>;
+  groupByVehicleType(
+    vehicles: Vehicle[],
+    serviceType: string,
+    totalUnit: number,
+  ): Promise<
+    {
+      vehicleCategory: VehicleCategoryDocument;
+      availableCount: number;
+      price: number;
+    }[]
+  >;
 }

@@ -16,7 +16,7 @@ export class BusStopController {
   constructor(
     @Inject(BUS_STOP_SERVICE)
     private readonly busStopService: IBusStopService,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)

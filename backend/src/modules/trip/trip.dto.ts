@@ -1,6 +1,6 @@
-import { ServiceType } from "src/share/enums";
-import { TripCancelBy, TripStatus } from "src/share/enums/trip.enum";
-import { Position, QueryOptions, StartOrEndPoint } from "src/share/interface";
+import { ServiceType } from 'src/share/enums';
+import { TripCancelBy, TripStatus } from 'src/share/enums/trip.enum';
+import { Position, QueryOptions, StartOrEndPoint } from 'src/share/interface';
 
 export interface ICreateTripDto {
   customerId: string;
@@ -12,11 +12,11 @@ export interface ICreateTripDto {
   serviceType: ServiceType;
   amount: number;
   servicePayload:
-  | BookingHourPayloadDto
-  | BookingScenicRoutePayloadDto
-  | BookingDestinationPayloadDto
-  | BookingSharePayloadDto
-  | BookingBusRoutePayloadDto;
+    | BookingHourPayloadDto
+    | BookingScenicRoutePayloadDto
+    | BookingDestinationPayloadDto
+    | BookingSharePayloadDto
+    | BookingBusRoutePayloadDto;
 }
 
 export interface IUpdateTripDto {
@@ -42,30 +42,27 @@ export interface IUpdateTripDto {
   }>;
 }
 
-
-
 export class BookingHourPayloadDto {
   bookingHour: {
     totalTime: number;
     startPoint: StartOrEndPoint;
-  }
-
+  };
 }
 export class BookingScenicRoutePayloadDto {
   bookingScenicRoute: {
     routeId: string;
     startPoint: StartOrEndPoint;
     distanceEstimate: number;
-    distance: number
-  }
+    distance: number;
+  };
 }
 export class BookingDestinationPayloadDto {
   bookingDestination: {
     startPoint: StartOrEndPoint;
     endPoint: StartOrEndPoint;
     distanceEstimate: number;
-    distance: number
-  }
+    distance: number;
+  };
 }
 export class BookingSharePayloadDto {
   bookingShare: {
@@ -74,9 +71,9 @@ export class BookingSharePayloadDto {
     startPoint: StartOrEndPoint;
     endPoint: StartOrEndPoint;
     distanceEstimate: number;
-    distance: number,
-    isSharedItineraryMain: boolean
-  }
+    distance: number;
+    isSharedItineraryMain: boolean;
+  };
 }
 
 export class BookingBusRoutePayloadDto {
@@ -89,7 +86,6 @@ export class BookingBusRoutePayloadDto {
     numberOfSeat: number;
   };
 }
-
 
 export interface tripParams extends QueryOptions {
   customerPhone?: string;

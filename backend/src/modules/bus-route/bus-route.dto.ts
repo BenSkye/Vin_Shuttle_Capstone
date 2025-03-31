@@ -123,7 +123,7 @@ export class CreateBusRouteDto {
   @ApiProperty({
     description: 'Route status',
     enum: BusRouteStatus,
-    example: BusRouteStatus.ACTIVE
+    example: BusRouteStatus.ACTIVE,
   })
   @IsEnum(BusRouteStatus)
   status: BusRouteStatus;

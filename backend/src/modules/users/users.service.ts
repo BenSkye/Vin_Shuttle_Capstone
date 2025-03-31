@@ -8,7 +8,7 @@ import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class UsersService implements IUserService {
-  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) { }
+  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) {}
 
   async listUsers(query: userParams): Promise<UserDocument[]> {
     const { filter, options } = processQueryParams(query, ['name', 'phone', 'email']);
@@ -74,7 +74,6 @@ export class UsersService implements IUserService {
     }
     return updatedDriver;
   }
-
 
   async saveUserPushToken(userId: string, pushToken: string): Promise<void> {
     console.log('saveUserPushToken', userId, pushToken);

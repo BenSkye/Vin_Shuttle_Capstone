@@ -1,4 +1,3 @@
-
 export const ValidationMessages = {
   string: {
     empty: '{#label} không được để trống',
