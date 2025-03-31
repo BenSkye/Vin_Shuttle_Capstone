@@ -7,6 +7,7 @@ import { REDIS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { IRedisService, ITokenProvider } from 'src/share/share.port';
+import { SocketUtils } from 'src/share/utils/socket.utils';
 
 @WebSocketGateway({
     namespace: `/${SOCKET_NAMESPACE.NOTIFICATIONS}`,
@@ -76,23 +77,44 @@ export class NotificationGateway implements OnGatewayInit, OnGatewayConnection, 
     }
 
     async emitNewNotification(userId: string, notificationData: any) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.NOTIFICATIONS, userId);
-        if (socketId) {
-            this.server.to(socketId).emit('new_notification', notificationData);
-        }
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.NOTIFICATIONS,
+            userId
+        )
+        await SocketUtils.safeEmit(
+            this.server,
+            socketIds,
+            'new_notification',
+            notificationData
+        )
     }
 
     async emitNotificationUpdate(userId: string, notificationId: string, notificationData: any) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.NOTIFICATIONS, userId);
-        if (socketId) {
-            this.server.to(socketId).emit(`notification_updated_${notificationId}`, notificationData);
-        }
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.NOTIFICATIONS,
+            userId
+        )
+        await SocketUtils.safeEmit(
+            this.server,
+            socketIds,
+            `notification_updated_${notificationId}`,
+            notificationData
+        )
     }
 
     async emitUnreadCount(userId: string, count: number) {
-        const socketId = await this.redisService.getUserSockets(SOCKET_NAMESPACE.NOTIFICATIONS, userId);
-        if (socketId) {
-            this.server.to(socketId).emit('unread_notification_count', { count });
-        }
+        const socketIds = await SocketUtils.getSocketIds(
+            this.redisService,
+            SOCKET_NAMESPACE.NOTIFICATIONS,
+            userId
+        )
+        await SocketUtils.safeEmit(
+            this.server,
+            socketIds,
+            'unread_notification_count',
+            { count }
+        )
     }
 }

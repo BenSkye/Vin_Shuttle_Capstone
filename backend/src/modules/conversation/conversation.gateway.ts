@@ -10,6 +10,7 @@ import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { CONVERSATION_SERVICE } from 'src/modules/conversation/conversation.di-token';
 import { IConversationService } from 'src/modules/conversation/conversation.port';
+import { SocketUtils } from 'src/share/utils/socket.utils';
 
 @WebSocketGateway({
     namespace: `/${SOCKET_NAMESPACE.CONVERSATIONS}`,
@@ -89,20 +90,28 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
 
     async emitNewConversation(conversation: ConversationDocument) {
         try {
-            const customerSocketId = await this.redisService.getUserSockets(
-                SOCKET_NAMESPACE.NOTIFICATIONS,
+            const customerSọcketIds = await SocketUtils.getSocketIds(
+                this.redisService,
+                SOCKET_NAMESPACE.CONVERSATIONS,
                 conversation.customerId._id.toString()
-            );
-            const driverSocketId = await this.redisService.getUserSockets(
-                SOCKET_NAMESPACE.NOTIFICATIONS,
+            )
+            const driverSọcketIds = await SocketUtils.getSocketIds(
+                this.redisService,
+                SOCKET_NAMESPACE.CONVERSATIONS,
                 conversation.driverId._id.toString()
             )
-            if (customerSocketId) {
-                this.server.to(customerSocketId).emit('newConversation', conversation);
-            }
-            if (driverSocketId) {
-                this.server.to(driverSocketId).emit('newConversation', conversation);
-            }
+            await SocketUtils.safeEmit(
+                this.server,
+                customerSọcketIds,
+                'newConversation',
+                conversation
+            )
+            await SocketUtils.safeEmit(
+                this.server,
+                driverSọcketIds,
+                'newConversation',
+                conversation
+            )
         } catch (error) {
             console.error('Error emitting new conversation:', error);
         }
@@ -154,22 +163,38 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
             // Broadcast message đến room conversation
             this.server.to(payload.conversationId).emit('newMessage', updatedConversation);
 
-            const customerSocketId = await this.redisService.getUserSockets(
+            const customerSọcketIds = await SocketUtils.getSocketIds(
+                this.redisService,
                 SOCKET_NAMESPACE.CONVERSATIONS,
                 updatedConversation.customerId._id.toString()
-            );
-            const driverSocketId = await this.redisService.getUserSockets(
+            )
+            const driverSọcketIds = await SocketUtils.getSocketIds(
+                this.redisService,
                 SOCKET_NAMESPACE.CONVERSATIONS,
                 updatedConversation.driverId._id.toString()
             )
-            console.log('customerSocketId', customerSocketId);
-            if (customerSocketId) {
-                const conversationsList = await this.conversationService.getPersonalConversations(updatedConversation.customerId._id.toString());
-                this.server.to(customerSocketId).emit('conversationsList', conversationsList);
+            if (customerSọcketIds && customerSọcketIds.length > 0) {
+                const conversationsList = await this.conversationService.getPersonalConversations(
+                    updatedConversation.customerId._id.toString()
+                );
+
+                await SocketUtils.safeEmit(
+                    this.server,
+                    customerSọcketIds,
+                    'conversationsList',
+                    conversationsList
+                )
             }
-            if (driverSocketId) {
-                const conversationsList = await this.conversationService.getPersonalConversations(updatedConversation.driverId._id.toString());
-                this.server.to(driverSocketId).emit('conversationsList', conversationsList);
+            if (driverSọcketIds && driverSọcketIds.length > 0) {
+                const conversationsList = await this.conversationService.getPersonalConversations(
+                    updatedConversation.driverId._id.toString()
+                );
+                await SocketUtils.safeEmit(
+                    this.server,
+                    driverSọcketIds,
+                    'conversationsList',
+                    conversationsList
+                )
             }
         } catch (error) {
             client.emit('error', { message: error.message });
