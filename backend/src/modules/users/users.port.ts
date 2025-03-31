@@ -24,6 +24,7 @@ export interface IUserService {
   getUserByRole(role: UserRole): Promise<UserDocument[]>;
   viewProfile(id: string): Promise<object>;
   updateProfile(id: string, user: IUpdateUserDto): Promise<object>;
+  updateDriverProfile(id: string, user: IUpdateUserDto): Promise<object>;
   saveUserPushToken(userId: string, pushToken: string): Promise<void>;
   getUserPushToken(userId: string): Promise<string | null>;
   deletePushToken(userId: string): Promise<void>;
