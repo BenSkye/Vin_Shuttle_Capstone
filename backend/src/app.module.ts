@@ -26,6 +26,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from 'src/modules/notification/notification.module';
 import { ConversationModule } from 'src/modules/conversation/conversation.module';
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
+import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
 
 
 @Module({
@@ -57,11 +58,12 @@ import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itine
     CheckoutModule,
     BusStopModule,
     BusRouteModule,
+    BusScheduleModule,
     TrackingModule,
     RatingModule,
     NotificationModule,
     ConversationModule,
-    SharedItineraryModule
+    SharedItineraryModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
