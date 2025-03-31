@@ -4,11 +4,7 @@ import { UserRole } from 'src/share/enums';
 import { QueryOptions } from 'src/share/interface';
 
 export interface IUserRepository {
-  listUsers(
-    select: string[],
-    query?: object,
-    options?: QueryOptions,
-  ): Promise<UserDocument[]>;
+  listUsers(select: string[], query?: object, options?: QueryOptions): Promise<UserDocument[]>;
   getUserById(id: string, select: string[]): Promise<UserDocument>;
   findUser(query: any): Promise<UserDocument>;
   findManyUsers(query: any, select: string[]): Promise<UserDocument[]>;

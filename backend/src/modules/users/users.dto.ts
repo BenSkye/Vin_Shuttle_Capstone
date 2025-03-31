@@ -101,7 +101,6 @@ export class UpdateUserDto {
   status?: UserStatus;
 }
 
-
 export interface userParams extends QueryOptions {
   name?: string;
   email?: string;

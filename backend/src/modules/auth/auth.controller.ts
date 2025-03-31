@@ -25,8 +25,7 @@ export class AuthController {
   constructor(
     @Inject(AUTH_SERVICE) private readonly authService: IAuthService,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-
-  ) { }
+  ) {}
 
   @Post('register')
   @HttpCode(201)
@@ -116,6 +115,9 @@ export class AuthController {
   async refreshToken(@Req() req) {
     console.log('req.headers[HEADER.CLIENT_ID]', req.headers[HEADER.CLIENT_ID]);
     console.log('req.headers[HEADER.REFRESH_TOKEN]', req.headers[HEADER.REFRESH_TOKEN]);
-    return this.keyTokenService.handleRefreshToken(req.headers[HEADER.CLIENT_ID], req.headers[HEADER.REFRESH_TOKEN]);
+    return this.keyTokenService.handleRefreshToken(
+      req.headers[HEADER.CLIENT_ID],
+      req.headers[HEADER.REFRESH_TOKEN],
+    );
   }
 }

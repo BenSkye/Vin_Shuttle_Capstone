@@ -32,7 +32,6 @@ export interface IUpdateScenicRouteDto {
   // tags?: string[];
 }
 
-
 export interface scenicRouteParams extends QueryOptions {
   name?: string;
   status?: ScenicRouteStatus;

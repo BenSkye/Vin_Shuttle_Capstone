@@ -28,7 +28,6 @@ import { ConversationModule } from 'src/modules/conversation/conversation.module
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,4 +67,4 @@ import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

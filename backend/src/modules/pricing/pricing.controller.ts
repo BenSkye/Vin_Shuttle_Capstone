@@ -34,7 +34,7 @@ export class PricingController {
   constructor(
     @Inject(PRICING_SERVICE)
     private readonly pricingService: IPricingService,
-  ) { }
+  ) {}
 
   /* Service Config Endpoints */
   @Post('service-configs')
@@ -124,21 +124,21 @@ export class PricingController {
   @ApiBody({
     description: 'Bus route pricing configuration',
     examples: {
-      'Example': {
+      Example: {
         value: {
           vehicle_category: '507f1f77bcf86cd799439011',
           tiered_pricing: [
-            { range: 0, price: 5000 },   // 0-5km: 5,000 VND/km
-            { range: 5, price: 7000 },   // 5-10km: 7,000 VND/km
-            { range: 10, price: 10000 }  // >10km: 10,000 VND/km
-          ]
-        }
-      }
-    }
+            { range: 0, price: 5000 }, // 0-5km: 5,000 VND/km
+            { range: 5, price: 7000 }, // 5-10km: 7,000 VND/km
+            { range: 10, price: 10000 }, // >10km: 10,000 VND/km
+          ],
+        },
+      },
+    },
   })
   async createBusRoutePricing(
     @Body(new JoiValidationPipe(PricingValidation.createBusRoutePricing))
-    dto: ICreateBusRoutePricingDto
+    dto: ICreateBusRoutePricingDto,
   ) {
     return await this.pricingService.createBusRoutePricing(dto);
   }
@@ -148,26 +148,22 @@ export class PricingController {
   @ApiBody({
     description: 'Calculate fare for bus route',
     examples: {
-      'Example': {
+      Example: {
         value: {
           vehicleCategoryId: '507f1f77bcf86cd799439011',
           distance: 7.5,
-          numberOfSeats: 2
-        }
-      }
-    }
+          numberOfSeats: 2,
+        },
+      },
+    },
   })
   async calculateBusFare(
-    @Body() data: {
-      vehicleCategoryId: string;
-      distance: number;
-      numberOfSeats?: number;
-    }
+    @Body() data: { vehicleCategoryId: string; distance: number; numberOfSeats?: number },
   ) {
     const fare = await this.pricingService.calculateBusFare(
       data.vehicleCategoryId,
       data.distance,
-      data.numberOfSeats
+      data.numberOfSeats,
     );
     return { fare };
   }

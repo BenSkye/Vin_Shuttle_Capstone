@@ -9,7 +9,7 @@ export class SearchController {
   constructor(
     @Inject(SEARCH_SERVICE)
     private readonly searchService: ISearchService,
-  ) { }
+  ) {}
 
   @Get('available-vehicle-search-hour/:date/:startTime/:durationMinutes')
   @HttpCode(HttpStatus.OK)

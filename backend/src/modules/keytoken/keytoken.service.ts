@@ -14,7 +14,7 @@ export class KeyTokenService implements IKeyTokenService {
   constructor(
     @InjectModel(KeyToken.name) private readonly keyTokenModel: Model<KeyToken>,
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
-  ) { }
+  ) {}
 
   async createKeyToken(data: KeyTokenCreateDTO): Promise<object> {
     try {
@@ -27,8 +27,8 @@ export class KeyTokenService implements IKeyTokenService {
       const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096,
         publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
-        privateKeyEncoding: { type: 'pkcs1', format: 'pem' }
-      })
+        privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+      });
       console.log('publicKey', publicKey.toString());
       const token = await this.tokenProvider.generateTokenPair(
         payload,
@@ -73,7 +73,8 @@ export class KeyTokenService implements IKeyTokenService {
             message: 'Refresh token has been used',
             vnMessage: 'Phiên đăng nhập không hợp lệ',
           },
-          HttpStatus.UNAUTHORIZED)
+          HttpStatus.UNAUTHORIZED,
+        );
       }
       if (keyToken.refreshToken !== refreshToken) {
         throw new HttpException(
@@ -82,26 +83,27 @@ export class KeyTokenService implements IKeyTokenService {
             message: 'Refresh token not true',
             vnMessage: 'Phiên đăng nhập không hợp lệ',
           },
-          HttpStatus.UNAUTHORIZED)
+          HttpStatus.UNAUTHORIZED,
+        );
       }
       const decode = await this.tokenProvider.verifyToken(refreshToken, keyToken.publicKey);
       const payload: TokenPayload = {
         _id: decode._id,
         role: decode.role,
         name: decode.name,
-        phone: decode.phone
+        phone: decode.phone,
       };
       const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096,
         publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
-        privateKeyEncoding: { type: 'pkcs1', format: 'pem' }
-      })
+        privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+      });
       const token = await this.tokenProvider.generateTokenPair(
         payload,
         publicKey.toString(),
         privateKey.toString(),
-      )
-      console.log('token99', token)
+      );
+      console.log('token99', token);
       const refreshTokenUsedList = [...keyToken.refreshTokenUsed, refreshToken];
       const update = {
         publicKey: publicKey,

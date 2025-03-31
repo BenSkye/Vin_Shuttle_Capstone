@@ -42,7 +42,7 @@ export class SearchService implements ISearchService {
     private readonly pricingService: IPricingService,
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly scenicRouteRepository: IScenicRouteRepository,
-  ) { }
+  ) {}
 
   async findAvailableVehicleBookingHour(
     date: string,
@@ -52,11 +52,11 @@ export class SearchService implements ISearchService {
     const scheduleDate = DateUtils.parseDate(date);
     const bookingStartTime = DateUtils.parseDate(date, startTime);
     const bookingEndTime = bookingStartTime.add(durationMinutes, 'minute');
-    console.log(' bookingStartTime', bookingStartTime.toDate())
+    console.log(' bookingStartTime', bookingStartTime.toDate());
     const now = dayjs();
-    console.log('now', now.toDate())
+    console.log('now', now.toDate());
     const minAllowedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute');
-    console.log('minAllowedTime', minAllowedTime.toDate())
+    console.log('minAllowedTime', minAllowedTime.toDate());
     if (bookingStartTime.isBefore(minAllowedTime)) {
       throw new HttpException(
         {
@@ -82,7 +82,7 @@ export class SearchService implements ISearchService {
     let schedules = await this.getAvailableSchedules(scheduleDate.toDate(), matchingShifts);
     if (scheduleDate.isSame(now, 'day')) {
       const currentHour = now.hour();
-      console.log('currentHour', currentHour)
+      console.log('currentHour', currentHour);
       schedules = schedules.filter(schedule => {
         const shift = schedule.shift as Shift;
         const shiftStartHour = ShiftHours[shift].start;
@@ -159,10 +159,9 @@ export class SearchService implements ISearchService {
     //check available schedule in DB
     let schedules = await this.getAvailableSchedules(scheduleDate.toDate(), matchingShifts);
 
-
     if (scheduleDate.isSame(now, 'day')) {
       const currentHour = now.hour();
-      console.log('currentHour', currentHour)
+      console.log('currentHour', currentHour);
       schedules = schedules.filter(schedule => {
         const shift = schedule.shift as Shift;
         const shiftStartHour = ShiftHours[shift].start;
@@ -175,7 +174,6 @@ export class SearchService implements ISearchService {
         return true;
       });
     }
-
 
     //check not conflict time with Trip in that uniqueSchedules
     const validSchedules = await this.filterSchedulesWithoutConflicts(
@@ -205,7 +203,7 @@ export class SearchService implements ISearchService {
     const bookingEndTime = bookingStartTime.add(estimatedDuration, 'minute');
 
     await this.validateBookingTime(bookingStartTime, bookingEndTime);
-    console.log('bookingStartTime', bookingStartTime.toDate())
+    console.log('bookingStartTime', bookingStartTime.toDate());
     const matchingShifts = this.getMatchingShifts(bookingStartTime, bookingEndTime);
     const midnightUTC = now.startOf('day');
     console.log('midnightUTC', midnightUTC.toISOString());
@@ -234,7 +232,7 @@ export class SearchService implements ISearchService {
     const shiftHoursStart = ShiftHours[Shift.A].start;
     const shiftHourEnd = ShiftHours[Shift.D].end;
     const expectedStartTime = bookingStartTime.startOf('day').add(shiftHoursStart, 'hour');
-    console.log('expectedStartTime', expectedStartTime.toDate())
+    console.log('expectedStartTime', expectedStartTime.toDate());
     const expectedEndTime = bookingStartTime.startOf('day').add(shiftHourEnd, 'hour');
 
     if (
@@ -255,8 +253,8 @@ export class SearchService implements ISearchService {
   }
 
   getMatchingShifts(bookingStartTime: dayjs.Dayjs, bookingEndTime: dayjs.Dayjs): Shift[] {
-    console.log('bookingStartTime', bookingStartTime.toDate())
-    console.log('bookingEndTime', bookingEndTime.toDate())
+    console.log('bookingStartTime', bookingStartTime.toDate());
+    console.log('bookingEndTime', bookingEndTime.toDate());
     const matchingShifts = Object.values(Shift).filter(shift => {
       const shiftStart = bookingStartTime.startOf('day').add(ShiftHours[shift].start, 'hour');
       const shiftEnd = bookingStartTime.startOf('day').add(ShiftHours[shift].end, 'hour');
@@ -305,7 +303,7 @@ export class SearchService implements ISearchService {
           {
             date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
-            status: { $nin: [DriverSchedulesStatus.COMPLETED] }
+            status: { $nin: [DriverSchedulesStatus.COMPLETED] },
           },
           [],
         ),
@@ -315,7 +313,7 @@ export class SearchService implements ISearchService {
     const scheduleResults = await Promise.all(schedulePromises);
     const uniqueSchedules = scheduleResults
       .flat()
-      .filter((schedule, index, self) => index === self.findIndex(s => s._id === schedule._id))
+      .filter((schedule, index, self) => index === self.findIndex(s => s._id === schedule._id));
 
     console.log('uniqueSchedules', uniqueSchedules);
 
@@ -324,7 +322,8 @@ export class SearchService implements ISearchService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `No more Schedule valid for shift ${shifts.join(', ')} in date ${date}`,
-          vnMessage: 'Không có lịch phù hợp cho ca làm việc ' + shifts.join(', ') + ' vào ngày ' + date,
+          vnMessage:
+            'Không có lịch phù hợp cho ca làm việc ' + shifts.join(', ') + ' vào ngày ' + date,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -345,12 +344,20 @@ export class SearchService implements ISearchService {
           status: { $nin: [TripStatus.COMPLETED, TripStatus.CANCELLED] },
           $or: [
             {
-              timeStartEstimate: { $lt: bookingEndTime.add(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
-              timeEndEstimate: { $gt: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
+              timeStartEstimate: {
+                $lt: bookingEndTime.add(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate(),
+              },
+              timeEndEstimate: {
+                $gt: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate(),
+              },
             },
             {
-              timeStartEstimate: { $lte: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
-              timeEndEstimate: { $gte: bookingEndTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate() },
+              timeStartEstimate: {
+                $lte: bookingStartTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate(),
+              },
+              timeEndEstimate: {
+                $gte: bookingEndTime.subtract(GUARANTEED_TIME_BETWEEN_TRIPS, 'minute').toDate(),
+              },
             },
           ],
         },
@@ -397,12 +404,13 @@ export class SearchService implements ISearchService {
     vehicles: VehicleDocument[],
     serviceType: string,
     totalUnit: number,
-  ): Promise<{
-    vehicleCategory: VehicleCategoryDocument;
-    availableCount: number;
-    price: number;
-  }[]> {
-
+  ): Promise<
+    {
+      vehicleCategory: VehicleCategoryDocument;
+      availableCount: number;
+      price: number;
+    }[]
+  > {
     //lọc các vehicle không có cấu hình giá
     const validVehicles = [];
     console.log('serviceType', serviceType);
