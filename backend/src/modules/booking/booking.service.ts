@@ -28,6 +28,7 @@ import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { BOOKING_BUFFER_MINUTES, BookingStatus, DriverSchedulesStatus, ServiceType, serviceTypeText, Shift, ShiftHours, TripStatus } from "src/share/enums";
 import { timeToCloseConversation, timeToOpenConversation } from "src/share/enums/conversation.enum";
+import { PaymentMethod } from "src/share/enums/payment.enum";
 import { SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 import { QueryOptions } from "src/share/interface";
 
@@ -213,6 +214,9 @@ export class BookingService implements IBookingService {
             }, HttpStatus.BAD_REQUEST);
         }
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        if (paymentMethod === PaymentMethod.MOMO) {
+            const paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+        }
         return {
             newBooking,
             paymentUrl: paymentResult.checkoutUrl
@@ -536,6 +540,9 @@ export class BookingService implements IBookingService {
             }, HttpStatus.BAD_REQUEST);
         }
         const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        if (paymentMethod === PaymentMethod.MOMO) {
+            const paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+        }
         return {
             newBooking,
             paymentUrl: paymentResult.checkoutUrl

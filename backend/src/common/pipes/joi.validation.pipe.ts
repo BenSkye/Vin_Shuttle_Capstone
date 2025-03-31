@@ -1,4 +1,4 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { PipeTransform, Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ObjectSchema } from 'joi';
 
 @Injectable()
@@ -19,11 +19,12 @@ export class JoiValidationPipe implements PipeTransform {
         message: detail.message,
       }));
 
-      throw new BadRequestException({
-        statusCode: 400,
+      throw new HttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
         message: 'Validation failed',
+        vnMessage: 'Lỗi field',
         errors: errorMessages,
-      });
+      }, HttpStatus.BAD_REQUEST);
     }
 
     return validatedValue;

@@ -1,11 +1,13 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { JoiValidationPipe } from "src/common/pipes/joi.validation.pipe";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { Roles } from "src/modules/auth/decorators/roles.decorator";
 import { RolesGuard } from "src/modules/auth/role.guard";
 import { BOOKING_SERVICE } from "src/modules/booking/booking.di-token";
 import { bookingParams, IBookingDestinationBody, IBookingHourBody, IBookingScenicRouteBody, IBookingSharedItineraryBody } from "src/modules/booking/booking.dto";
 import { IBookingService } from "src/modules/booking/booking.port";
+import { BookingValidation } from "src/modules/booking/validations/booking.validation";
 import { BookingStatus, UserRole } from "src/share/enums";
 import { PaymentMethod } from "src/share/enums/payment.enum";
 import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
@@ -55,7 +57,7 @@ export class BookingController {
     })
     async bookingHour(
         @Request() req,
-        @Body() data: IBookingHourBody,
+        @Body((new JoiValidationPipe(BookingValidation.bookingHour))) data: IBookingHourBody,
     ) {
         return await this.bookingService.bookingHour(
             req.user._id,
@@ -100,7 +102,7 @@ export class BookingController {
     })
     async bookingScenicRoute(
         @Request() req,
-        @Body() data: IBookingScenicRouteBody,
+        @Body((new JoiValidationPipe(BookingValidation.bookingScenicRoute))) data: IBookingScenicRouteBody,
     ) {
         return await this.bookingService.bookingScenicRoute(
             req.user._id,
@@ -149,7 +151,7 @@ export class BookingController {
     })
     async bookingDestination(
         @Request() req,
-        @Body() data: IBookingDestinationBody,
+        @Body((new JoiValidationPipe(BookingValidation.bookingDestination))) data: IBookingDestinationBody,
     ) {
         return await this.bookingService.bookingDestination(
             req.user._id,
@@ -194,7 +196,7 @@ export class BookingController {
     })
     async bookingSharedItinerary(
         @Request() req,
-        @Body() data: IBookingSharedItineraryBody,
+        @Body((new JoiValidationPipe(BookingValidation.bookingSharedItinerary))) data: IBookingSharedItineraryBody,
     ) {
         return await this.bookingService.bookingSharedItinerary(
             req.user._id,

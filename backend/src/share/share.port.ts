@@ -1,5 +1,4 @@
 import { CheckoutResponseDataType } from "@payos/node/lib/type";
-import { sharedItineraryStop } from "src/modules/shared-itinerary/shared-itinerary.dto";
 import { tokenDTO, TokenPayload } from "src/share/interface";
 
 export interface ITokenProvider {
@@ -25,6 +24,22 @@ export interface IPayosService {
         cancelUrl: string;
         returnUrl: string;
     }): Promise<CheckoutResponseDataType>;
+}
+
+export interface IMomoService {
+    createPaymentLink(createPaymentDto: {
+        bookingCode: number;
+        amount: number;
+        description: string;
+        cancelUrl: string;
+        returnUrl: string;
+    }): Promise<any>;
+    initiateRefund(createRefundDto: {
+        bookingCode: string;
+        amount: number;
+        description: string;
+        transId: string;
+    }): Promise<any>;
 }
 
 export interface IRedisService {
