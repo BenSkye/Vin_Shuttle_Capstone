@@ -1,11 +1,12 @@
 import { Module, Provider } from '@nestjs/common';
-import { PAYOS_PROVIDER, REDIS_CLIENT, REDIS_PROVIDER, SMS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
+import { MOMO_PROVIDER, PAYOS_PROVIDER, REDIS_CLIENT, REDIS_PROVIDER, SMS_PROVIDER, TOKEN_PROVIDER } from 'src/share/di-token';
 import { JwtTokenService } from 'src/share/jwt';
 import { PayosService } from 'src/share/payos';
 import { RedisService } from 'src/share/redis';
 import { SmsService } from 'src/share/sms';
 import { Redis } from 'ioredis';
 import { HttpModule } from '@nestjs/axios';
+import { MomoService } from 'src/share/momo';
 
 
 export const tokenJWTProvider = new JwtTokenService('2d', '7d'); //set accesstoken 2 minutes and refreshtoken 7 days
@@ -20,6 +21,10 @@ const dependencies = [
   {
     provide: PAYOS_PROVIDER,
     useClass: PayosService,
+  },
+  {
+    provide: MOMO_PROVIDER,
+    useClass: MomoService,
   },
   {
     provide: REDIS_CLIENT,

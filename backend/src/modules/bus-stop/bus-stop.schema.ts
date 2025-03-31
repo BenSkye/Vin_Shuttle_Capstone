@@ -1,16 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { Position, PositionSchema } from 'src/share/share.schema';
 
 export type BusStopDocument = HydratedDocument<BusStop>;
 
-@Schema({ _id: false })
-class Position {
-  @Prop({ required: true, type: Number })
-  lat: number;
+// @Schema({ _id: false })
+// class Position {
+//   @Prop({ required: true, type: Number })
+//   lat: number;
 
-  @Prop({ required: true, type: Number })
-  lng: number;
-}
+//   @Prop({ required: true, type: Number })
+//   lng: number;
+// }
 
 @Schema({ collection: 'BusStops', timestamps: true })
 export class BusStop {
@@ -20,7 +21,7 @@ export class BusStop {
   @Prop({ type: String })
   description: string;
 
-  @Prop({ required: true, type: Position })
+  @Prop({ required: true, type: PositionSchema })
   position: Position;
 
   @Prop({ required: true, type: String, enum: ['active', 'inactive'], default: 'active' })

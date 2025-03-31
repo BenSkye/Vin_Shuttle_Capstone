@@ -1,5 +1,7 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { JoiValidationPipe } from 'src/common/pipes/joi.validation.pipe';
+import { VehicleValidation } from 'src/modules/vehicles/validations/vehicle.validation';
 import {
   CreateVehicleDto,
   ICreateVehicle,
@@ -91,7 +93,7 @@ export class VehiclesController {
     },
   })
   async createVehicleCategory(
-    @Body() createDto: ICreateVehicle,
+    @Body(new JoiValidationPipe(VehicleValidation.create)) createDto: ICreateVehicle,
   ) {
     return await this.vehicleService.insert(createDto);
   }
@@ -124,7 +126,7 @@ export class VehiclesController {
   })
   async updateVehicleCategory(
     @Param('id') id: string,
-    @Body() updateDto: IUpdateVehicle,
+    @Body(new JoiValidationPipe(VehicleValidation.update)) updateDto: IUpdateVehicle,
   ) {
     return await this.vehicleService.update(id, updateDto);
   }

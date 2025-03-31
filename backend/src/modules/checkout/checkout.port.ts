@@ -5,4 +5,6 @@ export interface ICheckoutService {
   CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType>;
   getPayOsReturn(reqQuery: any): Promise<BookingDocument>;
   getPayOsCancel(reqQuery: any): Promise<void>;
+
+  CheckoutBookingMomo(bookingId: string): Promise<any>;
 }
