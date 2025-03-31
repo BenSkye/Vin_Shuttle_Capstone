@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { Content } from 'antd/es/layout/layout'
 import { Spin } from 'antd'
 import NextTopLoader from 'nextjs-toploader'
+import { usePathname } from 'next/navigation'
 import Header from './base/Header'
 import Footer from './base/Footer'
 
@@ -12,8 +13,11 @@ interface BaseLayoutProps {
 }
 
 export default function BaseLayout({ children }: BaseLayoutProps) {
+    const pathname = usePathname()
+    const isConversationPage = pathname?.startsWith('/conversations')
+
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col overflow-hidden">
             <NextTopLoader
                 color="#22c55e"
                 initialPosition={0.08}
@@ -29,12 +33,12 @@ export default function BaseLayout({ children }: BaseLayoutProps) {
             <Header />
 
             <Content
-                className="flex-1"
+                className="flex-1 overflow-hidden"
                 style={{ backgroundColor: '#FFFFFF', width: '100%' }}
             >
                 <Suspense
                     fallback={
-                        <div className="flex h-screen w-full items-center justify-center">
+                        <div className="flex h-full w-full items-center justify-center">
                             <Spin size="large" />
                         </div>
                     }
@@ -43,7 +47,7 @@ export default function BaseLayout({ children }: BaseLayoutProps) {
                 </Suspense>
             </Content>
 
-            <Footer />
+            {!isConversationPage && <Footer />}
         </div>
     )
 }

@@ -76,3 +76,4 @@ const ConversationDetail = ({ id }: { id: string }) => {
 }
 
 export default ConversationDetail
+
