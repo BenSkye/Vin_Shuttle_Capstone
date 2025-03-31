@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from 'src/share/enums';
+import { UserRole, UserStatus } from 'src/share/enums';
 import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateUserDto {
@@ -93,6 +93,12 @@ export class UpdateUserDto {
     example: 'KhanhHg8386@gmail.com',
   })
   email?: string;
+
+  @ApiProperty({
+    description: 'User status',
+    example: UserStatus.ACTIVE,
+  })
+  status?: UserStatus;
 }
 
 

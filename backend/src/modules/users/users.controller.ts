@@ -6,7 +6,7 @@ import { RolesGuard } from 'src/modules/auth/role.guard';
 import { USER_SERVICE } from 'src/modules/users/users.di-token';
 import { UpdateUserDto, userParams } from 'src/modules/users/users.dto';
 import { IUserService } from 'src/modules/users/users.port';
-import { UserRole } from 'src/share/enums';
+import { UserRole, UserStatus } from 'src/share/enums';
 import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { HEADER } from 'src/share/interface';
 
@@ -103,6 +103,36 @@ export class UsersController {
   async updateProfile(@Request() req, @Body() user: UpdateUserDto) {
     return await this.service.updateProfile(req.user._id, user);
   }
+
+  @Put('update-driver-profile/:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Update driver profile' })
+  @ApiParam({
+    name: 'id',
+    description: 'Driver ID',
+    example: '64f5e4d3b9a2c7f8e3b7c8d1',
+  })
+  @ApiBody({
+    type: UpdateUserDto,
+    description: 'Update driver profile',
+    examples: {
+      'Update driver profile': {
+        value: {
+          name: 'KhanhHg',
+          phone: '00800808808',
+          email: 'KhanhHg8386@gmail.com',
+          status: UserStatus.ACTIVE,
+        }
+      }
+    }
+  })
+  async updateDriverProfile(@Param('id') id: string, @Body() user: UpdateUserDto) {
+    return await this.service.updateDriverProfile(id, user);
+  }
+
 
   @Put('save-push-token')
   @UseGuards(AuthGuard)
