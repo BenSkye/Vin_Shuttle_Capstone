@@ -40,6 +40,7 @@ export default function ProfileScreen() {
     const fetchProfile = async () => {
       try {
         const data = await getUserProfile();
+        console.log('profile user', data)
         setProfile(data);
       } catch (err: any) {
         if (err.response?.status === 401) {

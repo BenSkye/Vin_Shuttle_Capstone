@@ -132,30 +132,15 @@ const DriverPage = () => {
         }
     };
 
-    const convertFileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
     const handleAddDriver = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            let avatarBase64 = "";
-
-            if (imageFile) {
-                avatarBase64 = await convertFileToBase64(imageFile);
-            }
-
             const response = await createDriver(
                 newDriver.name,
                 newDriver.phone,
                 newDriver.email,
                 newDriver.password,
-                avatarBase64,
+                imageFile || "",
                 "driver"
             );
 

@@ -1,4 +1,5 @@
 import axiosInstance from "./axios";
+import { uploadDriverImage } from "@/utils/firebase";
 
 export const getDriverSchedule = async () => {
     const startday = "2021-10-01";
@@ -48,14 +49,24 @@ export const getDriver = async (sortOrder: string = 'desc', role: string = 'driv
     }
 }
 
-export const createDriver = async (name: string, phone: string, email: string, password: string, avatar: string = "", role: string = "driver") => {
+export const createDriver = async (name: string, phone: string, email: string, password: string, avatar: string | File = "", role: string = "driver") => {
     try {
+        let avatarUrl = "";
+
+        // Check if avatar is a File and upload it to Firebase
+        if (avatar instanceof File) {
+            avatarUrl = await uploadDriverImage(avatar);
+        } else if (typeof avatar === 'string' && avatar) {
+            // If it's already a string (URL or base64), use it as is
+            avatarUrl = avatar;
+        }
+
         const response = await axiosInstance.post("/auth/register", {
             name,
             phone,
             email,
             password,
-            avatar,
+            avatar: avatarUrl,
             role
         });
 
