@@ -51,6 +51,12 @@ export class BusRoute {
   })
   status: string;
 
+  @Prop({ type: Date })
+  starTime: Date; // Ngày bắt đầu áp dụng
+
+  @Prop({ type: Date })
+  endTime: Date; // Ngày kết thúc áp dụng
+
   // @Prop({ type: Number, required: true })
   // basePrice: number;
 

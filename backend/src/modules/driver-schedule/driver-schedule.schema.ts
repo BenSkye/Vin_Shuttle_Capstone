@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { DriverSchedulesStatus, Shift } from 'src/share/enums';
+import { DriverSchedulesStatus, DriverScheduleTaskType, Shift } from 'src/share/enums';
 
 export type DriverScheduleDocument = HydratedDocument<DriverSchedule>;
 
@@ -12,8 +12,17 @@ export class DriverSchedule {
   @Prop({ type: Date, required: true })
   date: Date; // Ngày làm việc (ví dụ: 2023-10-01)
 
-  @Prop({ type: String, enum: Shift, required: true })
+  @Prop({ type: String, enum: Shift, required: function () { return this.taskType === DriverScheduleTaskType.GENERAL; } })
   shift: string; // Ca làm việc (A, B, C, D)
+
+  @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  busRoute: Types.ObjectId;
+
+  @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  startTime: Date; // Thời gian bắt đầu ca làm việc (ví dụ: 2023-10-01T08:00:00Z)
+
+  @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  endTime: Date; // Thời gian kết thúc ca làm việc (ví dụ: 2023-10-01T17:00:00Z)
 
   @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
   vehicle: Types.ObjectId;
@@ -32,6 +41,9 @@ export class DriverSchedule {
 
   @Prop({ type: Boolean, default: false })
   isEarlyCheckout: boolean; // Đánh dấu tài xế checkout sớm
+
+  @Prop({ type: String, enum: DriverScheduleTaskType, required: true, default: DriverScheduleTaskType.GENERAL })
+  taskType: string;
 }
 
 export const DriverScheduleSchema = SchemaFactory.createForClass(DriverSchedule);
