@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek } from 'date-fns';
 import { Button } from 'antd';
 import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
@@ -9,14 +9,30 @@ interface ScheduleCalendarProps {
     activities?: Activity[];
     onActivityClick?: (activity: Activity) => void;
     onSlotClick?: (time: string, day: number, date: Date) => void; // Date parameter is crucial
+    currentWeek?: Date;
+    onWeekChange?: (week: Date) => void;
 }
 
-export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
+export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, ScheduleCalendarProps>(({
     activities = [],
     onActivityClick,
     onSlotClick,
-}) => {
-    const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    currentWeek: externalCurrentWeek,
+    onWeekChange,
+}, ref) => {
+    const [internalCurrentWeek, setInternalCurrentWeek] = useState(
+        externalCurrentWeek || startOfWeek(new Date(), { weekStartsOn: 1 })
+    );
+    const currentWeek = externalCurrentWeek || internalCurrentWeek;
+    const setCurrentWeek = (week: Date) => {
+        setInternalCurrentWeek(week);
+        onWeekChange?.(week);
+    };
+
+    // Expose current week through ref
+    React.useImperativeHandle(ref, () => ({
+        getCurrentWeek: () => currentWeek
+    }));
 
     // Generate time slots
     const timeSlots = ['A', 'B', 'C', 'D']; // Shift codes
@@ -149,4 +165,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
             </div>
         </div>
     );
-};
+});
+
+ScheduleCalendar.displayName = 'ScheduleCalendar';
