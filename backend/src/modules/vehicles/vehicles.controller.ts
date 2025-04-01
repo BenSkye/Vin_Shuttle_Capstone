@@ -1,5 +1,7 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { JoiValidationPipe } from 'src/common/pipes/joi.validation.pipe';
+import { VehicleValidation } from 'src/modules/vehicles/validations/vehicle.validation';
 import {
   CreateVehicleDto,
   ICreateVehicle,
@@ -18,7 +20,7 @@ export class VehiclesController {
   constructor(
     @Inject(VEHICLE_SERVICE)
     private readonly vehicleService: IVehiclesService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(200)
@@ -31,27 +33,37 @@ export class VehiclesController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Get list of vehicles with filters' })
   @ApiQuery({ name: 'name', required: false, type: String, description: 'Filter by vehicle name' })
-  @ApiQuery({ name: 'categoryId', required: false, type: String, description: 'Filter by category ID' })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'Filter by category ID',
+  })
   @ApiQuery({
     name: 'operationStatus',
     required: false,
     enum: VehicleOperationStatus,
-    description: 'Filter by vehicle operation status (pending, running, charging)'
+    description: 'Filter by vehicle operation status (pending, running, charging)',
   })
   @ApiQuery({
     name: 'vehicleCondition',
     required: false,
     enum: VehicleCondition,
-    description: 'Filter by vehicle condition (available, in-use, maintenance)'
+    description: 'Filter by vehicle condition (available, in-use, maintenance)',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
   @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
     enum: SortOrderOption,
-    description: 'Sort order (asc, desc)'
+    description: 'Sort order (asc, desc)',
   })
   async getListVehicles(@Query() query: vehicleParams) {
     return await this.vehicleService.getListVehicles(query);
@@ -91,7 +103,7 @@ export class VehiclesController {
     },
   })
   async createVehicleCategory(
-    @Body() createDto: ICreateVehicle,
+    @Body(new JoiValidationPipe(VehicleValidation.create)) createDto: ICreateVehicle,
   ) {
     return await this.vehicleService.insert(createDto);
   }
@@ -124,11 +136,8 @@ export class VehiclesController {
   })
   async updateVehicleCategory(
     @Param('id') id: string,
-    @Body() updateDto: IUpdateVehicle,
+    @Body(new JoiValidationPipe(VehicleValidation.update)) updateDto: IUpdateVehicle,
   ) {
     return await this.vehicleService.update(id, updateDto);
   }
-
-
-
 }

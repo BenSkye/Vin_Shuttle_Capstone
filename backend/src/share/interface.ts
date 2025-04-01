@@ -1,5 +1,4 @@
-import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
-
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 
 export interface tokenDTO {
   accessToken: string;
@@ -47,7 +46,6 @@ export interface ProcessedQueryParams<T> {
   filter: T;
   options: QueryOptions;
 }
-
 
 export const HEADER = {
   CLIENT_ID: 'x-client-id',

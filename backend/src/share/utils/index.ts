@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import crypto from 'crypto';
 import { Types } from 'mongoose';
 
 export const convertObjectId = (id: string) => {
@@ -17,6 +18,11 @@ export const generateBookingCode = (): number => {
   return parseInt(`${timestamp}${random.toString().padStart(3, '0')}`);
 };
 
+export const generateSignature = (rawSignature: string): string => {
+  const SECRET_KEY = process.env.MOMO_SECRET_KEY;
+  const signature = crypto.createHmac('sha256', SECRET_KEY).update(rawSignature).digest('hex');
+  return signature;
+};
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -35,7 +41,6 @@ export const DateUtils = {
     return dayjs(date).add(timeUtc, 'hour');
   },
 
-
   parseTime: (timeStr: string): dayjs.Dayjs => {
     return dayjs.utc(timeStr, 'HH:mm');
   },
@@ -46,5 +51,5 @@ export const DateUtils = {
 
   formatDateTime: (date: Date): string => {
     return dayjs(date).tz('Asia/Ho_Chi_Minh').format('HH:mm DD/MM/YYYY');
-  }
+  },
 };

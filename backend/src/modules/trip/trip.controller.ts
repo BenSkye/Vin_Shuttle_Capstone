@@ -1,14 +1,26 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "src/modules/auth/auth.guard";
-import { Roles } from "src/modules/auth/decorators/roles.decorator";
-import { RolesGuard } from "src/modules/auth/role.guard";
-import { TRIP_SERVICE } from "src/modules/trip/trip.di-token";
-import { tripParams } from "src/modules/trip/trip.dto";
-import { ITripService } from "src/modules/trip/trip.port";
-import { ServiceType, TripStatus, UserRole } from "src/share/enums";
-import { SortOrderOption } from "src/share/enums/sortOrderOption.enum";
-import { HEADER } from "src/share/interface";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/modules/auth/role.guard';
+import { TRIP_SERVICE } from 'src/modules/trip/trip.di-token';
+import { tripParams } from 'src/modules/trip/trip.dto';
+import { ITripService } from 'src/modules/trip/trip.port';
+import { ServiceType, TripStatus, UserRole } from 'src/share/enums';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
+import { HEADER } from 'src/share/interface';
 
 @ApiTags('trip')
 @Controller('trip')
@@ -16,9 +28,7 @@ export class TripController {
   constructor(
     @Inject(TRIP_SERVICE)
     private readonly tripService: ITripService,
-  ) { }
-
-
+  ) {}
 
   @Get('customer-personal-trip')
   @HttpCode(HttpStatus.OK)
@@ -31,7 +41,6 @@ export class TripController {
     return await this.tripService.getPersonalCustomerTrip(req.user._id);
   }
 
-
   @Get('driver-personal-trip')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
@@ -39,10 +48,8 @@ export class TripController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver personal trip' })
-  async getDriverPersonalTrip(
-    @Request() req,
-  ) {
-    return await this.tripService.getPersonalDriverTrip(req.user._id)
+  async getDriverPersonalTrip(@Request() req) {
+    return await this.tripService.getPersonalDriverTrip(req.user._id);
   }
 
   @Get('customer-personal-trip/:id')
@@ -53,9 +60,8 @@ export class TripController {
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get trip by id' })
   async getTripById(@Param('id') id: string, @Request() req) {
-    return await this.tripService.getPersonalCustomerTripById(req.user._id, id)
+    return await this.tripService.getPersonalCustomerTripById(req.user._id, id);
   }
-
 
   @Get('driver-personal-trip/:id')
   @HttpCode(HttpStatus.OK)
@@ -65,7 +71,7 @@ export class TripController {
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get trip by id' })
   async getDriverTripById(@Param('id') id: string, @Request() req) {
-    return await this.tripService.getPersonalDriverTripById(req.user._id, id)
+    return await this.tripService.getPersonalDriverTripById(req.user._id, id);
   }
 
   @Post('driver-pickup-customer')
@@ -85,10 +91,9 @@ export class TripController {
         },
       },
     },
-
   })
   async driverPickupCustomer(@Body() data: { tripId: string }, @Request() req) {
-    return await this.tripService.driverPickupCustomer(data.tripId, req.user._id)
+    return await this.tripService.driverPickupCustomer(data.tripId, req.user._id);
   }
 
   @Post('driver-start-trip')
@@ -108,10 +113,9 @@ export class TripController {
         },
       },
     },
-
   })
   async driverStartTrip(@Body() data: { tripId: string }, @Request() req) {
-    return await this.tripService.driverStartTrip(data.tripId, req.user._id)
+    return await this.tripService.driverStartTrip(data.tripId, req.user._id);
   }
 
   @Post('driver-complete-trip')
@@ -131,10 +135,9 @@ export class TripController {
         },
       },
     },
-
   })
   async driverCompleteTrip(@Body() data: { tripId: string }, @Request() req) {
-    return await this.tripService.driverCompleteTrip(data.tripId, req.user._id)
+    return await this.tripService.driverCompleteTrip(data.tripId, req.user._id);
   }
 
   @Post('cancel-trip')
@@ -156,11 +159,13 @@ export class TripController {
     },
   })
   async cancelTrip(
-    @Body() data: {
+    @Body()
+    data: {
       tripId: string;
-      reason: string
+      reason: string;
     },
-    @Request() req) {
+    @Request() req,
+  ) {
     return await this.tripService.cancelTrip(req.user._id, data.tripId, data.reason);
   }
 
@@ -181,7 +186,6 @@ export class TripController {
     );
   }
 
-
   @Get('total-amount')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -192,7 +196,6 @@ export class TripController {
   async totalAmount() {
     return await this.tripService.totalAmount();
   }
-
 
   @Get('list-query')
   @HttpCode(HttpStatus.OK)
@@ -205,40 +208,45 @@ export class TripController {
     name: 'status',
     required: false,
     enum: TripStatus,
-    description: 'Filter by trip status'
+    description: 'Filter by trip status',
   })
   @ApiQuery({
     name: 'driverName',
     required: false,
     type: String,
-    description: 'Filter by driverName'
+    description: 'Filter by driverName',
   })
   @ApiQuery({
     name: 'customerPhone',
     required: false,
     type: String,
-    description: 'Filter by customer customerPhone'
+    description: 'Filter by customer customerPhone',
   })
   @ApiQuery({
     name: 'vehicleName',
     required: false,
     type: String,
-    description: 'Filter by vehicleName'
+    description: 'Filter by vehicleName',
   })
   @ApiQuery({
     name: 'serviceType',
     required: false,
     enum: ServiceType,
-    description: 'Filter by serviceType'
+    description: 'Filter by serviceType',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
   @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
     enum: SortOrderOption,
-    description: 'Sort order (asc, desc)'
+    description: 'Sort order (asc, desc)',
   })
   async listQuery(@Query() query: tripParams) {
     return await this.tripService.getTripByQuery(query);

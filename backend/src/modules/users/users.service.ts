@@ -8,7 +8,7 @@ import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class UsersService implements IUserService {
-  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) { }
+  constructor(@Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository) {}
 
   async listUsers(query: userParams): Promise<UserDocument[]> {
     const { filter, options } = processQueryParams(query, ['name', 'phone', 'email']);
@@ -47,6 +47,32 @@ export class UsersService implements IUserService {
   async updateProfile(id: string, user: IUpdateUserDto): Promise<object> {
     const updatedUser = await this.userRepository.updateUser(id, user);
     return updatedUser;
+  }
+
+  async updateDriverProfile(id: string, user: IUpdateUserDto): Promise<object> {
+    const driver = await this.userRepository.getUserById(id, ['role']);
+    if (!driver || driver.role !== UserRole.DRIVER) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Driver Not Found',
+          vnMessage: 'Không tìm thấy tài xế',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const updatedDriver = await this.userRepository.updateUser(id, user);
+    if (!updatedDriver) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Update Driver Failed',
+          vnMessage: 'Cập nhật tài xế thất bại',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    return updatedDriver;
   }
 
   async saveUserPushToken(userId: string, pushToken: string): Promise<void> {

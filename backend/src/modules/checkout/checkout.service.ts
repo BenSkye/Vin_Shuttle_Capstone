@@ -4,8 +4,8 @@ import { BOOKING_REPOSITORY, BOOKING_SERVICE } from 'src/modules/booking/booking
 import { IBookingRepository, IBookingService } from 'src/modules/booking/booking.port';
 import { BookingDocument } from 'src/modules/booking/booking.schema';
 import { ICheckoutService } from 'src/modules/checkout/checkout.port';
-import { PAYOS_PROVIDER } from 'src/share/di-token';
-import { IPayosService } from 'src/share/share.port';
+import { MOMO_PROVIDER, PAYOS_PROVIDER } from 'src/share/di-token';
+import { IMomoService, IPayosService } from 'src/share/share.port';
 
 @Injectable()
 export class CheckoutService implements ICheckoutService {
@@ -16,7 +16,9 @@ export class CheckoutService implements ICheckoutService {
     private readonly bookingService: IBookingService,
     @Inject(PAYOS_PROVIDER)
     private readonly payosService: IPayosService,
-  ) { }
+    @Inject(MOMO_PROVIDER)
+    private readonly momoService: IMomoService, // Replace with actual type if available
+  ) {}
 
   async CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType> {
     const booking = await this.bookingRepository.getBookingById(bookingId);
@@ -63,5 +65,27 @@ export class CheckoutService implements ICheckoutService {
   async getPayOsCancel(reqQuery: any): Promise<void> {
     console.log('reqQuery', reqQuery);
     await this.bookingService.payBookingFail(reqQuery.orderCode);
+  }
+
+  async CheckoutBookingMomo(bookingId: string): Promise<any> {
+    const booking = await this.bookingRepository.getBookingById(bookingId);
+    if (!booking) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'booking is not exist',
+          vnMessage: 'Không tìm thấy đặt xe',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const paymentResult = await this.momoService.createPaymentLink({
+      bookingCode: booking.bookingCode,
+      amount: booking.totalAmount,
+      description: `Đặt xe ${booking.bookingCode}`,
+      cancelUrl: '/cancel-booking-payment',
+      returnUrl: '/return-booking-payment',
+    });
+    return paymentResult;
   }
 }

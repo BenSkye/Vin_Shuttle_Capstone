@@ -18,7 +18,11 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/modules/auth/role.guard';
 import { DRIVERSCHEDULE_SERVICE } from 'src/modules/driver-schedule/driver-schedule.di-token';
-import { CreateDriverScheduleDto, driverScheduleParams, ICreateDriverSchedule } from 'src/modules/driver-schedule/driver-schedule.dto';
+import {
+  CreateDriverScheduleDto,
+  driverScheduleParams,
+  ICreateDriverSchedule,
+} from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.port';
 import { DriverSchedulesStatus, Shift, UserRole } from 'src/share/enums';
 import { HEADER } from 'src/share/interface';
@@ -29,7 +33,7 @@ export class DriverScheduleController {
   constructor(
     @Inject(DRIVERSCHEDULE_SERVICE)
     private readonly driverScheduleService: IDriverScheduleService,
-  ) { }
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -76,8 +80,6 @@ export class DriverScheduleController {
     return await this.driverScheduleService.createListDriverSchedule(driverSchedules);
   }
 
-
-
   @Put('update-driver-schedule/:driverScheduleId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
@@ -93,8 +95,7 @@ export class DriverScheduleController {
   @ApiBody({
     type: CreateDriverScheduleDto,
     description: 'Update driver schedule',
-    examples:
-    {
+    examples: {
       'Update driver schedule': {
         value: {
           driver: '67b6c79187febb73be4b3f09', // khanhDriver
@@ -111,7 +112,6 @@ export class DriverScheduleController {
   ) {
     return await this.driverScheduleService.updateDriverSchedule(driverScheduleId, driverSchedule);
   }
-
 
   @Get('driver-not-scheduled/:date')
   @HttpCode(HttpStatus.OK)
@@ -218,11 +218,7 @@ export class DriverScheduleController {
     type: Boolean,
     description: 'Filter by isEarlyCheckout',
   })
-
-
-  async getDriverSchedulesByQuery(
-    @Query() query: driverScheduleParams
-  ) {
+  async getDriverSchedulesByQuery(@Query() query: driverScheduleParams) {
     return await this.driverScheduleService.getDriverSchedules(query);
   }
 

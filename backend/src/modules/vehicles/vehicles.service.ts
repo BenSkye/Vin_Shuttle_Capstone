@@ -14,7 +14,7 @@ export class VehiclesService implements IVehiclesService {
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
     @Inject(VEHICLE_REPOSITORY) private readonly vehicleRepository: IVehiclesRepository,
-  ) { }
+  ) {}
 
   async list(): Promise<VehicleDocument[]> {
     const listVehicle = await this.vehicleRepository.list();
@@ -81,7 +81,7 @@ export class VehiclesService implements IVehiclesService {
   async getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null> {
     const vehicle = await this.vehicleRepository.getVehicle({ _id: vehicleId }, ['categoryId']);
     const vehicleCategoryRepository = await this.vehicleCategoryRepository.getById(
-      vehicle.categoryId.toString()
+      vehicle.categoryId.toString(),
     );
     return vehicleCategoryRepository;
   }

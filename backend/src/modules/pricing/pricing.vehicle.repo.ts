@@ -11,7 +11,7 @@ export class VehiclePricingRepository implements IVehiclePricingRepository {
   constructor(
     @InjectModel(VehiclePricing.name)
     private readonly pricingModel: Model<VehiclePricingDocument>,
-  ) { }
+  ) {}
 
   async create(pricing: ICreateVehiclePricingDto): Promise<VehiclePricingDocument> {
     return await this.pricingModel.create(pricing);

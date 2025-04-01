@@ -1,16 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { BusRouteStatus } from 'src/share/enums/bus-routes.enum';
+import { Position, PositionSchema } from 'src/share/share.schema';
 
 export type BusRouteDocument = HydratedDocument<BusRoute>;
-
-@Schema({ _id: false })
-class Position {
-  @Prop({ required: true, type: Number })
-  lat: number;
-
-  @Prop({ required: true, type: Number })
-  lng: number;
-}
 
 @Schema({ _id: false })
 class RouteStop {
@@ -38,7 +31,7 @@ export class BusRoute {
   @Prop({ required: true, type: [RouteStop] })
   stops: RouteStop[];
 
-  @Prop({ required: true, type: [Position] })
+  @Prop({ required: true, type: [PositionSchema] })
   routeCoordinates: Position[];
 
   @Prop({ required: true, type: Number })
@@ -50,7 +43,12 @@ export class BusRoute {
   @Prop({ type: Types.ObjectId, ref: 'VehicleCategory' })
   vehicleCategory: Types.ObjectId;
 
-  @Prop({ required: true, type: String, enum: ['active', 'inactive'], default: 'active' })
+  @Prop({
+    required: true,
+    type: String,
+    enum: Object.values(BusRouteStatus),
+    default: BusRouteStatus.ACTIVE,
+  })
   status: string;
 
   // @Prop({ type: Number, required: true })

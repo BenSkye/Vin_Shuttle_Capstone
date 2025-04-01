@@ -50,10 +50,10 @@ const dependencies = [
     KeytokenModule,
     SharedItineraryModule,
     NotificationModule,
-    ConversationModule
+    ConversationModule,
   ],
   controllers: [BookingController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class BookingModule { }
+export class BookingModule {}
