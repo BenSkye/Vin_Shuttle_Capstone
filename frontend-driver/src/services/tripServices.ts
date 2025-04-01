@@ -26,7 +26,7 @@ export const getPersonalTripById = async (id: string): Promise<Trip> => {
 }
 
 /**
- * Cập nhật trạng thái đón khách
+ * Cập nhật trạng thái đón khách, đón khách
  */
 export const pickUp = async (tripId: string): Promise<Trip> => {
   try {
@@ -52,7 +52,7 @@ export const startTrip = async (tripId: string): Promise<Trip> => {
 };
 
 /**
- * Hoàn thành chuyến đi
+ * Hoàn thành chuyến đi, trả khách
  */
 export const completeTrip = async (tripId: string): Promise<Trip> => {
   try {

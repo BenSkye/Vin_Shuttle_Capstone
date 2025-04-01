@@ -101,15 +101,50 @@ export const styles = StyleSheet.create({
       marginTop: -5,
     },
     callout: {
-      width: 160,
-      padding: 10,
+      width: 200,
+      padding: 8,
     },
     calloutTitle: {
       fontWeight: 'bold',
       fontSize: 14,
-      marginBottom: 5,
+      marginBottom: 4,
     },
     calloutDescription: {
       fontSize: 12,
     },
+    sharedStopMarker: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    sharedStopOrder: {
+      position: 'absolute',
+      backgroundColor: 'white',
+      borderRadius: 10,
+      width: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      top: -5,
+      right: -5,
+      borderWidth: 1,
+    },
+    sharedStopOrderText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    sharedRouteIndicator: {
+      position: 'absolute',
+      bottom: 80,
+      alignSelf: 'center',
+      backgroundColor: 'rgba(33, 150, 243, 0.9)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+    },
+    sharedRouteIndicatorText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 12,
+    }
   });

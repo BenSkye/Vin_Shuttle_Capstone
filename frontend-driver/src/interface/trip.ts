@@ -1,3 +1,5 @@
+import { StartOrEndPoint } from './share-itinerary'; // Thêm import cho interface StartOrEndPoint
+
 export interface LocationData {
   latitude: number;
   longitude: number;
@@ -115,21 +117,10 @@ export interface BookingDestinationPayloadDto {
 
 export interface BookingSharePayloadDto {
   bookingShare: {
-    numberOfSeat: number;
-    startPoint: {
-      position: {
-        lat: number;
-        lng: number;
-      };
-      address: string;
-    };
-    endPoint: {
-      position: {
-        lat: number;
-        lng: number;
-      };
-      address: string;
-    };
+    sharedItinerary: string;   // ID của shared itinerary
+    numberOfSeat: number;      // Số ghế đặt
+    startPoint: StartOrEndPoint;
+    endPoint: StartOrEndPoint;
     distanceEstimate: number;
     distance: number;
   };
