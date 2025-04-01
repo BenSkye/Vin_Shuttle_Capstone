@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
-import { Modal, Form, Button, Select, message, Alert } from 'antd';
+import { Modal, Form, Button, Select, message, Alert, DatePicker } from 'antd';
 import { Activity } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 import Announcements from '@/components/Announcements';
@@ -31,10 +31,13 @@ const SchedulePage = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
+    const [isAssigningWeekly, setIsAssigningWeekly] = useState(false);
+    const [isWeekSelectModalOpen, setIsWeekSelectModalOpen] = useState(false);
 
     // Form riêng biệt cho thao tác gán và cập nhật
     const [assignForm] = Form.useForm();
     const [updateForm] = Form.useForm();
+    const [weekForm] = Form.useForm();
 
     // Bảng ánh xạ thời gian ca làm
     const shiftTimeRanges = {
@@ -46,6 +49,9 @@ const SchedulePage = () => {
 
     // Bảng ánh xạ tên ngày
     const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+
+    // Add ref for ScheduleCalendar
+    const calendarRef = React.useRef<{ getCurrentWeek: () => Date }>(null);
 
     // Tải dữ liệu ban đầu
     useEffect(() => {
@@ -493,9 +499,102 @@ const SchedulePage = () => {
         return buttons;
     };
 
+    // Modify handleAssignWeekly to use current week
+    const handleAssignWeekly = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            setIsAssigningWeekly(true);
+
+            // Get current week from calendar
+            const currentWeek = calendarRef.current?.getCurrentWeek();
+            if (!currentWeek) {
+                throw new Error("Không thể lấy thông tin tuần hiện tại");
+            }
+
+            // Format the start date of the current week
+            const baseDate = format(currentWeek, 'yyyy-MM-dd');
+
+            // Get all available drivers and vehicles for the week
+            const allDrivers = await getAvailableDrivers(baseDate);
+            const allVehicles = await getAvailableVehicles(baseDate);
+
+            if (!allDrivers.length || !allVehicles.length) {
+                throw new Error("Không đủ tài xế hoặc xe để phân công cho tuần");
+            }
+
+            // Create arrays for rotation
+            const driverPool = [...allDrivers];
+            const vehiclePool = [...allVehicles];
+            let driverIndex = 0;
+            let vehicleIndex = 0;
+
+            // Get current week's dates
+            const weekDates = Array.from({ length: 7 }, (_, i) => {
+                const date = new Date(currentWeek);
+                date.setDate(currentWeek.getDate() + i);
+                return format(date, 'yyyy-MM-dd');
+            });
+
+            // Define shifts
+            const shifts = ['A', 'B', 'C', 'D'];
+
+            // Create assignments for each day and shift
+            for (const date of weekDates) {
+                for (const shift of shifts) {
+                    // Get next driver and vehicle from pools
+                    const driver = driverPool[driverIndex % driverPool.length];
+                    const vehicle = vehiclePool[vehicleIndex % vehiclePool.length];
+
+                    // Create schedule data
+                    const scheduleData = {
+                        driver: driver._id,
+                        vehicle: vehicle._id,
+                        date: date,
+                        shift: shift
+                    };
+
+                    // Assign the schedule
+                    await DriverSchedule(scheduleData);
+
+                    // Move to next driver and vehicle
+                    driverIndex++;
+                    vehicleIndex++;
+                }
+            }
+
+            message.success("Đã phân công lịch trình cho tuần thành công");
+            fetchDriverSchedules(); // Refresh the schedule display
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Không thể phân công lịch trình cho tuần";
+            console.error("Lỗi khi phân công lịch trình tuần:", error);
+            setError(errorMessage);
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
+            setIsAssigningWeekly(false);
+        }
+    };
+
+    // Remove the week selection modal and its related code
+    const showWeekSelectModal = () => {
+        handleAssignWeekly();
+    };
+
     return (
         <div className="p-4 flex gap-4 flex-col md:flex-row">
             <div className="">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold">Lịch Trình Tài Xế</h2>
+                    <Button
+                        type="primary"
+                        onClick={showWeekSelectModal}
+                        loading={isAssigningWeekly}
+                        className="bg-blue-600 hover:bg-blue-700"
+                    >
+                        Phân Công Lịch Trình Tuần
+                    </Button>
+                </div>
                 <div className="p-4 border-t mt-4">
                     <h4 className="font-medium mb-2">Trạng thái:</h4>
                     <div className="flex gap-4">
@@ -519,6 +618,7 @@ const SchedulePage = () => {
                     </div>
                 </div>
                 <ScheduleCalendar
+                    ref={calendarRef}
                     activities={activities}
                     onActivityClick={handleActivityClick}
                     onSlotClick={handleSlotClick}
