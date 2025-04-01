@@ -2,7 +2,12 @@ import { Module, Provider } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/modules/auth/auth.controller';
-import { AUTH_GUARD, AUTH_SERVICE, ROLE_GUARD, WS_AUTH_GUARD } from 'src/modules/auth/auth.di-token';
+import {
+  AUTH_GUARD,
+  AUTH_SERVICE,
+  ROLE_GUARD,
+  WS_AUTH_GUARD,
+} from 'src/modules/auth/auth.di-token';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthService } from 'src/modules/auth/auth.service';
 import { RolesGuard } from 'src/modules/auth/role.guard';
@@ -54,4 +59,4 @@ const dependencies: Provider[] = [
   providers: [...dependencies],
   exports: [AUTH_GUARD, AUTH_SERVICE, WS_AUTH_GUARD],
 })
-export class AuthModule { }
+export class AuthModule {}

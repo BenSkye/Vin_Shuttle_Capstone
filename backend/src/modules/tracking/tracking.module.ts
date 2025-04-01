@@ -9,23 +9,19 @@ import { TrackingService } from 'src/modules/tracking/tracking.service';
 import { ShareModule } from 'src/share/share.module';
 
 const dependencies = [
-    {
-        provide: TRACKING_GATEWAY,
-        useClass: TrackingGateway,
-    },
-    {
-        provide: TRACKING_SERVICE,
-        useClass: TrackingService,
-    },
-
+  {
+    provide: TRACKING_GATEWAY,
+    useClass: TrackingGateway,
+  },
+  {
+    provide: TRACKING_SERVICE,
+    useClass: TrackingService,
+  },
 ];
 @Module({
-    imports: [
-        ShareModule,
-        KeytokenModule,
-    ],
-    controllers: [TrackingController],
-    providers: [...dependencies],
-    exports: [...dependencies],
+  imports: [ShareModule, KeytokenModule],
+  controllers: [TrackingController],
+  providers: [...dependencies],
+  exports: [...dependencies],
 })
-export class TrackingModule { }
+export class TrackingModule {}

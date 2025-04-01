@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Inject, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Inject,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -15,7 +27,7 @@ export class BusRouteController {
   constructor(
     @Inject(BUS_ROUTE_SERVICE)
     private readonly busRouteService: IBusRouteService,
-  ) { }
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -66,7 +78,7 @@ export class BusRouteController {
             {
               lat: 21.028511,
               lng: 105.804817,
-            }
+            },
           ],
           totalDistance: 5.2,
           estimatedDuration: 15,
@@ -138,17 +150,17 @@ export class BusRouteController {
     schema: {
       type: 'object',
       properties: {
-      fare: {
-        type: 'number',
-        example: 7000,
-        description: 'Calculated fare based on distance and pricing tiers'
+        fare: {
+          type: 'number',
+          example: 7000,
+          description: 'Calculated fare based on distance and pricing tiers',
+        },
+        distance: {
+          type: 'number',
+          example: 5.2,
+          description: 'Distance between stops in kilometers',
+        },
       },
-      distance: {
-        type: 'number',
-        example: 5.2,
-        description: 'Distance between stops in kilometers'
-      }
-     },
     },
   })
   @ApiResponse({

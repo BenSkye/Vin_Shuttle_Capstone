@@ -43,11 +43,11 @@ export interface IBookingService {
   payBookingSuccess(bookingCode: number): Promise<BookingDocument>;
   payBookingFail(bookingCode: number): Promise<void>;
 
-  getCustomerPersonalBooking(customerId: string, query: QueryOptions): Promise<BookingDocument[]>
-  getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument>
+  getCustomerPersonalBooking(customerId: string, query: QueryOptions): Promise<BookingDocument[]>;
+  getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument>;
 
-  getListBookingByQuery(query: bookingParams): Promise<BookingDocument[]>
-  getBookingById(id: string): Promise<BookingDocument>
+  getListBookingByQuery(query: bookingParams): Promise<BookingDocument[]>;
+  getBookingById(id: string): Promise<BookingDocument>;
 
-  totalTransaction(): Promise<number>
+  totalTransaction(): Promise<number>;
 }

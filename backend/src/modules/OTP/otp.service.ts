@@ -16,7 +16,7 @@ export class OTPService implements IOTPService {
     @Inject(OTP_REPOSITORY) private readonly OTPRepository: IOTPRepository,
     // @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-  ) { }
+  ) {}
 
   async create(data: OTPPayload): Promise<string> {
     const { phone, role, name, _id } = data;

@@ -8,9 +8,7 @@ export class SmsService implements ISMSProvider {
   private readonly eSMS_DOMAIN = process.env.ESMS_DOMAIN;
   private readonly eSMS_API_KEY = process.env.ESMS_API_KEY;
   private readonly eSMS_SECRET_KEY = process.env.ESMS_SECRET_KEY;
-  constructor(private readonly httpService: HttpService) {
-  }
-
+  constructor(private readonly httpService: HttpService) {}
 
   async sendSms(phone: string, content: string) {
     const payload = {

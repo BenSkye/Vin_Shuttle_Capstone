@@ -1,15 +1,15 @@
-import { ICreateRating, IGetAverageRating } from "src/modules/rating/rating.dto"
-import { RatingDocument } from "src/modules/rating/rating.schema"
+import { ICreateRating, IGetAverageRating } from 'src/modules/rating/rating.dto';
+import { RatingDocument } from 'src/modules/rating/rating.schema';
 
 export interface IRatingRepository {
-    create(data: ICreateRating): Promise<RatingDocument>
-    getRatingById(id: string): Promise<RatingDocument>
-    getRatings(query: object, select: string[]): Promise<RatingDocument[]>
-    findOneRating(query: object, select: string[]): Promise<RatingDocument>
+  create(data: ICreateRating): Promise<RatingDocument>;
+  getRatingById(id: string): Promise<RatingDocument>;
+  getRatings(query: object, select: string[]): Promise<RatingDocument[]>;
+  findOneRating(query: object, select: string[]): Promise<RatingDocument>;
 }
 
 export interface IRatingService {
-    getRatingByTripId(tripId: string): Promise<RatingDocument>
-    createRating(customerId: string, data: ICreateRating): Promise<RatingDocument>
-    averageRating(query: IGetAverageRating): Promise<number>
+  getRatingByTripId(tripId: string): Promise<RatingDocument>;
+  createRating(customerId: string, data: ICreateRating): Promise<RatingDocument>;
+  averageRating(query: IGetAverageRating): Promise<number>;
 }

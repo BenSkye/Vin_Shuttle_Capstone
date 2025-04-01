@@ -18,7 +18,7 @@ export class CheckoutService implements ICheckoutService {
     private readonly payosService: IPayosService,
     @Inject(MOMO_PROVIDER)
     private readonly momoService: IMomoService, // Replace with actual type if available
-  ) { }
+  ) {}
 
   async CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType> {
     const booking = await this.bookingRepository.getBookingById(bookingId);

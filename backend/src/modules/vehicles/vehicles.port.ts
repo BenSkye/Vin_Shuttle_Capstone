@@ -25,8 +25,6 @@ export interface IVehiclesService {
   getById(id: string): Promise<VehicleDocument | null>;
   insert(data: ICreateVehicle): Promise<VehicleDocument>;
   update(id: string, dto: IUpdateVehicle): Promise<VehicleDocument>;
-  getListVehicles(
-    query: vehicleParams,
-  ): Promise<VehicleDocument[] | null>;
+  getListVehicles(query: vehicleParams): Promise<VehicleDocument[] | null>;
   getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null>;
 }

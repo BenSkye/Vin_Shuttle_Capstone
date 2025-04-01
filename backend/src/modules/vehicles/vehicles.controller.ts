@@ -20,7 +20,7 @@ export class VehiclesController {
   constructor(
     @Inject(VEHICLE_SERVICE)
     private readonly vehicleService: IVehiclesService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(200)
@@ -33,27 +33,37 @@ export class VehiclesController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Get list of vehicles with filters' })
   @ApiQuery({ name: 'name', required: false, type: String, description: 'Filter by vehicle name' })
-  @ApiQuery({ name: 'categoryId', required: false, type: String, description: 'Filter by category ID' })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'Filter by category ID',
+  })
   @ApiQuery({
     name: 'operationStatus',
     required: false,
     enum: VehicleOperationStatus,
-    description: 'Filter by vehicle operation status (pending, running, charging)'
+    description: 'Filter by vehicle operation status (pending, running, charging)',
   })
   @ApiQuery({
     name: 'vehicleCondition',
     required: false,
     enum: VehicleCondition,
-    description: 'Filter by vehicle condition (available, in-use, maintenance)'
+    description: 'Filter by vehicle condition (available, in-use, maintenance)',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
   @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
     enum: SortOrderOption,
-    description: 'Sort order (asc, desc)'
+    description: 'Sort order (asc, desc)',
   })
   async getListVehicles(@Query() query: vehicleParams) {
     return await this.vehicleService.getListVehicles(query);
@@ -130,7 +140,4 @@ export class VehiclesController {
   ) {
     return await this.vehicleService.update(id, updateDto);
   }
-
-
-
 }

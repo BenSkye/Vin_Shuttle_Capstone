@@ -4,4 +4,3 @@ export const PAYOS_PROVIDER = Symbol('PAYOS_PROVIDER');
 export const MOMO_PROVIDER = Symbol('MOMO_PROVIDER');
 export const REDIS_PROVIDER = Symbol('REDIS_PROVIDER');
 export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
-

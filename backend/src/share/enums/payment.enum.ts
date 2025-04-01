@@ -4,5 +4,4 @@ export enum PaymentMethod {
   MOMO = 'momo',
 }
 
-
-export const paymentTime = 1 // 1 minute
+export const paymentTime = 1; // 1 minute

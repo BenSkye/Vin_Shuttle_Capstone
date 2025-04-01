@@ -14,40 +14,61 @@ export class TripRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name)
     private readonly tripModel: Model<Trip>,
-  ) { }
+  ) {}
 
   async create(tripDto: ICreateTripDto): Promise<TripDocument> {
-    const newTrip = new this.tripModel(tripDto)
+    const newTrip = new this.tripModel(tripDto);
     return await newTrip.save();
   }
   async findById(id: string, select: string[]): Promise<TripDocument> {
-    return await this.tripModel.findById(id).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
+    return await this.tripModel
+      .findById(id)
+      .select(getSelectData(select))
+      .populate('customerId', 'name phone email')
+      .populate('driverId', 'name phone email')
+      .populate('vehicleId');
   }
   async findByDriverId(driverId: string): Promise<TripDocument[]> {
-    return await this.tripModel.find({ driverId: driverId }).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
+    return await this.tripModel
+      .find({ driverId: driverId })
+      .populate('customerId', 'name phone email')
+      .populate('driverId', 'name phone email')
+      .populate('vehicleId');
   }
   async find(query: any, select: string[], options?: QueryOptions): Promise<TripDocument[]> {
-    let queryBuilder = this.tripModel.find(query).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId');
+    let queryBuilder = this.tripModel
+      .find(query)
+      .populate('customerId', 'name phone email')
+      .populate('driverId', 'name phone email')
+      .populate('vehicleId');
     if (select && select.length > 0) {
       queryBuilder = queryBuilder.select(getSelectData(select));
     }
     queryBuilder = applyQueryOptions(queryBuilder, options);
     const result = await queryBuilder.exec();
-    return result
+    return result;
   }
 
   async findOne(query: any, select: string[]): Promise<TripDocument> {
-    return await this.tripModel.findOne(query).select(getSelectData(select)).populate('customerId', 'name phone email').populate('driverId', 'name phone email').populate('vehicleId')
+    return await this.tripModel
+      .findOne(query)
+      .select(getSelectData(select))
+      .populate('customerId', 'name phone email')
+      .populate('driverId', 'name phone email')
+      .populate('vehicleId');
   }
 
   async updateStatus(id: string, status: TripStatus): Promise<TripDocument> {
     const trip = await this.tripModel.findById(id);
     if (!trip) {
-      throw new HttpException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: `Trip not found ${id}`,
-        vnMessage: `Không thấy chuyến đi ${id}`,
-      }, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Trip not found ${id}`,
+          vnMessage: `Không thấy chuyến đi ${id}`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     trip.status = status;
@@ -57,11 +78,14 @@ export class TripRepository implements ITripRepository {
   async updateTrip(id: string, updateTripDto: IUpdateTripDto): Promise<TripDocument> {
     const trip = await this.tripModel.findById(id);
     if (!trip) {
-      throw new HttpException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: `Trip not found ${id}`,
-        vnMessage: `Không tìm thấy chuyến đi ${id}`,
-      }, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Trip not found ${id}`,
+          vnMessage: `Không tìm thấy chuyến đi ${id}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
     trip.set(updateTripDto);
     return await trip.save();

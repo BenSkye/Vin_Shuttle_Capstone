@@ -12,7 +12,7 @@ export class ScenicRouteRepository implements IScenicRouteRepository {
   constructor(
     @InjectModel(ScenicRoute.name)
     private readonly routeModel: Model<ScenicRoute>,
-  ) { }
+  ) {}
 
   async create(route: ICreateScenicRouteDto): Promise<ScenicRouteDocument> {
     const newScenicRoute = new this.routeModel(route);
@@ -27,10 +27,7 @@ export class ScenicRouteRepository implements IScenicRouteRepository {
     return await this.routeModel.findOne(query);
   }
 
-  async findAll(
-    query?: any,
-    options?: QueryOptions,
-  ): Promise<ScenicRouteDocument[]> {
+  async findAll(query?: any, options?: QueryOptions): Promise<ScenicRouteDocument[]> {
     let queryBuilder;
     if (query) {
       queryBuilder = this.routeModel.find(query);

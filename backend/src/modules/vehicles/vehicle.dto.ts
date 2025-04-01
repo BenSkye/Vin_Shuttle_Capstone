@@ -60,10 +60,9 @@ export class UpdateVehicleDto {
   vehicleCondition: string;
 }
 
-
 export interface vehicleParams extends QueryOptions {
-  name?: string,
-  categoryId?: string,
-  operationStatus?: VehicleOperationStatus,
-  vehicleCondition?: VehicleCondition,
+  name?: string;
+  categoryId?: string;
+  operationStatus?: VehicleOperationStatus;
+  vehicleCondition?: VehicleCondition;
 }

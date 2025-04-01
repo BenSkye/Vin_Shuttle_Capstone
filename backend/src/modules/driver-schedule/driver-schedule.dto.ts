@@ -61,7 +61,6 @@ export class UpdateDriverScheduleDto {
   isEarlyCheckout: boolean;
 }
 
-
 export interface PopulatedDriverScheduleDocument
   extends Omit<DriverScheduleDocument, 'driver' | 'vehicle'> {
   driver: {

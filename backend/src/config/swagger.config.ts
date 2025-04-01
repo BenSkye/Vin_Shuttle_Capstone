@@ -24,14 +24,10 @@ export const swaggerConfig = new DocumentBuilder()
   .addTag('bus-routes', 'Bus Route management')
   .addTag('share-itinerary', 'Share Route management')
 
-
   .addBearerAuth(
     { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
     HEADER.AUTHORIZATION, // Authorization header
   )
 
-  .addBearerAuth(
-    { type: 'apiKey', in: 'header', name: HEADER.CLIENT_ID },
-    HEADER.CLIENT_ID,
-  )
+  .addBearerAuth({ type: 'apiKey', in: 'header', name: HEADER.CLIENT_ID }, HEADER.CLIENT_ID)
   .build();

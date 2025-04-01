@@ -1,4 +1,11 @@
-import { CanActivate, ExecutionContext, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { TOKEN_PROVIDER } from 'src/share/di-token';
@@ -10,7 +17,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -25,13 +32,12 @@ export class AuthGuard implements CanActivate {
           message: 'Invalid login session',
           vnMessage: 'Phiên đăng nhập không hợp lệ',
         },
-        HttpStatus.UNAUTHORIZED
-      )
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
-
     const token = authorization.split(' ')[1];
-    //if access token is expired      
+    //if access token is expired
     const keystore = await this.keyTokenService.findByUserId(clientId);
     if (!keystore) {
       return false;

@@ -31,7 +31,7 @@ const dependencies = [
   {
     provide: DRIVERSCHEDULE_GATEWAY,
     useClass: DriverScheduleGateway,
-  }
+  },
 ];
 @Module({
   imports: [
@@ -45,10 +45,10 @@ const dependencies = [
     VehiclesModule,
     ShareModule,
     KeytokenModule,
-    TrackingModule
+    TrackingModule,
   ],
   controllers: [DriverScheduleController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class DriverScheduleModule { }
+export class DriverScheduleModule {}

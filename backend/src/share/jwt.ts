@@ -22,23 +22,28 @@ export class JwtTokenService implements ITokenProvider {
     try {
       const accessToken = jwt.sign(payload, privateKey, {
         expiresIn: this.expiresInAccessToken,
-        algorithm: 'RS256'
+        algorithm: 'RS256',
       });
       const refreshToken = jwt.sign(payload, privateKey, {
         expiresIn: this.expiresInRefreshToken,
-        algorithm: 'RS256'
+        algorithm: 'RS256',
       });
       console.log('accessToken', accessToken);
       console.log('refreshToken', refreshToken);
-      jwt.verify(accessToken, publicKey, {
-        algorithms: ['RS256']
-      }, (err: any, decoded: any) => {
-        if (err) {
-          console.error('error::', err);
-        } else {
-          console.log('decoded::', decoded);
-        }
-      });
+      jwt.verify(
+        accessToken,
+        publicKey,
+        {
+          algorithms: ['RS256'],
+        },
+        (err: any, decoded: any) => {
+          if (err) {
+            console.error('error::', err);
+          } else {
+            console.log('decoded::', decoded);
+          }
+        },
+      );
       console.log('publicKey', publicKey);
 
       return { accessToken, refreshToken };
@@ -50,7 +55,7 @@ export class JwtTokenService implements ITokenProvider {
   async verifyToken(token: string, key: string): Promise<any> {
     try {
       const decode = (await jwt.verify(token, key, {
-        algorithms: ['RS256']
+        algorithms: ['RS256'],
       })) as TokenPayload;
       console.log('decode56', decode);
       return decode;
@@ -63,7 +68,7 @@ export class JwtTokenService implements ITokenProvider {
             message: 'Token has expired',
             vnMessage: 'Token đã hết hạn',
           },
-          HttpStatusCustom.ACCESS_TOKEN_EXPIRED
+          HttpStatusCustom.ACCESS_TOKEN_EXPIRED,
         );
       }
 
@@ -103,7 +108,7 @@ export class JwtTokenService implements ITokenProvider {
             message: 'Token has expired',
             vnMessage: 'Token đã hết hạn',
           },
-          HttpStatusCustom.ACCESS_TOKEN_EXPIRED
+          HttpStatusCustom.ACCESS_TOKEN_EXPIRED,
         );
       }
 
