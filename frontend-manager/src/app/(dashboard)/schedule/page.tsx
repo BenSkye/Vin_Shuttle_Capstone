@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
-import { Modal, Form, Button, Select, message, Alert, DatePicker } from 'antd';
+import { Modal, Form, Button, Select, message, Alert, } from 'antd';
 import { Activity } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 import Announcements from '@/components/Announcements';
@@ -32,12 +32,12 @@ const SchedulePage = () => {
     const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
     const [isAssigningWeekly, setIsAssigningWeekly] = useState(false);
-    const [isWeekSelectModalOpen, setIsWeekSelectModalOpen] = useState(false);
+
 
     // Form riêng biệt cho thao tác gán và cập nhật
     const [assignForm] = Form.useForm();
     const [updateForm] = Form.useForm();
-    const [weekForm] = Form.useForm();
+
 
     // Bảng ánh xạ thời gian ca làm
     const shiftTimeRanges = {

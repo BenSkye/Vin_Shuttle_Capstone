@@ -166,3 +166,5 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
         </div>
     );
 });
+
+ScheduleCalendar.displayName = 'ScheduleCalendar';
