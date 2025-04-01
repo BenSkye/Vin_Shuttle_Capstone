@@ -624,7 +624,7 @@ export class BookingService implements IBookingService {
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedItineraryMain: false
+                        // isSharedItineraryMain: false
                     }
                 }
             };
@@ -722,7 +722,7 @@ export class BookingService implements IBookingService {
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedItineraryMain: true
+                        // isSharedItineraryMain: true
                     }
                 }
             };
@@ -749,7 +749,7 @@ export class BookingService implements IBookingService {
                         endPoint: endPoint,
                         distanceEstimate: distanceEstimate,
                         distance: distanceEstimate,
-                        isSharedItineraryMain: true
+                        // isSharedItineraryMain: true
                     }
                 }
             }
@@ -831,7 +831,10 @@ export class BookingService implements IBookingService {
                 }, HttpStatus.BAD_REQUEST);
             }
             if (tripUpdate.serviceType === ServiceType.BOOKING_SHARE) {
-                if (tripUpdate.servicePayload.bookingShare.isSharedItineraryMain) {
+                const sharedItinerary = await this.sharedItineraryService.getSharedItineraryById(
+                    tripUpdate.servicePayload.bookingShare.sharedItinerary.toString()
+                )
+                if (sharedItinerary.status === SharedItineraryStatus.PENDING) {
                     await this.sharedItineraryService.updateStatusSharedItinerary(
                         tripUpdate.servicePayload.bookingShare.sharedItinerary.toString(),
                         SharedItineraryStatus.PLANNED

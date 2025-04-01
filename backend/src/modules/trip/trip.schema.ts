@@ -68,7 +68,7 @@ export class Trip {
                 endPoint: StartOrEndPointSchema,
                 distanceEstimate: Number,
                 distance: Number,
-                isSharedItineraryMain: Boolean
+                // isSharedItineraryMain: Boolean
             },
             bookingBusRoute: {
                 routeId: Types.ObjectId,
@@ -123,7 +123,7 @@ export class Trip {
             };
             distanceEstimate: number;
             distance: number,
-            isSharedItineraryMain: boolean
+            // isSharedItineraryMain: boolean
         };
         bookingBusRoute?: {
             routeId: Types.ObjectId;

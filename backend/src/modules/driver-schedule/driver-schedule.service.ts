@@ -13,7 +13,7 @@ import { UserDocument } from "src/modules/users/users.schema";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
+import { DriverSchedulesStatus, DriverScheduleTaskType, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
 import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 import { DateUtils } from "src/share/utils";
 
@@ -274,12 +274,12 @@ export class DriverScheduleService implements IDriverScheduleService {
     return schedules;
   }
 
-  async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
-    const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedules();
+  async getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]> {
+    const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedulesGeneral();
     return driverSchedules;
   }
 
-  async getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]> {
+  async getScheduleGeneralFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]> {
     // get all driver schedule from start to end
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -294,7 +294,8 @@ export class DriverScheduleService implements IDriverScheduleService {
       date: {
         $gte: startDate,
         $lte: endDate
-      }
+      },
+      taskType: DriverScheduleTaskType.GENERAL,
     }, []);
     return schedules;
   }

@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PopulatedDriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.dto';
+import { ICreateDriverSchedule, PopulatedDriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import {
   DriverSchedule,
   DriverScheduleDocument,
 } from 'src/modules/driver-schedule/driver-schedule.schema';
+import { DriverScheduleTaskType } from 'src/share/enums';
 import { getSelectData } from 'src/share/utils';
 
 @Injectable()
@@ -15,7 +16,7 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
     @InjectModel(DriverSchedule.name) private readonly driverScheduleModel: Model<DriverSchedule>,
   ) { }
 
-  async createDriverSchedule(driverSchedule: any): Promise<DriverScheduleDocument> {
+  async createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument> {
     const newDriverSchedule = new this.driverScheduleModel(driverSchedule);
     return await newDriverSchedule.save();
   }
@@ -27,9 +28,11 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
       .populate('vehicle', 'name');
   }
 
-  async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
+  async getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]> {
     return await this.driverScheduleModel
-      .find()
+      .find({
+        taskType: DriverScheduleTaskType.GENERAL,
+      })
       .populate('driver', 'name')
       .populate('vehicle', 'name');
   }

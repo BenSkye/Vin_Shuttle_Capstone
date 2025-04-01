@@ -23,3 +23,9 @@ export enum ShiftDifference {
   IN = -15,
   OUT = +15,
 }
+
+
+export enum DriverScheduleTaskType {
+  GENERAL = 'general',
+  BUS = 'bus',
+}

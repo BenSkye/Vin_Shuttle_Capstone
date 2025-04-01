@@ -20,7 +20,7 @@ import { RolesGuard } from 'src/modules/auth/role.guard';
 import { DRIVERSCHEDULE_SERVICE } from 'src/modules/driver-schedule/driver-schedule.di-token';
 import { CreateDriverScheduleDto, driverScheduleParams, ICreateDriverSchedule } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.port';
-import { DriverSchedulesStatus, Shift, UserRole } from 'src/share/enums';
+import { DriverSchedulesStatus, DriverScheduleTaskType, Shift, UserRole } from 'src/share/enums';
 import { HEADER } from 'src/share/interface';
 
 @ApiTags('driver-schedules')
@@ -145,7 +145,7 @@ export class DriverScheduleController {
     return await this.driverScheduleService.getVehicleNotScheduledInDate(date);
   }
 
-  @Get('get-schedule-from-start-to-end/:startDate/:endDate')
+  @Get('get-schedule-general-from-start-to-end/:startDate/:endDate')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
@@ -166,7 +166,7 @@ export class DriverScheduleController {
     @Param('startDate') startDate: Date,
     @Param('endDate') endDate: Date,
   ) {
-    return await this.driverScheduleService.getScheduleFromStartToEnd(startDate, endDate);
+    return await this.driverScheduleService.getScheduleGeneralFromStartToEnd(startDate, endDate);
   }
 
   @Get('get-driver-schedules-by-query')
@@ -218,7 +218,12 @@ export class DriverScheduleController {
     type: Boolean,
     description: 'Filter by isEarlyCheckout',
   })
-
+  @ApiQuery({
+    name: 'taskType',
+    required: false,
+    enum: DriverScheduleTaskType,
+    description: 'Filter by taskType',
+  })
 
   async getDriverSchedulesByQuery(
     @Query() query: driverScheduleParams

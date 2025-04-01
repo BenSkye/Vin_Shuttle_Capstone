@@ -19,6 +19,7 @@ import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 import {
   BOOKING_BUFFER_MINUTES,
   DriverSchedulesStatus,
+  DriverScheduleTaskType,
   GUARANTEED_TIME_BETWEEN_TRIPS,
   ServiceType,
   Shift,
@@ -295,6 +296,7 @@ export class SearchService implements ISearchService {
             date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
             status: status,
+            taskType: DriverScheduleTaskType.GENERAL,
           },
           [],
         ),

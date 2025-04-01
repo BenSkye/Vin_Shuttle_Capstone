@@ -75,7 +75,7 @@ export class BookingSharePayloadDto {
     endPoint: StartOrEndPoint;
     distanceEstimate: number;
     distance: number,
-    isSharedItineraryMain: boolean
+    // isSharedItineraryMain: boolean
   }
 }
 

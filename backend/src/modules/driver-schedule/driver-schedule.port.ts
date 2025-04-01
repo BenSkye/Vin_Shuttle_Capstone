@@ -11,7 +11,7 @@ import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
 export interface IDriverScheduleRepository {
   createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument>;
   getDriverScheduleById(id: string): Promise<DriverScheduleDocument>;
-  getAllDriverSchedules(): Promise<DriverScheduleDocument[]>;
+  getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]>;
   getDriverSchedules(query: any, select: string[]): Promise<DriverScheduleDocument[]>;
   findOneDriverSchedule(query: any, select: string[]): Promise<PopulatedDriverScheduleDocument>;
   updateDriverSchedule(
@@ -36,9 +36,9 @@ export interface IDriverScheduleService {
     start: Date,
     end: Date,
   ): Promise<DriverScheduleDocument[]>;
-  getAllDriverSchedules(): Promise<DriverScheduleDocument[]>;
+  getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]>;
   getDriverSchedules(query: driverScheduleParams): Promise<DriverScheduleDocument[]>;
-  getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]>;
+  getScheduleGeneralFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]>;
   updateDriverSchedule(
     id: string,
     driverSchedule: IUpdateDriverSchedule,
