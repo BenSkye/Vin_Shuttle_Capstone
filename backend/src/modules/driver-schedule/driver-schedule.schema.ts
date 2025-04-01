@@ -15,6 +15,9 @@ export class DriverSchedule {
   @Prop({ type: String, enum: Shift, required: function () { return this.taskType === DriverScheduleTaskType.GENERAL; } })
   shift: string; // Ca làm việc (A, B, C, D)
 
+  @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  busRoute: Types.ObjectId;
+
   @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
   startTime: Date; // Thời gian bắt đầu ca làm việc (ví dụ: 2023-10-01T08:00:00Z)
 

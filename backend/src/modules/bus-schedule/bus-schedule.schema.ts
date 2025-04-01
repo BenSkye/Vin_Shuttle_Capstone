@@ -15,9 +15,8 @@ export class BusSchedule {
     @Prop({ type: Date, required: true })
     date: Date;
 
-    start: Date; //6 //6:15
-
-    end: Date;//22 //22:15
+    @Prop({ type: String, required: true })
+    departureTime: Date; // Thời gian xuất trạm 
 
     @Prop({ type: [Types.ObjectId], ref: 'DriverSchedules', default: [] })
     driverScheduleIds: Types.ObjectId[];
