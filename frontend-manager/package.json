@@ -39,6 +39,7 @@
     "devextreme": "^24.2.5",
     "devextreme-react": "^24.2.5",
     "dotenv": "^16.4.7",
+    "firebase": "^11.5.0",
     "frontend-manager": "file:",
     "i18next": "^24.2.0",
     "i18next-browser-languagedetector": "^8.0.2",

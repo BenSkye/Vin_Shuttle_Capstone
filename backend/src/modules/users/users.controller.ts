@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Inject, Param, Put, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Put,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
@@ -6,14 +17,14 @@ import { RolesGuard } from 'src/modules/auth/role.guard';
 import { USER_SERVICE } from 'src/modules/users/users.di-token';
 import { UpdateUserDto, userParams } from 'src/modules/users/users.dto';
 import { IUserService } from 'src/modules/users/users.port';
-import { UserRole } from 'src/share/enums';
+import { UserRole, UserStatus } from 'src/share/enums';
 import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { HEADER } from 'src/share/interface';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(@Inject(USER_SERVICE) private readonly service: IUserService) { }
+  constructor(@Inject(USER_SERVICE) private readonly service: IUserService) {}
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
@@ -45,14 +56,19 @@ export class UsersController {
     enum: UserRole,
     description: 'Filter by user role',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of vehicles' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
   @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
     enum: SortOrderOption,
-    description: 'Sort order (asc, desc)'
+    description: 'Sort order (asc, desc)',
   })
   async getAllUsers(@Query() query: userParams) {
     return await this.service.listUsers(query);
@@ -104,6 +120,35 @@ export class UsersController {
     return await this.service.updateProfile(req.user._id, user);
   }
 
+  @Put('update-driver-profile/:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Update driver profile' })
+  @ApiParam({
+    name: 'id',
+    description: 'Driver ID',
+    example: '64f5e4d3b9a2c7f8e3b7c8d1',
+  })
+  @ApiBody({
+    type: UpdateUserDto,
+    description: 'Update driver profile',
+    examples: {
+      'Update driver profile': {
+        value: {
+          name: 'KhanhHg',
+          phone: '00800808808',
+          email: 'KhanhHg8386@gmail.com',
+          status: UserStatus.ACTIVE,
+        },
+      },
+    },
+  })
+  async updateDriverProfile(@Param('id') id: string, @Body() user: UpdateUserDto) {
+    return await this.service.updateDriverProfile(id, user);
+  }
+
   @Put('save-push-token')
   @UseGuards(AuthGuard)
   @ApiBearerAuth(HEADER.AUTHORIZATION)
@@ -116,7 +161,7 @@ export class UsersController {
       'Save user push token': {
         value: {
           pushToken: 'xxxxxxxxxxxxxxxxxxxx',
-        }
+        },
       },
     },
   })
@@ -132,5 +177,4 @@ export class UsersController {
   async deletePushToken(@Request() req) {
     return await this.service.deletePushToken(req.user._id);
   }
-
 }

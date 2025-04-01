@@ -17,7 +17,7 @@ export class ScenicRouteService implements IScenicRouteService {
   constructor(
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly routeRepository: IScenicRouteRepository,
-  ) { }
+  ) {}
 
   async createScenicRoute(route: ICreateScenicRouteDto): Promise<ScenicRouteDocument> {
     const newScenicRoute = await this.routeRepository.create(route);

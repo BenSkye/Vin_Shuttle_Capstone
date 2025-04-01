@@ -16,7 +16,7 @@ export class VehicleCategoryService implements IVehicleCategoryService {
   constructor(
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
-  ) { }
+  ) {}
 
   async list(): Promise<VehicleCategoryDocument[]> {
     const listVehicleCategory = await this.vehicleCategoryRepository.list();

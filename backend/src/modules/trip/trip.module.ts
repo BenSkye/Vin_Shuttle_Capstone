@@ -45,10 +45,10 @@ const dependencies = [
     KeytokenModule,
     BusRouteModule,
     forwardRef(() => SharedItineraryModule),
-    NotificationModule
+    NotificationModule,
   ],
   controllers: [TripController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class TripModule { }
+export class TripModule {}

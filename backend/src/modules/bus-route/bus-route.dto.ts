@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { BusRouteStatus } from 'src/share/enums/bus-routes.enum';
 
 export class PositionDto {
   @ApiProperty({
@@ -121,11 +122,11 @@ export class CreateBusRouteDto {
 
   @ApiProperty({
     description: 'Route status',
-    enum: ['active', 'inactive'],
-    example: 'active',
+    enum: BusRouteStatus,
+    example: BusRouteStatus.ACTIVE,
   })
-  @IsEnum(['active', 'inactive'])
-  status: string;
+  @IsEnum(BusRouteStatus)
+  status: BusRouteStatus;
 }
 
 export class UpdateBusRouteDto {
@@ -194,9 +195,9 @@ export class UpdateBusRouteDto {
   @ApiProperty({
     description: 'Route status',
     required: false,
-    enum: ['active', 'inactive'],
-    example: 'active',
+    enum: BusRouteStatus,
+    example: BusRouteStatus.ACTIVE,
   })
-  @IsEnum(['active', 'inactive'])
+  @IsEnum(BusRouteStatus)
   status?: string;
 }

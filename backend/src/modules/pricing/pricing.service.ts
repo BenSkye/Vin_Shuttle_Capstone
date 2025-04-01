@@ -26,27 +26,24 @@ export class PricingService implements IPricingService {
     private readonly vehiclePricingRepo: IVehiclePricingRepository,
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepo: IVehicleCategoryRepository,
-  ) { }
-
+  ) {}
 
   async findVehiclePricing(query: any): Promise<VehiclePricingDocument> {
-    const pricing = await this.vehiclePricingRepo.findVehiclePricing(
-      {
-        vehicle_category: query.vehicle_category.toString(),
-        service_config: query.service_config.toString(),
-      }
-    );
+    const pricing = await this.vehiclePricingRepo.findVehiclePricing({
+      vehicle_category: query.vehicle_category.toString(),
+      service_config: query.service_config.toString(),
+    });
 
     if (!pricing) {
-    throw new HttpException(
-      {
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Vehicle pricing not found',
-        vnMessage: 'Không tìm thấy cấu hình giá cho loại xe này',
-      },
-      HttpStatus.NOT_FOUND,
-    );
-   }
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Vehicle pricing not found',
+          vnMessage: 'Không tìm thấy cấu hình giá cho loại xe này',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
     return pricing;
   }
 
@@ -68,7 +65,9 @@ export class PricingService implements IPricingService {
 
   async createVehiclePricing(pricing: ICreateVehiclePricingDto) {
     const vehicle_category = pricing.vehicle_category;
-    const vehicle_category_exists = await this.vehicleCategoryRepo.getById(vehicle_category.toString());
+    const vehicle_category_exists = await this.vehicleCategoryRepo.getById(
+      vehicle_category.toString(),
+    );
     if (!vehicle_category_exists) {
       throw new HttpException(
         {
@@ -200,10 +199,13 @@ export class PricingService implements IPricingService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return updatedVehiclePricing
+    return updatedVehiclePricing;
   }
 
-  async checkVehicleCategoryAndServiceType(vehicleCategoryId: string, serviceType: string): Promise<boolean> {
+  async checkVehicleCategoryAndServiceType(
+    vehicleCategoryId: string,
+    serviceType: string,
+  ): Promise<boolean> {
     const vehicleCategory = await this.vehicleCategoryRepo.getById(vehicleCategoryId);
     if (!vehicleCategory) {
       throw new HttpException(
@@ -238,7 +240,6 @@ export class PricingService implements IPricingService {
 
   //function to calculate price by hour or distance
   async calculatePrice(serviceType: string, vehicleCategoryId: string, totalUnits: number) {
-   
     const config = await this.configRepo.findByServiceType(serviceType);
     if (!config) {
       throw new HttpException(
@@ -295,7 +296,6 @@ export class PricingService implements IPricingService {
     };
   }
 
-  
   async createBusRoutePricing(dto: ICreateBusRoutePricingDto) {
     // check if vehicle category exists
     const vehicle_category_exists = await this.vehicleCategoryRepo.getById(dto.vehicle_category);
@@ -338,7 +338,7 @@ export class PricingService implements IPricingService {
     }
 
     // create new pricing
-   const newPricing = await this.vehiclePricingRepo.create({
+    const newPricing = await this.vehiclePricingRepo.create({
       vehicle_category: dto.vehicle_category,
       service_config: busServiceConfig._id.toString(),
       tiered_pricing: dto.tiered_pricing,
@@ -350,7 +350,7 @@ export class PricingService implements IPricingService {
   async calculateBusFare(
     vehicleCategoryId: string,
     distance: number,
-    numberOfSeats: number = 1
+    numberOfSeats: number = 1,
   ): Promise<number> {
     const busServiceConfig = await this.configRepo.findByServiceType(ServiceType.BOOKING_BUS_ROUTE);
     if (!busServiceConfig) {
@@ -383,7 +383,7 @@ export class PricingService implements IPricingService {
     const result = await this.recipePrice(
       busServiceConfig.base_unit,
       pricing.tiered_pricing,
-      distance
+      distance,
     );
 
     // multiply by number of seats

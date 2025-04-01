@@ -34,7 +34,7 @@ export class BusRouteService implements IBusRouteService {
     }
   }
 
-   private async validateStops(stops: RouteStopDto[]): Promise<void> {
+  private async validateStops(stops: RouteStopDto[]): Promise<void> {
     if (!stops || stops.length === 0) {
       throw new BadRequestException('Route must have at least one stop');
     }
@@ -44,7 +44,9 @@ export class BusRouteService implements IBusRouteService {
       try {
         await this.busStopService.getBusStopById(stop.stopId);
       } catch (error) {
-        throw new BadRequestException(`Stop with ID ${stop.stopId} does not exist in list of bus stops`);
+        throw new BadRequestException(
+          `Stop with ID ${stop.stopId} does not exist in list of bus stops`,
+        );
       }
     }
 
@@ -55,45 +57,43 @@ export class BusRouteService implements IBusRouteService {
       throw new BadRequestException('Order index must be unique');
     }
   }
-  
 
-   async createRoute(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
+  async createRoute(dto: CreateBusRouteDto): Promise<BusRouteDocument> {
     await this.validateStops(dto.stops);
-    
+
     await this.validateVehicleCategory(dto.vehicleCategory);
-    
-    
-      const busServiceConfig = await this.pricingService.getServiceConfig(ServiceType.BOOKING_BUS_ROUTE);
-      console.log('Bus Service Config:', busServiceConfig);
 
-      if (!busServiceConfig) {
-        throw new BadRequestException({
-          message: 'Bus route service config not found',
-          vnMessage: 'Không tìm thấy cấu hình dịch vụ xe buýt',
-        });
-      }
+    const busServiceConfig = await this.pricingService.getServiceConfig(
+      ServiceType.BOOKING_BUS_ROUTE,
+    );
+    console.log('Bus Service Config:', busServiceConfig);
 
-      const pricing = await this.pricingService.findVehiclePricing({
-        vehicle_category: dto.vehicleCategory,
-        service_config: busServiceConfig._id,
+    if (!busServiceConfig) {
+      throw new BadRequestException({
+        message: 'Bus route service config not found',
+        vnMessage: 'Không tìm thấy cấu hình dịch vụ xe buýt',
       });
+    }
 
-      if (!pricing) {
-        throw new BadRequestException({
-          message: 'Vehicle category does not have pricing configuration for bus route service',
-          vnMessage: 'Loại phương tiện chưa được cấu hình giá cho dịch vụ xe buýt',
-        });
-      }
+    const pricing = await this.pricingService.findVehiclePricing({
+      vehicle_category: dto.vehicleCategory,
+      service_config: busServiceConfig._id,
+    });
 
-      const createData: ICreateBusRouteData = {
-        ...dto,
-        pricingConfig: pricing._id.toString(),
-      };
+    if (!pricing) {
+      throw new BadRequestException({
+        message: 'Vehicle category does not have pricing configuration for bus route service',
+        vnMessage: 'Loại phương tiện chưa được cấu hình giá cho dịch vụ xe buýt',
+      });
+    }
 
-      return await this.busRouteRepository.create(createData);
+    const createData: ICreateBusRouteData = {
+      ...dto,
+      pricingConfig: pricing._id.toString(),
+    };
 
+    return await this.busRouteRepository.create(createData);
   }
-  
 
   async getAllRoutes(): Promise<BusRouteDocument[]> {
     return await this.busRouteRepository.findAll();
@@ -121,7 +121,7 @@ export class BusRouteService implements IBusRouteService {
     await this.busRouteRepository.delete(id);
   }
 
- async calculateFare(
+  async calculateFare(
     routeId: string,
     fromStopId: string,
     toStopId: string,
@@ -143,7 +143,7 @@ export class BusRouteService implements IBusRouteService {
     const fare = await this.pricingService.calculatePrice(
       'booking_trip', // service_type for bus route
       route.vehicleCategory.toString(),
-      distance // total_units is distance
+      distance, // total_units is distance
     );
 
     // multiply by number of seats
