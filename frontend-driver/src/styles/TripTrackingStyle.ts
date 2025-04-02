@@ -101,7 +101,7 @@ export const styles = StyleSheet.create({
         marginTop: 2,
     },
     customerAddress: {
-        fontSize: 13,
+        fontSize: 10,
         color: '#666',
         marginTop: 2,
         flexShrink: 1,
@@ -399,4 +399,15 @@ export const styles = StyleSheet.create({
         fontStyle: 'italic',
         lineHeight: 18,
     },
+    loadingContainer: {
+        backgroundColor: 'white',
+        padding: 24,
+        borderRadius: 16,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+    }
 });

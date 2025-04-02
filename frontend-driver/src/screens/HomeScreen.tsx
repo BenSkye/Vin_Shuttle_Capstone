@@ -100,7 +100,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     const status = trip.status.toLowerCase();
 
     // Chỉ cho phép đi đến màn hình theo dõi cho trạng thái pickup và in_progress
-    if (status === 'pickup' || status === 'in_progress') {
+    if (status === TripStatus.PAYED || status === 'pickup' || status === 'in_progress') {
       handleActionWithCheckInValidation(() => {
         navigation.navigate('TripTracking', { tripID: trip._id });
       });
@@ -323,7 +323,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             <ActivityIndicator size="large" color="#2563eb" />
           ) : activeTrips.length > 0 ? (
             activeTrips.map((trip) => {
-              const canTrack = ['pickup', 'in_progress'].includes(trip.status.toLowerCase());
+              const canTrack = [TripStatus.PAYED, TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status.toLowerCase());
+              const isExecuted = [TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status.toLowerCase());
               const canPickup = trip.status.toLowerCase() === 'payed';
 
               // Style khi chưa check-in
@@ -342,7 +343,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                   <TouchableOpacity
                     onPress={() => (canTrack ? handleNavigateToTrip(trip) : null)}
                     className="rounded-lg border border-gray-100 bg-white p-4 shadow-md"
-                    disabled={!canTrack}>
+                    disabled={!canTrack}
+                  >
                     <View className="mb-2 flex-row items-center justify-between">
                       <View className="flex-row items-center">
                         <Icon name="account" size={20} color="#4b5563" />
@@ -426,7 +428,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                         <TouchableOpacity
                           onPress={() => handlePickup(trip._id)}
                           className={`flex-1 rounded-md bg-green-500 px-4 py-2 ${disabledStyle}`}
-                          disabled={!isInProgress}>
+                          disabled={!isInProgress}
+                        >
                           <View className="flex-row items-center justify-center">
                             <Icon name="car-pickup" size={20} color="white" />
                             <Text className="ml-2 font-medium text-white">Đón khách</Text>
@@ -436,7 +439,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                         <TouchableOpacity
                           onPress={() => showCancelTripModal(trip._id)}
                           className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
-                          disabled={!isInProgress}>
+                          disabled={!isInProgress}
+                        >
                           <View className="flex-row items-center justify-center">
                             <Icon name="cancel" size={20} color="white" />
                             <Text className="ml-2 font-medium text-white">Hủy</Text>
@@ -445,7 +449,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       </View>
                     )}
 
-                    {canTrack && (
+                    {isExecuted && (
                       <View className="mt-2 flex-row gap-2">
                         <TouchableOpacity
                           onPress={() => handleNavigateToTrip(trip)}
