@@ -19,8 +19,7 @@ import {
   startTrip,
   completeTrip,
   getSenicRouteById,
-  getShareRouteByTripId,
-  getShareRouteById
+  getSharedItineraryById
 } from '~/services/tripServices';
 import { useLocation } from '~/context/LocationContext';
 import {
@@ -162,7 +161,7 @@ const TripTrackingScreen = () => {
 
   const fetchSharedItineraryData = async (tripId: string) => {
     try {
-      const itinerary = await getShareRouteById(tripId); // Replace with actual API call
+      const itinerary = await getSharedItineraryById(tripId); // Replace with actual API call
       if (itinerary) {
         console.log("con cac",itinerary)
         setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
