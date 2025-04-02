@@ -4,4 +4,5 @@ export interface INotification {
   body: string
   isRead: boolean
   createdAt: string
+  redirectUrl?: string
 }

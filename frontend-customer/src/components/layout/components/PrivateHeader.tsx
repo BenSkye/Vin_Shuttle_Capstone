@@ -6,10 +6,11 @@ import { Routes } from '@/constants/routers'
 import { Logo } from '@/components/icons/Logo'
 import { NotificationDropdown } from '@/components/common/NotificationDropdown'
 import { UserDropdown } from '@/components/common/UserDropdown'
+import { INotification } from '@/interface/notification'
 
 interface PrivateHeaderProps {
     userName: string
-    notifications: any[]
+    notifications: INotification[]
     unreadCount: number
     onLogout: () => void
     markAsRead: (id: string) => Promise<void>
@@ -23,8 +24,6 @@ const privateNavItems = [
     { label: 'Đặt xe chung', href: Routes.RIDE.SHARED },
     { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
     { label: 'Tính năng', href: Routes.FEATURES },
-
-
 ]
 
 export function PrivateHeader({
@@ -60,16 +59,16 @@ export function PrivateHeader({
     }
 
     return (
-        <header className="sticky top-0 z-50 bg-white shadow-sm">
+        <header className="sticky top-0 z-50 border-b border-divider bg-surface shadow-sm">
             {/* Desktop Navigation */}
-            <nav className="flex items-center justify-between bg-white px-4 py-4">
+            <nav className="flex items-center justify-between bg-surface px-4 py-4">
                 <Logo size="large" />
                 <div className="hidden items-center justify-center space-x-8 md:flex">
                     {privateNavItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="text-lg font-medium text-gray-600 transition hover:text-green-500"
+                            className="text-lg font-medium text-content-secondary transition hover:text-primary-500"
                         >
                             {item.label}
                         </Link>
@@ -93,23 +92,23 @@ export function PrivateHeader({
                         onLogout={onLogout}
                     />
                 </div>
-                <button onClick={toggleMenu} className="text-2xl text-gray-600 md:hidden">
+                <button onClick={toggleMenu} className="text-2xl text-content-secondary md:hidden">
                     {isOpen ? <FiX /> : <FiMenu />}
                 </button>
             </nav>
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="fixed bottom-0 left-0 right-0 top-[72px] z-50 overflow-y-auto bg-white shadow-lg md:hidden">
+                <div className="fixed bottom-0 left-0 right-0 top-[72px] z-50 overflow-y-auto bg-surface shadow-lg md:hidden">
                     <div className="flex max-h-[calc(100vh-72px)] flex-col space-y-4 p-4 pb-20">
                         {/* User Profile Section */}
-                        <div className="flex items-center space-x-3 border-b border-gray-100 pb-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
-                                <FiUser className="text-xl text-white" />
+                        <div className="flex items-center space-x-3 border-b border-divider pb-4">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500">
+                                <FiUser className="text-xl text-content-inverse" />
                             </div>
                             <div>
-                                <p className="font-medium text-gray-700">{userName}</p>
-                                <p className="text-xs text-gray-500">Tài khoản của bạn</p>
+                                <p className="font-medium text-content">{userName}</p>
+                                <p className="text-xs text-content-tertiary">Tài khoản của bạn</p>
                             </div>
                         </div>
 
@@ -118,7 +117,7 @@ export function PrivateHeader({
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="border-b border-gray-100 py-2 text-lg font-medium text-gray-600 transition hover:text-green-500"
+                                className="border-b border-divider py-2 text-lg font-medium text-content-secondary transition hover:text-primary-500"
                                 onClick={() => setIsOpen(false)}
                             >
                                 {item.label}
@@ -126,12 +125,12 @@ export function PrivateHeader({
                         ))}
 
                         {/* Notifications Section */}
-                        <div className="space-y-2 border-t border-gray-100 pt-4">
+                        <div className="space-y-2 border-t border-divider pt-4">
                             <div className="mb-2 flex items-center justify-between">
-                                <p className="font-medium text-gray-700">Thông báo</p>
+                                <p className="font-medium text-content">Thông báo</p>
                                 {unreadCount > 0 && (
                                     <button
-                                        className="text-xs text-blue-600"
+                                        className="text-xs text-accent-500"
                                         onClick={markAllAsRead}
                                     >
                                         Đánh dấu tất cả đã đọc
@@ -139,7 +138,7 @@ export function PrivateHeader({
                                 )}
                             </div>
                             {notifications.length === 0 ? (
-                                <p className="py-4 text-center text-sm text-gray-500">
+                                <p className="py-4 text-center text-sm text-content-tertiary">
                                     Không có thông báo
                                 </p>
                             ) : (
@@ -147,23 +146,23 @@ export function PrivateHeader({
                                     {notifications.slice(0, 5).map((notif) => (
                                         <div
                                             key={notif._id}
-                                            className={`rounded p-3 text-sm ${!notif.isRead ? 'bg-blue-50' : 'bg-gray-50'}`}
+                                            className={`rounded p-3 text-sm ${!notif.isRead ? 'bg-accent-50' : 'bg-surface-secondary'}`}
                                             onClick={() => handleMobileNotificationClick(notif._id, notif.redirectUrl)}
                                         >
                                             <div className="mb-1 flex items-start justify-between">
-                                                <p className={`font-medium ${!notif.isRead ? 'text-blue-800' : 'text-gray-800'}`}>
+                                                <p className={`font-medium ${!notif.isRead ? 'text-accent-700' : 'text-content'}`}>
                                                     {notif.title}
                                                 </p>
-                                                <span className="text-xs text-gray-500">
+                                                <span className="text-xs text-content-tertiary">
                                                     {new Date(notif.createdAt).toLocaleDateString()}
                                                 </span>
                                             </div>
-                                            <p className="text-gray-600">{notif.message}</p>
+                                            <p className="text-content-secondary">{notif.body}</p>
                                         </div>
                                     ))}
                                     {notifications.length > 5 && (
                                         <button
-                                            className="w-full text-center text-sm text-blue-600"
+                                            className="w-full text-center text-sm text-accent-500"
                                             onClick={() => {
                                                 setIsOpen(false)
                                                 router.push('/notifications')
@@ -177,29 +176,29 @@ export function PrivateHeader({
                         </div>
 
                         {/* User Actions */}
-                        <div className="flex flex-col space-y-3 border-t border-gray-100 pt-4">
+                        <div className="flex flex-col space-y-3 border-t border-divider pt-4">
                             <Link
                                 href={Routes.PROFILE}
-                                className="flex items-center gap-3 py-2 text-gray-600"
+                                className="flex items-center gap-3 py-2 text-content-secondary"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <FiUserCheck className="text-green-500" />
+                                <FiUserCheck className="text-primary-500" />
                                 <span>Thông tin cá nhân</span>
                             </Link>
                             <Link
                                 href={Routes.TRIPS}
-                                className="flex items-center gap-3 py-2 text-gray-600"
+                                className="flex items-center gap-3 py-2 text-content-secondary"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <FiClock className="text-green-500" />
+                                <FiClock className="text-primary-500" />
                                 <span>Lịch sử chuyến đi</span>
                             </Link>
                             <Link
                                 href={Routes.BOOKING.ROOT}
-                                className="flex items-center gap-3 py-2 text-gray-600"
+                                className="flex items-center gap-3 py-2 text-content-secondary"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <FiCreditCard className="text-green-500" />
+                                <FiCreditCard className="text-primary-500" />
                                 <span>Lịch sử thanh toán</span>
                             </Link>
 
@@ -208,9 +207,9 @@ export function PrivateHeader({
                                     setIsOpen(false)
                                     onLogout()
                                 }}
-                                className="flex items-center gap-3 py-2 text-red-600"
+                                className="flex items-center gap-3 py-2 text-error"
                             >
-                                <FiLogOut className="text-red-500" />
+                                <FiLogOut className="text-error" />
                                 <span>Đăng xuất</span>
                             </button>
                         </div>
