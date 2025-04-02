@@ -39,6 +39,7 @@ import { RouteProp } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useTripSocket from '~/hook/useTripSocket';
 import { SharedItineraryStopsType } from '~/constants/shared-itinerary.enum';
+import { SharedItinerary } from '~/interface/share-itinerary';
 
 // First, properly type the route params
 interface RouteParams {
@@ -73,7 +74,8 @@ const TripTrackingScreen = () => {
   const [showScenicRoute, setShowScenicRoute] = useState(false);
   // Thêm state để quản lý trạng thái thu gọn
   const [isScenicRouteCollapsed, setIsScenicRouteCollapsed] = useState(false);
-
+// state for shared itinerary
+  const [sharedItinerary, setSharedItinerary] = useState<SharedItinerary>(); // Replace 'any' with the actual type if available
   // Effect for initialization
   React.useEffect(() => {
     if (trip) {
@@ -88,13 +90,14 @@ const TripTrackingScreen = () => {
     }
   }, [data]);
 
-  // Effect to set trip from route params
-  // React.useEffect(() => {
-  //   if (route.params?.trip) {
-  //     setTrip(route.params.trip as Trip);
-  //   }
-  // }, [route.params]);
-
+  
+//useEffect for sharedItinerary
+  useEffect(() => {
+    if (sharedItinerary) {
+      console.log('Shared itinerary data999:', sharedItinerary);
+    }
+  }
+  , [sharedItinerary]);
   // Initialize location data based on trip type
   const initializeLocationData = () => {
     if (!trip) return;
@@ -161,6 +164,8 @@ const TripTrackingScreen = () => {
     try {
       const itinerary = await getShareRouteById(tripId); // Replace with actual API call
       if (itinerary) {
+        console.log("con cac",itinerary)
+        setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
         const startPoint = itinerary.stops.find(
           (stop) => stop.pointType === SharedItineraryStopsType.START_POINT
         );
@@ -318,7 +323,6 @@ const TripTrackingScreen = () => {
               setScenicRouteData(payload.bookingShare.sharedItinerary);
               setWaypoints(payload.bookingShare.sharedItinerary || []);
               setShowScenicRoute(true);
-              console.log('Scenic route data cai l ma may:', payload.bookingShare.sharedItinerary);
             } else {
               // If routeId is just an ID, fetch the data
               const routeId =
@@ -326,8 +330,9 @@ const TripTrackingScreen = () => {
                   ? payload.bookingShare.sharedItinerary
                   : payload.bookingShare.sharedItinerary;
                   
-              fetchSharedItineraryData(routeId);
-              console.log('Scenic route data cai l ma may:', payload.bookingShare.sharedItinerary);
+              await fetchSharedItineraryData(routeId);
+              console.log("cc3m",sharedItinerary)
+              console.log('Share route data:', payload.bookingShare.sharedItinerary);
             }
           }
         }
