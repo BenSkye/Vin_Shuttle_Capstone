@@ -105,7 +105,7 @@ export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> 
     throw error;
   }
 };
-export const getShareRouteById = async (Id: string): Promise<SharedItinerary> => {
+export const getSharedItineraryById = async (Id: string): Promise<SharedItinerary> => {
   try {
     const response = await apiClient.get(`/share-itinerary/get-by-id/${Id}`);
     return response.data;
