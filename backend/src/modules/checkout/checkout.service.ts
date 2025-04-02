@@ -18,7 +18,7 @@ export class CheckoutService implements ICheckoutService {
     private readonly payosService: IPayosService,
     @Inject(MOMO_PROVIDER)
     private readonly momoService: IMomoService, // Replace with actual type if available
-  ) {}
+  ) { }
 
   async CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType> {
     const booking = await this.bookingRepository.getBookingById(bookingId);
@@ -86,6 +86,32 @@ export class CheckoutService implements ICheckoutService {
       cancelUrl: '/cancel-booking-payment',
       returnUrl: '/return-booking-payment',
     });
+    console.log('paymentResult', paymentResult);
     return paymentResult;
   }
+
+
+  async momoCalbackReturn(reqBody: any): Promise<any> {
+    console.log('reqBody94', reqBody);
+    if (reqBody.resultCode === 0) {
+      const booking = await this.bookingService.payBookingSuccess(reqBody.orderId);
+      const updatedBooking = await this.bookingRepository.updateBooking(booking._id.toString(), {
+        transId: reqBody.transId,
+      })
+      console.log('booking', updatedBooking);
+      return updatedBooking;
+    } else {
+      await this.bookingService.payBookingFail(reqBody.orderId);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `Payment failed`,
+          vnMessage: `Thanh toán thất bại do ${reqBody.message}`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { DriverScheduleModule } from 'src/modules/driver-schedule/driver-schedule.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { PricingModule } from 'src/modules/pricing/pricing.module';
@@ -26,7 +26,7 @@ const dependencies = [
     VehiclesModule,
     VehicleCategoryModule,
     DriverScheduleModule,
-    TripModule,
+    forwardRef(() => TripModule),
     PricingModule,
     ScenicRouteModule,
     ShareModule,
@@ -36,4 +36,4 @@ const dependencies = [
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class SearchModule {}
+export class SearchModule { }

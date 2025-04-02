@@ -51,9 +51,9 @@ import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
     PricingModule,
     ScenicRouteModule,
     DriverScheduleModule,
+    BookingModule,
     TripModule,
     SearchModule,
-    BookingModule,
     CheckoutModule,
     BusStopModule,
     BusRouteModule,
@@ -67,4 +67,4 @@ import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule {}
+export class AppModule { }

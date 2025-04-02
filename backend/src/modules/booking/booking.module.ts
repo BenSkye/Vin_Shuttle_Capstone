@@ -38,10 +38,10 @@ const dependencies = [
         schema: BookingSchema,
       },
     ]),
+    forwardRef(() => TripModule),
     VehiclesModule,
     VehicleCategoryModule,
     DriverScheduleModule,
-    TripModule,
     PricingModule,
     SearchModule,
     ScenicRouteModule,
@@ -56,4 +56,4 @@ const dependencies = [
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class BookingModule {}
+export class BookingModule { }

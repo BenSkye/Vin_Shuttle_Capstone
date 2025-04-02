@@ -11,7 +11,7 @@ export class MomoService implements IMomoService {
   private readonly FRONTEND_URL = process.env.FRONTEND_URL;
   private readonly MOMO_ENDPOINT = process.env.MOMO_ENDPOINT;
   private readonly MOMO_REFUND_ENDPOINT = process.env.MOMO_REFUND_ENDPOINT;
-  constructor() {}
+  constructor() { }
 
   async createPaymentLink(createPaymentDto: {
     bookingCode: number;
@@ -30,7 +30,7 @@ export class MomoService implements IMomoService {
       JSON.stringify({ bookingCode: createPaymentDto.bookingCode }),
     ).toString('base64');
     const domain = process.env.DOMAIN_URL;
-    const IPN_URL = `${domain}/checkout-momo${createPaymentDto.returnUrl}`;
+    const IPN_URL = `${domain}/checkout/momo/${createPaymentDto.returnUrl}`;
     const REDIRECT_URL = this.FRONTEND_URL;
     const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=captureWallet`;
     const signature = generateSignature(rawSignature);
@@ -90,13 +90,13 @@ export class MomoService implements IMomoService {
   }
 
   async initiateRefund(createRefundDto: {
-    bookingCode: string;
+    orderId: string;
     amount: number;
     description: string;
     transId: string;
   }): Promise<any> {
     // Implement the logic to initiate a refund using MoMo API
-    const orderId = createRefundDto.bookingCode;
+    const orderId = createRefundDto.orderId + 'refund';
     const requestId = `${orderId}-req`;
     const amount = createRefundDto.amount;
     const transId = createRefundDto.transId;
@@ -127,7 +127,7 @@ export class MomoService implements IMomoService {
     };
     try {
       const result = await axios(options);
-      console.log('result', result.data);
+      console.log('result130', result.data);
       return result.data;
     } catch (err) {
       console.log('Error refund transaction:', err);
