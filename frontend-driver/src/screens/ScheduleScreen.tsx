@@ -147,12 +147,29 @@ export default function ScheduleScreen() {
       setIsLoading(true);
       const updatedSchedule = await driverCheckin(scheduleId);
       updateIsInProgress(true);
+      
+      // Find the original schedule to get vehicle data
+      const originalSchedule = schedules.find(schedule => schedule._id === updatedSchedule._id);
+      
       // Cập nhật danh sách lịch
       setSchedules(
-        schedules.map((schedule) =>
-          schedule._id === updatedSchedule._id ? updatedSchedule : schedule
-        )
+        schedules.map((schedule) => {
+          if (schedule._id === updatedSchedule._id) {
+            // Always preserve the original vehicle data
+            return {
+              ...updatedSchedule,
+              vehicle: {
+                ...(originalSchedule?.vehicle || {}),
+                ...(updatedSchedule.vehicle || {})
+              }
+            };
+          }
+          return schedule;
+        })
       );
+
+      // Log to check if vehicle info is preserved
+      console.log("Updated schedule:", updatedSchedule);
     } catch (error) {
       console.error('Checkin error:', error);
       Alert.alert('Lỗi', 'Không thể check-in. Vui lòng thử lại sau hoặc kiểm tra lại ngày tháng');
@@ -165,12 +182,26 @@ export default function ScheduleScreen() {
     try {
       setIsLoading(true);
       const updatedSchedule = await driverCheckout(scheduleId);
+      
+      // Find the original schedule to get vehicle data
+      const originalSchedule = schedules.find(schedule => schedule._id === updatedSchedule._id);
+      
       // Cập nhật danh sách lịch
       updateIsInProgress(false);
       setSchedules(
-        schedules.map((schedule) =>
-          schedule._id === updatedSchedule._id ? updatedSchedule : schedule
-        )
+        schedules.map((schedule) => {
+          if (schedule._id === updatedSchedule._id) {
+            // Always preserve the original vehicle data
+            return {
+              ...updatedSchedule,
+              vehicle: {
+                ...(originalSchedule?.vehicle || {}),
+                ...(updatedSchedule.vehicle || {})
+              }
+            };
+          }
+          return schedule;
+        })
       );
     } catch (error) {
       console.error('Checkout error:', error);

@@ -73,7 +73,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   };
 
   useEffect(() => {
-
     if (trips && Array.isArray(trips)) {
       setLoading(true);
       processTrips(trips);

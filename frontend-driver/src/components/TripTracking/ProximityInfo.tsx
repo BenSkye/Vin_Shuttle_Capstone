@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
 import { Position } from '~/interface/trip';
 
@@ -11,17 +11,17 @@ interface ProximityInfoProps {
 }
 
 const ProximityInfo = ({ tripStatus, location, customerPickupLocation }: ProximityInfoProps) => {
-  if (tripStatus.toLowerCase() !== 'pickup' || !location || !customerPickupLocation) {
-    return null;
-  }
+  const calculateDistance = () => {
+    if (!location || !customerPickupLocation || 
+        (customerPickupLocation.lat === 0 && customerPickupLocation.lng === 0)) {
+      return null;
+    }
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    // Haversine formula to calculate distance between two points on Earth
     const R = 6371000; // Earth's radius in meters
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+    const φ1 = (location.latitude * Math.PI) / 180;
+    const φ2 = (customerPickupLocation.lat * Math.PI) / 180;
+    const Δφ = ((customerPickupLocation.lat - location.latitude) * Math.PI) / 180;
+    const Δλ = ((customerPickupLocation.lng - location.longitude) * Math.PI) / 180;
 
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
@@ -32,31 +32,31 @@ const ProximityInfo = ({ tripStatus, location, customerPickupLocation }: Proximi
     return R * c; // Distance in meters
   };
 
-  const distance = calculateDistance(
-    location.latitude,
-    location.longitude,
-    customerPickupLocation.lat,
-    customerPickupLocation.lng
-  );
-
-  const MIN_PROXIMITY = 30; // meters
-  const isCloseEnough = distance <= MIN_PROXIMITY;
+  const distance = calculateDistance();
+  if (!distance) return null;
 
   return (
     <View
       style={[
         styles.proximityContainer,
-        { backgroundColor: isCloseEnough ? '#E8F5E9' : '#FFF3E0' },
+        {
+          backgroundColor: distance <= 30 ? '#E8F5E9' : '#FFF3E0',
+          borderLeftColor: distance <= 30 ? '#4CAF50' : '#FF9800',
+        },
       ]}>
-      <MaterialIcons
-        name={isCloseEnough ? 'check-circle' : 'info'}
-        size={18}
-        color={isCloseEnough ? '#4CAF50' : '#FF9800'}
+      <Ionicons
+        name={distance <= 30 ? 'checkmark-circle' : 'warning'}
+        size={20}
+        color={distance <= 30 ? '#4CAF50' : '#FF9800'}
       />
-      <Text style={[styles.proximityText, { color: isCloseEnough ? '#2E7D32' : '#E65100' }]}>
-        {isCloseEnough
-          ? `Bạn đã ở gần khách hàng (${Math.round(distance)}m)`
-          : `Bạn cần di chuyển gần khách hàng hơn (hiện tại cách ${Math.round(distance)}m, cần trong vòng ${MIN_PROXIMITY}m)`}
+      <Text
+        style={[
+          styles.proximityText,
+          { color: distance <= 30 ? '#2E7D32' : '#F57C00' },
+        ]}>
+        {distance <= 30
+          ? 'Bạn đang ở gần điểm đón khách'
+          : `Bạn cách điểm đón ${Math.round(distance)}m`}
       </Text>
     </View>
   );
