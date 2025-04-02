@@ -6,6 +6,7 @@ import { Position, Coordinate, Waypoint } from '~/interface/trip';
 import { imgAccess } from '~/constants/imgAccess';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/MapStyle';
+import { sharedItineraryStop } from '~/interface/share-itinerary';
 const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
 
 const MapComponent = ({
@@ -15,6 +16,10 @@ const MapComponent = ({
   waypoints = [],
   scenicRouteCoordinates = [],
   showScenicRoute = false,
+  shareStops = [],
+  currentTripId = '', // ID của chuyến đi hiện tại để highlight
+  currentStopIndex = -1, // Chỉ số của điểm dừng hiện tại để highlight
+  onStopPress = () => {}, // Callback khi nhấn vào điểm dừng
 }: {
   pickupLocation: Position;
   detinateLocation?: Position | null;
@@ -22,6 +27,10 @@ const MapComponent = ({
   waypoints?: Waypoint[];
   scenicRouteCoordinates?: Coordinate[];
   showScenicRoute?: boolean;
+  shareStops?: sharedItineraryStop[]; // Assuming this is the correct type for shareStops
+  currentTripId?: string;
+  currentStopIndex?: number;
+  onStopPress?: (stop: sharedItineraryStop) => void;
 }) => {
   const { location, errorMsg, isTracking } = useLocation();
   const mapRef = useRef<MapView | null>(null);
@@ -36,6 +45,7 @@ const MapComponent = ({
   const [scenicRouteFormattedCoordinates, setScenicRouteFormattedCoordinates] = useState<
     { latitude: number; longitude: number }[]
   >([]);
+  const [sharedItineraryStops, setSharedItineraryStops] = useState<sharedItineraryStop[]>([]);
   const [routeError, setRouteError] = useState<string | null>(null);
   const [locationTimestamp, setLocationTimestamp] = useState<Date | null>(null);
 
@@ -124,6 +134,29 @@ const MapComponent = ({
       }
     }
   }, [location, pickup, detinate, waypoints]);
+
+  // Zoom to current stop when it changes
+  useEffect(() => {
+    if (
+      mapRef.current && 
+      currentStopIndex >= 0 && 
+      sharedItineraryStops && 
+      sharedItineraryStops[currentStopIndex]
+    ) {
+      const currentStop = sharedItineraryStops[currentStopIndex];
+      const { lat, lng } = currentStop.point.position;
+      
+      mapRef.current.animateToRegion(
+        {
+          latitude: lat,
+          longitude: lng,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    }
+  }, [currentStopIndex, sharedItineraryStops]);
 
   // Get route from driver to pickup
   useEffect(() => {
@@ -227,6 +260,23 @@ const MapComponent = ({
       );
     }
   };
+
+  // Format shared itinerary stops
+  useEffect(() => {
+    if (shareStops && shareStops.length > 0) {
+      const formattedStops = shareStops.map((stop) => ({
+        ...stop,
+        point: {
+          ...stop.point,
+          position: {
+            lat: stop.point.position.lat,
+            lng: stop.point.position.lng,
+          },
+        },
+      }));
+      setSharedItineraryStops(formattedStops);
+    }
+  }, [shareStops]);
 
   // Helper to validate coordinates
   const isValidCoordinate = (lat: number, lng: number): boolean => {
@@ -370,6 +420,148 @@ const MapComponent = ({
                   </Callout>
                 </Marker>
               ))}
+
+            {/* Shared Itinerary Stops */}
+            {sharedItineraryStops && sharedItineraryStops.length > 0 && sharedItineraryStops.map((stop, index) => {
+              // Kiểm tra xem có vị trí hợp lệ không
+              if (!stop.point || !stop.point.position || !isValidCoordinate(stop.point.position.lat, stop.point.position.lng)) {
+                console.log(`Invalid position for shared stop ${index}:`, stop);
+                return null;
+              }
+              
+              // Xác định loại điểm dừng (đón/trả)
+              const isPickup = stop.pointType === 'startPoint'; 
+              
+              // Màu sắc dựa vào loại điểm và trạng thái
+              const pinColor = isPickup ? '#4CAF50' : '#FF5722'; // Xanh cho đón, Cam cho trả
+              const passedColor = '#9E9E9E'; // Màu xám cho điểm đã đi qua
+              const iconColor = stop.isPass ? passedColor : pinColor;
+              
+              // Kiểm tra xem đây có phải là điểm dừng hiện tại không
+              const isCurrentStop = index === currentStopIndex;
+              // Kiểm tra xem đây có phải là chuyến đi hiện tại không
+              const isCurrentTrip = stop.trip === currentTripId;
+              
+              return (
+                <Marker
+                  key={`shared-stop-${index}`}
+                  coordinate={{
+                    latitude: stop.point.position.lat,
+                    longitude: stop.point.position.lng,
+                  }}
+                  title={isPickup ? "Điểm đón" : "Điểm trả"}
+                  description={`Điểm ${stop.order} - ${stop.isPass ? 'Đã qua' : 'Chưa qua'}`}
+                  onPress={() => onStopPress(stop)} // Callback khi nhấn vào marker
+                >
+                  <View style={{
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {/* Icon với màu sắc đặc biệt nếu là điểm hiện tại */}
+                    <MaterialIcons 
+                      name={isPickup ? "person-pin-circle" : "place"} 
+                      size={isCurrentStop ? 36 : 30} // Size lớn hơn nếu là điểm hiện tại
+                      color={
+                        isCurrentStop 
+                          ? '#1565C0' // Màu nổi bật nếu là điểm hiện tại
+                          : (stop.isPass 
+                            ? passedColor 
+                            : (isCurrentTrip ? pinColor : '#607D8B')) // Màu khác nếu là chuyến đi hiện tại
+                      } 
+                    />
+                    
+                    {/* Số thứ tự điểm dừng */}
+                    <View style={{
+                      position: 'absolute',
+                      backgroundColor: stop.isPass ? '#BDBDBD' : '#FFFFFF',
+                      borderRadius: 10,
+                      width: 20,
+                      height: 20,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      top: -5,
+                      right: -5,
+                      borderWidth: 1,
+                      borderColor: iconColor,
+                    }}>
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: stop.isPass ? '#FFFFFF' : '#000000',
+                      }}>
+                        {stop.order}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  {/* Thông tin chi tiết khi nhấn vào marker */}
+                  <Callout>
+                    <View style={styles.callout}>
+                      <Text style={styles.calloutTitle}>
+                        {isPickup ? "Điểm đón khách" : "Điểm trả khách"} #{stop.order}
+                      </Text>
+                      <Text style={styles.calloutDescription}>
+                        {stop.point.address}
+                      </Text>
+                      <Text style={{
+                        fontSize: 12, 
+                        fontWeight: 'bold',
+                        color: stop.isPass ? '#4CAF50' : '#757575',
+                        marginTop: 4
+                      }}>
+                        {stop.isPass ? '✓ Đã qua' : '○ Chưa qua'}
+                      </Text>
+                      <View style={{
+                        marginTop: 4,
+                        padding: 4,
+                        backgroundColor: '#E3F2FD',
+                        borderRadius: 4
+                      }}>
+                        <Text style={{ fontSize: 10 }}>
+                          Trip ID: {stop.trip.substring(0, 8)}...
+                        </Text>
+                      </View>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
+
+            {/* Polyline connecting shared stops in order */}
+            {sharedItineraryStops && sharedItineraryStops.length > 1 && (
+              <Polyline
+                coordinates={sharedItineraryStops
+                  .sort((a, b) => a.order - b.order)
+                  .map(stop => ({
+                    latitude: stop.point.position.lat,
+                    longitude: stop.point.position.lng,
+                  }))}
+                strokeWidth={3}
+                strokeColor="#3F51B5" // Indigo color for shared route
+                lineDashPattern={[5, 5]} // Dashed line
+              />
+            )}
+
+            {/* Indicator for shared route when shared stops are shown */}
+            {sharedItineraryStops && sharedItineraryStops.length > 0 && (
+              <View style={{
+                position: 'absolute',
+                bottom: 80,
+                alignSelf: 'center',
+                backgroundColor: 'rgba(33, 150, 243, 0.9)',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+              }}>
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontWeight: 'bold',
+                  fontSize: 12,
+                }}>
+                  Chuyến ghép: {sharedItineraryStops.length} điểm dừng
+                </Text>
+              </View>
+            )}
           </MapView>
 
           {/* Scenic Route Indicator */}
@@ -411,8 +603,6 @@ const MapComponent = ({
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => {
-              // This is a placeholder - the actual retry logic is in LocationContext
-              // But showing a button gives users a sense of control
               console.log('Retrying location access');
             }}>
             <Text style={styles.retryButtonText}>Thử lại</Text>

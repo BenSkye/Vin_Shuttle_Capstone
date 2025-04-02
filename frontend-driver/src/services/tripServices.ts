@@ -1,6 +1,7 @@
 import { Trip } from '~/interface/trip';
 import { ScenicRouteDto } from '~/interface/trip';
 import apiClient from './apiClient';
+import { SharedItinerary } from '~/interface/share-itinerary';
 
 
 export const getPersonalTrips = async (): Promise<Trip[]> => {
@@ -25,7 +26,7 @@ export const getPersonalTripById = async (id: string): Promise<Trip> => {
 }
 
 /**
- * Cập nhật trạng thái đón khách
+ * Cập nhật trạng thái đón khách, đón khách
  */
 export const pickUp = async (tripId: string): Promise<Trip> => {
   try {
@@ -51,7 +52,7 @@ export const startTrip = async (tripId: string): Promise<Trip> => {
 };
 
 /**
- * Hoàn thành chuyến đi
+ * Hoàn thành chuyến đi, trả khách
  */
 export const completeTrip = async (tripId: string): Promise<Trip> => {
   try {
@@ -92,9 +93,6 @@ export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
 /**
  * Hủy chuyến đi
  */
-/**
- * Hủy chuyến đi
- */
 export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
   try {
     const response = await apiClient.post('/trip/cancel-trip', {
@@ -107,5 +105,23 @@ export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> 
     throw error;
   }
 };
+export const getSharedItineraryById = async (Id: string): Promise<SharedItinerary> => {
+  try {
+    const response = await apiClient.get(`/share-itinerary/get-by-id/${Id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching shared route:', error);
+    throw error;
+  }
+}
+export const getShareRouteByTripId = async (tripId: string): Promise<SharedItinerary> => {
+  try {
+    const response = await apiClient.get(`/share-itinerary/get-by-trip-id/${tripId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching shared route:', error);
+    throw error;
+  }
+}
 
 export { Trip };

@@ -15,6 +15,7 @@ export interface sharedItineraryStop {
 }
 
 export interface SharedItinerary {
+    _id: string; 
     driverId: string;
     vehicleId: string;
     scheduleId: string;

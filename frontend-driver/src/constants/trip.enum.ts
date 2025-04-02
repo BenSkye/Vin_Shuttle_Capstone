@@ -24,3 +24,16 @@ export const tripStatusText: Record<TripStatus, string> = {
   [TripStatus.COMPLETED]: 'Đã hoàn thành',
   [TripStatus.CANCELLED]: 'Đã hủy',
 };
+
+export enum SharedRouteStatus {
+  PENDING = 'pending',
+  PLANNED = 'planned',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export enum SharedRouteStopsType {
+  START_POINT = 'startPoint',
+  END_POINT = 'endPoint',
+}

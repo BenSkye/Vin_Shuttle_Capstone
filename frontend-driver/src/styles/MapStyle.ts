@@ -101,13 +101,13 @@ export const styles = StyleSheet.create({
       marginTop: -5,
     },
     callout: {
-      width: 160,
-      padding: 10,
+      width: 200,
+      padding: 8,
     },
     calloutTitle: {
       fontWeight: 'bold',
       fontSize: 14,
-      marginBottom: 5,
+      marginBottom: 4,
     },
     calloutDescription: {
       fontSize: 12,
