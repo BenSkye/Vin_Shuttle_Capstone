@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
 import { ServiceType } from '~/constants/service-type.enum';
+import { TripStatus } from '~/constants/trip.enum';
 
 interface ActionButtonsProps {
   loading: boolean;
@@ -40,14 +41,14 @@ const ActionButtons = ({
   const status = tripStatus.toLowerCase();
 
   switch (status) {
-    case 'assigned':
+    case TripStatus.PAYED:
       return (
         <TouchableOpacity style={styles.actionButton} onPress={onPickup} disabled={!isTracking}>
           <MaterialIcons name="person" size={20} color="#fff" />
           <Text style={styles.actionButtonText}>Đón khách</Text>
         </TouchableOpacity>
       );
-    case 'pickup':
+    case TripStatus.PICKUP:
       return (
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
@@ -57,7 +58,7 @@ const ActionButtons = ({
           <Text style={styles.actionButtonText}>Bắt đầu chuyến đi</Text>
         </TouchableOpacity>
       );
-    case 'in_progress':
+    case TripStatus.IN_PROGRESS:
       if (serviceType === ServiceType.BOOKING_HOUR && timerActive) {
         return (
           <View style={styles.timerActionContainer}>
@@ -85,7 +86,7 @@ const ActionButtons = ({
           </TouchableOpacity>
         );
       }
-    case 'completed':
+    case TripStatus.COMPLETED:
       return (
         <View style={[styles.actionButton, { backgroundColor: '#8BC34A' }]}>
           <MaterialIcons name="check-circle" size={20} color="#fff" />

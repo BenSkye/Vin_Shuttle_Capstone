@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
-import { Trip, BookingHourPayloadDto, BookingDestinationPayloadDto } from '~/interface/trip';
+import { Trip, BookingHourPayloadDto, BookingDestinationPayloadDto, BookingSharePayloadDto } from '~/interface/trip';
 import { ServiceType } from '~/constants/service-type.enum';
 
 interface CustomerInfoCardProps {
@@ -31,6 +31,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
         <View style={styles.customerHeaderInfo}>
           <Text style={styles.customerName}>{trip.customerId?.name || 'N/A'}</Text>
           <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
+          <Text style={styles.tripId}>{trip._id || 'N/A'}</Text>
         </View>
         <TouchableOpacity onPress={onToggleCollapse}>
           <MaterialIcons
@@ -49,13 +50,26 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
               {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
             </Text>
           )}
-          <Text style={styles.customerAddress}>
-            {trip.serviceType === ServiceType.BOOKING_HOUR
-              ? `Địa chỉ đón: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}`
-              : trip.serviceType === ServiceType.BOOKING_DESTINATION
-                ? `Điểm đón: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}`
-                : 'N/A'}
-          </Text>
+          {trip.serviceType === ServiceType.BOOKING_SHARE && (
+            <View>
+              <Text style={styles.customerAddress}>
+                Điểm đón: {(trip.servicePayload as BookingSharePayloadDto).bookingShare.startPoint.address}
+              </Text>
+              <Text style={styles.customerAddress}>
+                Điểm trả: {(trip.servicePayload as BookingSharePayloadDto).bookingShare.endPoint.address}
+              </Text>
+            </View>
+          )}
+          {(trip.serviceType === ServiceType.BOOKING_HOUR || trip.serviceType === ServiceType.BOOKING_DESTINATION) && (
+            <Text style={styles.customerAddress}>
+              {trip.serviceType === ServiceType.BOOKING_HOUR
+                ? `Địa chỉ đón: ${(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}`
+                : trip.serviceType === ServiceType.BOOKING_DESTINATION
+                  ? `Điểm đón: ${(trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint.address}`
+                  : 'N/A'}
+            </Text>
+          )}
+
           <TouchableOpacity style={styles.viewMoreButton} onPress={onViewMorePress}>
             <Text style={styles.viewMoreText}>Xem chi tiết</Text>
             <MaterialIcons name="keyboard-arrow-right" size={18} color="#1E88E5" />

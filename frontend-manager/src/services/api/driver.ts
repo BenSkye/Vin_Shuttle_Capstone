@@ -5,7 +5,7 @@ export const getDriverSchedule = async () => {
     const startday = "2021-10-01";
     const endday = "2030-10-07";
     try {
-        const response = await axiosInstance.get(`/driver-schedules/get-schedule-from-start-to-end/${startday}/${endday}`);
+        const response = await axiosInstance.get(`/driver-schedules/get-schedule-general-from-start-to-end/${startday}/${endday}`);
         console.log("Driver Schedule:", response.data);
         return response.data;
     } catch (error) {
