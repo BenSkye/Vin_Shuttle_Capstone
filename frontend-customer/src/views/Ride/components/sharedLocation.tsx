@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -293,9 +293,34 @@ const SharedLocation = ({
     const [currentPosition, setCurrentPosition] = useState<L.LatLng | null>(null)
     const [locationError, setLocationError] = useState<string | null>(null)
     const [routeInfo, setRouteInfo] = useState<{ distance: number; duration: number } | null>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isMenuVisible, setIsMenuVisible] = useState(true)
+    const mapContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         setIsClient(true)
+    }, [])
+
+    // Handle fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement)
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange)
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange)
+        }
+    }, [])
+
+    const toggleFullscreen = useCallback(() => {
+        if (!mapContainerRef.current) return
+
+        if (!document.fullscreenElement) {
+            mapContainerRef.current.requestFullscreen()
+        } else {
+            document.exitFullscreen()
+        }
     }, [])
 
     // Update search queries when props change
@@ -416,175 +441,13 @@ const SharedLocation = ({
 
     return (
         <div className="w-full space-y-4">
-            <div className="flex flex-col space-y-4">
-                {/* Start Point Selection */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
-                            1
-                        </div>
-                        <h3 className="text-lg font-semibold text-blue-600">Điểm đón</h3>
-                    </div>
-                    <form onSubmit={(e) => handleSearch(e, 'start')} className="flex gap-2">
-                        <input
-                            type="text"
-                            className={`w-full rounded-lg border p-3 shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
-                                ? 'border-blue-500 ring-2 ring-blue-200'
-                                : 'border-gray-300'
-                                }`}
-                            placeholder="Nhập địa điểm đón"
-                            value={startSearchQuery}
-                            onChange={(e) => setStartSearchQuery(e.target.value)}
-                            onClick={() => setActivePoint('start')}
-                            aria-label="Địa điểm đón"
-                            tabIndex={0}
-                        />
-
-                        <button
-                            type="button"
-                            className="rounded-lg bg-blue-500 px-4 text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400"
-                            onClick={handleDetectLocation}
-                            disabled={isFetching || loading}
-                            aria-label="Sử dụng vị trí hiện tại làm điểm đón"
-                            tabIndex={0}
-                        >
-                            {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
-                        </button>
-                    </form>
-                </div>
-
-                {/* End Point Selection */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white">
-                            2
-                        </div>
-                        <h3 className="text-lg font-semibold text-red-600">Điểm đến</h3>
-                    </div>
-                    <form onSubmit={(e) => handleSearch(e, 'end')} className="flex gap-2">
-                        <input
-                            type="text"
-                            className={`w-full rounded-lg border p-3 shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'end'
-                                ? 'border-red-500 ring-2 ring-red-200'
-                                : 'border-gray-300'
-                                }`}
-                            placeholder="Nhập địa điểm đến"
-                            value={endSearchQuery}
-                            onChange={(e) => setEndSearchQuery(e.target.value)}
-                            onClick={() => setActivePoint('end')}
-                            aria-label="Địa điểm đến"
-                            tabIndex={0}
-                        />
-                        <button
-                            type="submit"
-                            className="rounded-lg bg-red-500 px-4 text-white hover:bg-red-600 disabled:bg-gray-400"
-                            disabled={isFetching || loading}
-                            aria-label="Tìm kiếm địa điểm đến"
-                            tabIndex={0}
-                        >
-                            {isFetching ? '...' : 'Tìm'}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Seat Selection */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
-                            3
-                        </div>
-                        <h3 className="text-lg font-semibold text-green-600">Số chỗ ngồi</h3>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => onNumberOfSeatsChange(Math.max(1, numberOfSeats - 1))}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
-                                disabled={numberOfSeats <= 1 || loading}
-                                aria-label="Giảm số chỗ ngồi"
-                                tabIndex={0}
-                            >
-                                -
-                            </button>
-                            <span className="min-w-[3rem] text-center text-lg font-semibold">
-                                {numberOfSeats}
-                            </span>
-                            <button
-                                onClick={() => onNumberOfSeatsChange(Math.min(4, numberOfSeats + 1))}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
-                                disabled={numberOfSeats >= 4 || loading}
-                                aria-label="Tăng số chỗ ngồi"
-                                tabIndex={0}
-                            >
-                                +
-                            </button>
-                        </div>
-                        <span className="text-sm text-gray-500">
-                            Tối đa 4 người cho mỗi chuyến đi chung
-                        </span>
-                    </div>
-                </div>
-
-                {/* Trip Information */}
-                {routeInfo && (
-                    <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <div className="flex items-center gap-2">
-
-                            <h3 className="text-lg font-semibold text-purple-600">Thông tin chuyến đi</h3>
-                        </div>
-                        <div className="flex flex-wrap gap-6 ml-10">
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-gray-700 font-medium">{routeInfo.distance} km</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-gray-700 font-medium">Khoảng {routeInfo.duration} phút</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-                                </svg>
-                                <span className="text-gray-700 font-medium">{numberOfSeats} chỗ ngồi</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div className="flex justify-center gap-4">
-                <button
-                    className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'start'
-                        ? 'bg-blue-500 hover:bg-blue-600'
-                        : 'bg-gray-400'
-                        }`}
-                    onClick={() => setActivePoint('start')}
-                    disabled={isFetching || loading}
-                    aria-label="Chọn điểm đón trên bản đồ"
-                    tabIndex={0}
-                >
-                    Chọn điểm đón
-                </button>
-                <button
-                    className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'end'
-                        ? 'bg-red-500 hover:bg-red-600'
-                        : 'bg-gray-400'
-                        }`}
-                    onClick={() => setActivePoint('end')}
-                    disabled={isFetching || loading}
-                    aria-label="Chọn điểm đến trên bản đồ"
-                    tabIndex={0}
-                >
-                    Chọn điểm đến
-                </button>
-            </div>
-
-            <div className="map-container h-[400px] rounded-lg overflow-hidden shadow-md border border-gray-200">
+            <div
+                ref={mapContainerRef}
+                className={`map-container rounded-lg overflow-hidden shadow-md border border-gray-200 relative ${isFullscreen
+                    ? 'fixed inset-0 z-50 h-screen w-screen rounded-none'
+                    : 'h-[400px]'
+                    }`}
+            >
                 <MapContainer
                     id="map"
                     center={[centerLat, centerLng]}
@@ -634,7 +497,216 @@ const SharedLocation = ({
                     <MapClickHandler onMapClick={handleMapClick} activePoint={activePoint} />
                     <MapUpdater startPoint={startPoint} endPoint={endPoint} />
                 </MapContainer>
+
+                {/* Toggle Menu Button */}
+                <button
+                    onClick={() => setIsMenuVisible(!isMenuVisible)}
+                    className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+                    aria-label={isMenuVisible ? "Ẩn menu" : "Hiện menu"}
+                    tabIndex={0}
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-5 w-5 text-gray-600 transform transition-transform duration-200 ${isMenuVisible ? 'rotate-180' : ''}`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                </button>
+
+                {/* Fullscreen Button */}
+                <button
+                    onClick={toggleFullscreen}
+                    className="absolute top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+                    aria-label={isFullscreen ? "Thoát chế độ toàn màn hình" : "Xem toàn màn hình"}
+                    tabIndex={0}
+                >
+                    {isFullscreen ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 15V5h10v10H5zM3 3v14h14V3H3z" clipRule="evenodd" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                    )}
+                </button>
+
+                {/* Overlay Control Panel */}
+                <div
+                    className={`absolute top-4 left-12 right-4 bg-white rounded-lg shadow-lg p-3 transition-all duration-300 transform ${isMenuVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+                        }`}
+                >
+                    <div className="flex flex-col gap-3">
+                        {/* Start Point Selection */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-sm">
+                                    1
+                                </div>
+                                <h3 className="text-sm font-semibold text-blue-600">Điểm đón</h3>
+                            </div>
+                            <form onSubmit={(e) => handleSearch(e, 'start')} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
+                                        ? 'border-blue-500 ring-2 ring-blue-200'
+                                        : 'border-gray-300'
+                                        }`}
+                                    placeholder="Nhập địa điểm đón"
+                                    value={startSearchQuery}
+                                    onChange={(e) => setStartSearchQuery(e.target.value)}
+                                    onClick={() => setActivePoint('start')}
+                                    aria-label="Địa điểm đón"
+                                    tabIndex={0}
+                                />
+
+                                <button
+                                    type="button"
+                                    className="rounded-lg bg-blue-500 px-3 text-white text-sm shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400 whitespace-nowrap"
+                                    onClick={handleDetectLocation}
+                                    disabled={isFetching || loading}
+                                    aria-label="Sử dụng vị trí hiện tại làm điểm đón"
+                                    tabIndex={0}
+                                >
+                                    {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* End Point Selection */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-sm">
+                                    2
+                                </div>
+                                <h3 className="text-sm font-semibold text-red-600">Điểm đến</h3>
+                            </div>
+                            <form onSubmit={(e) => handleSearch(e, 'end')} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'end'
+                                        ? 'border-red-500 ring-2 ring-red-200'
+                                        : 'border-gray-300'
+                                        }`}
+                                    placeholder="Nhập địa điểm đến"
+                                    value={endSearchQuery}
+                                    onChange={(e) => setEndSearchQuery(e.target.value)}
+                                    onClick={() => setActivePoint('end')}
+                                    aria-label="Địa điểm đến"
+                                    tabIndex={0}
+                                />
+                                <button
+                                    type="submit"
+                                    className="rounded-lg bg-red-500 px-3 text-white text-sm hover:bg-red-600 disabled:bg-gray-400 whitespace-nowrap"
+                                    disabled={isFetching || loading}
+                                    aria-label="Tìm kiếm địa điểm đến"
+                                    tabIndex={0}
+                                >
+                                    {isFetching ? '...' : 'Tìm'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Map Control Buttons */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
+                    <button
+                        className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'start'
+                            ? 'bg-blue-500 hover:bg-blue-600'
+                            : 'bg-gray-400'
+                            }`}
+                        onClick={() => setActivePoint('start')}
+                        disabled={isFetching || loading}
+                        aria-label="Chọn điểm đón trên bản đồ"
+                        tabIndex={0}
+                    >
+                        Chọn điểm đón
+                    </button>
+                    <button
+                        className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'end'
+                            ? 'bg-red-500 hover:bg-red-600'
+                            : 'bg-gray-400'
+                            }`}
+                        onClick={() => setActivePoint('end')}
+                        disabled={isFetching || loading}
+                        aria-label="Chọn điểm đến trên bản đồ"
+                        tabIndex={0}
+                    >
+                        Chọn điểm đến
+                    </button>
+                </div>
             </div>
+
+            {/* Seat Selection */}
+            <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+                        3
+                    </div>
+                    <h3 className="text-lg font-semibold text-green-600">Số chỗ ngồi</h3>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => onNumberOfSeatsChange(Math.max(1, numberOfSeats - 1))}
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
+                            disabled={numberOfSeats <= 1 || loading}
+                            aria-label="Giảm số chỗ ngồi"
+                            tabIndex={0}
+                        >
+                            -
+                        </button>
+                        <span className="min-w-[3rem] text-center text-lg font-semibold">
+                            {numberOfSeats}
+                        </span>
+                        <button
+                            onClick={() => onNumberOfSeatsChange(Math.min(4, numberOfSeats + 1))}
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
+                            disabled={numberOfSeats >= 4 || loading}
+                            aria-label="Tăng số chỗ ngồi"
+                            tabIndex={0}
+                        >
+                            +
+                        </button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                        Tối đa 4 người cho mỗi chuyến đi chung
+                    </span>
+                </div>
+            </div>
+
+            {/* Trip Information */}
+            {routeInfo && (
+                <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-purple-600">Thông tin chuyến đi</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-6 ml-10">
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-700 font-medium">{routeInfo.distance} km</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-gray-700 font-medium">Khoảng {routeInfo.duration} phút</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                            </svg>
+                            <span className="text-gray-700 font-medium">{numberOfSeats} chỗ ngồi</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {locationError && (
                 <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700" role="alert" aria-live="assertive">
