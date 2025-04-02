@@ -14,6 +14,7 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 import { NotificationModule } from 'src/modules/notification/notification.module';
+import { BookingModule } from 'src/modules/booking/booking.module';
 
 const dependencies = [
   {
@@ -44,6 +45,7 @@ const dependencies = [
     ShareModule,
     KeytokenModule,
     BusRouteModule,
+    forwardRef(() => BookingModule),
     forwardRef(() => SharedItineraryModule),
     NotificationModule,
   ],
@@ -51,4 +53,4 @@ const dependencies = [
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class TripModule {}
+export class TripModule { }

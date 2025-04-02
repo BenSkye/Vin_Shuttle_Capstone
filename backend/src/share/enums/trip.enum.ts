@@ -1,3 +1,5 @@
+import { ServiceType } from "src/share/enums/service-type.enum";
+
 export enum TripStatus {
   BOOKING = 'booking',
   PAYED = 'payed',
@@ -14,3 +16,32 @@ export enum TripCancelBy {
 }
 
 export const GUARANTEED_TIME_BETWEEN_TRIPS = 2; // minutes
+
+
+export const TripRefundPercent = {
+  CUSTOMER: {
+    [ServiceType.BOOKING_DESTINATION]: {
+      [TripStatus.PAYED]: 1,
+      [TripStatus.PICKUP]: 0.5,
+    },
+    [ServiceType.BOOKING_SHARE]: {
+      [TripStatus.PAYED]: 1,
+      [TripStatus.PICKUP]: 0.5,
+    },
+    [ServiceType.BOOKING_HOUR]: {
+      [TripStatus.PAYED]: {
+        MORE_THAN_1_HOUR: 1,
+        LES_THAN_1_HOUR: 0.5,
+      },
+      [TripStatus.PICKUP]: 0.5,
+    },
+    [ServiceType.BOOKING_SCENIC_ROUTE]: {
+      [TripStatus.PAYED]: {
+        MORE_THAN_1_HOUR: 1,
+        LES_THAN_1_HOUR: 0.5,
+      },
+      [TripStatus.PICKUP]: 0.5,
+    },
+  }
+};
+

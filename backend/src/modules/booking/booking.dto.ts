@@ -20,6 +20,7 @@ export interface IUpdateBooking {
   cancellationTime?: string;
   cancellationReason?: string;
   statusHistory?: object;
+  transId?: string;
 }
 
 export interface IBookingHourBody {

@@ -213,13 +213,17 @@ export class BookingService implements IBookingService {
                 vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
-        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        let paymentResult;
+        if (paymentMethod === PaymentMethod.PAY_OS) {
+            const result = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+            paymentResult = result.checkoutUrl
+        }
         if (paymentMethod === PaymentMethod.MOMO) {
-            const paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+            paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
         }
         return {
             newBooking,
-            paymentUrl: paymentResult.checkoutUrl
+            paymentUrl: paymentResult
         }
     }
 
@@ -394,10 +398,17 @@ export class BookingService implements IBookingService {
                 vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
-        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        let paymentResult;
+        if (paymentMethod === PaymentMethod.PAY_OS) {
+            const result = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+            paymentResult = result.checkoutUrl
+        }
+        if (paymentMethod === PaymentMethod.MOMO) {
+            paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+        }
         return {
             newBooking,
-            paymentUrl: paymentResult.checkoutUrl
+            paymentUrl: paymentResult
         }
     }
 
@@ -539,13 +550,17 @@ export class BookingService implements IBookingService {
                 vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
         }
-        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        let paymentResult;
+        if (paymentMethod === PaymentMethod.PAY_OS) {
+            const result = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+            paymentResult = result.checkoutUrl
+        }
         if (paymentMethod === PaymentMethod.MOMO) {
-            const paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+            paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
         }
         return {
             newBooking,
-            paymentUrl: paymentResult.checkoutUrl
+            paymentUrl: paymentResult
         }
     }
 
@@ -804,10 +819,17 @@ export class BookingService implements IBookingService {
             }, HttpStatus.BAD_REQUEST);
         }
         console.log('newBooking', newBooking)
-        const paymentResult = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+        let paymentResult;
+        if (paymentMethod === PaymentMethod.PAY_OS) {
+            const result = await this.checkoutService.CheckoutBooking(newBooking._id.toString())
+            paymentResult = result.checkoutUrl
+        }
+        if (paymentMethod === PaymentMethod.MOMO) {
+            paymentResult = await this.checkoutService.CheckoutBookingMomo(newBooking._id.toString())
+        }
         return {
             newBooking,
-            paymentUrl: paymentResult.checkoutUrl
+            paymentUrl: paymentResult
         }
     }
 

@@ -31,6 +31,9 @@ export class Booking {
   @Prop({ type: Number, required: true })
   totalAmount: number;
 
+  @Prop({ type: String, default: null })
+  transId?: string;
+
   @Prop({ type: String, enum: PaymentMethod, default: PaymentMethod.PAY_OS })
   paymentMethod: string;
 

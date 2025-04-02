@@ -14,6 +14,7 @@ import {
   Shift,
   ShiftHours,
   TripCancelBy,
+  TripRefundPercent,
   TripStatus,
   UserRole,
 } from 'src/share/enums';
@@ -21,20 +22,22 @@ import {
 import { BUS_ROUTE_REPOSITORY } from '../bus-route/bus-route.di-token';
 import { IBusRouteRepository } from '../bus-route/bus-route.port';
 import { TripGateway } from 'src/modules/trip/trip.gateway';
-import { REDIS_PROVIDER } from 'src/share/di-token';
+import { MOMO_PROVIDER, REDIS_PROVIDER } from 'src/share/di-token';
 import dayjs from 'dayjs';
-import { DateUtils } from 'src/share/utils';
+import { convertObjectId, DateUtils, generateBookingCode } from 'src/share/utils';
 import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
 import { IUserRepository } from 'src/modules/users/users.port';
 import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
-import { IRedisService } from 'src/share/share.port';
+import { IMomoService, IRedisService } from 'src/share/share.port';
 import { SHARE_ITINERARY_SERVICE } from 'src/modules/shared-itinerary/shared-itinerary.di-token';
 import { ISharedItineraryService } from 'src/modules/shared-itinerary/shared-itinerary.port';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { processQueryParams } from 'src/share/utils/query-params.util';
 import { NOTIFICATION_SERVICE } from 'src/modules/notification/notification.di-token';
 import { INotificationService } from 'src/modules/notification/notification.port';
+import { BOOKING_REPOSITORY } from 'src/modules/booking/booking.di-token';
+import { IBookingRepository } from 'src/modules/booking/booking.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -57,7 +60,11 @@ export class TripService implements ITripService {
     private readonly shareItineraryService: ISharedItineraryService,
     @Inject(NOTIFICATION_SERVICE)
     private readonly notificationService: INotificationService,
-  ) {}
+    @Inject(BOOKING_REPOSITORY)
+    private readonly bookingRepository: IBookingRepository,
+    @Inject(MOMO_PROVIDER)
+    private readonly momoService: IMomoService, // Replace with actual type if available
+  ) { }
 
   async createTrip(createTripDto: ICreateTripDto): Promise<TripDocument> {
     await this.checkTrip(createTripDto);
@@ -618,11 +625,31 @@ export class TripService implements ITripService {
     const cancellationReason = reason;
     const cancelledBy =
       trip.customerId._id.toString() === userId ? TripCancelBy.CUSTOMER : TripCancelBy.DRIVER;
+
+    let refundAmount: number;
+    if (cancelledBy === TripCancelBy.DRIVER) {
+      refundAmount = trip.amount
+    }
+    else if (cancelledBy === TripCancelBy.CUSTOMER) {
+      // For hourly/scenic bookings with time-dependent refunds 
+      if (trip.status === TripStatus.PAYED &&
+        [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
+        // Check if cancellation is more than 1 hour before scheduled start
+        const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
+        const timeCondition = isMoreThanOneHour ? 'MORE_THAN_1_HOUR' : 'LES_THAN_1_HOUR';
+        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status][timeCondition];
+      } else {
+        // Standard refund calculation for other service types or PICKUP status
+        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status];
+      }
+    }
+
     const tripUpdate = await this.tripRepository.updateTrip(id, {
       status: TripStatus.CANCELLED,
       cancellationTime,
       cancellationReason,
       cancelledBy,
+      refundAmount,
     });
     if (!tripUpdate) {
       throw new HttpException(
@@ -682,8 +709,36 @@ export class TripService implements ITripService {
       );
     }
 
+    await this.handleRefundForTrip(tripUpdate._id.toString(), refundAmount); //excute refund money
+    //excute refund money
+
     return tripUpdate;
   }
+
+
+
+  async handleRefundForTrip(tripId: string, refundAmount: number): Promise<void> {
+    console.log('tripId721', tripId);
+    const booking = await this.bookingRepository.findOneBooking(
+      {
+        trips: {
+          $in: [
+            convertObjectId(tripId)
+          ]
+        }
+      },
+      ["transId"]
+    )
+    console.log('booking725', booking);
+    const orderId = generateBookingCode()
+    await this.momoService.initiateRefund({
+      orderId: orderId.toString(),
+      amount: refundAmount,
+      description: `Refund for trip ${tripId}`,
+      transId: booking.transId,
+    })
+  }
+
 
   async totalAmount(): Promise<number> {
     const Trips = await this.tripRepository.find(
