@@ -22,7 +22,7 @@ export class SharedItineraryRepository implements ISharedItineraryRepository {
     private readonly shareItineraryModel: Model<SharedItinerary>,
     @Inject(REDIS_CLIENT)
     private readonly redisClient: Redis,
-  ) {}
+  ) { }
 
   async create(createDto: ICreateSharedItineraryDTO): Promise<SharedItineraryDocument> {
     const newSharedItinerary = new this.shareItineraryModel(createDto);
@@ -75,7 +75,9 @@ export class SharedItineraryRepository implements ISharedItineraryRepository {
       );
     }
     shareItinerary.status = status;
-    return await shareItinerary.save();
+    const updatedSharedItinerary = await shareItinerary.save();
+    console.log('updatedSharedItinerary', updatedSharedItinerary);
+    return updatedSharedItinerary;
   }
 
   async delete(query: any): Promise<any> {

@@ -43,7 +43,7 @@ export class SearchService implements ISearchService {
     private readonly pricingService: IPricingService,
     @Inject(SCENIC_ROUTE_REPOSITORY)
     private readonly scenicRouteRepository: IScenicRouteRepository,
-  ) {}
+  ) { }
 
   async findAvailableVehicleBookingHour(
     date: string,
