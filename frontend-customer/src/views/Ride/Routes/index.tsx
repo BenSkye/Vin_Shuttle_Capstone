@@ -35,7 +35,6 @@ const RoutesBooking = () => {
   // State for date and time selection
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null)
-  const [duration, setDuration] = useState<number>(60)
 
   // State for vehicle selection
   const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([])
@@ -67,18 +66,6 @@ const RoutesBooking = () => {
     setStartTime(time)
     console.log('Start time changed to:', time ? time.format('HH:mm') : 'None')
   }, [])
-
-  // Handler for duration selection
-  const handleDurationChange = useCallback((newDuration: number) => {
-    setDuration(newDuration)
-    console.log('Duration changed to:', newDuration, 'minutes')
-
-    // Calculate and log the end time whenever duration changes
-    if (startTime) {
-      const endTime = startTime.add(newDuration, 'minute')
-      console.log('Updated end time:', endTime.format('HH:mm'))
-    }
-  }, [startTime])
 
   // Handler for location selection
   const handleLocationChange = useCallback((newPosition: { lat: number; lng: number }, newAddress: string) => {
@@ -318,8 +305,6 @@ const RoutesBooking = () => {
               startTime={startTime}
               onDateChange={handleDateChange}
               onStartTimeChange={handleStartTimeChange}
-              duration={duration}
-              onDurationChange={handleDurationChange}
             />
             <div className="flex justify-end">
               <button

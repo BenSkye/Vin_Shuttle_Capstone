@@ -84,7 +84,7 @@ export interface BookingDestinationRequest {
     }
     address: string
   }
-  estimatedDuration: number
+  durationEstimate: number
   distanceEstimate: number
   vehicleCategories: {
     categoryVehicleId: string
