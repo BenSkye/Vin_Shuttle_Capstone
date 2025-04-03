@@ -1,6 +1,6 @@
 import { Card, Button, Tooltip } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { BusStopWithColor } from '../busMap';
+import { BusStopWithColor } from '../../busStopMap';
 
 interface BusStopCardProps {
   busStop: BusStopWithColor;
