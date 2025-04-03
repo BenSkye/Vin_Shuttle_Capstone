@@ -242,7 +242,7 @@ const SharedBookingFlow = () => {
     return (
         <div className="container mx-auto max-w-6xl px-4 py-8">
             <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
-                Đặt xe theo tuyến
+                Đặt xe chung
             </Title>
             <div className="mb-8">
                 <div className="flex items-center justify-between">

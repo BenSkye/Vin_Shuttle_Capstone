@@ -49,7 +49,7 @@ const DestinationBookingPage = () => {
   const [error, setError] = useState<string | null>(null)
   // Set default values for estimated distance and duration
   const [estimatedDistance, setEstimatedDistance] = useState<number>(2)
-  const [estimatedDuration, setEstimatedDuration] = useState<number>(5)
+  const [durationEstimate, setDurationEstimate] = useState<number>(5)
 
   // Check if code is running in browser
   useEffect(() => {
@@ -94,7 +94,7 @@ const DestinationBookingPage = () => {
     const duration = Math.ceil(distance * 2)
 
     setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
-    setEstimatedDuration(duration || 5)
+    setDurationEstimate(duration || 5)
 
     return { distance, duration }
   }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
@@ -198,7 +198,7 @@ const DestinationBookingPage = () => {
       }
 
       console.log('Calling vehicleSearchDestination with params:', {
-        estimatedDuration: estimatedDuration || 5,
+        estimatedDuration: durationEstimate || 5,
         estimatedDistance: estimatedDistance || 2,
         endPoint: endPoint.position,
         startPoint: startPoint.position,
@@ -206,7 +206,7 @@ const DestinationBookingPage = () => {
 
       // Call API to get available vehicles using vehicleSearchDestination
       const vehicles = await vehicleSearchDestination(
-        estimatedDuration || 5, // Use default value if not available
+        durationEstimate || 5, // Use default value if not available
         estimatedDistance || 2, // Use default value if not available
         endPoint.position,
         startPoint.position
@@ -223,7 +223,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [startPoint, endPoint, estimatedDuration, estimatedDistance, calculateDistance])
+  }, [startPoint, endPoint, durationEstimate, estimatedDistance, calculateDistance])
 
   const handleConfirmBooking = useCallback(async () => {
     if (selectedVehicles.length === 0) {
@@ -239,7 +239,7 @@ const DestinationBookingPage = () => {
       const payload: BookingDestinationRequest = {
         startPoint: startPoint,
         endPoint: endPoint,
-        estimatedDuration: estimatedDuration,
+        durationEstimate: durationEstimate,
         distanceEstimate: estimatedDistance,
         vehicleCategories: {
           categoryVehicleId: selectedVehicles[0].categoryVehicleId,
@@ -261,7 +261,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedVehicles, startPoint, endPoint, estimatedDuration, estimatedDistance])
+  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance])
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {
@@ -366,7 +366,7 @@ const DestinationBookingPage = () => {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
-        Đặt xe theo tuyến
+        Đặt xe điểm đến
       </Title>
       <div className="mb-8">
         <div className="flex items-center justify-between">
