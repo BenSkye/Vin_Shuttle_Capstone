@@ -84,9 +84,15 @@ export class CreateBusScheduleDto {
   status?: BusScheduleStatus;
 
   @ApiProperty({
-    description: 'Phân công tài xế-xe',
+    description: 'Danh sách phân công tài xế-xe cho lịch trình. Mỗi phần tử chứa thông tin về tài xế (driverId), xe được phân công (vehicleId), thời gian bắt đầu và kết thúc ca làm việc.',
     type: [Object],
-    required: false
+    required: false,
+    example: [{
+      driverId: '507f1f77bcf86cd799439011',
+      vehicleId: '507f1f77bcf86cd799439012',
+      startTime: '2024-03-20T06:00:00.000Z',
+      endTime: '2024-03-20T14:00:00.000Z'
+    }]
   })
   @IsOptional()
   @IsArray()

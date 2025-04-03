@@ -10,7 +10,6 @@ import { IBusRouteService } from '../bus-route/bus-route.port';
 import { IVehiclesService } from '../vehicles/vehicles.port';
 import { IDriverBusScheduleService } from '../driver-bus-schedule/driver-bus-schedule.port';
 import { BusScheduleStatus } from '../../share/enums/bus-schedule.enum';
-import { DriverScheduleTaskType } from 'src/share/enums';
 import moment from 'moment';
 import { VehicleOperationStatus } from '../../share/enums/vehicle.enum';
 
@@ -70,7 +69,8 @@ export class BusScheduleService implements IBusScheduleService {
     drivers: string[],
     vehicles: string[],
     startTime: string,
-    endTime: string
+    endTime: string,
+    effectiveDate: Date
   ): DriverAssignment[] {
     const assignments: DriverAssignment[] = [];
     const numDrivers = drivers.length;
@@ -81,13 +81,24 @@ export class BusScheduleService implements IBusScheduleService {
       return assignments;
     }
 
+    // Get base date from effectiveDate
+    const baseDate = new Date(effectiveDate);
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+
     // Create assignments cycling through available drivers and vehicles
     for (let i = 0; i < Math.min(numDrivers, numVehicles); i++) {
-      assignments.push({
+      const assignmentStartTime = new Date(baseDate);
+      assignmentStartTime.setHours(startHour, startMinute, 0, 0);
+
+      const assignmentEndTime = new Date(baseDate);
+      assignmentEndTime.setHours(endHour, endMinute, 0, 0);
+
+      assignments.push({  
         driverId: drivers[i % numDrivers],
         vehicleId: vehicles[i % numVehicles],
-        startTime: new Date(`1970-01-01T${startTime}:00Z`),
-        endTime: new Date(`1970-01-01T${endTime}:00Z`)
+        startTime: assignmentStartTime,
+        endTime: assignmentEndTime
       });
     }
 
@@ -97,12 +108,13 @@ export class BusScheduleService implements IBusScheduleService {
   async createSchedule(dto: CreateBusScheduleDto): Promise<BusScheduleDocument> {
     await this.validateScheduleInput(dto);
 
-    // Generate initial driver assignments
+    // Generate initial driver assignments with effectiveDate
     const driverAssignments = this.generateInitialDriverAssignments(
       dto.drivers,
       dto.vehicles,
       dto.dailyStartTime,
-      dto.dailyEndTime
+      dto.dailyEndTime,
+      dto.effectiveDate
     );
 
     // Create the bus schedule
@@ -221,7 +233,8 @@ export class BusScheduleService implements IBusScheduleService {
       dto.drivers,
       dto.vehicles,
       dto.dailyStartTime,
-      dto.dailyEndTime
+      dto.dailyEndTime,
+      dto.effectiveDate
     );
 
     // Update bus schedule
