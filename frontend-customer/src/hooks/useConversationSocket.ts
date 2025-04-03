@@ -30,9 +30,11 @@ const useConversationSocket = (id?: string) => {
           try {
             if (id) {
               const conversationDetailData = await getConversationById(id)
+              console.log('conversationDetailData', conversationDetailData)
               setConversationDetail(conversationDetailData)
             } else {
               const initialConversations = await getPersonalConversations()
+              console.log('initialConversations', initialConversations)
               setConversations(initialConversations)
             }
           } catch (err) {

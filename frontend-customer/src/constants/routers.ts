@@ -29,5 +29,6 @@ export const Routes = {
     PRIVACY: '/privacy',
     USER_GUIDE: '/user-guide',
   },
+  CHAT: '/conversations',
   FAQ: '/faq',
 }

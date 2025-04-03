@@ -93,7 +93,24 @@ const useConversationSocket = (id?: string) => {
     }
   };
 
-  return { data: id ? conversationDetail : conversations, isLoading: loading, error, sendMessage };
+  const refreshData = async () => {
+    setLoading(true);
+    try {
+      if (id) {
+        const conversationDetailData = await getConversationById(id);
+        setConversationDetail(conversationDetailData);
+      } else {
+        const initialConversations = await getPersonalConversations();
+        setConversations(initialConversations);
+      }
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { data: id ? conversationDetail : conversations, isLoading: loading, error, sendMessage, refreshData };
 };
 
 export default useConversationSocket;
