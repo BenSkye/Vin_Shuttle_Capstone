@@ -14,6 +14,7 @@ export const Routes = {
     ROUTES: '/ride/routes',
     HOURLY: '/ride/hourly',
     SHARED: '/ride/shared',
+    BUS: '/ride/bus',
   },
   FEATURES: '/features',
   PROFILE: '/profile',

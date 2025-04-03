@@ -1,15 +1,17 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard } from 'react-icons/fi'
+import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard, FiChevronDown, FiBell } from 'react-icons/fi'
 import { Routes } from '@/constants/routers'
 import { Logo } from '@/components/icons/Logo'
 import { NotificationDropdown } from '@/components/common/NotificationDropdown'
 import { UserDropdown } from '@/components/common/UserDropdown'
+import { INotification } from '@/interface/notification'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface PrivateHeaderProps {
     userName: string
-    notifications: any[]
+    notifications: INotification[]
     unreadCount: number
     onLogout: () => void
     markAsRead: (id: string) => Promise<void>
@@ -18,13 +20,23 @@ interface PrivateHeaderProps {
 
 const privateNavItems = [
     { label: 'Trang Chủ', href: Routes.HOME },
-    { label: 'Đặt xe theo giờ', href: Routes.RIDE.HOURLY },
-    { label: 'Đặt xe theo tuyến cố định', href: Routes.RIDE.ROUTES },
-    { label: 'Đặt xe chung', href: Routes.RIDE.SHARED },
-    { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
-    { label: 'Tính năng', href: Routes.FEATURES },
+    {
+        label: 'Đặt xe',
+        items: [
+            { label: 'Đặt xe theo giờ', href: Routes.RIDE.HOURLY },
+            { label: 'Đặt xe theo tuyến', href: Routes.RIDE.ROUTES },
+            { label: 'Đặt xe chung', href: Routes.RIDE.SHARED },
+            { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
+        ]
+    },
+    { label: 'Xe bus', href: Routes.RIDE.BUS },
+    { label: 'Giới thiệu', href: Routes.ABOUT },
+]
 
-
+const userMenuItems = [
+    { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
+    { label: 'Lịch sử chuyến đi', href: Routes.TRIPS, icon: FiClock },
+    { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
 ]
 
 export function PrivateHeader({
@@ -38,6 +50,7 @@ export function PrivateHeader({
     const [isOpen, setIsOpen] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
     const [showNotifications, setShowNotifications] = useState(false)
+    const [expandedSections, setExpandedSections] = useState<string[]>([])
     const router = useRouter()
 
     const dropdownRef = useRef<HTMLDivElement>(null)
@@ -46,6 +59,14 @@ export function PrivateHeader({
     const toggleMenu = () => setIsOpen(!isOpen)
     const toggleDropdown = () => setShowDropdown(!showDropdown)
     const toggleNotifications = () => setShowNotifications(!showNotifications)
+
+    const toggleSection = (section: string) => {
+        setExpandedSections(prev =>
+            prev.includes(section)
+                ? prev.filter(s => s !== section)
+                : [...prev, section]
+        )
+    }
 
     const handleMobileNotificationClick = async (notificationId: string, redirectUrl?: string) => {
         try {
@@ -60,163 +81,309 @@ export function PrivateHeader({
     }
 
     return (
-        <header className="sticky top-0 z-50 bg-white shadow-sm">
-            {/* Desktop Navigation */}
-            <nav className="flex items-center justify-between bg-white px-4 py-4">
-                <Logo size="large" />
-                <div className="hidden items-center justify-center space-x-8 md:flex">
-                    {privateNavItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className="text-lg font-medium text-gray-600 transition hover:text-green-500"
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-                </div>
-                <div className="relative hidden items-center space-x-4 md:flex">
-                    <NotificationDropdown
-                        notifications={notifications}
-                        unreadCount={unreadCount}
-                        showNotifications={showNotifications}
-                        notificationRef={notificationRef}
-                        toggleNotifications={toggleNotifications}
-                        markAsRead={markAsRead}
-                        markAllAsRead={markAllAsRead}
-                    />
-                    <UserDropdown
-                        userName={userName}
-                        showDropdown={showDropdown}
-                        dropdownRef={dropdownRef}
-                        toggleDropdown={toggleDropdown}
-                        onLogout={onLogout}
-                    />
-                </div>
-                <button onClick={toggleMenu} className="text-2xl text-gray-600 md:hidden">
-                    {isOpen ? <FiX /> : <FiMenu />}
-                </button>
-            </nav>
+        <>
+            <header className="fixed left-0 right-0 top-0 z-50 border-b border-divider bg-surface/95 backdrop-blur-sm">
+                <nav className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 lg:px-8">
+                    {/* Left Section - Logo */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-[240px] py-2"
+                    >
+                        <Logo size="large" />
+                    </motion.div>
 
-            {/* Mobile Menu */}
-            {isOpen && (
-                <div className="fixed bottom-0 left-0 right-0 top-[72px] z-50 overflow-y-auto bg-white shadow-lg md:hidden">
-                    <div className="flex max-h-[calc(100vh-72px)] flex-col space-y-4 p-4 pb-20">
-                        {/* User Profile Section */}
-                        <div className="flex items-center space-x-3 border-b border-gray-100 pb-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
-                                <FiUser className="text-xl text-white" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-700">{userName}</p>
-                                <p className="text-xs text-gray-500">Tài khoản của bạn</p>
-                            </div>
-                        </div>
-
-                        {/* Navigation Links */}
-                        {privateNavItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="border-b border-gray-100 py-2 text-lg font-medium text-gray-600 transition hover:text-green-500"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
-
-                        {/* Notifications Section */}
-                        <div className="space-y-2 border-t border-gray-100 pt-4">
-                            <div className="mb-2 flex items-center justify-between">
-                                <p className="font-medium text-gray-700">Thông báo</p>
-                                {unreadCount > 0 && (
-                                    <button
-                                        className="text-xs text-blue-600"
-                                        onClick={markAllAsRead}
-                                    >
-                                        Đánh dấu tất cả đã đọc
-                                    </button>
-                                )}
-                            </div>
-                            {notifications.length === 0 ? (
-                                <p className="py-4 text-center text-sm text-gray-500">
-                                    Không có thông báo
-                                </p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {notifications.slice(0, 5).map((notif) => (
-                                        <div
-                                            key={notif._id}
-                                            className={`rounded p-3 text-sm ${!notif.isRead ? 'bg-blue-50' : 'bg-gray-50'}`}
-                                            onClick={() => handleMobileNotificationClick(notif._id, notif.redirectUrl)}
-                                        >
-                                            <div className="mb-1 flex items-start justify-between">
-                                                <p className={`font-medium ${!notif.isRead ? 'text-blue-800' : 'text-gray-800'}`}>
-                                                    {notif.title}
-                                                </p>
-                                                <span className="text-xs text-gray-500">
-                                                    {new Date(notif.createdAt).toLocaleDateString()}
-                                                </span>
+                    {/* Center Section - Navigation */}
+                    <div className="hidden flex-1 items-center justify-center md:flex">
+                        <div className="flex items-center space-x-2">
+                            {privateNavItems.map((item, index) => (
+                                <motion.div
+                                    key={item.label}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.1 * (index + 1) }}
+                                >
+                                    {item.items ? (
+                                        <div className="group relative">
+                                            <button className="flex items-center rounded-lg px-4 py-2 text-base font-medium text-content-secondary transition-all hover:bg-surface-secondary hover:text-primary-500">
+                                                {item.label}
+                                                <FiChevronDown className="ml-1.5 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
+                                            </button>
+                                            <div className="absolute -bottom-2 left-0 right-0 h-4 bg-transparent" />
+                                            <div className="absolute left-0 top-[calc(100%-8px)] z-50 min-w-[240px] rounded-lg border border-divider bg-surface py-2 opacity-0 shadow-lg transition-all invisible group-hover:visible group-hover:opacity-100">
+                                                {item.items.map((subItem) => (
+                                                    <Link
+                                                        key={subItem.href}
+                                                        href={subItem.href}
+                                                        className="flex w-full items-center px-4 py-2.5 text-content-secondary transition-colors hover:bg-surface-secondary hover:text-primary-500"
+                                                    >
+                                                        {subItem.label}
+                                                    </Link>
+                                                ))}
                                             </div>
-                                            <p className="text-gray-600">{notif.message}</p>
                                         </div>
-                                    ))}
-                                    {notifications.length > 5 && (
-                                        <button
-                                            className="w-full text-center text-sm text-blue-600"
-                                            onClick={() => {
-                                                setIsOpen(false)
-                                                router.push('/notifications')
-                                            }}
+                                    ) : (
+                                        <Link
+                                            href={item.href}
+                                            className="rounded-lg px-4 py-2 text-base font-medium text-content-secondary transition-all hover:bg-surface-secondary hover:text-primary-500"
                                         >
-                                            Xem tất cả {notifications.length} thông báo
-                                        </button>
+                                            {item.label}
+                                        </Link>
                                     )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* User Actions */}
-                        <div className="flex flex-col space-y-3 border-t border-gray-100 pt-4">
-                            <Link
-                                href={Routes.PROFILE}
-                                className="flex items-center gap-3 py-2 text-gray-600"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <FiUserCheck className="text-green-500" />
-                                <span>Thông tin cá nhân</span>
-                            </Link>
-                            <Link
-                                href={Routes.TRIPS}
-                                className="flex items-center gap-3 py-2 text-gray-600"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <FiClock className="text-green-500" />
-                                <span>Lịch sử chuyến đi</span>
-                            </Link>
-                            <Link
-                                href={Routes.BOOKING.ROOT}
-                                className="flex items-center gap-3 py-2 text-gray-600"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <FiCreditCard className="text-green-500" />
-                                <span>Lịch sử thanh toán</span>
-                            </Link>
-
-                            <button
-                                onClick={() => {
-                                    setIsOpen(false)
-                                    onLogout()
-                                }}
-                                className="flex items-center gap-3 py-2 text-red-600"
-                            >
-                                <FiLogOut className="text-red-500" />
-                                <span>Đăng xuất</span>
-                            </button>
+                                </motion.div>
+                            ))}
                         </div>
                     </div>
-                </div>
-            )}
-        </header>
+
+                    {/* Right Section - Actions */}
+                    <div className="relative hidden w-[280px] items-center justify-end space-x-2 md:flex">
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.3 }}
+                            className="rounded-lg p-2.5 transition-all duration-200 hover:bg-surface-secondary"
+                        >
+                            <NotificationDropdown
+                                notifications={notifications}
+                                unreadCount={unreadCount}
+                                showNotifications={showNotifications}
+                                notificationRef={notificationRef}
+                                toggleNotifications={toggleNotifications}
+                                markAsRead={markAsRead}
+                                markAllAsRead={markAllAsRead}
+                            />
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.4 }}
+                            className="rounded-lg transition-colors hover:bg-surface-secondary"
+                        >
+                            <UserDropdown
+                                userName={userName}
+                                showDropdown={showDropdown}
+                                dropdownRef={dropdownRef}
+                                toggleDropdown={toggleDropdown}
+                                onLogout={onLogout}
+                            />
+                        </motion.div>
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={toggleMenu}
+                        className="rounded-lg p-2 text-2xl text-content-secondary transition-colors hover:bg-surface-secondary hover:text-primary-500 md:hidden"
+                        aria-label={isOpen ? 'Đóng menu' : 'Mở menu'}
+                    >
+                        {isOpen ? <FiX /> : <FiMenu />}
+                    </button>
+                </nav>
+            </header>
+
+            {/* Mobile Menu */}
+            <AnimatePresence>
+                {isOpen && (
+
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                        onClick={toggleMenu}
+                    >
+
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'tween', duration: 0.3 }}
+                            className="fixed right-0 top-[72px] z-50 h-[calc(100vh-72px)] w-[75%] overflow-y-auto bg-surface shadow-xl md:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex flex-col p-4 pb-20">
+                                {/* User Profile Section */}
+                                <div className="flex items-center space-x-3 border-b border-divider pb-4 mb-4">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500">
+                                        <FiUser className="text-xl text-content-inverse" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-content">{userName}</p>
+                                        <p className="text-xs text-content-tertiary">Tài khoản của bạn</p>
+                                    </div>
+                                </div>
+
+                                {/* Navigation Links */}
+                                <div className="space-y-2">
+                                    {privateNavItems.map((item) => (
+                                        <div key={item.label}>
+                                            {item.items ? (
+                                                <div className="border-b border-divider">
+                                                    <button
+                                                        onClick={() => toggleSection(item.label)}
+                                                        className="flex w-full items-center justify-between py-3 text-lg font-medium text-content-secondary"
+                                                    >
+                                                        <span>{item.label}</span>
+                                                        <FiChevronDown
+                                                            className={`h-5 w-5 transition-transform ${expandedSections.includes(item.label) ? 'rotate-180' : ''
+                                                                }`}
+                                                        />
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {expandedSections.includes(item.label) && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="ml-4 space-y-2 pb-3">
+                                                                    {item.items.map((subItem) => (
+                                                                        <Link
+                                                                            key={subItem.href}
+                                                                            href={subItem.href}
+                                                                            className="block py-2 text-content-secondary hover:text-primary-500"
+                                                                            onClick={() => setIsOpen(false)}
+                                                                        >
+                                                                            {subItem.label}
+                                                                        </Link>
+                                                                    ))}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            ) : (
+                                                <Link
+                                                    href={item.href}
+                                                    className="block border-b border-divider py-3 text-lg font-medium text-content-secondary"
+                                                    onClick={() => setIsOpen(false)}
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Notifications Section */}
+                                <button
+                                    onClick={() => toggleSection('notifications')}
+                                    className="mt-4 flex w-full items-center justify-between border-b border-divider py-3"
+                                >
+                                    <div className="flex items-center">
+                                        <FiBell className="mr-2 text-primary-500" />
+                                        <span className="text-lg font-medium text-content-secondary">Thông báo</span>
+                                    </div>
+                                    <FiChevronDown
+                                        className={`h-5 w-5 transition-transform ${expandedSections.includes('notifications') ? 'rotate-180' : ''
+                                            }`}
+                                    />
+                                </button>
+                                <AnimatePresence>
+                                    {expandedSections.includes('notifications') && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="space-y-2 py-3">
+                                                {unreadCount > 0 && (
+                                                    <button
+                                                        className="text-xs text-accent-500"
+                                                        onClick={markAllAsRead}
+                                                    >
+                                                        Đánh dấu tất cả đã đọc
+                                                    </button>
+                                                )}
+                                                {notifications.length === 0 ? (
+                                                    <p className="py-2 text-center text-sm text-content-tertiary">
+                                                        Không có thông báo
+                                                    </p>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {notifications.slice(0, 5).map((notif) => (
+                                                            <div
+                                                                key={notif._id}
+                                                                className={`rounded p-3 text-sm ${!notif.isRead ? 'bg-accent-50' : 'bg-surface-secondary'}`}
+                                                                onClick={() => handleMobileNotificationClick(notif._id, notif.redirectUrl)}
+                                                            >
+                                                                <div className="mb-1 flex items-start justify-between">
+                                                                    <p className={`font-medium ${!notif.isRead ? 'text-accent-700' : 'text-content'}`}>
+                                                                        {notif.title}
+                                                                    </p>
+                                                                    <span className="text-xs text-content-tertiary">
+                                                                        {new Date(notif.createdAt).toLocaleDateString()}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-content-secondary">{notif.body}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* User Actions */}
+                                <button
+                                    onClick={() => toggleSection('userActions')}
+                                    className="mt-2 flex w-full items-center justify-between border-b border-divider py-3"
+                                >
+                                    <div className="flex items-center">
+                                        <FiUser className="mr-2 text-primary-500" />
+                                        <span className="text-lg font-medium text-content-secondary">Tài khoản</span>
+                                    </div>
+                                    <FiChevronDown
+                                        className={`h-5 w-5 transition-transform ${expandedSections.includes('userActions') ? 'rotate-180' : ''
+                                            }`}
+                                    />
+                                </button>
+                                <AnimatePresence>
+                                    {expandedSections.includes('userActions') && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="space-y-3 py-3">
+                                                {userMenuItems.map((item) => (
+                                                    <Link
+                                                        key={item.href}
+                                                        href={item.href}
+                                                        className="flex items-center gap-3 py-2 text-content-secondary"
+                                                        onClick={() => setIsOpen(false)}
+                                                    >
+                                                        <item.icon className="text-primary-500" />
+                                                        <span>{item.label}</span>
+                                                    </Link>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        setIsOpen(false)
+                                                        onLogout()
+                                                    }}
+                                                    className="flex w-full items-center gap-3 py-2 text-error"
+                                                >
+                                                    <FiLogOut className="text-error" />
+                                                    <span>Đăng xuất</span>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     )
 }

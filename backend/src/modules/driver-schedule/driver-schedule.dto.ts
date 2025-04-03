@@ -11,6 +11,7 @@ export interface ICreateDriverSchedule {
   endTime?: Date;
   vehicle: string;
   taskType?: DriverScheduleTaskType;
+  busRoute?: string;
 }
 
 export interface IUpdateDriverSchedule {
