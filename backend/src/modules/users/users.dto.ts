@@ -11,6 +11,7 @@ export interface ICreateUserDto {
   role: UserRole;
 }
 
+
 export interface IUpdateUserDto {
   name?: string;
   phone?: string;

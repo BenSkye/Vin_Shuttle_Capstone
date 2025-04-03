@@ -47,4 +47,5 @@ export interface ISharedItineraryService {
   saveASharedItineraryFromRedisToDBByTripID(tripId: string): Promise<SharedItineraryDocument>;
   getSharedItineraryById(id: string): Promise<SharedItineraryDocument>;
   getSharedItineraryByTripId(tripId: string): Promise<SharedItineraryDocument>;
+  cancelTripInItinerary(tripId: string, sharedItineraryId: string): Promise<SharedItineraryDocument>;
 }

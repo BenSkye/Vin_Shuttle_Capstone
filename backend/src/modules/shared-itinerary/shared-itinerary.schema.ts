@@ -37,6 +37,7 @@ export class SharedItinerary {
         },
         point: { type: StartOrEndPointSchema, required: true },
         isPass: { type: Boolean, default: false },
+        isCancel: { type: Boolean, default: false },
       },
     ],
     default: [],
@@ -51,6 +52,7 @@ export class SharedItinerary {
       address: string;
     };
     isPass: boolean;
+    isCancel: boolean;
   }>;
 
   // @Prop({ type: [PositionSchema] })

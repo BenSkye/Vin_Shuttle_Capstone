@@ -12,6 +12,7 @@ import { KEYTOKEN_SERVICE } from 'src/modules/keytoken/keytoken.di-token';
 import { IKeyTokenService } from 'src/modules/keytoken/keytoken.port';
 import { SMS_PROVIDER } from 'src/share/di-token';
 import { ISMSProvider } from 'src/share/share.port';
+import { UserRole } from 'src/share/enums';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -20,7 +21,7 @@ export class AuthService implements IAuthService {
     @Inject(OTP_SERVICE) private readonly otpService: IOTPService,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(SMS_PROVIDER) private readonly smsService: ISMSProvider,
-  ) {}
+  ) { }
 
   async registerCustomer(data: ICreateUserDto): Promise<object> {
     //check if phone allready exist
@@ -34,6 +35,29 @@ export class AuthService implements IAuthService {
         },
         HttpStatus.BAD_REQUEST,
       );
+    }
+    if (data.role !== UserRole.CUSTOMER) {
+      //kiểm tra xem có email và password hay không
+      if (!data.email) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Email is required',
+            vnMessage: 'Email là bắt buộc',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!data.password) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Password is required',
+            vnMessage: 'Mật khẩu là bắt buộc',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
     if (data.password) {
       const passwordHash = await bcrypt.hash(data.password, 10);
@@ -52,7 +76,6 @@ export class AuthService implements IAuthService {
     }
     return newUser;
   }
-
   async loginCustomer(phone: string): Promise<string> {
     //check if phone allready exist
     const userExist = await this.userRepository.findUser({ phone });
