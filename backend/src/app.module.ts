@@ -28,6 +28,7 @@ import { ConversationModule } from 'src/modules/conversation/conversation.module
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
 import { DriverBusScheduleModule } from './modules/driver-bus-schedule/driver-bus-schedule.module';
+import { TicketModule } from './modules/ticket/ticket.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { DriverBusScheduleModule } from './modules/driver-bus-schedule/driver-bu
     ConversationModule,
     SharedItineraryModule,
     DriverBusScheduleModule,
+    TicketModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
