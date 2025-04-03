@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { notification, Card, Typography, Alert } from 'antd'
+import { notification, Card, Typography, Alert, Radio, Space } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -14,6 +14,7 @@ import VehicleSelection from '@/views/Ride/components/vehicleselection'
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingHour } from '@/service/booking.service'
 import { vehicleSearchHour } from '@/service/search.service'
+import { PaymentMethod } from '@/constants/payment.enum'
 
 const LocationSelection = dynamic(() => import('@/views/Ride/components/locationselection'), {
   ssr: false,
@@ -29,7 +30,7 @@ type LocationPoint = {
 
 const HourlyBookingPage = () => {
   // Define steps for the booking flow
-  const [currentStep, setCurrentStep] = useState<'datetime' | 'vehicle' | 'location' | 'checkout'>('datetime')
+  const [currentStep, setCurrentStep] = useState<'datetime' | 'vehicle' | 'location' | 'payment' | 'checkout'>('datetime')
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null)
   const [duration, setDuration] = useState<number>(60)
@@ -42,13 +43,14 @@ const HourlyBookingPage = () => {
     position: { lat: 10.840405, lng: 106.843424 },
     address: '',
   })
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
   const [booking, setBooking] = useState<BookingHourRequest>({
     startPoint: { position: { lat: 0, lng: 0 }, address: '' },
     date: '',
     startTime: '',
     durationMinutes: 0,
     vehicleCategories: [],
-    paymentMethod: 'pay_os',
+    paymentMethod: paymentMethod,
   })
 
   // Handle date and time selection
@@ -87,6 +89,10 @@ const HourlyBookingPage = () => {
         : prev
     })
   }, [availableVehicles])
+
+  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
+    setPaymentMethod(method)
+  }, [])
 
   // Location handlers
   const handleLocationChange = useCallback((newPosition: { lat: number; lng: number }, newAddress: string) => {
@@ -237,10 +243,13 @@ const HourlyBookingPage = () => {
         break
       case 'location':
         if (startPoint.address.trim()) {
-          handleSubmitBooking()
+          setCurrentStep('payment')
         } else {
           setError('Vui lòng chọn địa điểm đón')
         }
+        break
+      case 'payment':
+        handleSubmitBooking()
         break
       default:
         break
@@ -255,8 +264,11 @@ const HourlyBookingPage = () => {
       case 'location':
         setCurrentStep('vehicle')
         break
-      case 'checkout':
+      case 'payment':
         setCurrentStep('location')
+        break
+      case 'checkout':
+        setCurrentStep('payment')
         break
       default:
         break
@@ -272,8 +284,9 @@ const HourlyBookingPage = () => {
       startTime: startTime?.format('HH:mm') || '',
       durationMinutes: duration,
       vehicleCategories: selectedVehicles,
+      paymentMethod: paymentMethod,
     }))
-  }, [selectedDate, startTime, duration, selectedVehicles, startPoint])
+  }, [selectedDate, startTime, duration, selectedVehicles, startPoint, paymentMethod])
 
   // Render the content based on the current step
   const renderStepContent = () => {
@@ -356,10 +369,64 @@ const HourlyBookingPage = () => {
                 onClick={handleNextStep}
                 disabled={!startPoint.address.trim() || loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
-                aria-label="Xác nhận đặt xe"
+                aria-label="Chọn phương thức thanh toán"
                 tabIndex={0}
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+
+      case 'payment':
+        return (
+          <div className="space-y-4">
+            {/* <Title level={4} className="text-center">
+              Chọn phương thức thanh toán
+            </Title> */}
+            <Radio.Group
+              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              value={paymentMethod}
+              className="w-full"
+            >
+              <Space direction="vertical" className="w-full">
+                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
+                    <span>Thanh toán qua PayOS</span>
+                  </div>
+                </Radio>
+                <Radio value="momo" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
+                    <span>Ví điện tử Momo</span>
+                  </div>
+                </Radio>
+                <Radio value="cash" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
+                    <span>Thanh toán tiền mặt</span>
+                  </div>
+                </Radio>
+              </Space>
+            </Radio.Group>
+
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                aria-label="Quay lại chọn địa điểm"
+                tabIndex={0}
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 transition-colors"
+                aria-label="Xác nhận thanh toán"
+                tabIndex={0}
+              >
+                Tiếp tục
               </button>
             </div>
           </div>
@@ -390,8 +457,8 @@ const HourlyBookingPage = () => {
   }
 
   // Progress indicators for each step
-  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'checkout') => {
-    const steps = ['datetime', 'vehicle', 'location', 'checkout']
+  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'payment' | 'checkout') => {
+    const steps = ['datetime', 'vehicle', 'location', 'payment', 'checkout']
     const currentIndex = steps.indexOf(currentStep)
     const stepIndex = steps.indexOf(step)
 
@@ -443,6 +510,15 @@ const HourlyBookingPage = () => {
               />
             </div>
             <span>Chọn địa điểm</span>
+          </div>
+          <div className={`flex-1 text-center ${currentStep === 'payment' ? 'text-blue-500' : 'text-gray-500'}`}>
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('payment')}%` }}
+              />
+            </div>
+            <span>Phương thức thanh toán</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
