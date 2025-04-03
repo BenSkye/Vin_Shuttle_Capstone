@@ -16,7 +16,7 @@ export class ConversationService implements IConversationService {
   constructor(
     @Inject(CONVERSATION_REPOSITORY)
     private readonly conversationRepository: IConversationRepository,
-  ) {}
+  ) { }
 
   async createConversation(data: ICreateConversation): Promise<ConversationDocument> {
     const { tripId, customerId, driverId, timeToOpen, timeToClose } = data;
@@ -118,31 +118,31 @@ export class ConversationService implements IConversationService {
   }
 
   //run every 1 minute function check timeToOpen and timeToClose
-  @Cron(CronExpression.EVERY_MINUTE, {
-    name: 'checkTimeToOpenAndClose',
-  })
-  async checkTimeToOpenAndClose() {
-    const current = new Date();
-    const conversations = await this.conversationRepository.getListConversation(
-      {
-        status: ConversationStatus.PENDING,
-        timeToOpen: { $lte: current },
-      },
-      [],
-    );
-    conversations.forEach(async conversation => {
-      await this.conversationRepository.openConversation(conversation._id.toString());
-    });
+  // @Cron(CronExpression.EVERY_MINUTE, {
+  //   name: 'checkTimeToOpenAndClose',
+  // })
+  // async checkTimeToOpenAndClose() {
+  //   const current = new Date();
+  //   const conversations = await this.conversationRepository.getListConversation(
+  //     {
+  //       status: ConversationStatus.PENDING,
+  //       timeToOpen: { $lte: current },
+  //     },
+  //     [],
+  //   );
+  //   conversations.forEach(async conversation => {
+  //     await this.conversationRepository.openConversation(conversation._id.toString());
+  //   });
 
-    const conversationsClose = await this.conversationRepository.getListConversation(
-      {
-        status: ConversationStatus.OPENED,
-        timeToClose: { $lte: current },
-      },
-      [],
-    );
-    conversationsClose.forEach(async conversation => {
-      await this.conversationRepository.closeConversation(conversation._id.toString());
-    });
-  }
+  //   const conversationsClose = await this.conversationRepository.getListConversation(
+  //     {
+  //       status: ConversationStatus.OPENED,
+  //       timeToClose: { $lte: current },
+  //     },
+  //     [],
+  //   );
+  //   conversationsClose.forEach(async conversation => {
+  //     await this.conversationRepository.closeConversation(conversation._id.toString());
+  //   });
+  // }
 }
