@@ -1,15 +1,17 @@
 import { Layout, Menu, App, notification } from "antd";
 import {
-  UserOutlined,
-  CarOutlined,
-  UserSwitchOutlined,
-  CompassOutlined,
-  DollarOutlined,
-  CalculatorOutlined,
-  UnorderedListOutlined,
-  LogoutOutlined,
-  BookOutlined
-} from "@ant-design/icons";
+  AiOutlineUser,
+  AiOutlineCar,
+  AiOutlineUserSwitch,
+  AiOutlineCompass,
+  AiOutlineDollar,
+  AiOutlineCalculator,
+  AiOutlineUnorderedList,
+  AiOutlineLogout,
+  AiOutlineBook,
+} from "react-icons/ai";
+import { FaBus } from "react-icons/fa";
+
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -56,47 +58,52 @@ export default function Sidebar() {
       ? [
           {
             key: "/",
-            icon: <UserOutlined />,
+            icon: <AiOutlineUser />,
             label: <Link href="/">Quản lý người dùng</Link>,
           },
           {
             key: "/category",
-            icon: <UnorderedListOutlined />,
+            icon: <AiOutlineUnorderedList />,
             label: <Link href="/category">Quản lý danh mục xe</Link>,
           },
           {
             key: "/vehicles",
-            icon: <CarOutlined />,
+            icon: <AiOutlineCar />,
             label: <Link href="/vehicles">Quản lý phương tiện</Link>,
           },
           {
             key: "/profile",
-            icon: <UserSwitchOutlined />,
+            icon: <AiOutlineUserSwitch />,
             label: <Link href="/profile">Trang cá nhân</Link>,
           },
           {
             key: "/router",
-            icon: <CompassOutlined />,
+            icon: <AiOutlineCompass />,
             label: <Link href="/router">Quản lý tuyến đường</Link>,
           },
           {
+            key: "/busroute",
+            icon: <FaBus />,
+            label: <Link href="/busroute">Quản lý tuyến xe bus</Link>,
+          },
+          {
             key: "/money",
-            icon: <DollarOutlined />,
+            icon: <AiOutlineDollar />,
             label: <Link href="/money">Quản lý tiền</Link>,
           },
           {
             key: "/cal",
-            icon: <CalculatorOutlined />,
+            icon: <AiOutlineCalculator />,
             label: <Link href="/cal">Tính tiền</Link>,
           },
           {
             key: "/trip",
-            icon: <BookOutlined />,
+            icon: <AiOutlineBook />,
             label: <Link href="/trip">Lịch sử cuốc xe</Link>,
           },
           {
             key: "logout",
-            icon: <LogoutOutlined />,
+            icon: <AiOutlineLogout />,
             label: "Đăng xuất",
             onClick: handleLogout,
           },
