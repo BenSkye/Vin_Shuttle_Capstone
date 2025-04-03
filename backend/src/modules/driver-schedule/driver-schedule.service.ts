@@ -1,38 +1,22 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import {
-  DRIVERSCHEDULE_GATEWAY,
-  DRIVERSCHEDULE_REPOSITORY,
-} from 'src/modules/driver-schedule/driver-schedule.di-token';
-import {
-  driverScheduleParams,
-  ICreateDriverSchedule,
-  IUpdateDriverSchedule,
-} from 'src/modules/driver-schedule/driver-schedule.dto';
-import { DriverScheduleGateway } from 'src/modules/driver-schedule/driver-schedule.gateway';
-import {
-  IDriverScheduleRepository,
-  IDriverScheduleService,
-} from 'src/modules/driver-schedule/driver-schedule.port';
-import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
-import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
-import { ITrackingService } from 'src/modules/tracking/tracking.port';
-import { USER_REPOSITORY } from 'src/modules/users/users.di-token';
-import { IUserRepository } from 'src/modules/users/users.port';
-import { UserDocument } from 'src/modules/users/users.schema';
-import { VEHICLE_REPOSITORY } from 'src/modules/vehicles/vehicles.di-token';
-import { IVehiclesRepository } from 'src/modules/vehicles/vehicles.port';
-import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
-import {
-  DriverSchedulesStatus,
-  Shift,
-  ShiftDifference,
-  ShiftHours,
-  UserRole,
-  UserStatus,
-} from 'src/share/enums';
-import { VehicleCondition, VehicleOperationStatus } from 'src/share/enums/vehicle.enum';
-import { DateUtils } from 'src/share/utils';
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
+import { DRIVERSCHEDULE_GATEWAY, DRIVERSCHEDULE_REPOSITORY } from "src/modules/driver-schedule/driver-schedule.di-token";
+import { driverScheduleParams, ICreateDriverSchedule, IUpdateDriverSchedule } from "src/modules/driver-schedule/driver-schedule.dto";
+import { DriverScheduleGateway } from "src/modules/driver-schedule/driver-schedule.gateway";
+import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/driver-schedule/driver-schedule.port";
+import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
+import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
+import { ITrackingService } from "src/modules/tracking/tracking.port";
+import { USER_REPOSITORY } from "src/modules/users/users.di-token";
+import { IUserRepository } from "src/modules/users/users.port";
+import { UserDocument } from "src/modules/users/users.schema";
+import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
+import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
+import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
+import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
+import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
+import { DateUtils } from "src/share/utils";
+
 
 @Injectable()
 export class DriverScheduleService implements IDriverScheduleService {
@@ -47,7 +31,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     private readonly driverScheduleGateway: DriverScheduleGateway,
     @Inject(TRACKING_SERVICE)
     private readonly trackingService: ITrackingService,
-  ) {}
+  ) { }
 
   async createListDriverSchedule(
     driverSchedules: ICreateDriverSchedule[],
@@ -387,12 +371,12 @@ export class DriverScheduleService implements IDriverScheduleService {
     return schedules;
   }
 
-  async getAllDriverSchedules(): Promise<DriverScheduleDocument[]> {
-    const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedules();
+  async getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]> {
+    const driverSchedules = await this.driverScheduleRepository.getAllDriverSchedulesGeneral();
     return driverSchedules;
   }
 
-  async getScheduleFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]> {
+  async getScheduleGeneralFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]> {
     // get all driver schedule from start to end
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -406,15 +390,12 @@ export class DriverScheduleService implements IDriverScheduleService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const schedules = await this.driverScheduleRepository.getDriverSchedules(
-      {
-        date: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      },
-      [],
-    );
+    const schedules = await this.driverScheduleRepository.getDriverSchedules({
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }, []);
     return schedules;
   }
 

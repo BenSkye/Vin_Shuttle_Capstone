@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile, Callout } from 'react-native-maps';
 import { useLocation } from '~/context/LocationContext';
@@ -7,8 +7,41 @@ import { imgAccess } from '~/constants/imgAccess';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { styles } from '~/styles/MapStyle';
 import { sharedItineraryStop } from '~/interface/share-itinerary';
+import { SharedItineraryStopsType } from '~/constants/shared-itinerary.enum';
 const OSRM_API = 'https://router.project-osrm.org/route/v1/driving';
+import Svg, { Path } from 'react-native-svg';
 
+const PinIcon = ({ color = '#34dbd8', size = 50 }: { color: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Path
+      fill={color}
+      fillRule="evenodd"
+      d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z"
+      clipRule="evenodd"
+    />
+  </Svg>
+);
+
+// Component bọc để thêm số thứ tự
+const CustomPin = ({ color, size, order }: { color: string; size: number; order?: number }) => (
+  <View style={{ alignItems: 'center' }}>
+    <PinIcon color={color} size={size} />
+    {order && (
+      <View style={{
+        position: 'absolute',
+        top: 10,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color }}>{order}</Text>
+      </View>
+    )}
+  </View>
+);
 const MapComponent = ({
   pickupLocation,
   detinateLocation,
@@ -18,8 +51,9 @@ const MapComponent = ({
   showScenicRoute = false,
   shareStops = [],
   currentTripId = '', // ID của chuyến đi hiện tại để highlight
-  currentStopIndex = -1, // Chỉ số của điểm dừng hiện tại để highlight
-  onStopPress = () => {}, // Callback khi nhấn vào điểm dừng
+  nextStopIndex = -1, // Chỉ số của điểm dừng phải đi tới
+  onStopPress = (stop: sharedItineraryStop) => { }, // Callback khi nhấn vào điểm 
+  isShareItinerary = false, // Kiểm tra xem có phải là lộ trình chia sẻ hay không
 }: {
   pickupLocation: Position;
   detinateLocation?: Position | null;
@@ -29,8 +63,9 @@ const MapComponent = ({
   showScenicRoute?: boolean;
   shareStops?: sharedItineraryStop[]; // Assuming this is the correct type for shareStops
   currentTripId?: string;
-  currentStopIndex?: number;
+  nextStopIndex?: number;
   onStopPress?: (stop: sharedItineraryStop) => void;
+  isShareItinerary?: boolean;
 }) => {
   const { location, errorMsg, isTracking } = useLocation();
   const mapRef = useRef<MapView | null>(null);
@@ -46,10 +81,21 @@ const MapComponent = ({
     { latitude: number; longitude: number }[]
   >([]);
   const [sharedItineraryStops, setSharedItineraryStops] = useState<sharedItineraryStop[]>([]);
+  const [sharedItineraryCoordinates, setSharedItineraryCoordinates] = useState<
+    { latitude: number; longitude: number }[]
+  >([]);
   const [routeError, setRouteError] = useState<string | null>(null);
   const [locationTimestamp, setLocationTimestamp] = useState<Date | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (isShareItinerary) {
+      setPickup(null);
+      setDetinate(null);
+      setRouteToPickupCoordinates([]);
+      setRouteToDestinationCoordinates([]);
+      return;
+    }
     if (pickupLocation && pickupLocation.lat && pickupLocation.lng) {
       setPickup({ latitude: pickupLocation.lat, longitude: pickupLocation.lng });
 
@@ -70,7 +116,7 @@ const MapComponent = ({
     } else {
       setDetinate(null);
     }
-  }, [pickupLocation, detinateLocation]);
+  }, [pickupLocation, detinateLocation, isShareItinerary]);
 
   // Format scenic route coordinates
   useEffect(() => {
@@ -96,6 +142,9 @@ const MapComponent = ({
 
   // Fit map to include all relevant points (driver, pickup, waypoints, and destination if available)
   useEffect(() => {
+    if (isShareItinerary) {
+      return;
+    }
     if (location && mapRef.current) {
       const points = [{ latitude: location.latitude, longitude: location.longitude }];
 
@@ -133,33 +182,49 @@ const MapComponent = ({
         );
       }
     }
-  }, [location, pickup, detinate, waypoints]);
+  }, [location, pickup, detinate, waypoints, isShareItinerary]);
 
-  // Zoom to current stop when it changes
   useEffect(() => {
-    if (
-      mapRef.current && 
-      currentStopIndex >= 0 && 
-      sharedItineraryStops && 
-      sharedItineraryStops[currentStopIndex]
-    ) {
-      const currentStop = sharedItineraryStops[currentStopIndex];
-      const { lat, lng } = currentStop.point.position;
-      
-      mapRef.current.animateToRegion(
-        {
-          latitude: lat,
-          longitude: lng,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        },
-        1000
-      );
+    console.log('shareStops143:', shareStops);
+    setSharedItineraryStops(shareStops);
+  }, [shareStops]);
+
+  const fetchRouteForItinerary = useCallback(async (
+    { sharedItineraryStops, location }:
+      { sharedItineraryStops: sharedItineraryStop[], location: { latitude: number; longitude: number } }) => {
+    //lấy ra các stop chưa đi qua
+    const avaibleStop = sharedItineraryStops.filter((stop) => !stop.isPass);
+    const stopList: { latitude: number; longitude: number }[] = avaibleStop.map((stop) => ({
+      latitude: stop.point.position.lat,
+      longitude: stop.point.position.lng,
+    }));
+    await fetchRouteForManyStops(
+      location,
+      stopList,
+      setSharedItineraryCoordinates
+    );
+    setIsLoading(false);
+  }, []);
+  // Format shared itinerary stops
+
+  useEffect(() => {
+    if (sharedItineraryStops) {
+      console.log('sharedItineraryStops167:', sharedItineraryStops);
     }
-  }, [currentStopIndex, sharedItineraryStops]);
+    if (sharedItineraryStops.length > 0 && location) {
+      fetchRouteForItinerary({
+        sharedItineraryStops, location
+      });
+    }
+  }, [location, sharedItineraryStops, fetchRouteForItinerary]);
+
+
 
   // Get route from driver to pickup
   useEffect(() => {
+    if (isShareItinerary) {
+      return;
+    }
     if (
       location &&
       pickup &&
@@ -173,11 +238,15 @@ const MapComponent = ({
         pickup,
         setRouteToPickupCoordinates
       );
+      setIsLoading(false);
     }
-  }, [location, pickup, showRouteToDestination, showScenicRoute]);
+  }, [location, pickup, showRouteToDestination, showScenicRoute, isShareItinerary]);
 
   // Get route from driver to destination when in destination mode
   useEffect(() => {
+    if (isShareItinerary) {
+      return;
+    }
     if (
       location &&
       detinate &&
@@ -194,8 +263,10 @@ const MapComponent = ({
 
       // Clear the pickup route when showing route to destination
       setRouteToPickupCoordinates([]);
+      setIsLoading(false);
+
     }
-  }, [location, detinate, showRouteToDestination, showScenicRoute]);
+  }, [location, detinate, showRouteToDestination, showScenicRoute, isShareItinerary]);
 
   // Helper function to fetch routes
   const fetchRoute = async (
@@ -261,22 +332,75 @@ const MapComponent = ({
     }
   };
 
-  // Format shared itinerary stops
-  useEffect(() => {
-    if (shareStops && shareStops.length > 0) {
-      const formattedStops = shareStops.map((stop) => ({
-        ...stop,
-        point: {
-          ...stop.point,
-          position: {
-            lat: stop.point.position.lat,
-            lng: stop.point.position.lng,
-          },
-        },
-      }));
-      setSharedItineraryStops(formattedStops);
+  const fetchRouteForManyStops = async (
+    vehicelLocation: { latitude: number; longitude: number },
+    stops: { latitude: number; longitude: number }[],
+    setRouteCoordinates: React.Dispatch<
+      React.SetStateAction<{ latitude: number; longitude: number }[]>
+    >
+  ) => {
+    setRouteError(null);
+    if (stops.length < 1) {
+      setRouteError('At least 1 stop are required');
+      return;
     }
-  }, [shareStops]);
+    for (const stop of stops) {
+      if (!isValidCoordinate(stop.latitude, stop.longitude)) {
+        console.log('Invalid coordinates:', stop);
+        setRouteError(`Invalid coordinates: ${stop.latitude}, ${stop.longitude}`);
+        return;
+      }
+    }
+    console.log('list Stop', stops);
+    const coordinatesString1 = `${vehicelLocation.longitude},${vehicelLocation.latitude};`;
+    const coordinatesString2 = stops
+      .map(point => `${point.longitude},${point.latitude}`)
+      .join(';');
+    const coordinatesString = coordinatesString1 + coordinatesString2;
+    console.log('Coordinates string:', coordinatesString);
+    const url = `${OSRM_API}/${coordinatesString}?geometries=geojson`;
+    console.log('Fetching route for many stops:', url);
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || !data.routes) {
+        console.log('Invalid OSRM response data:', data);
+        setRouteError('Invalid route data received');
+        return;
+      }
+
+      if (
+        data.routes.length > 0 &&
+        data.routes[0].geometry &&
+        data.routes[0].geometry.coordinates
+      ) {
+        const coordinates = data.routes[0].geometry.coordinates.map((coord: number[]) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        }));
+
+        console.log(`Route found with ${coordinates.length} points`);
+        console.log('coordinates343:', coordinates);
+        setRouteCoordinates(coordinates);
+      } else {
+        console.log('No route found in data:', data);
+        setRouteError('No route found');
+      }
+    } catch (error) {
+      console.error('Error fetching route data:', error);
+      setRouteError(
+        `Failed to load route: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+
 
   // Helper to validate coordinates
   const isValidCoordinate = (lat: number, lng: number): boolean => {
@@ -310,7 +434,7 @@ const MapComponent = ({
     <View style={styles.container}>
       {errorMsg ? (
         <Text style={styles.errorText}>{errorMsg}</Text>
-      ) : location ? (
+      ) : (location && !isLoading) ? (
         <View style={styles.container}>
           <MapView
             style={styles.map}
@@ -363,6 +487,19 @@ const MapComponent = ({
               />
             )}
 
+
+            {/* Shared itinerary route - cyan */}
+            {sharedItineraryCoordinates.length > 0 && (
+              <Polyline
+                coordinates={sharedItineraryCoordinates}
+                strokeWidth={4}
+                strokeColor="#34dbd8" // Indigo color for shared route
+                lineDashPattern={[0]} // Dashed line
+              />
+            )}
+
+
+
             {/* Marker cho vị trí hiện tại */}
             <Marker.Animated
               coordinate={{
@@ -408,7 +545,8 @@ const MapComponent = ({
                     latitude: waypoint.position.lat,
                     longitude: waypoint.position.lng,
                   }}
-                  title={`Điểm ${index + 1}: ${waypoint.name}`}>
+                  title={`Điểm ${index + 1}: ${waypoint.name}`}
+                >
                   <View style={styles.waypointMarker}>
                     <MaterialIcons name="place" size={30} color="#9C27B0" />
                     <Text style={styles.waypointNumber}>{index + 1}</Text>
@@ -419,149 +557,56 @@ const MapComponent = ({
                     </View>
                   </Callout>
                 </Marker>
-              ))}
+              ))
+            }
 
-            {/* Shared Itinerary Stops */}
-            {sharedItineraryStops && sharedItineraryStops.length > 0 && sharedItineraryStops.map((stop, index) => {
-              // Kiểm tra xem có vị trí hợp lệ không
-              if (!stop.point || !stop.point.position || !isValidCoordinate(stop.point.position.lat, stop.point.position.lng)) {
-                console.log(`Invalid position for shared stop ${index}:`, stop);
-                return null;
-              }
-              
-              // Xác định loại điểm dừng (đón/trả)
-              const isPickup = stop.pointType === 'startPoint'; 
-              
-              // Màu sắc dựa vào loại điểm và trạng thái
-              const pinColor = isPickup ? '#4CAF50' : '#FF5722'; // Xanh cho đón, Cam cho trả
-              const passedColor = '#9E9E9E'; // Màu xám cho điểm đã đi qua
-              const iconColor = stop.isPass ? passedColor : pinColor;
-              
-              // Kiểm tra xem đây có phải là điểm dừng hiện tại không
-              const isCurrentStop = index === currentStopIndex;
-              // Kiểm tra xem đây có phải là chuyến đi hiện tại không
-              const isCurrentTrip = stop.trip === currentTripId;
-              
-              return (
-                <Marker
-                  key={`shared-stop-${index}`}
-                  coordinate={{
-                    latitude: stop.point.position.lat,
-                    longitude: stop.point.position.lng,
-                  }}
-                  title={isPickup ? "Điểm đón" : "Điểm trả"}
-                  description={`Điểm ${stop.order} - ${stop.isPass ? 'Đã qua' : 'Chưa qua'}`}
-                  onPress={() => onStopPress(stop)} // Callback khi nhấn vào marker
-                >
-                  <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {/* Icon với màu sắc đặc biệt nếu là điểm hiện tại */}
-                    <MaterialIcons 
-                      name={isPickup ? "person-pin-circle" : "place"} 
-                      size={isCurrentStop ? 36 : 30} // Size lớn hơn nếu là điểm hiện tại
-                      color={
-                        isCurrentStop 
-                          ? '#1565C0' // Màu nổi bật nếu là điểm hiện tại
-                          : (stop.isPass 
-                            ? passedColor 
-                            : (isCurrentTrip ? pinColor : '#607D8B')) // Màu khác nếu là chuyến đi hiện tại
-                      } 
+
+            {sharedItineraryStops &&
+              sharedItineraryStops.length > 0 &&
+              sharedItineraryStops.map((stop, index) => {
+
+                // Xác định màu sắc dựa trên pointType
+                let pinColor = "#34dbd8"; // Màu mặc định
+                let iconColor = "#34dbd8"; // Màu icon mặc định
+
+                if (stop.pointType === SharedItineraryStopsType.START_POINT) {
+                  pinColor = "#34dbd8"; // Màu cyan cho điểm bắt đầu
+                  iconColor = "#34dbd8";
+                } else if (stop.pointType === SharedItineraryStopsType.END_POINT) {
+                  pinColor = "#eb984e"; // Màu cam cho điểm kết thúc
+                  iconColor = "#eb984e";
+                }
+
+                // Nếu đã đi qua thì chuyển sang màu xám
+                if (stop.isPass) {
+                  iconColor = "#888";
+                }
+                // Nếu là điểm dừng tiếp theo thì màu đỏ
+                else if (index === nextStopIndex) {
+                  iconColor = "#FF5722";
+                }
+
+                return (
+                  <Marker
+                    key={`stop-${index}`}
+                    coordinate={{
+                      latitude: stop.point.position.lat,
+                      longitude: stop.point.position.lng,
+                    }}
+                    onPress={() => onStopPress(stop)}
+                    title={`Điểm ${stop.pointType === SharedItineraryStopsType.START_POINT ? 'Đón' : "Trả"} cuốc xe ${stop.trip}`}
+                  >
+                    <CustomPin
+                      color={iconColor}
+                      size={50}
+                      order={stop.order}
                     />
-                    
-                    {/* Số thứ tự điểm dừng */}
-                    <View style={{
-                      position: 'absolute',
-                      backgroundColor: stop.isPass ? '#BDBDBD' : '#FFFFFF',
-                      borderRadius: 10,
-                      width: 20,
-                      height: 20,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      top: -5,
-                      right: -5,
-                      borderWidth: 1,
-                      borderColor: iconColor,
-                    }}>
-                      <Text style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                        color: stop.isPass ? '#FFFFFF' : '#000000',
-                      }}>
-                        {stop.order}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {/* Thông tin chi tiết khi nhấn vào marker */}
-                  <Callout>
-                    <View style={styles.callout}>
-                      <Text style={styles.calloutTitle}>
-                        {isPickup ? "Điểm đón khách" : "Điểm trả khách"} #{stop.order}
-                      </Text>
-                      <Text style={styles.calloutDescription}>
-                        {stop.point.address}
-                      </Text>
-                      <Text style={{
-                        fontSize: 12, 
-                        fontWeight: 'bold',
-                        color: stop.isPass ? '#4CAF50' : '#757575',
-                        marginTop: 4
-                      }}>
-                        {stop.isPass ? '✓ Đã qua' : '○ Chưa qua'}
-                      </Text>
-                      <View style={{
-                        marginTop: 4,
-                        padding: 4,
-                        backgroundColor: '#E3F2FD',
-                        borderRadius: 4
-                      }}>
-                        <Text style={{ fontSize: 10 }}>
-                          Trip ID: {stop.trip.substring(0, 8)}...
-                        </Text>
-                      </View>
-                    </View>
-                  </Callout>
-                </Marker>
-              );
-            })}
 
-            {/* Polyline connecting shared stops in order */}
-            {sharedItineraryStops && sharedItineraryStops.length > 1 && (
-              <Polyline
-                coordinates={sharedItineraryStops
-                  .sort((a, b) => a.order - b.order)
-                  .map(stop => ({
-                    latitude: stop.point.position.lat,
-                    longitude: stop.point.position.lng,
-                  }))}
-                strokeWidth={3}
-                strokeColor="#3F51B5" // Indigo color for shared route
-                lineDashPattern={[5, 5]} // Dashed line
-              />
-            )}
+                  </Marker>
+                );
+              })
+            }
 
-            {/* Indicator for shared route when shared stops are shown */}
-            {sharedItineraryStops && sharedItineraryStops.length > 0 && (
-              <View style={{
-                position: 'absolute',
-                bottom: 80,
-                alignSelf: 'center',
-                backgroundColor: 'rgba(33, 150, 243, 0.9)',
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 20,
-              }}>
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontWeight: 'bold',
-                  fontSize: 12,
-                }}>
-                  Chuyến ghép: {sharedItineraryStops.length} điểm dừng
-                </Text>
-              </View>
-            )}
           </MapView>
 
           {/* Scenic Route Indicator */}

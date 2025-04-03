@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Request, Res } from '@nestjs/common';
+import { Controller, Get, Inject, Post, Request, Res } from '@nestjs/common';
 import { CHECKOUT_SERVICE } from 'src/modules/checkout/checkout.di-token';
 import { ICheckoutService } from 'src/modules/checkout/checkout.port';
 
@@ -7,7 +7,7 @@ export class CheckoutController {
   constructor(
     @Inject(CHECKOUT_SERVICE)
     private readonly checkoutService: ICheckoutService,
-  ) {}
+  ) { }
 
   @Get('return-booking-payment')
   async getPayOsReturn(@Request() req, @Res() res) {
@@ -33,4 +33,13 @@ export class CheckoutController {
   async getPayOsCancel(@Request() req) {
     await this.checkoutService.getPayOsCancel(req.query);
   }
+
+  @Post('momo/return-booking-payment')
+  async momoCalbackReturn(@Request() req, @Res() res) {
+    console.log('req.body', req.body);
+    console.log('res.body', res.body);
+    await this.checkoutService.momoCalbackReturn(req.body);
+  }
+
 }
+

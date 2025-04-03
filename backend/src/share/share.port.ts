@@ -34,7 +34,7 @@ export interface IMomoService {
     returnUrl: string;
   }): Promise<any>;
   initiateRefund(createRefundDto: {
-    bookingCode: string;
+    orderId: string;
     amount: number;
     description: string;
     transId: string;
