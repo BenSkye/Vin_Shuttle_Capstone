@@ -1,28 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { BusTimeSlot, BusScheduleStatus } from '../../share/enums/bus-schedule.enum';
+import { BusScheduleStatus } from '../../share/enums/bus-schedule.enum';
 
 export type BusScheduleDocument = HydratedDocument<BusSchedule>;
-
-@Schema({ _id: false })
-class TimeSlotConfig {
-  @Prop({ type: String, enum: BusTimeSlot, required: true })
-  timeSlot: BusTimeSlot;
-
-  @Prop({ type: Number, required: true, min: 1 })
-  frequency: number; // number of trips in timeSlot
-
-  @Prop({ type: [Types.ObjectId], ref: 'Vehicle', required: true })
-  vehicles: Types.ObjectId[]; // list of vehicles running in this timeSlot
-}
 
 @Schema({ collection: 'BusSchedules', timestamps: true })
 export class BusSchedule {
   @Prop({ type: Types.ObjectId, ref: 'BusRoute', required: true })
   busRoute: Types.ObjectId;
 
-  @Prop({ type: [TimeSlotConfig], required: true })
-  timeSlots: TimeSlotConfig[];
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Vehicle' }], required: true })
+  vehicles: Types.ObjectId[]; // List of vehicles assigned to this route
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Driver' }], required: true })
+  drivers: Types.ObjectId[];
+
+  @Prop({ type: Number, required: true, min: 1 })
+  tripsPerDay: number; // Number of trips to complete per day
+
+  @Prop({ type: String, required: true })
+  dailyStartTime: string; // Daily start time in HH:mm format (e.g. "06:00")
+
+  @Prop({ type: String, required: true })
+  dailyEndTime: string; // Daily end time in HH:mm format (e.g. "22:00")
 
   @Prop({ 
     type: String, 
@@ -32,10 +32,18 @@ export class BusSchedule {
   status: BusScheduleStatus;
 
   @Prop({ type: Date, required: true })
-  effectiveDate: Date; // effective date of schedule
+  effectiveDate: Date; // Start date of schedule
 
   @Prop({ type: Date })
-  expiryDate: Date; // end date of schedule (optional)
+  expiryDate: Date; // End date of schedule (optional)
+
+  @Prop({ type: [{ type: Object }] })
+  driverAssignments: {
+    driverId: Types.ObjectId;
+    vehicleId: Types.ObjectId;
+    startTime: Date;
+    endTime: Date;
+  }[];
 }
 
 export const BusScheduleSchema = SchemaFactory.createForClass(BusSchedule);
