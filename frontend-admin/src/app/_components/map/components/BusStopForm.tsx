@@ -1,14 +1,14 @@
 import { Form, Input, Button, Select, FormInstance } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { STATUS_OPTIONS } from '../busMap';
-import { BusStopData } from '../busMap';
+import { BusStopWithColor } from '../busMap';
 
 interface BusStopFormProps {
   form: FormInstance;
   isEditing: boolean;
   isLoading: boolean;
-  onFinish: (values: any) => void;
-  currentBusStop: BusStopData | null;
+  onFinish: (values: BusStopWithColor) => void;
+  currentBusStop: BusStopWithColor | null;
 }
 
 const BusStopForm = ({

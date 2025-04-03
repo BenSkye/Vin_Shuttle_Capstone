@@ -1,16 +1,16 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import * as L from 'leaflet';
-import { BusStopData } from '../busMap';
+import { BusStopWithColor } from '../busMap';
 
 interface MapViewProps {
   mapCenter: L.LatLngTuple;
-  busStops: BusStopData[];
-  selectedBusStop: BusStopData | null;
-  currentBusStop: BusStopData | null;
+  busStops: BusStopWithColor[];
+  selectedBusStop: BusStopWithColor | null;
+  currentBusStop: BusStopWithColor | null;
   isCreatingBusStop: boolean;
   createBusStopIcon: ({ color }: { color: string }) => L.DivIcon;
   onMapClick: (latlng: L.LatLng) => void;
-  onSelectBusStop: (busStop: BusStopData) => void;
+  onSelectBusStop: (busStop: BusStopWithColor) => void;
   viewMode: 'all' | 'selected';
 }
 
@@ -60,7 +60,7 @@ const MapView = ({
       
       {visibleStops.map((stop) => (
         <Marker
-          key={stop._id || stop.id}
+          key={stop._id || stop._id}
           position={stop.position}
           icon={createBusStopIcon({ color: stop.color })}
           eventHandlers={{

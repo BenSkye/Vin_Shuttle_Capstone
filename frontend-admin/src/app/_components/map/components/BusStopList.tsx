@@ -1,14 +1,14 @@
 import { Spin } from 'antd';
 import BusStopCard from './BusStopCard';
-import { BusStopData } from '../busMap';
+import { BusStopWithColor } from "../busMap";
 
 interface BusStopListProps {
-  busStops: BusStopData[];
-  selectedBusStop: BusStopData | null;
+  busStops: BusStopWithColor[];
+  selectedBusStop: BusStopWithColor | null;
   isLoading: boolean;
-  onSelectBusStop: (busStop: BusStopData) => void;
-  onEditBusStop: (busStop: BusStopData) => void;
-  onDeleteBusStop: (busStop: BusStopData) => void;
+  onSelectBusStop: (busStop: BusStopWithColor) => void;
+  onEditBusStop: (busStop: BusStopWithColor) => void;
+  onDeleteBusStop: (busStop: BusStopWithColor) => void;
 }
 
 const BusStopList = ({ 
@@ -31,7 +31,7 @@ const BusStopList = ({
     <div className="space-y-3">
       {busStops.length > 0 ? busStops.map((stop) => (
         <BusStopCard 
-          key={stop._id || stop.id} 
+          key={stop._id || stop._id} 
           busStop={stop}
           isSelected={selectedBusStop?._id === stop._id}
           onSelect={onSelectBusStop}

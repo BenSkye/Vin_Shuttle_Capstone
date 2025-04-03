@@ -1,13 +1,13 @@
 import { Card, Button, Tooltip } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { BusStopData } from '../busMap';
+import { BusStopWithColor } from '../busMap';
 
 interface BusStopCardProps {
-  busStop: BusStopData;
+  busStop: BusStopWithColor;
   isSelected: boolean;
-  onSelect: (busStop: BusStopData) => void;
-  onEdit: (busStop: BusStopData) => void;
-  onDelete: (busStop: BusStopData) => void;
+  onSelect: (busStop: BusStopWithColor) => void;
+  onEdit: (busStop: BusStopWithColor) => void;
+  onDelete: (busStop: BusStopWithColor) => void;
 }
 
 const BusStopCard = ({ busStop, isSelected, onSelect, onEdit, onDelete }: BusStopCardProps) => {
