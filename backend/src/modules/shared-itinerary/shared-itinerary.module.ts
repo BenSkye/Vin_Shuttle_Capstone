@@ -1,11 +1,14 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { OsrModule } from 'src/modules/OSR/osr.module';
-import { SharedItineraryController } from 'src/modules/shared-itinerary/share-itinerary.controller';
+import { SharedItineraryController } from 'src/modules/shared-itinerary/shared-itinerary.controller';
 import {
+  SHARE_ITINERARY_GATEWAY,
   SHARE_ITINERARY_REPOSITORY,
   SHARE_ITINERARY_SERVICE,
 } from 'src/modules/shared-itinerary/shared-itinerary.di-token';
+import { SharedItineraryGateway } from 'src/modules/shared-itinerary/shared-itinerary.gateway';
 import { SharedItineraryRepository } from 'src/modules/shared-itinerary/shared-itinerary.repo';
 import {
   SharedItinerary,
@@ -26,6 +29,10 @@ const dependencies = [
     provide: SHARE_ITINERARY_REPOSITORY,
     useClass: SharedItineraryRepository,
   },
+  {
+    provide: SHARE_ITINERARY_GATEWAY,
+    useClass: SharedItineraryGateway,
+  }
 ];
 
 @Module({
@@ -36,6 +43,7 @@ const dependencies = [
         schema: SharedItinerarySchema,
       },
     ]),
+    KeytokenModule,
     OsrModule,
     ShareModule,
     forwardRef(() => TripModule),
@@ -46,4 +54,4 @@ const dependencies = [
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class SharedItineraryModule {}
+export class SharedItineraryModule { }

@@ -38,6 +38,7 @@ import { NOTIFICATION_SERVICE } from 'src/modules/notification/notification.di-t
 import { INotificationService } from 'src/modules/notification/notification.port';
 import { BOOKING_REPOSITORY } from 'src/modules/booking/booking.di-token';
 import { IBookingRepository } from 'src/modules/booking/booking.port';
+import { PaymentMethod } from 'src/share/enums/payment.enum';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -709,6 +710,14 @@ export class TripService implements ITripService {
       );
     }
 
+    if (trip.serviceType === ServiceType.BOOKING_SHARE) {
+      console.log('cancelTripInItinerary')
+      await this.shareItineraryService.cancelTripInItinerary(
+        trip._id.toString(),
+        trip.servicePayload.bookingShare.sharedItinerary.toString(),
+      )
+    }
+
     await this.handleRefundForTrip(tripUpdate._id.toString(), refundAmount); //excute refund money
     //excute refund money
 
@@ -725,10 +734,14 @@ export class TripService implements ITripService {
           $in: [
             convertObjectId(tripId)
           ]
-        }
+        },
+        paymentMethod: PaymentMethod.MOMO,
       },
       ["transId"]
     )
+    if (!booking) {
+      return
+    }
     console.log('booking725', booking);
     const orderId = generateBookingCode()
     await this.momoService.initiateRefund({

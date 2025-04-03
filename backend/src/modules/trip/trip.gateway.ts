@@ -32,7 +32,7 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(REDIS_PROVIDER) private readonly redisService: IRedisService,
-  ) {}
+  ) { }
 
   afterInit(server: Server) {
     server.use(async (socket: Socket, next) => {
@@ -92,19 +92,7 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
-    // const socketIds = await this.redisService.getUserSockets(SOCKET_NAMESPACE.TRIPS, userId);
-    // console.log('socketIds', socketIds)
-    // console.log('trip_updated_detail_', tripId)
-    // if (socketIds && socketIds.length > 0) {
-    //     for (const socketId of socketIds) {
-    //         console.log('socketId84', socketId)
-    //         await new Promise<void>((resolve) => {
-    //             this.server.to(socketId).emit(`trip_updated_detail_${tripId}`, tripData, () => {
-    //                 resolve();
-    //             });
-    //         });
-    //     }
-    // }
+
 
     const socketIds = await SocketUtils.getSocketIds(
       this.redisService,

@@ -16,8 +16,9 @@ import { SCENIC_ROUTE_REPOSITORY } from "src/modules/scenic-route/scenic-route.d
 import { IScenicRouteRepository } from "src/modules/scenic-route/scenic-route.port";
 import { SEARCH_SERVICE } from "src/modules/search/search.di-token";
 import { ISearchService } from "src/modules/search/search.port";
-import { SHARE_ITINERARY_SERVICE } from "src/modules/shared-itinerary/shared-itinerary.di-token";
+import { SHARE_ITINERARY_GATEWAY, SHARE_ITINERARY_SERVICE } from "src/modules/shared-itinerary/shared-itinerary.di-token";
 import { ICreateSharedItineraryDTO, searchSharedItineraryDTO } from "src/modules/shared-itinerary/shared-itinerary.dto";
+import { SharedItineraryGateway } from "src/modules/shared-itinerary/shared-itinerary.gateway";
 import { ISharedItineraryService } from "src/modules/shared-itinerary/shared-itinerary.port";
 import { TRIP_GATEWAY, TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
 import { ICreateTripDto } from "src/modules/trip/trip.dto";
@@ -61,7 +62,9 @@ export class BookingService implements IBookingService {
         @Inject(CONVERSATION_SERVICE)
         private readonly conversationService: IConversationService,
         @Inject(TRIP_GATEWAY)
-        private readonly tripGateway: TripGateway
+        private readonly tripGateway: TripGateway,
+        @Inject(SHARE_ITINERARY_GATEWAY)
+        private readonly sharedItineraryGateway: SharedItineraryGateway
     ) { }
 
     async bookingHour(
@@ -781,13 +784,15 @@ export class BookingService implements IBookingService {
                 pointType: SharedItineraryStopsType.START_POINT,
                 trip: newTrip._id.toString(),
                 point: newTrip.servicePayload.bookingShare.startPoint,
-                isPass: false
+                isPass: false,
+                isCancel: false
             }, {
                 order: 2,
                 pointType: SharedItineraryStopsType.END_POINT,
                 trip: newTrip._id.toString(),
                 point: newTrip.servicePayload.bookingShare.endPoint,
-                isPass: false
+                isPass: false,
+                isCancel: false
             }]
 
             const updateSharedItineraryDto: ICreateSharedItineraryDTO = {
@@ -840,6 +845,7 @@ export class BookingService implements IBookingService {
             }, []
         )
         const listTripId = booking.trips
+        console.log('listTripId', listTripId)
         for (const tripId of listTripId) {
             const tripUpdate = await this.tripRepository.updateStatus(
                 tripId.toString(),
@@ -856,13 +862,20 @@ export class BookingService implements IBookingService {
                 const sharedItinerary = await this.sharedItineraryService.getSharedItineraryById(
                     tripUpdate.servicePayload.bookingShare.sharedItinerary.toString()
                 )
+                console.log('sharedItinerary865', sharedItinerary)
                 if (sharedItinerary.status === SharedItineraryStatus.PENDING) {
-                    await this.sharedItineraryService.updateStatusSharedItinerary(
+                    const updatedSharedItinerary = await this.sharedItineraryService.updateStatusSharedItinerary(
                         tripUpdate.servicePayload.bookingShare.sharedItinerary.toString(),
                         SharedItineraryStatus.PLANNED
                     )
-                } else {
-                    await this.sharedItineraryService.saveASharedItineraryFromRedisToDBByTripID(tripId.toString())
+                    console.log('updatedSharedItinerary871', updatedSharedItinerary)
+                } else if (sharedItinerary.status === SharedItineraryStatus.PLANNED) {
+                    const updatedSharedItinerary = await this.sharedItineraryService.saveASharedItineraryFromRedisToDBByTripID(tripId.toString())
+                    await this.sharedItineraryGateway.emitUpdatedSharedItineraryDetail(
+                        tripUpdate.driverId.toString(),
+                        updatedSharedItinerary._id.toString(),
+                        updatedSharedItinerary
+                    )
                 }
             }
             const notificationForCustomer = {

@@ -10,6 +10,7 @@ export interface sharedItineraryStop {
   trip: string;
   point: StartOrEndPoint;
   isPass: boolean;
+  isCancel: boolean;
 }
 
 export interface searchSharedItineraryDTO {

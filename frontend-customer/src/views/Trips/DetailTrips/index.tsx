@@ -19,6 +19,7 @@ import {
   BookingScenicRoutePayloadDto,
   BookingDestinationPayloadDto,
   Trip,
+  BookingSharePayloadDto,
 } from '@/interface/trip.interface';
 import { cancelTrip } from '../../../service/trip.service';
 import useTripSocket from '../../../hooks/useTripSocket';
@@ -259,6 +260,70 @@ export default function DetailTripPage({ id }: { id: string }) {
                   destinationLocation={[
                     destinationPayload.bookingDestination.endPoint.position.lat,
                     destinationPayload.bookingDestination.endPoint.position.lng,
+                  ]}
+                  vehicleId={trip.vehicleId._id}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        );
+
+
+      case ServiceType.BOOKING_SHARE:
+        const bookingSharePayload = trip.servicePayload as BookingSharePayloadDto;
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={baseCardStyle}>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Điểm đón</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {bookingSharePayload.bookingShare.startPoint.address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkerAlt className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Điểm đến</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {bookingSharePayload.bookingShare.endPoint.address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaClock className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Khoảng cách ước tính</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {bookingSharePayload.bookingShare.distanceEstimate} km
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
+              <motion.div
+                className="mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <RealTimeTripMap
+                  pickupLocation={[
+                    bookingSharePayload.bookingShare.startPoint.position.lat,
+                    bookingSharePayload.bookingShare.startPoint.position.lng,
+                  ]}
+                  destinationLocation={[
+                    bookingSharePayload.bookingShare.endPoint.position.lat,
+                    bookingSharePayload.bookingShare.endPoint.position.lng,
                   ]}
                   vehicleId={trip.vehicleId._id}
                 />

@@ -41,6 +41,7 @@ import useTripSocket from '~/hook/useTripSocket';
 import { SharedItineraryStopsType } from '~/constants/shared-itinerary.enum';
 import { SharedItinerary, sharedItineraryStop } from '~/interface/share-itinerary';
 import { TripStatus } from '~/constants/trip.enum';
+import useSharedItinerarySocket from '~/hook/useSharedItinerarySocket';
 
 // First, properly type the route params
 interface RouteParams {
@@ -78,6 +79,20 @@ const TripTrackingScreen = () => {
   // state for shared itinerary
   const [sharedItinerary, setSharedItinerary] = useState<SharedItinerary>(); // Replace 'any' with the actual type if available
   const [isShareItinerary, setIsShareItinerary] = useState(false);
+  const sharedItineraryId = trip?.serviceType === ServiceType.BOOKING_SHARE
+    ? (trip.servicePayload as BookingSharePayloadDto).bookingShare.sharedItinerary
+    : null;
+
+  const {
+    data: sharedItineraryDetail,
+    isLoading: sharedItineraryLoading,
+    error: sharedItineraryError,
+    resetHook
+  } = useSharedItinerarySocket(
+    trip?.serviceType === ServiceType.BOOKING_SHARE
+      ? (trip.servicePayload as BookingSharePayloadDto).bookingShare.sharedItinerary
+      : ''
+  );
   // Effect for initialization
   React.useEffect(() => {
     const handleFetchTrip = async () => {
@@ -89,12 +104,32 @@ const TripTrackingScreen = () => {
   }, [trip]);
 
   useEffect(() => {
+    if (sharedItineraryError) {
+      console.error('Shared itinerary socket error:', sharedItineraryError);
+      Alert.alert('Lỗi', 'Không thể kết nối với dữ liệu lịch trình chia sẻ');
+    }
+  }, [sharedItineraryError]);
+
+  useEffect(() => {
+    if (sharedItineraryDetail) {
+      console.log('sharedItineraryDetail', sharedItineraryDetail);
+      setSharedItinerary(sharedItineraryDetail as SharedItinerary); // Set the shared itinerary data
+    }
+  }, [sharedItineraryDetail]);
+
+  useEffect(() => {
     if (data) {
       console.log('Trip data:', data);
       setTrip(data as Trip);
     }
   }, [data]);
 
+  useEffect(() => {
+    if (sharedItineraryError) {
+      console.error('Shared itinerary socket error:', sharedItineraryError);
+      Alert.alert('Lỗi', 'Không thể kết nối với dữ liệu lịch trình chia sẻ');
+    }
+  }, [sharedItineraryError]);
 
   // Initialize location data based on trip type
   const initializeLocationData = async () => {
@@ -136,13 +171,9 @@ const TripTrackingScreen = () => {
       setIsShareItinerary(true);
       const payload = trip.servicePayload as BookingSharePayloadDto;
       console.log("payload131", payload)
-      await fetchSharedItineraryData(trip._id)
+      // await fetchSharedItineraryData(trip._id)
       setCustomerPickupLocation(payload.bookingShare.startPoint.position);
       setCustomerDestination(payload.bookingShare.endPoint.position);
-
-      // const isInProgress = trip.status.toLowerCase() === 'in_progress';
-      // setShowDestination(isInProgress);
-      // setRouteToDestination(isInProgress);
     }
   };
 
@@ -161,18 +192,18 @@ const TripTrackingScreen = () => {
     }
   };
 
-  const fetchSharedItineraryData = async (tripId: string) => {
-    try {
-      const itinerary = await getShareRouteByTripId(tripId); // Replace with actual API call
-      if (itinerary) {
-        console.log("itinerary160", itinerary)
-        setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
-      }
-    } catch (error) {
-      console.error('Error fetching shared itinerary data:', error);
-      Alert.alert('Lỗi', 'Không thể tải dữ liệu lịch trình chia sẻ');
-    }
-  }
+  // const fetchSharedItineraryData = async (tripId: string) => {
+  //   try {
+  //     const itinerary = await getShareRouteByTripId(tripId); // Replace with actual API call
+  //     if (itinerary) {
+  //       console.log("itinerary160", itinerary)
+  //       setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching shared itinerary data:', error);
+  //     Alert.alert('Lỗi', 'Không thể tải dữ liệu lịch trình chia sẻ');
+  //   }
+  // }
   // Event handlers
   const handleBack = () => navigation.goBack();
 
@@ -303,10 +334,7 @@ const TripTrackingScreen = () => {
       if (trip.serviceType === ServiceType.BOOKING_SHARE) {
         const payload = trip.servicePayload as BookingSharePayloadDto;
         if (payload.bookingShare.sharedItinerary) {
-
-          await fetchSharedItineraryData(trip._id);
-          console.log("cc3m", sharedItinerary)
-          console.log('Share route data:', payload.bookingShare.sharedItinerary);
+          resetHook()
         }
       }
 

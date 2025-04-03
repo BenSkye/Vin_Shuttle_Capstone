@@ -84,6 +84,7 @@ export interface BookingDestinationPayloadDto {
 
 export interface BookingSharePayloadDto {
   bookingShare: {
+    sharedItinerary: string
     numberOfSeat: number
     startPoint: {
       position: {
