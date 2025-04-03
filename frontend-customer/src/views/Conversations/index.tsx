@@ -8,6 +8,8 @@ import { useAuth } from '@/context/AuthContext'
 const ConversationListPage = () => {
   const { authUser } = useAuth()
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [showConversationList, setShowConversationList] = useState(true)
+  const [showSearchSidebar, setShowSearchSidebar] = useState(false)
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const {
     data: conversations,
@@ -33,6 +35,18 @@ const ConversationListPage = () => {
   useEffect(() => {
     scrollToBottom()
   }, [(conversation as IConversation)?.listMessage])
+
+  // Add useEffect to handle mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setShowConversationList(true)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   if (listLoading) {
     return <div className="flex h-[calc(100vh-64px)] items-center justify-center">Loading conversations...</div>
@@ -65,9 +79,20 @@ const ConversationListPage = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] flex bg-gray-100">
+    <div className="h-screen flex flex-col md:flex-row bg-gray-100">
+      {/* Mobile Toggle Button */}
+      <button
+        className="md:hidden fixed left-0 top-1/2 -translate-y-1/2 z-50 w-10 h-10 bg-blue-500 text-white rounded-r-lg flex items-center justify-center shadow-lg"
+        onClick={() => setShowSearchSidebar(!showSearchSidebar)}
+        aria-label="Toggle search sidebar"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+        </svg>
+      </button>
+
       {/* Sidebar (Conversation List) */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className={`fixed md:relative inset-0 md:inset-auto w-full md:w-80 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${showSearchSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${!showConversationList ? 'hidden md:flex' : 'flex'}`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h1 className="text-xl font-semibold">Conversations</h1>
@@ -77,10 +102,13 @@ const ConversationListPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
               </svg>
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-200" aria-label="Settings">
+            <button
+              className="md:hidden p-2 rounded-full hover:bg-gray-200"
+              onClick={() => setShowSearchSidebar(false)}
+              aria-label="Close sidebar"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
@@ -101,9 +129,12 @@ const ConversationListPage = () => {
           {(conversations as IConversation[]).map((conv) => (
             <div
               key={conv._id}
-              className={`flex items-center p-4 hover:bg-gray-100 cursor-pointer border-b border-gray-200 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''
-                }`}
-              onClick={() => setSelectedConversationId(conv._id)}
+              className={`flex items-center p-4 hover:bg-gray-100 cursor-pointer border-b border-gray-200 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''}`}
+              onClick={() => {
+                setSelectedConversationId(conv._id)
+                setShowConversationList(false)
+                setShowSearchSidebar(false)
+              }}
               onKeyDown={(e) => e.key === 'Enter' && setSelectedConversationId(conv._id)}
               tabIndex={0}
               aria-label={`Conversation with ${conv.driverId?.name}`}
@@ -122,19 +153,13 @@ const ConversationListPage = () => {
                   {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
                 </p>
               </div>
-              {/* Unread Badge - Can be implemented when you have unread message functionality */}
-              {false && (
-                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">
-                  1
-                </div>
-              )}
             </div>
           ))}
         </div>
       </div>
 
       {/* Main Conversation Area */}
-      <div className="flex-1 flex flex-col bg-gray-100">
+      <div className="flex-1 flex flex-col bg-gray-100 h-full">
         {selectedConversationId ? (
           conversationLoading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -148,6 +173,15 @@ const ConversationListPage = () => {
             <>
               {/* Conversation Header */}
               <div className="p-4 bg-white border-b border-gray-200 flex items-center">
+                <button
+                  className="md:hidden mr-3 p-2 rounded-full hover:bg-gray-200"
+                  onClick={() => setShowConversationList(true)}
+                  aria-label="Back to conversations"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
                 <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold">
                   {getInitial((conversation as IConversation)?.driverId?.name)}
                 </div>

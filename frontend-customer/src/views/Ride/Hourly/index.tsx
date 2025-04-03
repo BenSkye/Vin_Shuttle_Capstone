@@ -74,9 +74,19 @@ const HourlyBookingPage = () => {
         }
         return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
       }
-      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity, name: "" }] : prev
+      // Find the vehicle category name from availableVehicles
+      const vehicleCategory = availableVehicles.find(
+        (v) => v.vehicleCategory._id === categoryId
+      )?.vehicleCategory
+      return quantity > 0
+        ? [...prev, {
+          categoryVehicleId: categoryId,
+          quantity,
+          name: vehicleCategory?.name || ""
+        }]
+        : prev
     })
-  }, [])
+  }, [availableVehicles])
 
   // Location handlers
   const handleLocationChange = useCallback((newPosition: { lat: number; lng: number }, newAddress: string) => {

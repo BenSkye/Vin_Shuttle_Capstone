@@ -7,7 +7,10 @@ export enum BusTimeSlot {
 
 export enum BusScheduleStatus {
   ACTIVE = 'active',
-  INACTIVE = 'inactive'
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  DROPPED_OFF = 'dropped_off',
+  CANCELLED = 'cancelled'
 }
 
 export const BusTimeSlotHours = {
@@ -16,3 +19,8 @@ export const BusTimeSlotHours = {
   [BusTimeSlot.AFTERNOON]: { start: 14, end: 18 }, 
   [BusTimeSlot.EVENING]: { start: 18, end: 22 }
 };
+
+export enum DriverScheduleTaskType {
+  GENERAL = 'general',
+  BUS = 'bus',
+}

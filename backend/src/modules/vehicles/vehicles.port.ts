@@ -27,4 +27,6 @@ export interface IVehiclesService {
   update(id: string, dto: IUpdateVehicle): Promise<VehicleDocument>;
   getListVehicles(query: vehicleParams): Promise<VehicleDocument[] | null>;
   getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null>;
+  findById(id: string): Promise<any>;
+  update(id: string, data: any): Promise<any>;
 }

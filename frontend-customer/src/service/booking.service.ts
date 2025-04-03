@@ -59,6 +59,7 @@ export const bookingDestination = async (
   payload: BookingDestinationRequest
 ): Promise<BookingResponse> => {
   try {
+    console.log('payloaddđ', payload)
     const response = await apiClient.post('/booking/create-booking-destination', payload)
     console.log('response', response.data)
     return response.data

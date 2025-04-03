@@ -1,31 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEnum, IsMongoId, IsNumber, IsOptional, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsDate, IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BusTimeSlot } from 'src/share/enums/bus-schedule.enum';
+import { BusScheduleStatus } from 'src/share/enums/bus-schedule.enum';
 
-export class TimeSlotConfigDto {
-  @ApiProperty({
-    enum: BusTimeSlot,
-    example: BusTimeSlot.MORNING
-  })
-  @IsEnum(BusTimeSlot)
-  timeSlot: BusTimeSlot;
-
-  @ApiProperty({
-    description: 'Số chuyến trong timeSlot',
-    example: 4
-  })
-  @IsNumber()
-  @Min(1)
-  frequency: number;
-
-  @ApiProperty({
-    description: 'Danh sách ID xe',
-    example: ['507f1f77bcf86cd799439011']
-  })
-  @IsArray()
-  @IsMongoId({ each: true })
-  vehicles: string[];
+export interface DriverAssignment {
+  driverId: string;
+  vehicleId: string;
+  startTime: Date;
+  endTime: Date;
 }
 
 export class CreateBusScheduleDto {
@@ -37,12 +19,42 @@ export class CreateBusScheduleDto {
   busRoute: string;
 
   @ApiProperty({
-    type: [TimeSlotConfigDto]
+    description: 'Danh sách ID xe được phân công cho tuyến',
+    example: ['507f1f77bcf86cd799439011']
   })
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TimeSlotConfigDto)
-  timeSlots: TimeSlotConfigDto[];
+  @IsMongoId({ each: true })
+  vehicles: string[];
+
+  @ApiProperty({
+    description: 'Danh sách ID tài xế được phân công cho tuyến',
+    example: ['507f1f77bcf86cd799439011']
+  })
+  @IsArray()
+  @IsMongoId({ each: true })
+  drivers: string[];
+
+  @ApiProperty({
+    description: 'Số chuyến mỗi ngày',
+    example: 12
+  })
+  @IsNumber()
+  @Min(1)
+  tripsPerDay: number;
+
+  @ApiProperty({
+    description: 'Thời gian bắt đầu trong ngày (HH:mm)',
+    example: '06:00'
+  })
+  @IsString()
+  dailyStartTime: string;
+
+  @ApiProperty({
+    description: 'Thời gian kết thúc trong ngày (HH:mm)',
+    example: '22:00'
+  })
+  @IsString()
+  dailyEndTime: string;
 
   @ApiProperty({
     description: 'Ngày bắt đầu áp dụng',
@@ -61,4 +73,38 @@ export class CreateBusScheduleDto {
   @IsDate()
   @Type(() => Date)
   expiryDate?: Date;
+
+  @ApiProperty({
+    description: 'Trạng thái lịch trình',
+    enum: BusScheduleStatus,
+    default: BusScheduleStatus.ACTIVE
+  })
+  @IsOptional()
+  @IsEnum(BusScheduleStatus)
+  status?: BusScheduleStatus;
+
+  @ApiProperty({
+    description: 'Danh sách phân công tài xế-xe cho lịch trình. Mỗi phần tử chứa thông tin về tài xế (driverId), xe được phân công (vehicleId), thời gian bắt đầu và kết thúc ca làm việc.',
+    type: [Object],
+    required: false,
+    example: [{
+      driverId: '507f1f77bcf86cd799439011',
+      vehicleId: '507f1f77bcf86cd799439012',
+      startTime: '2024-03-20T06:00:00.000Z',
+      endTime: '2024-03-20T14:00:00.000Z'
+    }]
+  })
+  @IsOptional()
+  @IsArray()
+  driverAssignments?: DriverAssignment[];
+}
+
+export interface GeneratedBusTrip {
+  busRoute: string;
+  vehicle: string;
+  driver: string;
+  startTime: Date;
+  endTime: Date;
+  estimatedDuration: number;
+  status: BusScheduleStatus;
 }
