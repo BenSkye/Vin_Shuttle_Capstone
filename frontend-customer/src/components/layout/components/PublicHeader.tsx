@@ -77,10 +77,10 @@ export function PublicHeader({ isOpen, toggleMenu }: PublicHeaderProps) {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'tween', duration: 0.3 }}
-                            className="absolute right-0 top-[72px] h-[calc(100vh-72px)] w-full max-w-sm bg-surface shadow-xl"
+                            className="absolute right-0 top-[72px] h-[calc(100vh-72px)] w-[70%] max-w-sm bg-surface shadow-xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="flex h-full flex-col space-y-4 overflow-y-auto p-6">
+                            <div className="flex h-full flex-col space-y-4 overflow-y-auto p-6 mt-6">
                                 <Link
                                     href={Routes.AUTH.LOGIN}
                                     className="rounded-lg border border-divider py-4 text-center text-lg font-medium text-content-secondary transition-all hover:border-primary-500 hover:text-primary-500"

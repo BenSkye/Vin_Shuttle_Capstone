@@ -184,15 +184,15 @@ export function PrivateHeader({
             {/* Mobile Menu */}
             <AnimatePresence>
                 {isOpen && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
-                            onClick={toggleMenu}
-                        />
+
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                        onClick={toggleMenu}
+                    >
 
                         <motion.div
                             initial={{ x: '100%' }}
@@ -381,7 +381,7 @@ export function PrivateHeader({
                                 </AnimatePresence>
                             </div>
                         </motion.div>
-                    </>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </>
