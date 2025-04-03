@@ -85,4 +85,8 @@ export class VehiclesService implements IVehiclesService {
     );
     return vehicleCategoryRepository;
   }
+
+  async findById(id: string): Promise<any> {
+    return await this.vehicleRepository.getById(id);
+  }
 }
