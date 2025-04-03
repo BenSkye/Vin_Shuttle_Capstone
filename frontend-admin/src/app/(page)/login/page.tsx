@@ -33,11 +33,27 @@ export default function Login() {
       setLoading(true);
       const response = await authService.login(values);
       
-      // Lưu token vào localStorage và cookie
-      localStorage.setItem('accessToken', response.token.accessToken);
+      const accessToken = response.token.accessToken;
+      
+      // Kiểm tra role từ token
+      if (!authService.isAdmin(accessToken)) {
+        notification.error({
+          message: 'Không có quyền truy cập',
+          description: 'Bạn không có quyền truy cập vào trang quản trị.',
+          duration: 5,
+        });
+        return;
+      }
+      
+      // Người dùng là admin, lưu token
+      localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', response.token.refreshToken);
       localStorage.setItem('userId', response.userId);
-           
+      
+      // Có thể lưu thêm role nếu cần
+      const decodedToken = authService.decodeAccessToken(accessToken);
+      localStorage.setItem('userRole', decodedToken.role);
+      
       notification.success({
         message: 'Đăng nhập thành công',
         description: 'Chào mừng bạn quay trở lại!',
@@ -48,16 +64,16 @@ export default function Login() {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ErrorResponse>;
         notification.error({
-            message: 'Đăng nhập thất bại',
-            description: axiosError.response?.data?.message || 'Vui lòng thử lại sau.',
-            duration: 5,
-          });
+          message: 'Đăng nhập thất bại',
+          description: axiosError.response?.data?.message || 'Vui lòng thử lại sau.',
+          duration: 5,
+        });
       } else {
         notification.error({
-            message: 'Đăng nhập thất bại',
-            description: (error as AxiosError<ErrorResponse>).response?.data?.message || 'Vui lòng thử lại sau.',
-            duration: 5,
-          });
+          message: 'Đăng nhập thất bại',
+          description: (error as AxiosError<ErrorResponse>).response?.data?.message || 'Vui lòng thử lại sau.',
+          duration: 5,
+        });
       }
     } finally {
       setLoading(false);

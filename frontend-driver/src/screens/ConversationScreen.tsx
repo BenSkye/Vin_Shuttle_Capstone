@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,7 +19,7 @@ import { vi } from 'date-fns/locale';
 import { styles } from '~/styles/ConversationStyle';
 export default function ConversationScreen() {
   const navigation = useNavigation();
-  const { data: conversations, isLoading, error } = useConversationSocket();
+  const { data: conversations, isLoading, error, refreshData } = useConversationSocket();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleConversationPress = (conversationId: string) => {
@@ -86,10 +87,14 @@ export default function ConversationScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Add refresh logic here if needed
-    setTimeout(() => {
+    try {
+      // Fetch fresh data from API
+      await refreshData();
+    } catch (error) {
+      console.error('Error refreshing conversations:', error);
+    } finally {
       setRefreshing(false);
-    }, 1000);
+    }
   };
 
   if (isLoading) {
@@ -121,10 +126,28 @@ export default function ConversationScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Tin nhắn</Text>
         </View>
-        <View style={styles.centerContainer}>
-          <Ionicons name="chatbubble-ellipses-outline" size={70} color="#cccccc" />
-          <Text style={styles.emptyText}>Chưa có cuộc trò chuyện nào</Text>
-        </View>
+        <FlatList
+          data={[]}
+          renderItem={() => null}
+          ListEmptyComponent={() => (
+            <View style={styles.centerContainer}>
+              <Ionicons name="chatbubble-ellipses-outline" size={70} color="#cccccc" />
+              <Text style={styles.emptyText}>Chưa có cuộc trò chuyện nào</Text>
+            </View>
+          )}
+          contentContainerStyle={{ flexGrow: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#007bff']}
+              tintColor="#007bff"
+              title="Đang tải..."
+              titleColor="#007bff"
+              progressBackgroundColor="#ffffff"
+            />
+          }
+        />
       </SafeAreaView>
     );
   }
@@ -139,9 +162,19 @@ export default function ConversationScreen() {
         data={conversationsArray}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
+        contentContainerStyle={{ flexGrow: 1 }}
+        ListHeaderComponent={<View style={{ height: 1 }} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#007bff']}
+            tintColor="#007bff"
+            title="Đang tải..."
+            titleColor="#007bff"
+            progressBackgroundColor="#ffffff"
+          />
+        }
       />
     </SafeAreaView>
   );
