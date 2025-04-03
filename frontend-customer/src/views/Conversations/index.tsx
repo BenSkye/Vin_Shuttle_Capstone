@@ -10,6 +10,7 @@ const ConversationListPage = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [showConversationList, setShowConversationList] = useState(true)
   const [showSearchSidebar, setShowSearchSidebar] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const {
     data: conversations,
@@ -39,14 +40,29 @@ const ConversationListPage = () => {
   // Add useEffect to handle mobile view
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+
+      if (!mobile) {
         setShowConversationList(true)
+      } else if (selectedConversationId && mobile) {
+        setShowConversationList(false)
       }
     }
 
+    handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [selectedConversationId])
+
+  const toggleSearchSidebar = () => {
+    setShowSearchSidebar(!showSearchSidebar)
+  }
+
+  const handleBackToList = () => {
+    setShowConversationList(true)
+    setShowSearchSidebar(false)
+  }
 
   if (listLoading) {
     return <div className="flex h-[calc(100vh-64px)] items-center justify-center">Loading conversations...</div>
@@ -83,7 +99,7 @@ const ConversationListPage = () => {
       {/* Mobile Toggle Button */}
       <button
         className="md:hidden fixed left-0 top-1/2 -translate-y-1/2 z-50 w-10 h-10 bg-blue-500 text-white rounded-r-lg flex items-center justify-center shadow-lg"
-        onClick={() => setShowSearchSidebar(!showSearchSidebar)}
+        onClick={toggleSearchSidebar}
         aria-label="Toggle search sidebar"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -92,7 +108,13 @@ const ConversationListPage = () => {
       </button>
 
       {/* Sidebar (Conversation List) */}
-      <div className={`fixed md:relative inset-0 md:inset-auto w-full md:w-80 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out ${showSearchSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${!showConversationList ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`fixed md:relative inset-0 md:inset-auto w-full md:w-80 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 ease-in-out z-50 ${
+        // On mobile
+        isMobile
+          ? (showSearchSidebar ? 'translate-x-0' : '-translate-x-full')
+          // On desktop
+          : 'translate-x-0'
+        }`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h1 className="text-xl font-semibold">Conversations</h1>
@@ -132,8 +154,9 @@ const ConversationListPage = () => {
               className={`flex items-center p-4 hover:bg-gray-100 cursor-pointer border-b border-gray-200 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''}`}
               onClick={() => {
                 setSelectedConversationId(conv._id)
-                setShowConversationList(false)
-                setShowSearchSidebar(false)
+                if (isMobile) {
+                  setShowConversationList(false)
+                }
               }}
               onKeyDown={(e) => e.key === 'Enter' && setSelectedConversationId(conv._id)}
               tabIndex={0}
@@ -175,7 +198,7 @@ const ConversationListPage = () => {
               <div className="p-4 bg-white border-b border-gray-200 flex items-center">
                 <button
                   className="md:hidden mr-3 p-2 rounded-full hover:bg-gray-200"
-                  onClick={() => setShowConversationList(true)}
+                  onClick={handleBackToList}
                   aria-label="Back to conversations"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

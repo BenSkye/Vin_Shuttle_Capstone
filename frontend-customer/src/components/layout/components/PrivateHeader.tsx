@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard, FiChevronDown, FiBell } from 'react-icons/fi'
+import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard, FiChevronDown, FiBell, FiMessageSquare } from 'react-icons/fi'
 import { Routes } from '@/constants/routers'
 import { Logo } from '@/components/icons/Logo'
 import { NotificationDropdown } from '@/components/common/NotificationDropdown'
@@ -37,6 +37,7 @@ const userMenuItems = [
     { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
     { label: 'Lịch sử chuyến đi', href: Routes.TRIPS, icon: FiClock },
     { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
+    { label: 'Cuộc trò chuyện', href: Routes.CHAT, icon: FiMessageSquare },
 ]
 
 export function PrivateHeader({

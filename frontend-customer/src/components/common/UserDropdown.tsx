@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard } from 'react-icons/fi'
+import { FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard, FiMessageSquare } from 'react-icons/fi'
 import { Routes } from '@/constants/routers'
 
 interface UserDropdownProps {
@@ -54,6 +54,13 @@ export function UserDropdown({
                     >
                         <FiCreditCard className="text-green-500" />
                         <span>Lịch sử thanh toán</span>
+                    </Link>
+                    <Link
+                        href={Routes.CHAT}
+                        className="flex items-center gap-3 px-4 py-3 transition hover:bg-green-50"
+                    >
+                        <FiMessageSquare className="text-green-500" />
+                        <span>Cuộc trò chuyện</span>
                     </Link>
                     <button
                         onClick={onLogout}
