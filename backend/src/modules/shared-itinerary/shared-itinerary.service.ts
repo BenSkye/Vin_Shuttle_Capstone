@@ -15,7 +15,8 @@ import {
 import { SharedItineraryDocument } from 'src/modules/shared-itinerary/shared-itinerary.schema';
 import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
 import { ITrackingService } from 'src/modules/tracking/tracking.port';
-import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
+import { TRIP_GATEWAY, TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
+import { TripGateway } from 'src/modules/trip/trip.gateway';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { VEHICLE_SERVICE } from 'src/modules/vehicles/vehicles.di-token';
 import { IVehiclesService } from 'src/modules/vehicles/vehicles.port';
@@ -26,6 +27,7 @@ import {
   SharedItineraryStatus,
   SharedItineraryStopsType,
 } from 'src/share/enums/shared-itinerary.enum';
+import { convertObjectId } from 'src/share/utils';
 
 export class SharedItineraryService implements ISharedItineraryService {
   constructor(
@@ -41,6 +43,8 @@ export class SharedItineraryService implements ISharedItineraryService {
     private readonly trackingService: ITrackingService,
     @Inject(SHARE_ITINERARY_GATEWAY)
     private readonly sharedItineraryGateway: SharedItineraryGateway,
+    @Inject(TRIP_GATEWAY)
+    private readonly tripGateway: TripGateway
   ) { }
 
   async findBestItineraryForNewTrip(searchDto: searchSharedItineraryDTO): Promise<{
@@ -341,7 +345,9 @@ export class SharedItineraryService implements ISharedItineraryService {
 
     // Lọc bỏ các stops đã bị cancel
     const filteredStops = itinerary.stops.filter(stop => !stop.isCancel);
-    itinerary.stops = filteredStops;
+    //sort lại các stop theo order\
+    const sortStop = filteredStops.sort((a, b) => a.order - b.order);
+    itinerary.stops = sortStop;
     return itinerary;
   }
 
@@ -381,10 +387,11 @@ export class SharedItineraryService implements ISharedItineraryService {
     }
     // Lọc bỏ các stops đã bị cancel
     const filteredStops = itinerary.stops.filter(stop => !stop.isCancel);
-
+    //sort lại các stop theo order
+    const sortStop = filteredStops.sort((a, b) => a.order - b.order);
     return {
       ...itinerary,
-      stops: filteredStops
+      stops: sortStop
     } as SharedItineraryDocument;
   }
 
@@ -392,12 +399,36 @@ export class SharedItineraryService implements ISharedItineraryService {
     const sharedItinerary = await this.sharedItineraryRepository.findById(sharedItineraryId);
     const trips = await this.tripRepository.find({
       serviceType: ServiceType.BOOKING_SHARE,
-      servicePayload: {
-        bookingShare: { sharedItinerary: sharedItineraryId },
-      }
+      'servicePayload.bookingShare.sharedItinerary': convertObjectId(sharedItineraryId),
     }, ['_id', 'servicePayload']);
+    console.log('trips.length', trips.length);
+    if (trips.length === 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Trip not found',
+          vnMessage: 'Chuyến đi không tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (trips.length === 1) {
       const updatedSharedItinerary = await this.sharedItineraryRepository.updateStatusSharedItinerary(sharedItineraryId, SharedItineraryStatus.CANCELLED)
+      updatedSharedItinerary.stops = updatedSharedItinerary.stops.map(stop => {
+        stop.isCancel = true;
+        stop.order = 0;
+        return stop;
+      })
+      await this.sharedItineraryRepository.update(sharedItineraryId, {
+        stops: updatedSharedItinerary.stops,
+      }
+      )
+      const trip = trips[0];
+      await this.tripGateway.emitTripUpdateDetail(
+        trip.driverId.toString(),
+        trip._id.toString(),
+        trip,
+      );
       return updatedSharedItinerary
     }
     if (!sharedItinerary) {
@@ -443,14 +474,21 @@ export class SharedItineraryService implements ISharedItineraryService {
       stops: reorderedStops,
     })
     const filteredStops = updatedSharedItinerary.stops.filter(stop => !stop.isCancel);
+    //nếu tất cả các stop đều bị cancel thì cập nhật lại trạng thái của shared itinerary
     const filterSharedItinerary = {
       ...updatedSharedItinerary,
       stops: filteredStops
     } as SharedItineraryDocument;
+    if (filteredStops.length === 0) {
+      await this.sharedItineraryRepository.updateStatusSharedItinerary(sharedItineraryId, SharedItineraryStatus.CANCELLED)
+    }
+    const message = `Chuyến đi ${tripId} đã bị hủy`;
     await this.sharedItineraryGateway.emitUpdatedSharedItineraryDetail(
       sharedItinerary.driverId.toString(),
       sharedItineraryId,
       filterSharedItinerary,
+      message,
+      true
     )
     return filterSharedItinerary
   }

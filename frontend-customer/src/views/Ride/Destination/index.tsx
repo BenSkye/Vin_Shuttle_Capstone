@@ -49,8 +49,8 @@ const DestinationBookingPage = () => {
   >([])
   const [error, setError] = useState<string | null>(null)
   // Set default values for estimated distance and duration
-  const [estimatedDistance, setEstimatedDistance] = useState<number>(2)
-  const [durationEstimate, setDurationEstimate] = useState<number>(5)
+  const [estimatedDistance, setEstimatedDistance] = useState<number>(0)
+  const [durationEstimate, setDurationEstimate] = useState<number>(0)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
 
 
@@ -83,28 +83,28 @@ const DestinationBookingPage = () => {
     })
   }, [])
 
-  const calculateDistance = useCallback(() => {
-    // Calculate distance in km between two points using Haversine formula
-    const R = 6371 // Radius of the Earth in km
-    const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
-    const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((startPoint.position.lat * Math.PI) / 180) *
-      Math.cos((endPoint.position.lat * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
+  // const calculateDistance = useCallback(() => {
+  //   // Calculate distance in km between two points using Haversine formula
+  //   const R = 6371 // Radius of the Earth in km
+  //   const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
+  //   const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
+  //   const a =
+  //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  //     Math.cos((startPoint.position.lat * Math.PI) / 180) *
+  //     Math.cos((endPoint.position.lat * Math.PI) / 180) *
+  //     Math.sin(dLon / 2) *
+  //     Math.sin(dLon / 2)
+  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  //   const distance = R * c
 
-    // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
-    const duration = Math.ceil(distance * 2)
+  //   // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
+  //   const duration = Math.ceil(distance * 2)
 
-    setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
-    setDurationEstimate(duration || 5)
+  //   setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
+  //   setDurationEstimate(duration || 5)
 
-    return { distance, duration }
-  }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
+  //   return { distance, duration }
+  // }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
 
   const detectUserLocation = useCallback(async () => {
     if (!isBrowser) return // Only run in browser
@@ -196,7 +196,7 @@ const DestinationBookingPage = () => {
 
     try {
       // Use calculateDistance to update estimatedDistance and estimatedDuration
-      calculateDistance()
+      // calculateDistance()
 
       if (!startPoint.address || !endPoint.address) {
         setError('Vui lòng chọn địa điểm đón và trả khách')
@@ -205,16 +205,16 @@ const DestinationBookingPage = () => {
       }
 
       console.log('Calling vehicleSearchDestination with params:', {
-        estimatedDuration: durationEstimate || 5,
-        estimatedDistance: estimatedDistance || 2,
+        estimatedDuration: durationEstimate,
+        estimatedDistance: estimatedDistance,
         endPoint: endPoint.position,
         startPoint: startPoint.position,
       })
 
       // Call API to get available vehicles using vehicleSearchDestination
       const vehicles = await vehicleSearchDestination(
-        durationEstimate || 5, // Use default value if not available
-        estimatedDistance || 2, // Use default value if not available
+        durationEstimate, // Use default value if not available
+        estimatedDistance, // Use default value if not available
         endPoint.position,
         startPoint.position
       )
@@ -230,7 +230,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [startPoint, endPoint, durationEstimate, estimatedDistance, calculateDistance])
+  }, [startPoint, endPoint, durationEstimate, estimatedDistance])
 
   const handleConfirmBooking = useCallback(async () => {
     if (selectedVehicles.length === 0) {
@@ -252,7 +252,7 @@ const DestinationBookingPage = () => {
           categoryVehicleId: selectedVehicles[0].categoryVehicleId,
           name: selectedVehicles[0].name
         },
-        paymentMethod: 'pay_os',
+        paymentMethod: paymentMethod,
       }
 
       console.log('Calling bookingDestination with payload:', payload)
@@ -306,6 +306,8 @@ const DestinationBookingPage = () => {
                 detectUserLocation={detectUserLocation}
                 numberOfSeats={passengerCount}
                 onNumberOfSeatsChange={setPassengerCount}
+                setEstimateDistance={setEstimatedDistance}
+                setEstimateDuration={setDurationEstimate}
               />
             )}
             <div className="flex justify-end">

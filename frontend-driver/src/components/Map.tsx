@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Polyline, UrlTile, Callout } from 'react-native-maps';
 import { useLocation } from '~/context/LocationContext';
 import { Position, Coordinate, Waypoint } from '~/interface/trip';
@@ -23,21 +23,31 @@ const PinIcon = ({ color = '#34dbd8', size = 50 }: { color: string; size?: numbe
 );
 
 // Component bọc để thêm số thứ tự
-const CustomPin = ({ color, size, order }: { color: string; size: number; order?: number }) => (
+const CustomPin = (
+  { color, size, order }: { color: string; size: number; order?: number }
+) => (
   <View style={{ alignItems: 'center' }}>
     <PinIcon color={color} size={size} />
     {order && (
       <View style={{
         position: 'absolute',
-        top: 10,
+        top: size * 0.16,
         backgroundColor: 'white',
-        borderRadius: 10,
-        width: 20,
-        height: 20,
+        borderRadius: size * 0.1,
+        width: size * 0.33,
+        height: size * 0.33,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: color
       }}>
-        <Text style={{ fontSize: 12, fontWeight: 'bold', color }}>{order}</Text>
+        <Text style={{
+          fontSize: size * 0.2,
+          fontWeight: 'bold',
+          color
+        }}>
+          {order}
+        </Text>
       </View>
     )}
   </View>
@@ -54,6 +64,7 @@ const MapComponent = ({
   nextStopIndex = -1, // Chỉ số của điểm dừng phải đi tới
   onStopPress = (stop: sharedItineraryStop) => { }, // Callback khi nhấn vào điểm 
   isShareItinerary = false, // Kiểm tra xem có phải là lộ trình chia sẻ hay không
+  tripStopSelected = '', // Điểm dừng được chọn trong lộ trình chia sẻ
 }: {
   pickupLocation: Position;
   detinateLocation?: Position | null;
@@ -66,6 +77,7 @@ const MapComponent = ({
   nextStopIndex?: number;
   onStopPress?: (stop: sharedItineraryStop) => void;
   isShareItinerary?: boolean;
+  tripStopSelected?: string
 }) => {
   const { location, errorMsg, isTracking } = useLocation();
   const mapRef = useRef<MapView | null>(null);
@@ -87,6 +99,12 @@ const MapComponent = ({
   const [routeError, setRouteError] = useState<string | null>(null);
   const [locationTimestamp, setLocationTimestamp] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const [tripStopSelectedInMap, setTripStopSelectedInMap] = useState<string>(tripStopSelected);
+
+  useEffect(() => {
+    console.log('tripStopSelectedInMap:', tripStopSelectedInMap);
+  }, [tripStopSelectedInMap]);
 
   useEffect(() => {
     if (isShareItinerary) {
@@ -142,48 +160,21 @@ const MapComponent = ({
 
   // Fit map to include all relevant points (driver, pickup, waypoints, and destination if available)
   useEffect(() => {
-    if (isShareItinerary) {
+    if (isShareItinerary || isUserInteracting || !location || !mapRef.current) {
       return;
     }
-    if (location && mapRef.current) {
-      const points = [{ latitude: location.latitude, longitude: location.longitude }];
 
-      if (pickup) points.push(pickup);
-      if (detinate) points.push(detinate);
-
-      // Add waypoints if available
-      if (waypoints && waypoints.length > 0) {
-        waypoints.forEach((waypoint) => {
-          if (waypoint.position && waypoint.position.lat && waypoint.position.lng) {
-            points.push({
-              latitude: waypoint.position.lat,
-              longitude: waypoint.position.lng,
-            });
-          }
-        });
-      }
-
-      // Only fit bounds if we have multiple points
-      if (points.length > 1) {
-        mapRef.current.fitToCoordinates(points, {
-          edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
-          animated: true,
-        });
-      } else {
-        // If only driver location, center on that
-        mapRef.current.animateToRegion(
-          {
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          },
-          1000
-        );
-      }
-    }
-  }, [location, pickup, detinate, waypoints, isShareItinerary]);
-
+    // Chỉ center vào xe, không quan tâm pickup/destination
+    mapRef.current.animateToRegion(
+      {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.01, // Zoom level cố định
+        longitudeDelta: 0.01,
+      },
+      1000
+    );
+  }, [location, isShareItinerary, isUserInteracting]);
   useEffect(() => {
     console.log('shareStops143:', shareStops);
     setSharedItineraryStops(shareStops);
@@ -446,7 +437,10 @@ const MapComponent = ({
             }}
             ref={mapRef}
             provider={undefined}
-            rotateEnabled={true}>
+            rotateEnabled={true}
+            onPanDrag={() => setIsUserInteracting(true)}
+            onRegionChangeComplete={() => setIsUserInteracting(false)}
+          >
             <UrlTile
               urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               shouldReplaceMapContent={true}
@@ -596,11 +590,20 @@ const MapComponent = ({
                     onPress={() => onStopPress(stop)}
                     title={`Điểm ${stop.pointType === SharedItineraryStopsType.START_POINT ? 'Đón' : "Trả"} cuốc xe ${stop.trip}`}
                   >
-                    <CustomPin
-                      color={iconColor}
-                      size={50}
-                      order={stop.order}
-                    />
+                    {stop.trip === tripStopSelected ? (
+                      <CustomPin
+                        color={iconColor}
+                        size={55}
+                        order={stop.order}
+                      />
+                    ) : (
+                      <CustomPin
+                        color={iconColor}
+                        size={40}
+                        order={stop.order}
+                      />
+                    )}
+
 
                   </Marker>
                 );
@@ -643,15 +646,11 @@ const MapComponent = ({
           )}
         </View>
       ) : (
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Đang tải vị trí...</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => {
-              console.log('Retrying location access');
-            }}>
-            <Text style={styles.retryButtonText}>Thử lại</Text>
-          </TouchableOpacity>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#3B82F6" />
+            <Text className="mt-4 text-base font-medium text-gray-700">Đang tải tuyến đường và vị trí ...</Text>
+          </View>
         </View>
       )}
     </View>

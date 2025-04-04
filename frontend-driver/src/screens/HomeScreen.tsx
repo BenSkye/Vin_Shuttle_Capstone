@@ -89,10 +89,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   );
   // Kiểm tra check-in trước khi thực hiện các hành động
   const handleActionWithCheckInValidation = (action: () => void) => {
-    if (!isInProgress) {
-      setShowCheckInWarning(true);
-      return;
-    }
+    // if (!isInProgress) {
+    //   setShowCheckInWarning(true);
+    //   return;
+    // }
     action();
   };
 
