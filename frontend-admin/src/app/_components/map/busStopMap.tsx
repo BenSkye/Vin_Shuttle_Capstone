@@ -27,6 +27,7 @@ import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 
+
 export interface BusStopWithColor extends BusStop {
   color: string;
   position: L.LatLng;
@@ -275,96 +276,161 @@ export default function BusMap() {
     [currentBusStop, isEditing, busStopForm]
   );
 
-  const handleSaveBusRoute = useCallback(
-    async (values: {
-      name: string;
-      description?: string;
-      stopIds: string[];
-      vehicleCategory: string;
-    }) => {
-      if (!busRoutePricingConfig) {
+// Thêm import L nếu chưa có
+
+
+// Trong component BusMap
+const handleSaveBusRoute = useCallback(
+  async (values: {
+    name: string;
+    description?: string;
+    stopIds: string[];
+    vehicleCategory: string;
+  }) => {
+    if (!busRoutePricingConfig) {
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể lấy cấu hình giá cho tuyến xe bus.",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Lấy các điểm dừng được chọn theo thứ tự
+      const selectedStops = values.stopIds.map((stopId) =>
+        busStops.find((stop) => stop._id === stopId)
+      ).filter((stop): stop is BusStopWithColor => !!stop);
+
+      if (selectedStops.length !== values.stopIds.length) {
         notification.error({
           message: "Lỗi",
-          description: "Không thể lấy cấu hình giá cho tuyến xe bus.",
+          description: "Không tìm thấy một số điểm dừng được chọn.",
         });
         return;
       }
 
-      try {
-        setIsLoading(true);
+      // Tạo một bản đồ tạm thời để tính toán tuyến đường bằng OSRM
+      const tempMap = L.map(document.createElement("div")); // Tạo map ẩn
+      let routeCoordinates: { lat: number; lng: number }[] = [];
+      let totalDistance = 0;
+      let estimatedDuration = 0;
 
-        const selectedStops = values.stopIds.map((stopId) =>
-          busStops.find((stop) => stop._id === stopId)
-        ).filter((stop): stop is BusStopWithColor => !!stop);
+      if (selectedStops.length >= 2) {
+        const waypoints = selectedStops.map((stop) => stop.position);
 
-        if (selectedStops.length !== values.stopIds.length) {
-          notification.error({
-            message: "Lỗi",
-            description: "Không tìm thấy một số điểm dừng được chọn.",
+        // Sử dụng Promise để chờ kết quả từ OSRM
+        const routeData = await new Promise<{
+          coordinates: L.LatLng[];
+          distance: number;
+          duration: number;
+        }>((resolve, reject) => {
+          const routingControl = L.Routing.control({
+            waypoints,
+            router: L.Routing.osrmv1({
+              serviceUrl: "https://router.project-osrm.org/route/v1",
+            }),
+            lineOptions: {
+              styles: [{ color: "#3498db", weight: 6, opacity: 0.9 }],
+              extendToWaypoints: false,
+              missingRouteTolerance: 0
+            },
+            show: false,
+            addWaypoints: false,
+            fitSelectedRoutes: false,
+            // createMarker: () => null,
+          }).addTo(tempMap);
+
+          routingControl.on("routesfound", (e) => {
+            const routes = e.routes;
+            if (routes && routes.length > 0) {
+              resolve({
+                coordinates: routes[0].coordinates,
+                distance: Number((routes[0].summary.totalDistance / 1000).toFixed(3)), // km
+                duration: Number((routes[0].summary.totalTime / 60).toFixed(3)), // phút
+              });
+            }
           });
-          return;
+
+          routingControl.on("routingerror", (err) => {
+            reject(new Error("Không thể tính toán tuyến đường: " + JSON.stringify(err)));
+          });
+        });
+
+        // Gán dữ liệu từ OSRM
+        routeCoordinates = routeData.coordinates.map((coord) => ({
+          lat: coord.lat,
+          lng: coord.lng,
+        }));
+        totalDistance = routeData.distance;
+        estimatedDuration = routeData.duration;
+      }
+
+      // Tính toán stopsWithDetails dựa trên dữ liệu từ OSRM
+      const stopsWithDetails = selectedStops.map((stop, index) => {
+        let distanceFromStart = 0;
+        let estimatedTime = 0;
+
+        if (index > 0 && routeCoordinates.length > 0) {
+          // Tính khoảng cách từ điểm đầu dựa trên routeCoordinates
+          const segment = routeCoordinates.slice(
+            0,
+            routeCoordinates.findIndex((coord) =>
+              coord.lat === stop.position.lat && coord.lng === stop.position.lng
+            ) + 1
+          );
+          distanceFromStart = segment.reduce((acc, coord, i) => {
+            if (i === 0) return acc;
+            const prev = segment[i - 1];
+            return acc + L.latLng(prev.lat, prev.lng).distanceTo(L.latLng(coord.lat, coord.lng)) / 1000;
+          }, 0);
+          distanceFromStart = Number(distanceFromStart.toFixed(3));
+          estimatedTime = Number(((distanceFromStart * 60) / 40).toFixed(3)); // Giả định tốc độ 40 km/h
         }
 
-        let totalDistance = 0;
-        const routeCoordinates: { lat: number; lng: number }[] = [];
-        const stopsWithDetails = selectedStops.map((stop, index) => {
-          const position = stop.position;
-          routeCoordinates.push({ lat: position.lat, lng: position.lng });
-
-          let distanceFromStart = 0;
-          if (index > 0) {
-            const prevStop = selectedStops[index - 1];
-            distanceFromStart = totalDistance + (prevStop.position.distanceTo(position) / 1000);
-            totalDistance = distanceFromStart;
-          }
-
-          distanceFromStart = Number(distanceFromStart.toFixed(3));
-          totalDistance = Number(totalDistance.toFixed(3));
-          const estimatedTime = Number(((distanceFromStart * 60) / 40).toFixed(3));
-
-          return {
-            stopId: stop._id,
-            orderIndex: index,
-            distanceFromStart,
-            estimatedTime,
-          };
-        });
-
-        const estimatedDuration = Number(((totalDistance * 60) / 40).toFixed(3));
-
-        const newRouteData = {
-          name: values.name,
-          description: values.description,
-          stops: stopsWithDetails,
-          routeCoordinates,
-          totalDistance,
-          estimatedDuration,
-          vehicleCategory: values.vehicleCategory,
-          status: "active",
-          pricingConfig: "booking_bus_route",
+        return {
+          stopId: stop._id,
+          orderIndex: index,
+          distanceFromStart,
+          estimatedTime,
         };
+      });
 
-        const newRoute = await busRouteService.createBusRoute(newRouteData);
-        setBusRoutes((prev) => [...prev, newRoute]);
-        notification.success({
-          message: "Tạo thành công",
-          description: `Tuyến xe bus "${values.name}" đã được tạo. Tổng khoảng cách: ${totalDistance} km, Thời gian dự kiến: ${estimatedDuration} phút.`,
-        });
+      // Dữ liệu tuyến mới
+      const newRouteData = {
+        name: values.name,
+        description: values.description,
+        stops: stopsWithDetails,
+        routeCoordinates,
+        totalDistance,
+        estimatedDuration,
+        vehicleCategory: values.vehicleCategory,
+        status: "active",
+        pricingConfig: "booking_bus_route",
+      };
 
-        setIsCreatingBusRoute(false);
-        busRouteForm.resetFields();
-      } catch (error) {
-        notification.error({
-          message: "Lỗi",
-          description: "Không thể tạo tuyến xe bus. Vui lòng thử lại.",
-        });
-        console.error("Error creating bus route:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [busStops, busRouteForm, busRoutePricingConfig]
-  );
+      const newRoute = await busRouteService.createBusRoute(newRouteData);
+      setBusRoutes((prev) => [...prev, newRoute]);
+      notification.success({
+        message: "Tạo thành công",
+        description: `Tuyến xe bus "${values.name}" đã được tạo. Tổng khoảng cách: ${totalDistance} km, Thời gian dự kiến: ${estimatedDuration} phút.`,
+      });
+
+      setIsCreatingBusRoute(false);
+      busRouteForm.resetFields();
+    } catch (error) {
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể tạo tuyến xe bus. Vui lòng thử lại.",
+      });
+      console.error("Error creating bus route:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  },
+  [busStops, busRouteForm, busRoutePricingConfig]
+);
 
   const handleDeleteBusStop = useCallback(
     async (busStop: BusStopWithColor) => {
@@ -485,7 +551,7 @@ export default function BusMap() {
                   busRouteForm.resetFields();
                 }}
                 icon={isCreatingBusRoute ? <ArrowLeftOutlined /> : <PlusOutlined />}
-                style={{ borderRadius: "6px" }}
+                style={{ borderRadius: "6px", marginLeft: "0px", marginTop: "10px" }}
               >
                 {isCreatingBusRoute ? "Quay lại" : "Thêm tuyến"}
               </Button>
@@ -602,26 +668,6 @@ export default function BusMap() {
           viewMode={viewMode}
         />
       </div>
-
-      {/* <style jsx>{`
-        .ant-list-item {
-          transition: background-color 0.3s;
-        }
-        .ant-list-item:hover {
-          background-color: #f5f6fa;
-        }
-        .ant-btn {
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .ant-btn-primary {
-          background-color: #2980b9;
-          border-color: #2980b9;
-        }
-        .ant-btn-primary:hover {
-          background-color: #3498db;
-          border-color: #3498db;
-        }
-      `}</style> */}
     </div>
   );
 }
