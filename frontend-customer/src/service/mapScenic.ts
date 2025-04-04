@@ -1,7 +1,7 @@
-import axios from 'axios'
+import apiClient from './apiClient'
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API
-console.log('API_URL Map Scenics:', API_URL)
+
+console.log('API_URL Map Scenics:', process.env.NEXT_PUBLIC_BACKEND_API)
 
 export interface RouteRequest {
   name: string
@@ -33,29 +33,17 @@ export interface RouteResponse extends RouteRequest {
 
 export const routeService = {
   createRoute: async (data: RouteRequest) => {
-    const response = await axios.post<RouteResponse>(`${API_URL}/scenic-routes`, data, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
+    const response = await apiClient.post<RouteResponse>(`/scenic-routes`, data)
     return response.data
   },
 
   getAllRoutes: async () => {
-    const response = await axios.get<RouteResponse[]>(`${API_URL}/scenic-routes`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
+    const response = await apiClient.get<RouteResponse[]>(`/scenic-routes`)
     return response.data
   },
 
   getRouteById: async (id: string) => {
-    const response = await axios.get<RouteResponse>(`${API_URL}/scenic-routes/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
+    const response = await apiClient.get<RouteResponse>(`/scenic-routes/${id}`)
     return response.data
   },
 
@@ -67,12 +55,7 @@ export const routeService = {
     console.log('Editing route with ID:', id)
     console.log('Edit data:', data)
 
-    const response = await axios.put<RouteResponse>(`${API_URL}/scenic-routes/${id}`, data, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
+    const response = await apiClient.put<RouteResponse>(`/scenic-routes/${id}`, data)
     return response.data
   },
 }
