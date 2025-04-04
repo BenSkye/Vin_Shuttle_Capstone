@@ -4,11 +4,12 @@ import React, { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 
-import { Typography } from 'antd'
+import { Radio, Space, Typography } from 'antd'
 import SharedLocation from '../components/sharedLocation'
 import CheckoutPage from '../components/checkoutpage'
 import { bookingShared } from '../../../service/booking.service'
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
+import { PaymentMethod } from '@/constants/payment.enum'
 const { Title } = Typography
 // Define location point type for reuse
 type LocationPoint = {
@@ -33,6 +34,11 @@ const SharedBookingFlow = () => {
     const [estimatedDuration, setEstimatedDuration] = useState<number>(5)
     const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null)
     const [numberOfSeats, setNumberOfSeats] = useState<number>(1)
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
+
+    const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
+        setPaymentMethod(method)
+    }, [])
 
     const handleStartLocationChange = useCallback((position: { lat: number; lng: number }, address: string) => {
         setStartPoint({ position, address })
@@ -160,7 +166,7 @@ const SharedBookingFlow = () => {
                 durationEstimate: duration,
                 distanceEstimate: distance,
                 numberOfSeat: numberOfSeats,
-                paymentMethod: 'pay_os'
+                paymentMethod: paymentMethod
             }
 
             const response = await bookingShared(payload)
@@ -172,7 +178,7 @@ const SharedBookingFlow = () => {
         } finally {
             setLoading(false)
         }
-    }, [startPoint, endPoint, numberOfSeats, calculateDistance])
+    }, [startPoint, endPoint, numberOfSeats, calculateDistance, paymentMethod])
 
     const handleNextStep = useCallback(() => {
         if (currentStep === 'location' && startPoint.address && endPoint.address) {
@@ -201,6 +207,32 @@ const SharedBookingFlow = () => {
                             numberOfSeats={numberOfSeats}
                             onNumberOfSeatsChange={handleNumberOfSeatsChange}
                         />
+                        <Radio.Group
+                            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                            value={paymentMethod}
+                            className="w-full"
+                        >
+                            <Space direction="vertical" className="w-full">
+                                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
+                                    <div className="flex items-center">
+                                        <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
+                                        <span>Thanh toán qua PayOS</span>
+                                    </div>
+                                </Radio>
+                                <Radio value="momo" className="w-full p-4 border rounded-lg">
+                                    <div className="flex items-center">
+                                        <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
+                                        <span>Ví điện tử Momo</span>
+                                    </div>
+                                </Radio>
+                                <Radio value="cash" className="w-full p-4 border rounded-lg">
+                                    <div className="flex items-center">
+                                        <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
+                                        <span>Thanh toán tiền mặt</span>
+                                    </div>
+                                </Radio>
+                            </Space>
+                        </Radio.Group>
                         <div className="flex justify-end">
                             <button
                                 onClick={handleNextStep}

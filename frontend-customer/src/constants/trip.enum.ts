@@ -24,3 +24,15 @@ export const tripStatusText: Record<TripStatus, string> = {
   [TripStatus.COMPLETED]: 'Đã hoàn thành',
   [TripStatus.CANCELLED]: 'Đã hủy',
 }
+
+
+
+export enum TripCancelBy {
+  CUSTOMER = 'customer',
+  DRIVER = 'driver',
+}
+
+export const tripCancelText: Record<TripCancelBy, string> = {
+  [TripCancelBy.CUSTOMER]: 'Khách hàng hủy chuyến',
+  [TripCancelBy.DRIVER]: 'Tài xế hủy chuyến',
+}

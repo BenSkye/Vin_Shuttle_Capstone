@@ -7,5 +7,5 @@ export interface ICheckoutService {
   getPayOsCancel(reqQuery: any): Promise<void>;
 
   CheckoutBookingMomo(bookingId: string): Promise<any>;
-  momoCalbackReturn(reqBody: any): Promise<any>;
+  momoCalbackReturn(reqBody: any): Promise<boolean>;
 }

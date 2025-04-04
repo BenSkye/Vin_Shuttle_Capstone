@@ -3,11 +3,12 @@
 import React, { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import dayjs from 'dayjs'
-import { Typography } from 'antd'
+import { Radio, Space, Typography } from 'antd'
 import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingRoute } from '@/service/booking.service'
 import { RouteResponse } from '@/service/mapScenic'
 import { vehicleSearchRoute } from '@/service/search.service'
+import { PaymentMethod } from '@/constants/payment.enum'
 
 // Dynamic import components
 const { Title } = Typography
@@ -30,7 +31,7 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 
 const RoutesBooking = () => {
   // Define all possible steps in the booking flow
-  const [currentStep, setCurrentStep] = useState<'datetime' | 'route' | 'vehicle' | 'location' | 'checkout'>('datetime')
+  const [currentStep, setCurrentStep] = useState<'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'>('datetime')
 
   // State for date and time selection
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
@@ -54,7 +55,10 @@ const RoutesBooking = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null)
-
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
+  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
+    setPaymentMethod(method)
+  }, [])
   // Handler for date selection
   const handleDateChange = useCallback((date: dayjs.Dayjs | null) => {
     setSelectedDate(date)
@@ -225,7 +229,7 @@ const RoutesBooking = () => {
           address: startPoint.address,
         },
         vehicleCategories: selectedVehicles,
-        paymentMethod: 'pay_os',
+        paymentMethod: paymentMethod,
       })
 
       console.log('Booking response:', response)
@@ -237,7 +241,7 @@ const RoutesBooking = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedDate, startTime, selectedRoute, startPoint, selectedVehicles])
+  }, [selectedDate, startTime, selectedRoute, startPoint, selectedVehicles, paymentMethod])
 
   // Handler for navigating to the next step
   const handleNextStep = useCallback(() => {
@@ -262,13 +266,19 @@ const RoutesBooking = () => {
       }
       setError(null)
       setCurrentStep('location')
-    } else if (currentStep === 'location') {
+    }
+    else if (currentStep === 'location') {
       if (!startPoint.address) {
         setError('Vui lòng chọn địa điểm đón')
         return
       }
       setError(null)
+      setCurrentStep('payment')
+    }
+    else if (currentStep === 'payment') {
+      setError(null)
       handleConfirmBooking()
+
     }
   }, [
     currentStep,
@@ -289,8 +299,12 @@ const RoutesBooking = () => {
       setCurrentStep('route')
     } else if (currentStep === 'location') {
       setCurrentStep('vehicle')
-    } else if (currentStep === 'checkout') {
+    }
+    else if (currentStep === 'payment') {
       setCurrentStep('location')
+    }
+    else if (currentStep === 'checkout') {
+      setCurrentStep('payment')
     }
   }, [currentStep])
 
@@ -381,10 +395,63 @@ const RoutesBooking = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                disabled={!startPoint.address || loading}
+                disabled={selectedVehicles.length === 0 || loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
               >
-                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'payment':
+        return (
+          <div className="space-y-4">
+            {/* <Title level={4} className="text-center">
+                Chọn phương thức thanh toán
+              </Title> */}
+            <Radio.Group
+              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              value={paymentMethod}
+              className="w-full"
+            >
+              <Space direction="vertical" className="w-full">
+                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
+                    <span>Thanh toán qua PayOS</span>
+                  </div>
+                </Radio>
+                <Radio value="momo" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
+                    <span>Ví điện tử Momo</span>
+                  </div>
+                </Radio>
+                <Radio value="cash" className="w-full p-4 border rounded-lg">
+                  <div className="flex items-center">
+                    <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
+                    <span>Thanh toán tiền mặt</span>
+                  </div>
+                </Radio>
+              </Space>
+            </Radio.Group>
+
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                aria-label="Quay lại chọn địa điểm"
+                tabIndex={0}
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 transition-colors"
+                aria-label="Xác nhận thanh toán"
+                tabIndex={0}
+              >
+                Tiếp tục
               </button>
             </div>
           </div>
@@ -410,86 +477,80 @@ const RoutesBooking = () => {
     }
   }
 
+
+  const getStepProgress = (step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout') => {
+    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'checkout']
+    const currentIndex = steps.indexOf(currentStep)
+    const stepIndex = steps.indexOf(step)
+
+    if (stepIndex < currentIndex) return 100
+    if (stepIndex === currentIndex) return 100
+    return 0
+  }
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
         Đặt xe theo tuyến
       </Title>
+
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <div
-            className={`flex-1 text-center ${currentStep === 'datetime' ? 'text-blue-500' : currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
+          <div className={`flex-1 text-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'datetime' || currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: '100%' }}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('datetime')}%` }}
               />
             </div>
             <span>Chọn thời gian</span>
           </div>
 
-          <div
-            className={`flex-1 text-center ${currentStep === 'route' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
+          <div className={`flex-1 text-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
-                  ? 'bg-blue-500'
-                  : 'bg-gray-300'
-                  }`}
-                style={{
-                  width: currentStep === 'route' || currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
-                    ? '100%'
-                    : '0%'
-                }}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('route') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('route')}%` }}
               />
             </div>
             <span>Chọn lộ trình</span>
           </div>
 
-          <div
-            className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
+          <div className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
-                  ? 'bg-blue-500'
-                  : 'bg-gray-300'
-                  }`}
-                style={{
-                  width: currentStep === 'vehicle' || currentStep === 'location' || currentStep === 'checkout'
-                    ? '100%'
-                    : '0%'
-                }}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
             <span>Chọn xe</span>
           </div>
 
-          <div
-            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
+          <div className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{
-                  width: currentStep === 'location' || currentStep === 'checkout' ? '100%' : '0%'
-                }}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
             <span>Chọn địa điểm</span>
           </div>
 
-          <div
-            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
+          <div className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('payment')}%` }}
+              />
+            </div>
+            <span>Phương thức thanh toán</span>
+          </div>
+
+          <div className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
             <span>Thanh toán</span>
