@@ -4,13 +4,12 @@ import { useEffect } from 'react';
 
 export default function PaymentCallback() {
     useEffect(() => {
-        const query = new URLSearchParams(window.location.search);
-        console.log('query', query.toString());
         // Gửi thông điệp tới trang chủ nếu đang trong iframe
         if (window.self !== window.top) {
             window.parent.postMessage('PAYMENT_SUCCESS', window.location.origin);
         } else {
-            window.location.href = '/trips';
+            const returnUrl = '/trips';
+            setTimeout(() => window.location.href = returnUrl, 200);
         }
     }, []);
 

@@ -871,10 +871,12 @@ export class BookingService implements IBookingService {
                     console.log('updatedSharedItinerary871', updatedSharedItinerary)
                 } else if (sharedItinerary.status === SharedItineraryStatus.PLANNED) {
                     const updatedSharedItinerary = await this.sharedItineraryService.saveASharedItineraryFromRedisToDBByTripID(tripId.toString())
+                    const message = "Cuốc xe mới được ghép"
                     await this.sharedItineraryGateway.emitUpdatedSharedItineraryDetail(
                         tripUpdate.driverId.toString(),
                         updatedSharedItinerary._id.toString(),
-                        updatedSharedItinerary
+                        updatedSharedItinerary,
+                        message
                     )
                 }
             }

@@ -131,14 +131,14 @@ export class MomoService implements IMomoService {
       return result.data;
     } catch (err) {
       console.log('Error refund transaction:', err);
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'initiate refund failed',
-          vnMessage: 'Khởi tạo hoàn tiền thất bại',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      // throw new HttpException(
+      //   {
+      //     statusCode: HttpStatus.BAD_REQUEST,
+      //     message: 'initiate refund failed',
+      //     vnMessage: 'Khởi tạo hoàn tiền thất bại',
+      //   },
+      //   HttpStatus.BAD_REQUEST,
+      // );
     }
   }
 }
