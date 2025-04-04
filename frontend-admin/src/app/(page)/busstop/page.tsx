@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic';
 
 
 // Dynamic import với ssr: false
-const CreateRoute = dynamic(
-  () => import("../../_components/map/busMap"),
+const BusStopMap = dynamic(
+  () => import("../../_components/map/busStopMap"),
   { ssr: false }
 );
 
@@ -13,7 +13,7 @@ export default function Home() {
   
   return (
     <main>
-      <CreateRoute />
+      <BusStopMap />
     </main>
   );
 }

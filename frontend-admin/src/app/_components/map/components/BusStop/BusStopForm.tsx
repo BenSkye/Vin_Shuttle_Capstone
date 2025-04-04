@@ -1,7 +1,7 @@
 import { Form, Input, Button, Select, FormInstance } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { STATUS_OPTIONS } from '../busMap';
-import { BusStopWithColor } from '../busMap';
+import { STATUS_OPTIONS } from '../../busStopMap';
+import { BusStopWithColor } from '../../busStopMap';
 
 interface BusStopFormProps {
   form: FormInstance;
