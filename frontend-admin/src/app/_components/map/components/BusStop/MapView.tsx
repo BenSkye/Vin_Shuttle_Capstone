@@ -3,7 +3,7 @@ import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { Spin } from "antd";
-import { BusStopWithColor, createBusStopIcon } from "../../busStopMap";
+import { BusStopWithColor } from "../../busStopMap";
 import { BusRouteWithStops } from "../../../../services/busServices";
 
 interface MapViewProps {
