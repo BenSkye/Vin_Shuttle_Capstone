@@ -33,17 +33,22 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
     return () => window.removeEventListener('resize', checkIfMobile)
   }, [])
 
-  useEffect(() => {
-    if (shouldRedirect && typeof window !== 'undefined') window.location.href = '/booking'
-  }, [shouldRedirect])
+  // useEffect(() => {
+  //   if (shouldRedirect && typeof window !== 'undefined') window.location.href = '/trips'
+  // }, [shouldRedirect])
 
   useEffect(() => {
     if (paymentUrl) {
       const handleMessage = (event: MessageEvent) => {
-        if (event.data === 'PAYMENT_SUCCESS') {
-          setShouldRedirect(true)
+        // Kiểm tra nguồn gốc để đảm bảo bảo mật
+        if (event.origin === window.location.origin) {
+          if (event.data === 'PAYMENT_SUCCESS') {
+            setShowPaymentDialog(false);
+            const returnUrl = '/trips';
+            setTimeout(() => window.location.href = returnUrl, 200);
+          }
         }
-      }
+      };
 
       if (typeof window !== 'undefined') {
         window.addEventListener('message', handleMessage)

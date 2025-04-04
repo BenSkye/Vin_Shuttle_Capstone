@@ -229,7 +229,7 @@ const RoutesBooking = () => {
           address: startPoint.address,
         },
         vehicleCategories: selectedVehicles,
-        paymentMethod: 'pay_os',
+        paymentMethod: paymentMethod,
       })
 
       console.log('Booking response:', response)
@@ -241,7 +241,7 @@ const RoutesBooking = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedDate, startTime, selectedRoute, startPoint, selectedVehicles])
+  }, [selectedDate, startTime, selectedRoute, startPoint, selectedVehicles, paymentMethod])
 
   // Handler for navigating to the next step
   const handleNextStep = useCallback(() => {

@@ -127,10 +127,25 @@ export default function DetailTripPage({ id }: { id: string }) {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                   <div className="flex items-center gap-2">
                     <FaClock className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
+                    <p className={labelStyle}>Thời gian bắt đầu</p>
+                  </div>
+                  <p className={`${valueStyle} sm:ml-auto`}>
+                    {trip.timeStartEstimate
+                      ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                      : 'Chưa xác định'}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <FaClock className="flex-shrink-0 text-lg text-blue-500 sm:text-xl" />
                     <p className={labelStyle}>Tổng thời gian</p>
                   </div>
                   <p className={`${valueStyle} sm:ml-auto`}>
-                    {hourPayload.bookingHour.totalTime} giờ
+                    {hourPayload.bookingHour.totalTime} phút
                   </p>
                 </div>
               </div>

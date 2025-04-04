@@ -91,7 +91,7 @@ export class CheckoutService implements ICheckoutService {
   }
 
 
-  async momoCalbackReturn(reqBody: any): Promise<any> {
+  async momoCalbackReturn(reqBody: any): Promise<boolean> {
     console.log('reqBody94', reqBody);
     if (reqBody.resultCode === 0) {
       const booking = await this.bookingService.payBookingSuccess(reqBody.orderId);
@@ -99,17 +99,10 @@ export class CheckoutService implements ICheckoutService {
         transId: reqBody.transId,
       })
       console.log('booking', updatedBooking);
-      return updatedBooking;
+      return true;
     } else {
       await this.bookingService.payBookingFail(reqBody.orderId);
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: `Payment failed`,
-          vnMessage: `Thanh toán thất bại do ${reqBody.message}`,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      return false;
     }
   }
 
