@@ -31,7 +31,7 @@ export class MomoService implements IMomoService {
     ).toString('base64');
     const domain = process.env.DOMAIN_URL;
     const IPN_URL = `${domain}/checkout/momo/${createPaymentDto.returnUrl}`;
-    const REDIRECT_URL = this.FRONTEND_URL;
+    const REDIRECT_URL = this.FRONTEND_URL + '/payment-callback';
     const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=captureWallet`;
     const signature = generateSignature(rawSignature);
     const requestType = 'captureWallet';
