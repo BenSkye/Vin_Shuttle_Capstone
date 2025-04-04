@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FiMenu, FiX, FiUser, FiUserCheck, FiClock, FiLogOut, FiCreditCard, FiChevronDown, FiBell, FiMessageSquare } from 'react-icons/fi'
@@ -57,6 +57,27 @@ export function PrivateHeader({
     const dropdownRef = useRef<HTMLDivElement>(null)
     const notificationRef = useRef<HTMLDivElement>(null)
 
+    // Add padding to body to account for fixed header
+    useEffect(() => {
+        document.body.style.paddingTop = '72px'
+        return () => {
+            document.body.style.paddingTop = '0'
+        }
+    }, [])
+
+    // Prevent scrolling when mobile menu is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+
+        return () => {
+            document.body.style.overflow = ''
+        }
+    }, [isOpen])
+
     const toggleMenu = () => setIsOpen(!isOpen)
     const toggleDropdown = () => setShowDropdown(!showDropdown)
     const toggleNotifications = () => setShowNotifications(!showNotifications)
@@ -83,7 +104,7 @@ export function PrivateHeader({
 
     return (
         <>
-            <header className="fixed left-0 right-0 top-0 z-50 border-b border-divider bg-surface/95 backdrop-blur-sm">
+            <header className="fixed left-0 right-0 top-0 z-[9999] border-b border-divider bg-surface/98 backdrop-blur-md shadow-sm">
                 <nav className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 lg:px-8">
                     {/* Left Section - Logo */}
                     <motion.div
@@ -112,7 +133,7 @@ export function PrivateHeader({
                                                 <FiChevronDown className="ml-1.5 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
                                             </button>
                                             <div className="absolute -bottom-2 left-0 right-0 h-4 bg-transparent" />
-                                            <div className="absolute left-0 top-[calc(100%-8px)] z-50 min-w-[240px] rounded-lg border border-divider bg-surface py-2 opacity-0 shadow-lg transition-all invisible group-hover:visible group-hover:opacity-100">
+                                            <div className="absolute left-0 top-[calc(100%-8px)] z-[9990] min-w-[240px] rounded-lg border border-divider bg-surface py-2 opacity-0 shadow-lg transition-all invisible group-hover:visible group-hover:opacity-100">
                                                 {item.items.map((subItem) => (
                                                     <Link
                                                         key={subItem.href}
@@ -191,7 +212,7 @@ export function PrivateHeader({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                        className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm md:hidden"
                         onClick={toggleMenu}
                     >
 
@@ -200,7 +221,7 @@ export function PrivateHeader({
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'tween', duration: 0.3 }}
-                            className="fixed right-0 top-[72px] z-50 h-[calc(100vh-72px)] w-[75%] overflow-y-auto bg-surface shadow-xl md:hidden"
+                            className="fixed right-0 top-[72px] z-[9998] h-[calc(100vh-72px)] w-[75%] overflow-y-auto bg-surface shadow-xl md:hidden"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex flex-col p-4 pb-20">

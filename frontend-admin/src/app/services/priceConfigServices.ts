@@ -41,7 +41,7 @@ export const priceManagementServices = {
    * @param serviceType Loại dịch vụ (booking_hour/booking_trip/booking_share)
    */
   async getServiceConfig(
-    serviceType: 'booking_hour' | 'booking_trip' | 'booking_share'
+    serviceType: 'booking_hour' | 'booking_trip' | 'booking_share' | "booking_bus_route"
   ): Promise<UpdateServiceConfigRequest> {
     try {
       const response = await apiClient.get(

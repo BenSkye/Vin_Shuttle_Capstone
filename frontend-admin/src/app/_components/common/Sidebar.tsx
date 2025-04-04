@@ -82,9 +82,9 @@ export default function Sidebar() {
             label: <Link href="/router">Quản lý tuyến đường</Link>,
           },
           {
-            key: "/busroute",
+            key: "/busstop",
             icon: <FaBus />,
-            label: <Link href="/busroute">Quản lý tuyến xe bus</Link>,
+            label: <Link href="/busstop">Quản lý tuyến xe bus</Link>,
           },
           {
             key: "/money",

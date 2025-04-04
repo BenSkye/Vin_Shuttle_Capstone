@@ -2,14 +2,13 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { Radio, Space, Typography } from 'antd'
+import { Typography } from 'antd'
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import SharedLocation from '@/views/Ride/components/sharedLocation'
 
 import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingDestination } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
-import { PaymentMethod } from '@/constants/payment.enum'
 
 // Dynamic import components outside the component to prevent reloading
 const { Title } = Typography
@@ -19,7 +18,7 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 //yessir
 
 const DestinationBookingPage = () => {
-  const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'payment' | 'checkout'>('location')
+  const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'checkout'>('location')
   const [passengerCount, setPassengerCount] = useState(1)
   const [startPoint, setStartPoint] = useState<{
     position: { lat: number; lng: number }
@@ -57,10 +56,6 @@ const DestinationBookingPage = () => {
   // Check if code is running in browser
   useEffect(() => {
     setIsBrowser(true)
-  }, [])
-
-  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
-    setPaymentMethod(method)
   }, [])
 
   const handleStartLocationChange = useCallback((
@@ -274,8 +269,6 @@ const DestinationBookingPage = () => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {
       fetchAvailableVehicles()
     } else if (currentStep === 'vehicle' && selectedVehicles.length > 0) {
-      setCurrentStep('payment')
-    } else if (currentStep === 'payment') {
       handleConfirmBooking()
     }
   }, [currentStep, startPoint.address, endPoint.address, selectedVehicles.length, fetchAvailableVehicles, handleConfirmBooking])
@@ -283,11 +276,8 @@ const DestinationBookingPage = () => {
   const handleBackStep = useCallback(() => {
     if (currentStep === 'vehicle') {
       setCurrentStep('location')
-    } else if (currentStep === 'payment') {
+    } else if (currentStep === 'checkout') {
       setCurrentStep('vehicle')
-    }
-    else if (currentStep === 'checkout') {
-      setCurrentStep('payment')
     }
   }, [currentStep])
 
@@ -354,59 +344,6 @@ const DestinationBookingPage = () => {
             </div>
           </div>
         )
-      case 'payment':
-        return (
-          <div className="space-y-4">
-            {/* <Title level={4} className="text-center">
-              Chọn phương thức thanh toán
-            </Title> */}
-            <Radio.Group
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
-              value={paymentMethod}
-              className="w-full"
-            >
-              <Space direction="vertical" className="w-full">
-                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
-                    <span>Thanh toán qua PayOS</span>
-                  </div>
-                </Radio>
-                <Radio value="momo" className="w-full p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
-                    <span>Ví điện tử Momo</span>
-                  </div>
-                </Radio>
-                <Radio value="cash" className="w-full p-4 border rounded-lg">
-                  <div className="flex items-center">
-                    <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
-                    <span>Thanh toán tiền mặt</span>
-                  </div>
-                </Radio>
-              </Space>
-            </Radio.Group>
-
-            <div className="flex justify-between mt-6">
-              <button
-                onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
-                aria-label="Quay lại chọn địa điểm"
-                tabIndex={0}
-              >
-                Quay lại
-              </button>
-              <button
-                onClick={handleNextStep}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 transition-colors"
-                aria-label="Xác nhận thanh toán"
-                tabIndex={0}
-              >
-                Tiếp tục
-              </button>
-            </div>
-          </div>
-        )
       case 'checkout':
         return (
           <div className="space-y-6">
@@ -430,62 +367,45 @@ const DestinationBookingPage = () => {
     }
   }
 
-  const getStepProgress = (step: 'location' | 'vehicle' | 'payment' | 'checkout') => {
-    const steps = ['location', 'vehicle', 'payment', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
-
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
-  }
-
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
         Đặt xe điểm đến
       </Title>
-
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+        <div className="flex flex-row items-center justify-between gap-1 sm:gap-2 md:gap-4">
+          <div
+            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-1 sm:mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('location')}%` }}
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: '100%' }}
               />
             </div>
-            <span>Chọn địa điểm</span>
+            <span className="text-xs sm:text-sm">Chọn địa điểm</span>
           </div>
-
-          <div className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+          <div
+            className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-1 sm:mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'vehicle' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: currentStep === 'vehicle' || currentStep === 'checkout' ? '100%' : '0%' }}
               />
             </div>
-            <span>Chọn xe</span>
+            <span className="text-xs sm:text-sm">Chọn xe</span>
           </div>
-
-          <div className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+          <div
+            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-1 sm:mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
               />
             </div>
-            <span>Phương thức thanh toán</span>
-          </div>
-
-          <div className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span>Thanh toán</span>
+            <span className="text-xs sm:text-sm">Thanh toán</span>
           </div>
         </div>
       </div>

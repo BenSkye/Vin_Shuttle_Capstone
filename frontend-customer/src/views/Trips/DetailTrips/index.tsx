@@ -6,11 +6,15 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { IoCarSport } from 'react-icons/io5';
+import { BsChatDots } from 'react-icons/bs';
 
 import { ServiceType } from '@/constants/service-type.enum';
 import { TripStatus } from '@/constants/trip.enum';
 
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap';
+import ScenicRealTimeTripMap from '@/views/Trips/components/ScenicRealTimeTripMap';
+import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap';
+
 import TripRatingForm from '@/views/Trips/components/tripRatingForm';
 import TripRatingView from '@/views/Trips/components/tripRatingView';
 
@@ -172,6 +176,7 @@ export default function DetailTripPage({ id }: { id: string }) {
 
       case ServiceType.BOOKING_SCENIC_ROUTE:
         const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto;
+        console.log(scenicPayload);
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -208,7 +213,7 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <RealTimeTripMap
+                <ScenicRealTimeTripMap
                   pickupLocation={[
                     scenicPayload.bookingScenicRoute.startPoint.position.lat,
                     scenicPayload.bookingScenicRoute.startPoint.position.lng,
@@ -267,17 +272,40 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <RealTimeTripMap
-                  pickupLocation={[
-                    destinationPayload.bookingDestination.startPoint.position.lat,
-                    destinationPayload.bookingDestination.startPoint.position.lng,
-                  ]}
-                  destinationLocation={[
-                    destinationPayload.bookingDestination.endPoint.position.lat,
-                    destinationPayload.bookingDestination.endPoint.position.lng,
-                  ]}
-                  vehicleId={trip.vehicleId._id}
-                />
+                {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
+                  <motion.div
+                    className="mt-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {trip.status === TripStatus.PICKUP ? (
+                      <RealTimeTripMap
+                        pickupLocation={[
+                          destinationPayload.bookingDestination.startPoint.position.lat,
+                          destinationPayload.bookingDestination.startPoint.position.lng,
+                        ]}
+                        destinationLocation={[
+                          destinationPayload.bookingDestination.endPoint.position.lat,
+                          destinationPayload.bookingDestination.endPoint.position.lng,
+                        ]}
+                        vehicleId={trip.vehicleId._id}
+                      />
+                    ) : (
+                      <DesRealTimeTripMap
+                        pickupLocation={[
+                          destinationPayload.bookingDestination.startPoint.position.lat,
+                          destinationPayload.bookingDestination.startPoint.position.lng,
+                        ]}
+                        destinationLocation={[
+                          destinationPayload.bookingDestination.endPoint.position.lat,
+                          destinationPayload.bookingDestination.endPoint.position.lng,
+                        ]}
+                        vehicleId={trip.vehicleId._id}
+                      />
+                    )}
+                  </motion.div>
+                )}
               </motion.div>
             )}
           </motion.div>
@@ -396,6 +424,16 @@ export default function DetailTripPage({ id }: { id: string }) {
     }
   };
 
+  // Function to determine if the map should be shown
+  const shouldShowMap = (status: string) => {
+    return status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
+  };
+
+  // Helper to check if chat feature should be available
+  const canChatWithDriver = (status: string) => {
+    return status === TripStatus.PAYED || status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
+  };
+
   return (
     <div className="min-h-screen py-6 sm:py-12">
       <motion.div
@@ -415,6 +453,17 @@ export default function DetailTripPage({ id }: { id: string }) {
                 Biển số: {trip.vehicleId.licensePlate}
               </p>
             </div>
+
+            {/* Chat with driver button */}
+            {canChatWithDriver(trip.status) && (
+              <Link
+                href={`/conversations`}
+                className="ml-auto flex items-center gap-2 rounded bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
+              >
+
+                <span>Chat với tài xế</span>
+              </Link>
+            )}
           </div>
 
           <div className="mb-6 grid grid-cols-1 gap-4 sm:mb-8 sm:grid-cols-2 sm:gap-6">
@@ -439,8 +488,23 @@ export default function DetailTripPage({ id }: { id: string }) {
             {renderServiceDetails(trip)}
           </div>
 
+          {/* Real-time trip status info */}
+          {shouldShowMap(trip.status) && (
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800 sm:text-2xl">
+                  {trip.status === TripStatus.PICKUP ? 'Đang đón bạn' : 'Đang trong chuyến đi'}
+                </h2>
+                <div className="flex items-center">
+                  <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
+                  <span className="text-sm text-gray-600">Cập nhật thời gian thực</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Cancel Trip Button */}
-          {trip.status === TripStatus.PAYED && TripStatus.PICKUP && (
+          {(trip.status === TripStatus.PAYED || trip.status === TripStatus.PICKUP) && (
             <div className="mt-6 flex justify-center">
               <Button
                 type="primary"
@@ -456,7 +520,7 @@ export default function DetailTripPage({ id }: { id: string }) {
           {/* Cancel Confirmation Modal */}
           <Modal
             title="Xác nhận hủy chuyến"
-            visible={isCancelModalVisible}
+            open={isCancelModalVisible}
             onOk={handleCancelTrip}
             onCancel={hideCancelModal}
             okText={isCanceling ? 'Đang hủy...' : 'Xác nhận'}
