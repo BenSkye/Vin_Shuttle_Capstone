@@ -9,6 +9,7 @@ import SharedLocation from '@/views/Ride/components/sharedLocation'
 import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking.interface'
 import { bookingDestination } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
+import { PaymentMethod } from '@/constants/payment.enum'
 
 // Dynamic import components outside the component to prevent reloading
 const { Title } = Typography
