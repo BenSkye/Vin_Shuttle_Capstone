@@ -41,5 +41,10 @@ export class CheckoutController {
     await this.checkoutService.momoCalbackReturn(req.body);
   }
 
+
+  @Post('momo/return-transfer-trips')
+  async checkoutTransferTripMomo(@Request() req, @Res() res) {
+    await this.checkoutService.momoTransferTripCalbackReturn(req.body);
+  }
 }
 

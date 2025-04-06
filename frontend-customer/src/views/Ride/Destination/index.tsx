@@ -271,7 +271,11 @@ const DestinationBookingPage = () => {
 
       const response = await bookingDestination(payload)
       console.log('bookingDestination response:', response)
-
+      if (response.newBooking.paymentMethod === PaymentMethod.CASH) {
+        //redirect to trips page
+        message.success('Đặt xe thành công!')
+        window.location.href = '/trips'
+      }
       setBookingResponse(response)
       setCurrentStep('checkout')
     } catch (error) {

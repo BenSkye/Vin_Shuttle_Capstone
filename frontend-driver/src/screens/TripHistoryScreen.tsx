@@ -205,6 +205,15 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                       <Icon name="currency-usd" size={16} color="#4b5563" />
                       <Text className="ml-1 font-medium text-gray-700">
                         {trip.amount?.toLocaleString('vi-VN') || '0'} VNĐ
+                        {trip.isPrepaid || trip.isPayed ? (
+                          <Text className="text-xs text-blue-500 font-medium">
+                            {' '}(Đã thanh toán)
+                          </Text>
+                        ) : (
+                          <Text className="text-xs text-orange-500 font-bold">
+                            {' '}(Tài xế thu tiền)
+                          </Text>
+                        )}
                       </Text>
                     </View>
                     <Text className="text-sm text-blue-600">Xem chi tiết</Text>
@@ -375,10 +384,10 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                     <Text style={{ width: '70%', color: '#333' }}>
                       {selectedTrip.serviceType === ServiceType.BOOKING_HOUR
                         ? (selectedTrip.servicePayload as BookingHourPayloadDto).bookingHour
-                            .startPoint.address
+                          .startPoint.address
                         : selectedTrip.serviceType === ServiceType.BOOKING_DESTINATION
                           ? (selectedTrip.servicePayload as BookingDestinationPayloadDto)
-                              .bookingDestination.startPoint.address
+                            .bookingDestination.startPoint.address
                           : 'N/A'}
                     </Text>
                   </View>
@@ -432,6 +441,15 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                     <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Số tiền:</Text>
                     <Text style={{ width: '70%', fontWeight: 'bold', color: '#333' }}>
                       {selectedTrip.amount?.toLocaleString('vi-VN') || '0'} VNĐ
+                      {selectedTrip.isPrepaid || selectedTrip.isPayed ? (
+                        <Text className="text-xs text-blue-500 font-medium">
+                          {' '}(Đã thanh toán)
+                        </Text>
+                      ) : (
+                        <Text className="text-xs text-orange-500 font-bold">
+                          {' '}(Tài xế thu tiền)
+                        </Text>
+                      )}
                     </Text>
                   </View>
                 </View>

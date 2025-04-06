@@ -37,4 +37,6 @@ export interface ITripService {
   getTripByQuery(query: tripParams): Promise<TripDocument[]>;
   cancelTrip(userId: string, id: string, reason: string): Promise<TripDocument>;
   handleRefundForTrip(tripId: string, refundAmount: number): Promise<void>
+  checkoutTransferTrip(tripIds: string[]): Promise<object>
+  transferTripAmountSuccess(tripIds: string[]): Promise<void>;
 }

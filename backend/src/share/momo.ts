@@ -34,7 +34,89 @@ export class MomoService implements IMomoService {
     const IPN_URL = `${domain}/checkout/momo/${createPaymentDto.returnUrl}`;
     const REDIRECT_URL = this.FRONTEND_URL + '/payment-callback';
     const requestType = 'captureWallet';
+    const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=${requestType}`;
+    const signature = generateSignature(rawSignature);
+    const autoCapture = true
+    const orderExpireTime = 30  // 1 minute
 
+
+    const requestBody = JSON.stringify({
+      partnerCode: this.PARTNER_CODE,
+      // partnerName: 'VinShuttle',
+      // accessKey: this.ACCESS_KEY,
+      amount: amount,
+      lang: 'vi',
+      orderId: orderId,
+      orderInfo: orderInfo,
+      redirectUrl: REDIRECT_URL,
+      ipnUrl: IPN_URL,
+      autoCapture: autoCapture,
+      requestType: requestType,
+      // orderExpireTime: orderExpireTime,
+      requestId: requestId,
+      extraData: extraData,
+      signature: signature,
+    });
+
+
+
+    const options = {
+      method: 'POST',
+      url: this.MOMO_ENDPOINT,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(requestBody),
+      },
+      data: requestBody,
+    };
+
+    try {
+      const result = await axios(options);
+      console.log('result68', result.data);
+      if (result.data.resultCode == 0) {
+        return result.data.payUrl;
+      } else {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'create payment link failed',
+            vnMessage: 'Tạo liên kết thanh toán thất bại',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (err) {
+      console.log('Error creating payment link:', err);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'create payment link failed',
+          vnMessage: 'Tạo liên kết thanh toán thất bại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async createTransferTripPaymentLink(createPaymentDto: {
+    bookingCode: number;
+    amount: number;
+    tripIds: string[];
+    description: string;
+    returnUrl: string;
+  }): Promise<any> {
+    const orderId = createPaymentDto.bookingCode;
+    const requestId = `${orderId}-req`;
+    const amount = createPaymentDto.amount;
+    const orderInfo = createPaymentDto.description;
+    const extraData = Buffer.from(
+      JSON.stringify({ tripIds: createPaymentDto.tripIds }),
+    ).toString('base64');
+    const domain = process.env.DOMAIN_URL;
+    const IPN_URL = `${domain}/checkout/momo/${createPaymentDto.returnUrl}`;
+    console.log('IPN_URL', IPN_URL);
+    const REDIRECT_URL = "";
+    const requestType = 'captureWallet';
     const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=${requestType}`;
     const signature = generateSignature(rawSignature);
     const autoCapture = true
