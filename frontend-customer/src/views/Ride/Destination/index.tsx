@@ -82,6 +82,7 @@ const DestinationBookingPage = () => {
       address: newAddress,
     })
   }, [])
+  //
 
   // const calculateDistance = useCallback(() => {
   //   // Calculate distance in km between two points using Haversine formula
