@@ -11,7 +11,7 @@ export const bookingStatusColor: Record<BookingStatus, string> = {
 }
 export const bookingStatusText: Record<BookingStatus, string> = {
   [BookingStatus.PENDING]: 'Đang chờ',
-  [BookingStatus.CONFIRMED]: 'Đã thanh toán',
+  [BookingStatus.CONFIRMED]: 'Đã xác  nhận',
   [BookingStatus.CANCELLED]: 'Đã hủy',
 }
 

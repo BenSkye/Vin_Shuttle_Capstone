@@ -317,7 +317,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (trip.status !== TripStatus.PAYED) {
+    if (trip.status !== TripStatus.CONFIRMED) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
@@ -612,7 +612,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (![TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
+    if (![TripStatus.CONFIRMED, TripStatus.PICKUP].includes(trip.status)) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
@@ -633,7 +633,7 @@ export class TripService implements ITripService {
     }
     else if (cancelledBy === TripCancelBy.CUSTOMER) {
       // For hourly/scenic bookings with time-dependent refunds 
-      if (trip.status === TripStatus.PAYED &&
+      if (trip.status === TripStatus.CONFIRMED &&
         [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
         // Check if cancellation is more than 1 hour before scheduled start
         const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
@@ -776,7 +776,7 @@ export class TripService implements ITripService {
   //   const endTimeOut = new Date(now.getTime() - 15 * 60 * 1000);
   //   console.log('endTimeOut', endTimeOut);
   //   const trips = await this.tripRepository.find({
-  //     status: TripStatus.PAYED,
+  //     status: TripStatus.CONFIRMED,
   //     timeEndEstimate: { $lte: endTimeOut },
   //     timeStart: null,
   //   }, []);
