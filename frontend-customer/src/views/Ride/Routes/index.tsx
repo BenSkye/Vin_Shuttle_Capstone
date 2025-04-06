@@ -1,18 +1,24 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
-import dynamic from 'next/dynamic'
-import dayjs from 'dayjs'
+import React, { useCallback, useState } from 'react'
+
 import { Radio, Space, Typography } from 'antd'
-import { AvailableVehicle, BookingHourRequest, BookingResponse } from '@/interface/booking.interface'
+import dayjs from 'dayjs'
+import dynamic from 'next/dynamic'
+
+import { PaymentMethod } from '@/constants/payment.enum'
+
+import {
+  AvailableVehicle,
+  BookingHourRequest,
+  BookingResponse,
+} from '@/interface/booking.interface'
 import { bookingRoute } from '@/service/booking.service'
 import { RouteResponse } from '@/service/mapScenic'
 import { vehicleSearchRoute } from '@/service/search.service'
-import { PaymentMethod } from '@/constants/payment.enum'
 
 // Dynamic import components
 const { Title } = Typography
-
 
 const RouteDateTimeSelection = dynamic(
   () => import('@/views/Ride/components/routedatetimeselection'),
@@ -31,7 +37,9 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 
 const RoutesBooking = () => {
   // Define all possible steps in the booking flow
-  const [currentStep, setCurrentStep] = useState<'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'>('datetime')
+  const [currentStep, setCurrentStep] = useState<
+    'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'
+  >('datetime')
 
   // State for date and time selection
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
@@ -39,7 +47,9 @@ const RoutesBooking = () => {
 
   // State for vehicle selection
   const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([])
-  const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>([])
+  const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>(
+    []
+  )
 
   // State for location and route selection
   const [startPoint, setStartPoint] = useState<{
@@ -72,36 +82,42 @@ const RoutesBooking = () => {
   }, [])
 
   // Handler for location selection
-  const handleLocationChange = useCallback((newPosition: { lat: number; lng: number }, newAddress: string) => {
-    setStartPoint({
-      position: newPosition,
-      address: newAddress,
-    })
-  }, [])
+  const handleLocationChange = useCallback(
+    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+      setStartPoint({
+        position: newPosition,
+        address: newAddress,
+      })
+    },
+    []
+  )
 
   // Handler for vehicle selection
-  const handleVehicleSelection = useCallback((categoryId: string, quantity: number) => {
-    setSelectedVehicles((prev) => {
-      const existing = prev.find((v) => v.categoryVehicleId === categoryId)
-      if (existing) {
-        if (quantity === 0) {
-          return prev.filter((v) => v.categoryVehicleId !== categoryId)
+  const handleVehicleSelection = useCallback(
+    (categoryId: string, quantity: number) => {
+      setSelectedVehicles((prev) => {
+        const existing = prev.find((v) => v.categoryVehicleId === categoryId)
+        if (existing) {
+          if (quantity === 0) {
+            return prev.filter((v) => v.categoryVehicleId !== categoryId)
+          }
+          return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
         }
-        return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
-      }
-      const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
-      return quantity > 0
-        ? [
-          ...prev,
-          {
-            categoryVehicleId: categoryId,
-            quantity,
-            name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-          },
-        ]
-        : prev
-    })
-  }, [availableVehicles])
+        const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
+        return quantity > 0
+          ? [
+              ...prev,
+              {
+                categoryVehicleId: categoryId,
+                quantity,
+                name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+              },
+            ]
+          : prev
+      })
+    },
+    [availableVehicles]
+  )
 
   // Handler for route selection
   const handleRouteSelection = useCallback((route: RouteResponse) => {
@@ -124,7 +140,7 @@ const RoutesBooking = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
+          maximumAge: 0,
         })
       })
 
@@ -208,7 +224,13 @@ const RoutesBooking = () => {
 
   // Function to handle final booking submission
   const handleConfirmBooking = useCallback(async () => {
-    if (!selectedDate || !startTime || !selectedRoute || !startPoint.address || selectedVehicles.length === 0) {
+    if (
+      !selectedDate ||
+      !startTime ||
+      !selectedRoute ||
+      !startPoint.address ||
+      selectedVehicles.length === 0
+    ) {
       setError('Vui lòng điền đầy đủ thông tin đặt xe')
       return
     }
@@ -237,7 +259,9 @@ const RoutesBooking = () => {
       setCurrentStep('checkout')
     } catch (error) {
       console.error('Error booking route:', error)
-      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.')
+      setError(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.'
+      )
     } finally {
       setLoading(false)
     }
@@ -266,19 +290,16 @@ const RoutesBooking = () => {
       }
       setError(null)
       setCurrentStep('location')
-    }
-    else if (currentStep === 'location') {
+    } else if (currentStep === 'location') {
       if (!startPoint.address) {
         setError('Vui lòng chọn địa điểm đón')
         return
       }
       setError(null)
       setCurrentStep('payment')
-    }
-    else if (currentStep === 'payment') {
+    } else if (currentStep === 'payment') {
       setError(null)
       handleConfirmBooking()
-
     }
   }, [
     currentStep,
@@ -288,7 +309,7 @@ const RoutesBooking = () => {
     selectedVehicles,
     startPoint.address,
     fetchAvailableVehicles,
-    handleConfirmBooking
+    handleConfirmBooking,
   ])
 
   // Handler for navigating to the previous step
@@ -299,11 +320,9 @@ const RoutesBooking = () => {
       setCurrentStep('route')
     } else if (currentStep === 'location') {
       setCurrentStep('vehicle')
-    }
-    else if (currentStep === 'payment') {
+    } else if (currentStep === 'payment') {
       setCurrentStep('location')
-    }
-    else if (currentStep === 'checkout') {
+    } else if (currentStep === 'checkout') {
       setCurrentStep('payment')
     }
   }, [currentStep])
@@ -324,7 +343,7 @@ const RoutesBooking = () => {
               <button
                 onClick={handleNextStep}
                 disabled={!selectedDate || !startTime || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
@@ -338,14 +357,14 @@ const RoutesBooking = () => {
             <div className="flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Quay lại
               </button>
               <button
                 onClick={handleNextStep}
                 disabled={!selectedRoute || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
@@ -363,14 +382,14 @@ const RoutesBooking = () => {
             <div className="flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Quay lại
               </button>
               <button
                 onClick={handleNextStep}
                 disabled={selectedVehicles.length === 0 || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
@@ -389,14 +408,14 @@ const RoutesBooking = () => {
             <div className="flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Quay lại
               </button>
               <button
                 onClick={handleNextStep}
                 disabled={selectedVehicles.length === 0 || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
@@ -415,31 +434,31 @@ const RoutesBooking = () => {
               className="w-full"
             >
               <Space direction="vertical" className="w-full">
-                <Radio value={PaymentMethod.PAY_OS} className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.PAY_OS} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
+                    <img src="/images/payos-logo.png" alt="PayOS" className="mr-3 h-8" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
-                <Radio value={PaymentMethod.MOMO} className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.MOMO} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
+                    <img src="/images/momo-logo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-                <Radio value={PaymentMethod.CASH} className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.CASH} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
+                    <img src="/images/cash-logo.png" alt="Cash" className="mr-3 h-8" />
                     <span>Thanh toán tiền mặt</span>
                   </div>
                 </Radio>
               </Space>
             </Radio.Group>
 
-            <div className="flex justify-between mt-6">
+            <div className="mt-6 flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại chọn địa điểm"
                 tabIndex={0}
               >
@@ -447,7 +466,7 @@ const RoutesBooking = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
                 aria-label="Xác nhận thanh toán"
                 tabIndex={0}
               >
@@ -459,13 +478,11 @@ const RoutesBooking = () => {
       case 'checkout':
         return (
           <div className="space-y-6">
-            {bookingResponse && (
-              <CheckoutPage bookingResponse={bookingResponse} />
-            )}
+            {bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Quay lại
               </button>
@@ -477,8 +494,9 @@ const RoutesBooking = () => {
     }
   }
 
-
-  const getStepProgress = (step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout') => {
+  const getStepProgress = (
+    step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'
+  ) => {
     const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'checkout']
     const currentIndex = steps.indexOf(currentStep)
     const stepIndex = steps.indexOf(step)
@@ -496,7 +514,9 @@ const RoutesBooking = () => {
 
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <div className={`flex-1 text-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -506,7 +526,9 @@ const RoutesBooking = () => {
             <span>Chọn thời gian</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('route') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -516,7 +538,9 @@ const RoutesBooking = () => {
             <span>Chọn lộ trình</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -526,7 +550,9 @@ const RoutesBooking = () => {
             <span>Chọn xe</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -536,7 +562,9 @@ const RoutesBooking = () => {
             <span>Chọn địa điểm</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -546,7 +574,9 @@ const RoutesBooking = () => {
             <span>Phương thức thanh toán</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -559,7 +589,11 @@ const RoutesBooking = () => {
       </div>
 
       {error && (
-        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700" role="alert" aria-live="assertive">
+        <div
+          className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+          role="alert"
+          aria-live="assertive"
+        >
           {error}
         </div>
       )}

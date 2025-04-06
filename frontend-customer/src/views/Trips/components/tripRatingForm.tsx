@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
 import { Button, Input, Rate, Typography } from 'antd'
 import { motion } from 'framer-motion'
 import { FaStar } from 'react-icons/fa'
 import Swal from 'sweetalert2'
+
 import { useCreateRatingMutation } from '@/hooks/queries/rating.query'
 
 const { TextArea } = Input
@@ -42,7 +44,7 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
             text: error instanceof Error ? error.message : 'Gửi đánh giá thất bại',
             icon: 'error',
           })
-        }
+        },
       }
     )
   }
@@ -63,9 +65,7 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
           character={<FaStar className="text-yellow-400" />}
           className="text-2xl sm:text-3xl"
         />
-        {rating > 0 && (
-          <Text className="mt-2 text-blue-600">{desc[rating - 1]}</Text>
-        )}
+        {rating > 0 && <Text className="mt-2 text-blue-600">{desc[rating - 1]}</Text>}
       </div>
 
       <TextArea

@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export function useDelayedLoading(delay: number = 1000) {
-    const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsLoading(false)
-        }, delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, delay)
 
-        return () => clearTimeout(timer)
-    }, [delay])
+    return () => clearTimeout(timer)
+  }, [delay])
 
-    return isLoading
-} 
+  return isLoading
+}

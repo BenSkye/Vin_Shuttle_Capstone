@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FiPhone, FiUser } from 'react-icons/fi'
+
 import { Routes } from '@/constants/routers'
-import { motion } from 'framer-motion'
 
 interface SignupFormData {
   name: string
@@ -46,7 +48,7 @@ export default function SignupPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative w-full max-w-[90%] space-y-6 rounded-2xl border-[3px] border-white/20 bg-black/50 p-6 shadow-[0_0_40px_rgba(129,236,174,0.6)] backdrop-blur-md sm:max-w-[450px] sm:p-8 sm:space-y-8"
+        className="relative w-full max-w-[90%] space-y-6 rounded-2xl border-[3px] border-white/20 bg-black/50 p-6 shadow-[0_0_40px_rgba(129,236,174,0.6)] backdrop-blur-md sm:max-w-[450px] sm:space-y-8 sm:p-8"
       >
         <div className="w-full space-y-6 sm:space-y-8">
           <motion.h2
@@ -67,7 +69,7 @@ export default function SignupPage() {
             Đã có tài khoản?{' '}
             <Link
               href={Routes.AUTH.LOGIN}
-              className="font-medium text-green-400 transition-colors hover:text-green-300 drop-shadow-md"
+              className="font-medium text-green-400 drop-shadow-md transition-colors hover:text-green-300"
             >
               Đăng nhập ngay
             </Link>

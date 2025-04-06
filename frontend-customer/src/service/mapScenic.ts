@@ -1,6 +1,5 @@
 import apiClient from './apiClient'
 
-
 console.log('API_URL Map Scenics:', process.env.NEXT_PUBLIC_BACKEND_API)
 
 export interface RouteRequest {

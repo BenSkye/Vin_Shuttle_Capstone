@@ -1,5 +1,6 @@
-import { cn } from '@/libs/utils'
 import { motion } from 'framer-motion'
+
+import { cn } from '@/libs/utils'
 
 export const LoadingSpinner = ({ size = 'md' }) => {
   const sizes = {
@@ -12,10 +13,7 @@ export const LoadingSpinner = ({ size = 'md' }) => {
     <motion.div
       animate={{ rotate: 360 }}
       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-      className={cn(
-        'border-2 border-primary/20 border-t-primary rounded-full',
-        sizes[size]
-      )}
+      className={cn('border-primary/20 border-t-primary rounded-full border-2', sizes[size])}
     />
   )
 }

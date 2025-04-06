@@ -1,9 +1,18 @@
 'use client'
 
-import { Routes } from '@/constants/routers'
-import Link from 'next/link'
-import { FiPhone, FiMail, FiMapPin, FiFacebook, FiInstagram, FiYoutube, FiTwitter } from 'react-icons/fi'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import {
+  FiFacebook,
+  FiInstagram,
+  FiMail,
+  FiMapPin,
+  FiPhone,
+  FiTwitter,
+  FiYoutube,
+} from 'react-icons/fi'
+
+import { Routes } from '@/constants/routers'
 
 export default function Footer() {
   const quickLinks = [
@@ -33,7 +42,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-secondary-900">
-      <div className="mx-auto max-w-full px-12 pt-12 pb-8">
+      <div className="mx-auto max-w-full px-12 pb-8 pt-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -134,10 +143,16 @@ export default function Footer() {
               &copy; {new Date().getFullYear()} VinShuttle. Tất cả các quyền được bảo lưu.
             </p>
             <div className="flex space-x-6">
-              <Link href={Routes.STATIC_CONTENT.TERMS} className="text-sm text-secondary-400 hover:text-primary-400">
+              <Link
+                href={Routes.STATIC_CONTENT.TERMS}
+                className="text-sm text-secondary-400 hover:text-primary-400"
+              >
                 Điều khoản sử dụng
               </Link>
-              <Link href={Routes.STATIC_CONTENT.PRIVACY} className="text-sm text-secondary-400 hover:text-primary-400">
+              <Link
+                href={Routes.STATIC_CONTENT.PRIVACY}
+                className="text-sm text-secondary-400 hover:text-primary-400"
+              >
                 Chính sách bảo mật
               </Link>
             </div>
