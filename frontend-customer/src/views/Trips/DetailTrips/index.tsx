@@ -295,6 +295,7 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
+
                 {trip.status === TripStatus.PICKUP ? (
                   <RealTimeTripMap
                     pickupLocation={[
@@ -306,6 +307,7 @@ export default function DetailTripPage({ id }: { id: string }) {
                       destinationPayload.bookingDestination.endPoint.position.lng,
                     ]}
                     vehicleId={trip.vehicleId._id}
+                    tripStatus={trip.status}
                   />
                 ) : (
                   <DesRealTimeTripMap

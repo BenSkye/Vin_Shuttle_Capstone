@@ -11,6 +11,7 @@ import { Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 
 import { imgAccess } from '@/constants/imgAccess'
 import useTrackingSocket from '@/hooks/useTrackingSocket'
+import { TripStatus } from '@/constants/trip.enum'
 
 // Dynamic imports để tránh lỗi SSR
 const DynamicMapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -70,13 +71,15 @@ interface RoutingMachineProps {
   pickup: [number, number]
   destination?: [number, number]
   vehicleLocation?: { latitude: number; longitude: number; heading: number | null }
+  tripStatus?: TripStatus
 }
 
 // Component routing with stability improvements
 const RoutingMachineComponent = memo(({
   pickup,
   destination,
-  vehicleLocation
+  vehicleLocation,
+  tripStatus
 }: RoutingMachineProps) => {
   const map = useMap()
   const routingControlRef = useRef<L.Routing.Control | null>(null)
@@ -88,7 +91,7 @@ const RoutingMachineComponent = memo(({
   const vehicleDataRef = useRef(vehicleLocation)
   const pickupRef = useRef(pickup)
   const destinationRef = useRef(destination)
-
+  const tripStatusRef = useRef(tripStatus)
   // Update refs when props change
   useEffect(() => {
     vehicleDataRef.current = vehicleLocation
@@ -113,7 +116,8 @@ const RoutingMachineComponent = memo(({
     }
 
     // Add destination if it exists, otherwise use pickup
-    if (destination) {
+    if (destination && tripStatus === TripStatus.IN_PROGRESS) {
+      console.log('tripStatusss', tripStatus)
       points.push(L.latLng(destination[0], destination[1]))
     } else {
       // If no destination, route to pickup
@@ -121,7 +125,7 @@ const RoutingMachineComponent = memo(({
     }
 
     return points
-  }, [pickup, destination, vehicleLocation?.latitude, vehicleLocation?.longitude])
+  }, [pickup, destination, vehicleLocation?.latitude, vehicleLocation?.longitude, tripStatus])
 
   // Debounced function to update waypoints
   const updateRouteWaypoints = useCallback((newWaypoints: L.LatLng[]) => {
@@ -292,12 +296,14 @@ const MapBoundsController = memo(({
   children,
   pickupLocation,
   destinationLocation,
-  vehicleLocation
+  vehicleLocation,
+  tripStatus
 }: {
   children: React.ReactNode,
   pickupLocation: [number, number],
   destinationLocation?: [number, number],
-  vehicleLocation?: { latitude: number; longitude: number; heading: number | null }
+  vehicleLocation?: { latitude: number; longitude: number; heading: number | null },
+  tripStatus?: TripStatus
 }) => {
   const map = useMap()
   const boundsInitializedRef = useRef(false)
@@ -320,11 +326,11 @@ const MapBoundsController = memo(({
       // Initial setup of bounds
       const points = [L.latLng(pickupLocation[0], pickupLocation[1])]
 
-      if (destinationLocation) {
+      if (destinationLocation && tripStatus === TripStatus.IN_PROGRESS) {
         points.push(L.latLng(destinationLocation[0], destinationLocation[1]))
       }
 
-      if (vehicleLocation) {
+      if (vehicleLocation && tripStatus === TripStatus.PICKUP) {
         points.push(L.latLng(vehicleLocation.latitude, vehicleLocation.longitude))
       }
 
@@ -384,7 +390,8 @@ const MapBoundsController = memo(({
     pickupLocation,
     destinationLocation,
     vehicleLocation?.latitude,
-    vehicleLocation?.longitude
+    vehicleLocation?.longitude,
+    tripStatus
   ])
 
   return <>{children}</>
@@ -396,9 +403,10 @@ interface RealTimeTripMapProps {
   pickupLocation: [number, number];
   destinationLocation?: [number, number];
   vehicleId: string;
+  tripStatus?: TripStatus;
 }
 
-const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }: RealTimeTripMapProps) => {
+const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId, tripStatus }: RealTimeTripMapProps) => {
   const mapRef = useRef<L.Map | null>(null)
   const { data: vehicleLocation, isLoading } = useTrackingSocket(vehicleId)
   const [routingControlMounted, setRoutingControlMounted] = useState(false)
@@ -426,7 +434,8 @@ const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }
   const routingPropsRef = useRef({
     pickup: pickupLocation,
     destination: destinationLocation,
-    vehicleLocation
+    vehicleLocation,
+    tripStatus
   })
 
   // Update ref when any routing-related prop changes
@@ -434,9 +443,10 @@ const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }
     routingPropsRef.current = {
       pickup: pickupLocation,
       destination: destinationLocation,
-      vehicleLocation
+      vehicleLocation,
+      tripStatus
     }
-  }, [pickupLocation, destinationLocation, vehicleLocation])
+  }, [pickupLocation, destinationLocation, vehicleLocation, tripStatus])
 
   const initialCenter = useMemo(() => pickupLocation, [pickupLocation])
 
@@ -450,10 +460,11 @@ const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }
         pickup={pickupLocation}
         destination={destinationLocation}
         vehicleLocation={vehicleLocation}
+        tripStatus={tripStatus}
       />
     )
     // Include vehicleLocation in dependency array for proper routing updates, but maintain DOM stability with key prop
-  }, [routingControlMounted, pickupLocation, destinationLocation, vehicleLocation])
+  }, [routingControlMounted, pickupLocation, destinationLocation, vehicleLocation, tripStatus])
 
   return (
     <div className="h-96 w-full rounded-lg shadow-lg">

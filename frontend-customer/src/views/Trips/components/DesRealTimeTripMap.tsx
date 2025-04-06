@@ -482,11 +482,6 @@ const DesRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleI
                     {/* Routing control - now more stable */}
                     {stableRoutingControl}
 
-                    {/* Điểm đón */}
-                    <Marker position={pickupLocation}>
-                        <Popup>📍 Điểm đón của bạn</Popup>
-                    </Marker>
-
                     {/* Điểm đến nếu có */}
                     {destinationLocation && (
                         <Marker position={destinationLocation}>
