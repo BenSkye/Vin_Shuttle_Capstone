@@ -8,4 +8,5 @@ export interface ICheckoutService {
 
   CheckoutBookingMomo(bookingId: string): Promise<any>;
   momoCalbackReturn(reqBody: any): Promise<boolean>;
+  momoTransferTripCalbackReturn(reqBody: any): Promise<any>;
 }

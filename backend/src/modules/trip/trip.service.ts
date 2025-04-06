@@ -486,6 +486,13 @@ export class TripService implements ITripService {
     //update timeEnd to current time
     const timeEnd = dayjs();
     console.log('end trip', timeEnd.toDate());
+    // if (!trip.isPrepaid) {
+    //   updatedTrip = await this.tripRepository.updateTrip(tripId, {
+    //     timeEnd: timeEnd.toDate(),
+    //     status: TripStatus.COMPLETED,
+    //     isPayed: true,
+    //   });
+    // } else {}
     const updatedTrip = await this.tripRepository.updateTrip(tripId, {
       timeEnd: timeEnd.toDate(),
       status: TripStatus.COMPLETED,
@@ -627,21 +634,23 @@ export class TripService implements ITripService {
     const cancelledBy =
       trip.customerId._id.toString() === userId ? TripCancelBy.CUSTOMER : TripCancelBy.DRIVER;
 
-    let refundAmount: number;
-    if (cancelledBy === TripCancelBy.DRIVER) {
-      refundAmount = trip.amount
-    }
-    else if (cancelledBy === TripCancelBy.CUSTOMER) {
-      // For hourly/scenic bookings with time-dependent refunds 
-      if (trip.status === TripStatus.CONFIRMED &&
-        [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
-        // Check if cancellation is more than 1 hour before scheduled start
-        const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
-        const timeCondition = isMoreThanOneHour ? 'MORE_THAN_1_HOUR' : 'LES_THAN_1_HOUR';
-        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status][timeCondition];
-      } else {
-        // Standard refund calculation for other service types or PICKUP status
-        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status];
+    let refundAmount: number = 0;
+    if (trip.isPrepaid && trip.isPayed) {
+      if (cancelledBy === TripCancelBy.DRIVER) {
+        refundAmount = trip.amount
+      }
+      else if (cancelledBy === TripCancelBy.CUSTOMER) {
+        // For hourly/scenic bookings with time-dependent refunds 
+        if (trip.status === TripStatus.CONFIRMED &&
+          [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
+          // Check if cancellation is more than 1 hour before scheduled start
+          const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
+          const timeCondition = isMoreThanOneHour ? 'MORE_THAN_1_HOUR' : 'LES_THAN_1_HOUR';
+          refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status][timeCondition];
+        } else {
+          // Standard refund calculation for other service types or PICKUP status
+          refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status];
+        }
       }
     }
 
@@ -720,13 +729,12 @@ export class TripService implements ITripService {
       )
     }
 
+
     await this.handleRefundForTrip(tripUpdate._id.toString(), refundAmount); //excute refund money
     //excute refund money
 
     return tripUpdate;
   }
-
-
 
   async handleRefundForTrip(tripId: string, refundAmount: number): Promise<void> {
     console.log('tripId721', tripId);
@@ -741,7 +749,7 @@ export class TripService implements ITripService {
       },
       ["transId"]
     )
-    if (!booking) {
+    if (!booking || !booking.transId) {
       return
     }
     console.log('booking725', booking);
@@ -761,10 +769,53 @@ export class TripService implements ITripService {
         status: {
           $nin: [TripStatus.BOOKING],
         },
+        isPayed: true
       },
       ['amount', 'refundAmount'],
     );
     return Trips.reduce((total, trip) => total + (trip.amount - (trip.refundAmount || 0)), 0);
+  }
+
+  async checkoutTransferTrip(tripIds: string[]): Promise<object> {
+    const trips = await this.tripRepository.find(
+      {
+        _id: { $in: tripIds },
+        status: TripStatus.COMPLETED,
+        isPayed: false,
+      },
+      [],
+    );
+    const bookingCode = generateBookingCode();
+    const totalAmount = trips.reduce((total, trip) => total + trip.amount, 0);
+    const tripIdList = trips.map(trip => trip._id.toString());
+    const payment = await this.momoService.createTransferTripPaymentLink({
+      bookingCode: bookingCode,
+      amount: totalAmount,
+      tripIds: tripIdList,
+      description: "Chuyển tiền chuyến đi tài xế thu tiền mặt",
+      returnUrl: 'return-transfer-trips',
+    })
+    return {
+      paymentUrl: payment,
+    }
+  }
+
+  async transferTripAmountSuccess(tripIds: string[]): Promise<void> {
+    const trips = await this.tripRepository.find(
+      {
+        _id: { $in: tripIds },
+        status: TripStatus.COMPLETED,
+        isPayed: false,
+      },
+      [],
+    );
+    const tripIdList = trips.map(trip => trip._id.toString());
+    for (const tripid of tripIdList) {
+      await this.tripRepository.updateTrip(tripid, {
+        isPayed: true,
+      });
+    }
+
   }
 
   // run every minute

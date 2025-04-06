@@ -28,7 +28,7 @@ export class TripController {
   constructor(
     @Inject(TRIP_SERVICE)
     private readonly tripService: ITripService,
-  ) {}
+  ) { }
 
   @Get('customer-personal-trip')
   @HttpCode(HttpStatus.OK)
@@ -250,5 +250,22 @@ export class TripController {
   })
   async listQuery(@Query() query: tripParams) {
     return await this.tripService.getTripByQuery(query);
+  }
+
+  @Get('check-out-transfer-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Check out transfer trip' })
+  @ApiQuery({
+    name: 'tripIds',
+    required: true,
+    type: Array,
+    description: 'List of trip IDs to check out',
+  })
+  async checkoutTransferTrip(@Query() data: { tripIds: string[] }) {
+    return await this.tripService.checkoutTransferTrip(data.tripIds);
   }
 }

@@ -413,6 +413,15 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       <Icon name="cash" size={20} color="#4b5563" />
                       <Text className="ml-2">
                         {trip.amount ? `${trip.amount.toLocaleString('vi-VN')} VNĐ` : '0 VNĐ'}
+                        {trip.isPrepaid || trip.isPayed ? (
+                          <Text className="text-xs text-blue-500 font-medium">
+                            {' '}(Đã thanh toán)
+                          </Text>
+                        ) : (
+                          <Text className="text-xs text-orange-500 font-bold">
+                            {' '}(Tài xế thu tiền)
+                          </Text>
+                        )}
                       </Text>
                     </View>
 

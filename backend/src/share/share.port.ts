@@ -33,6 +33,14 @@ export interface IMomoService {
     cancelUrl: string;
     returnUrl: string;
   }): Promise<any>;
+  createTransferTripPaymentLink(createPaymentDto: {
+    bookingCode: number;
+    amount: number;
+    tripIds: string[];
+    description: string;
+    returnUrl: string;
+  }): Promise<any>;
+
   initiateRefund(createRefundDto: {
     orderId: string;
     amount: number;

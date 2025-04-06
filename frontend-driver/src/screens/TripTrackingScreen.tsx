@@ -366,21 +366,37 @@ const TripTrackingScreen = () => {
     }
   };
 
+
   const handleCompleteTrip = async () => {
     if (!trip?._id) {
       Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
       return;
     }
 
+    // Kiểm tra trạng thái thanh toán
+    if (!trip?.isPrepaid && !trip?.isPayed) {
+      const userConfirmed = await new Promise((resolve) => {
+        Alert.alert(
+          'Xác Nhận',
+          'Chuyến đi này chưa được thanh toán. Bạn đã thu tiền khách?',
+          [
+            { text: 'Không', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Xác Nhận', onPress: () => resolve(true) },
+          ]
+        );
+      });
+
+      if (!userConfirmed) return;
+    }
+
+    // Xử lý hoàn thành chuyến đi chung
     try {
       setLoading(true);
       const updatedTrip = await completeTrip(trip._id);
       setTrip(updatedTrip);
 
       Alert.alert('Thành công', 'Đã hoàn thành chuyến đi');
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1500);
+      setTimeout(() => navigation.goBack(), 1500);
     } catch (error) {
       console.error('Complete trip error:', error);
       Alert.alert('Lỗi', 'Không thể hoàn thành chuyến đi');

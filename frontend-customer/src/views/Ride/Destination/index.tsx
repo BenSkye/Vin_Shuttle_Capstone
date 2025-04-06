@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { Radio, Space, Typography } from 'antd'
+import { message, Radio, Space, Typography } from 'antd'
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import SharedLocation from '@/views/Ride/components/sharedLocation'
 
@@ -260,7 +260,11 @@ const DestinationBookingPage = () => {
 
       const response = await bookingDestination(payload)
       console.log('bookingDestination response:', response)
-
+      if (response.newBooking.paymentMethod === PaymentMethod.CASH) {
+        //redirect to trips page
+        message.success('Đặt xe thành công!')
+        window.location.href = '/trips'
+      }
       setBookingResponse(response)
       setCurrentStep('checkout')
     } catch (error) {
