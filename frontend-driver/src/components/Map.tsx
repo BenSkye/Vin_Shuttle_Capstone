@@ -541,7 +541,7 @@ const MapComponent = ({
                   }}
                   title={`Điểm ${index + 1}: ${waypoint.name}`}
                 >
-                  <View style={styles.waypointMarker}>
+                  {/* <View style={styles.waypointMarker}>
                     <MaterialIcons name="place" size={30} color="#9C27B0" />
                     <Text style={styles.waypointNumber}>{index + 1}</Text>
                   </View>
@@ -549,7 +549,12 @@ const MapComponent = ({
                     <View style={styles.callout}>
                       <Text style={styles.calloutTitle}>{waypoint.name}</Text>
                     </View>
-                  </Callout>
+                  </Callout> */}
+                  <CustomPin
+                    color={"#9C27B0"}
+                    size={50}
+                    order={index + 1}
+                  />
                 </Marker>
               ))
             }
