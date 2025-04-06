@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { paymentTime } from 'src/share/enums/payment.enum';
 import { IMomoService } from 'src/share/share.port';
 import { generateSignature } from 'src/share/utils';
 
@@ -32,24 +33,33 @@ export class MomoService implements IMomoService {
     const domain = process.env.DOMAIN_URL;
     const IPN_URL = `${domain}/checkout/momo/${createPaymentDto.returnUrl}`;
     const REDIRECT_URL = this.FRONTEND_URL + '/payment-callback';
-    const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=captureWallet`;
-    const signature = generateSignature(rawSignature);
     const requestType = 'captureWallet';
+
+    const rawSignature = `accessKey=${this.ACCESS_KEY}&amount=${amount}&extraData=${extraData}&ipnUrl=${IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${this.PARTNER_CODE}&redirectUrl=${REDIRECT_URL}&requestId=${requestId}&requestType=${requestType}`;
+    const signature = generateSignature(rawSignature);
+    const autoCapture = true
+    const orderExpireTime = 30  // 1 minute
+
 
     const requestBody = JSON.stringify({
       partnerCode: this.PARTNER_CODE,
-      accessKey: this.ACCESS_KEY,
-      requestId: requestId,
+      // partnerName: 'VinShuttle',
+      // accessKey: this.ACCESS_KEY,
       amount: amount,
+      lang: 'vi',
       orderId: orderId,
       orderInfo: orderInfo,
       redirectUrl: REDIRECT_URL,
       ipnUrl: IPN_URL,
-      extraData: extraData,
+      autoCapture: autoCapture,
       requestType: requestType,
+      // orderExpireTime: orderExpireTime,
+      requestId: requestId,
+      extraData: extraData,
       signature: signature,
-      lang: 'vi',
     });
+
+
 
     const options = {
       method: 'POST',
