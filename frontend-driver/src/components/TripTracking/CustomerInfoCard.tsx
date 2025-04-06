@@ -20,7 +20,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
 }) => {
   return (
     <View style={styles.customerContainer}>
-      <TouchableOpacity style={styles.customerRowHeader} onPress={onToggleCollapse}>
+      <View style={styles.customerRowHeader}>
         <View style={styles.customerAvatarContainer}>
           <View style={styles.customerAvatar}>
             <Text style={styles.customerInitial}>
@@ -33,14 +33,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
           <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
           <Text style={styles.tripId}>{trip._id || 'N/A'}</Text>
         </View>
-        <TouchableOpacity onPress={onToggleCollapse}>
-          <MaterialIcons
-            name={isCollapsed ? 'keyboard-arrow-down' : 'keyboard-arrow-up'}
-            size={24}
-            color="#333"
-          />
-        </TouchableOpacity>
-      </TouchableOpacity>
+      </View>
 
       {!isCollapsed && (
         <View style={styles.customerDetails}>

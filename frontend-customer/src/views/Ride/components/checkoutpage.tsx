@@ -11,6 +11,13 @@ import {
   Trip,
 } from '@/interface/trip.interface'
 import { getPersonalTripById } from '@/service/trip.service'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for ScenicRouteMiniMap
+const ScenicRouteMiniMap = dynamic(
+  () => import('@/views/Trips/components/ScenicRouteMiniMap'),
+  { ssr: false }
+)
 
 const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse }) => {
   const [booking, setBooking] = useState<BookingResponse['newBooking'] | null>(null)
@@ -126,6 +133,18 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                   .distanceEstimate
               } km
             </p>
+
+            {/* Add map display for the scenic route */}
+            <div className="mt-3">
+              <ScenicRouteMiniMap
+                pickupLocation={[
+                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.startPoint.position.lat,
+                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.startPoint.position.lng
+                ]}
+                routeId={(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId}
+                height="h-48"
+              />
+            </div>
           </div>
         )
       case ServiceType.BOOKING_DESTINATION:

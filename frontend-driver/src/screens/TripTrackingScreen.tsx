@@ -56,6 +56,9 @@ const TripTrackingScreen = () => {
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
 
+  // Add state for bottom card collapse
+  const [isBottomCardCollapsed, setIsBottomCardCollapsed] = useState(false);
+
   // States
   const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({
     lat: 0,
@@ -186,10 +189,12 @@ const TripTrackingScreen = () => {
         setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
         setShowScenicRoute(true);
       } else if (isInProgress && payload.bookingScenicRoute.routeId) {
-        fetchScenicRouteData(
-          payload.bookingScenicRoute.routeId._id ||
-          (payload.bookingScenicRoute.routeId as unknown as string)
-        );
+        // If routeId is just a string, use it directly
+        const routeId = typeof payload.bookingScenicRoute.routeId === 'string'
+          ? payload.bookingScenicRoute.routeId
+          : (payload.bookingScenicRoute.routeId as ScenicRouteDto)._id || '';
+
+        fetchScenicRouteData(routeId);
       }
     } else if (trip.serviceType === ServiceType.BOOKING_SHARE) {
       setIsShareItinerary(true);
@@ -423,6 +428,11 @@ const TripTrackingScreen = () => {
     setIsScenicRouteCollapsed(!isScenicRouteCollapsed);
   };
 
+  // Add handler for toggling bottom card
+  const toggleBottomCard = () => {
+    setIsBottomCardCollapsed(!isBottomCardCollapsed);
+  };
+
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -471,7 +481,7 @@ const TripTrackingScreen = () => {
       />
 
       {/* Header */}
-      <TripHeader tripStatus={trip?.status || ''} onBack={handleBack} />
+      <TripHeader tripStatus={trip?.status as TripStatus} onBack={handleBack} />
 
       {/* Timer manager (non-visual component) */}
       {trip?.serviceType === ServiceType.BOOKING_HOUR && timerActive && (
@@ -484,89 +494,105 @@ const TripTrackingScreen = () => {
       )}
 
       {/* Bottom info card */}
+      <View style={[styles.bottomCard, isBottomCardCollapsed && styles.collapsedBottomCard]}>
+        {/* Hide/Show button */}
+        <TouchableOpacity style={styles.hideButton} onPress={toggleBottomCard}>
+          <Ionicons
+            name={isBottomCardCollapsed ? "chevron-up" : "chevron-down"}
+            size={24}
+            color="#555"
+          />
+        </TouchableOpacity>
 
-      <View style={styles.bottomCard}>
-        {/* Tracking status warning */}
-        <TrackingStatusWarning isTracking={isTracking} />
+        {isBottomCardCollapsed ? (
+          <Text style={{ textAlign: 'center', color: '#666', fontWeight: '500' }}>
+            {trip?.serviceType === ServiceType.BOOKING_HOUR && timerActive ? formatRemainingTime() : 'Đang trong chuyến'}
+          </Text>
+        ) : (
+          <>
+            {/* Tracking status warning */}
+            <TrackingStatusWarning isTracking={isTracking} />
 
-        {/* Trip type information */}
-        <TripTypeInfo serviceType={trip?.serviceType || ''} />
+            {/* Trip type information */}
+            <TripTypeInfo serviceType={trip?.serviceType || ''} />
 
-        {/* Customer Info Card */}
-        <CustomerInfoCard
-          trip={trip}
-          isCollapsed={isCustomerInfoCollapsed}
-          onToggleCollapse={toggleCustomerCollapse}
-          onViewMorePress={toggleCustomerInfo}
-        />
+            {/* Customer Info Card */}
+            <CustomerInfoCard
+              trip={trip}
+              isCollapsed={isCustomerInfoCollapsed}
+              onToggleCollapse={toggleCustomerCollapse}
+              onViewMorePress={toggleCustomerInfo}
+            />
 
-        {/* Show scenic route information */}
-        {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
-          <View style={styles.scenicRouteInfo}>
-            <TouchableOpacity
-              style={styles.scenicRouteHeader}
-              onPress={toggleScenicRouteCollapse}>
-              <Text style={styles.scenicRouteTitle}>
-                Tuyến đường cố định: {scenicRouteData.name}
-              </Text>
-              <Ionicons
-                name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
-                size={24}
-                color="#9C27B0"
-              />
-            </TouchableOpacity>
-
-            {!isScenicRouteCollapsed && (
-              <View style={styles.scenicRouteContent}>
-                <Text style={styles.scenicRouteDescription}>{scenicRouteData.description}</Text>
-                <Text style={styles.scenicRouteStats}>
-                  Dự kiến: {scenicRouteData.totalDistance}km -{' '}
-                  {Math.round(scenicRouteData.estimatedDuration / 60)} phút
-                </Text>
-                {waypoints.length > 0 && (
-                  <Text style={styles.waypointText}>
-                    Điểm tham quan: {waypoints.map((wp) => wp.name).join(', ')}
+            {/* Show scenic route information */}
+            {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
+              <View style={styles.scenicRouteInfo}>
+                <TouchableOpacity
+                  style={styles.scenicRouteHeader}
+                  onPress={toggleScenicRouteCollapse}>
+                  <Text style={styles.scenicRouteTitle}>
+                    Tuyến đường cố định: {scenicRouteData.name}
                   </Text>
+                  <Ionicons
+                    name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
+                    size={24}
+                    color="#9C27B0"
+                  />
+                </TouchableOpacity>
+
+                {!isScenicRouteCollapsed && (
+                  <View style={styles.scenicRouteContent}>
+                    <Text style={styles.scenicRouteDescription}>{scenicRouteData.description}</Text>
+                    <Text style={styles.scenicRouteStats}>
+                      Dự kiến: {scenicRouteData.totalDistance}km -{' '}
+                      {Math.round(scenicRouteData.estimatedDuration / 60)} phút
+                    </Text>
+                    {waypoints.length > 0 && (
+                      <Text style={styles.waypointText}>
+                        Điểm tham quan: {waypoints.map((wp) => wp.name).join(', ')}
+                      </Text>
+                    )}
+                  </View>
                 )}
               </View>
             )}
-          </View>
+
+            {/* Destination information */}
+            {trip?.serviceType !== ServiceType.BOOKING_SCENIC_ROUTE && (
+              <DestinationInfo
+                serviceType={trip?.serviceType || ''}
+                servicePayload={trip?.servicePayload}
+                showDestination={showDestination}
+                routeToDestination={routeToDestination}
+                onToggleRouteDestination={toggleRouteDestination}
+              />
+            )}
+
+            {/* Proximity information */}
+            {trip.status === TripStatus.PICKUP && (<ProximityInfo
+              tripStatus={trip?.status || ''}
+              location={location}
+              customerPickupLocation={customerPickupLocation}
+            />)}
+
+
+            {/* Action buttons */}
+            <View style={{ marginTop: 10 }}>
+              <ActionButtons
+                loading={loading}
+                tripStatus={trip?.status || ''}
+                serviceType={trip?.serviceType || ''}
+                timerActive={timerActive}
+                isTracking={isTracking}
+                onPickup={handlePickup}
+                onStartTrip={handleStartTrip}
+                onCompleteTrip={handleCompleteTrip}
+                onEarlyEnd={handleEarlyEndRequest}
+                formatRemainingTime={formatRemainingTime}
+              />
+            </View>
+          </>
         )}
-
-        {/* Destination information */}
-        {trip?.serviceType !== ServiceType.BOOKING_SCENIC_ROUTE && (
-          <DestinationInfo
-            serviceType={trip?.serviceType || ''}
-            servicePayload={trip?.servicePayload}
-            showDestination={showDestination}
-            routeToDestination={routeToDestination}
-            onToggleRouteDestination={toggleRouteDestination}
-          />
-        )}
-
-        {/* Proximity information */}
-        {trip.status === TripStatus.PICKUP && (<ProximityInfo
-          tripStatus={trip?.status || ''}
-          location={location}
-          customerPickupLocation={customerPickupLocation}
-        />)}
-
-
-        {/* Action buttons */}
-        <View style={{ marginTop: 10 }}>
-          <ActionButtons
-            loading={loading}
-            tripStatus={trip?.status || ''}
-            serviceType={trip?.serviceType || ''}
-            timerActive={timerActive}
-            isTracking={isTracking}
-            onPickup={handlePickup}
-            onStartTrip={handleStartTrip}
-            onCompleteTrip={handleCompleteTrip}
-            onEarlyEnd={handleEarlyEndRequest}
-            formatRemainingTime={formatRemainingTime}
-          />
-        </View>
       </View>
 
       {/* Modals */}

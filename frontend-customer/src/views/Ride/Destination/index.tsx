@@ -269,7 +269,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance])
+  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance, paymentMethod])
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {
@@ -362,24 +362,24 @@ const DestinationBookingPage = () => {
               Chọn phương thức thanh toán
             </Title> */}
             <Radio.Group
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethod)}
               value={paymentMethod}
               className="w-full"
             >
               <Space direction="vertical" className="w-full">
-                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.PAY_OS} className="w-full p-4 border rounded-lg">
                   <div className="flex items-center">
                     <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
-                <Radio value="momo" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.MOMO} className="w-full p-4 border rounded-lg">
                   <div className="flex items-center">
                     <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-                <Radio value="cash" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.CASH} className="w-full p-4 border rounded-lg">
                   <div className="flex items-center">
                     <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
                     <span>Thanh toán tiền mặt</span>

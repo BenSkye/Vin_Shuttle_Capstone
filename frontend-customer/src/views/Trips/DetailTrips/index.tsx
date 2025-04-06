@@ -14,6 +14,7 @@ import { TripStatus } from '@/constants/trip.enum';
 import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap';
 import ScenicRealTimeTripMap from '@/views/Trips/components/ScenicRealTimeTripMap';
 import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap';
+import HourRealTimeTripMap from '@/views/Trips/components/HourRealTimeTripMap';
 
 import TripRatingForm from '@/views/Trips/components/tripRatingForm';
 import TripRatingView from '@/views/Trips/components/tripRatingView';
@@ -162,13 +163,23 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <RealTimeTripMap
-                  pickupLocation={[
-                    hourPayload.bookingHour.startPoint.position.lat,
-                    hourPayload.bookingHour.startPoint.position.lng,
-                  ]}
-                  vehicleId={trip.vehicleId._id}
-                />
+                {trip.status === TripStatus.PICKUP ? (
+                  <RealTimeTripMap
+                    pickupLocation={[
+                      hourPayload.bookingHour.startPoint.position.lat,
+                      hourPayload.bookingHour.startPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                  />
+                ) : (
+                  <HourRealTimeTripMap
+                    pickupLocation={[
+                      hourPayload.bookingHour.startPoint.position.lat,
+                      hourPayload.bookingHour.startPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                  />
+                )}
               </motion.div>
             )}
           </motion.div>
@@ -213,13 +224,24 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <ScenicRealTimeTripMap
-                  pickupLocation={[
-                    scenicPayload.bookingScenicRoute.startPoint.position.lat,
-                    scenicPayload.bookingScenicRoute.startPoint.position.lng,
-                  ]}
-                  vehicleId={trip.vehicleId._id}
-                />
+                {trip.status === TripStatus.PICKUP ? (
+                  <RealTimeTripMap
+                    pickupLocation={[
+                      scenicPayload.bookingScenicRoute.startPoint.position.lat,
+                      scenicPayload.bookingScenicRoute.startPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                  />
+                ) : (
+                  <ScenicRealTimeTripMap
+                    pickupLocation={[
+                      scenicPayload.bookingScenicRoute.startPoint.position.lat,
+                      scenicPayload.bookingScenicRoute.startPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                    routeId={scenicPayload.bookingScenicRoute.routeId}
+                  />
+                )}
               </motion.div>
             )}
           </motion.div>
@@ -227,6 +249,7 @@ export default function DetailTripPage({ id }: { id: string }) {
 
       case ServiceType.BOOKING_DESTINATION:
         const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto;
+        console.log('destinationPayload', destinationPayload);
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -272,39 +295,32 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                {(trip.status === TripStatus.PICKUP || trip.status === TripStatus.IN_PROGRESS) && (
-                  <motion.div
-                    className="mt-6"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {trip.status === TripStatus.PICKUP ? (
-                      <RealTimeTripMap
-                        pickupLocation={[
-                          destinationPayload.bookingDestination.startPoint.position.lat,
-                          destinationPayload.bookingDestination.startPoint.position.lng,
-                        ]}
-                        destinationLocation={[
-                          destinationPayload.bookingDestination.endPoint.position.lat,
-                          destinationPayload.bookingDestination.endPoint.position.lng,
-                        ]}
-                        vehicleId={trip.vehicleId._id}
-                      />
-                    ) : (
-                      <DesRealTimeTripMap
-                        pickupLocation={[
-                          destinationPayload.bookingDestination.startPoint.position.lat,
-                          destinationPayload.bookingDestination.startPoint.position.lng,
-                        ]}
-                        destinationLocation={[
-                          destinationPayload.bookingDestination.endPoint.position.lat,
-                          destinationPayload.bookingDestination.endPoint.position.lng,
-                        ]}
-                        vehicleId={trip.vehicleId._id}
-                      />
-                    )}
-                  </motion.div>
+
+                {trip.status === TripStatus.PICKUP ? (
+                  <RealTimeTripMap
+                    pickupLocation={[
+                      destinationPayload.bookingDestination.startPoint.position.lat,
+                      destinationPayload.bookingDestination.startPoint.position.lng,
+                    ]}
+                    destinationLocation={[
+                      destinationPayload.bookingDestination.endPoint.position.lat,
+                      destinationPayload.bookingDestination.endPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                    tripStatus={trip.status}
+                  />
+                ) : (
+                  <DesRealTimeTripMap
+                    pickupLocation={[
+                      destinationPayload.bookingDestination.startPoint.position.lat,
+                      destinationPayload.bookingDestination.startPoint.position.lng,
+                    ]}
+                    destinationLocation={[
+                      destinationPayload.bookingDestination.endPoint.position.lat,
+                      destinationPayload.bookingDestination.endPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                  />
                 )}
               </motion.div>
             )}
