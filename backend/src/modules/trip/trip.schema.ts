@@ -163,6 +163,12 @@ export class Trip {
   @Prop({ type: Date })
   expireAt: Date;
 
+  @Prop({ type: Boolean, default: true })
+  isPrepaid: boolean;
+
+  @Prop({ type: Boolean, default: true })
+  isPayed: boolean;
+
   @Prop({
     type: [
       {
@@ -233,7 +239,7 @@ TripSchema.pre<Document & Trip>('save', function (next) {
   if ((this as any).isNew || (this as any).isModified('status')) {
     const currentStatus = this.status;
 
-    if (currentStatus === TripStatus.PAYED) {
+    if (currentStatus === TripStatus.CONFIRMED) {
       this.expireAt = null;
     } else if ((this as any).isNew) {
       this.expireAt = new Date(Date.now() + paymentTime * 60 * 1000);

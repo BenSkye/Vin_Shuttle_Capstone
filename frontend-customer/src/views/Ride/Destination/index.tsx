@@ -269,7 +269,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance])
+  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance, paymentMethod])
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {

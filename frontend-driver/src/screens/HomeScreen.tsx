@@ -35,17 +35,17 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   const processTrips = (tripData: Trip[]) => {
     try {
-      // Filter only active trips - booking, payed, pickup, in_progress
+      // Filter only active trips - booking, confirmed, pickup, in_progress
       const filteredTrips = tripData.filter((trip) =>
-        ['booking', 'payed', 'pickup', 'in_progress'].includes(trip.status.toLowerCase())
+        ['booking', 'confirmed', 'pickup', 'in_progress'].includes(trip.status.toLowerCase())
       );
 
-      // Sort by status priority (in_progress first, then pickup, then payed, then booking)
+      // Sort by status priority (in_progress first, then pickup, then confirmed, then booking)
       filteredTrips.sort((a, b) => {
         const statusPriority = {
           in_progress: 1,
           pickup: 2,
-          payed: 3,
+          confirmed: 3,
           booking: 4,
         };
         const statusA = statusPriority[a.status.toLowerCase()];
@@ -100,7 +100,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     const status = trip.status.toLowerCase();
 
     // Chỉ cho phép đi đến màn hình theo dõi cho trạng thái pickup và in_progress
-    if (status === TripStatus.PAYED || status === 'pickup' || status === 'in_progress') {
+    if (status === TripStatus.CONFIRMED || status === 'pickup' || status === 'in_progress') {
       handleActionWithCheckInValidation(() => {
         navigation.navigate('TripTracking', { tripID: trip._id });
       });
@@ -264,7 +264,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               ? '#F44336'
               : statusLower === 'pickup'
                 ? '#4CAF50'
-                : statusLower === 'payed'
+                : statusLower === 'confirmed'
                   ? '#2196F3'
                   : '#FFC107',
           paddingHorizontal: 8,
@@ -277,7 +277,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               ? 'car-arrow-right'
               : statusLower === 'pickup'
                 ? 'account-arrow-up'
-                : statusLower === 'payed'
+                : statusLower === 'confirmed'
                   ? 'cash-check'
                   : 'calendar-clock'
           }
@@ -323,9 +323,9 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             <ActivityIndicator size="large" color="#2563eb" />
           ) : activeTrips.length > 0 ? (
             activeTrips.map((trip) => {
-              const canTrack = [TripStatus.PAYED, TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status.toLowerCase());
+              const canTrack = [TripStatus.CONFIRMED, TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status.toLowerCase());
               const isExecuted = [TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status.toLowerCase());
-              const canPickup = trip.status.toLowerCase() === 'payed';
+              const canPickup = trip.status.toLowerCase() === 'confirmed';
 
               // Style khi chưa check-in
               const disabledStyle = !isInProgress ? 'opacity-60' : '';

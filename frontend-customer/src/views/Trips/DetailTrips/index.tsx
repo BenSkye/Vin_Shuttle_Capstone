@@ -389,8 +389,8 @@ export default function DetailTripPage({ id }: { id: string }) {
     switch (status) {
       case TripStatus.BOOKING:
         return 'Đang đặt';
-      case TripStatus.PAYED:
-        return 'Đã thanh toán';
+      case TripStatus.CONFIRMED:
+        return 'Đã xác  nhận';
       case TripStatus.PICKUP:
         return 'Đang đón';
       case TripStatus.IN_PROGRESS:
@@ -409,7 +409,7 @@ export default function DetailTripPage({ id }: { id: string }) {
     switch (status) {
       case TripStatus.BOOKING:
         return 'bg-yellow-100 text-yellow-800';
-      case TripStatus.PAYED:
+      case TripStatus.CONFIRMED:
         return 'bg-blue-100 text-blue-800';
       case TripStatus.PICKUP:
         return 'bg-orange-100 text-orange-800';
@@ -431,7 +431,7 @@ export default function DetailTripPage({ id }: { id: string }) {
 
   // Helper to check if chat feature should be available
   const canChatWithDriver = (status: string) => {
-    return status === TripStatus.PAYED || status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
+    return status === TripStatus.CONFIRMED || status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
   };
 
   return (
@@ -504,7 +504,7 @@ export default function DetailTripPage({ id }: { id: string }) {
           )}
 
           {/* Cancel Trip Button */}
-          {(trip.status === TripStatus.PAYED || trip.status === TripStatus.PICKUP) && (
+          {(trip.status === TripStatus.CONFIRMED || trip.status === TripStatus.PICKUP) && (
             <div className="mt-6 flex justify-center">
               <Button
                 type="primary"
