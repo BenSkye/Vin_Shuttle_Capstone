@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import { message } from 'antd'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FiPhone } from 'react-icons/fi'
-import { message } from 'antd'
+
+import { Routes } from '@/constants/routers'
+
 import { useAuth } from '../../../context/AuthContext'
 import { loginCustomer, verifyOTP } from '../../../service/user.service'
-import { Routes } from '@/constants/routers'
-import { motion } from 'framer-motion'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -68,7 +71,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative w-full max-w-[90%] space-y-6 rounded-2xl border-[3px] border-white/20 bg-black/50 p-6 shadow-[0_0_40px_rgba(129,236,174,0.6)] backdrop-blur-md sm:max-w-[450px] sm:p-8 sm:space-y-8"
+          className="relative w-full max-w-[90%] space-y-6 rounded-2xl border-[3px] border-white/20 bg-black/50 p-6 shadow-[0_0_40px_rgba(129,236,174,0.6)] backdrop-blur-md sm:max-w-[450px] sm:space-y-8 sm:p-8"
         >
           <div className="w-full space-y-6 sm:space-y-8">
             <motion.h2
@@ -89,7 +92,7 @@ export default function LoginPage() {
               Hoặc{' '}
               <Link
                 href={Routes.AUTH.SIGNUP}
-                className="font-medium text-green-400 transition-colors hover:text-green-300 drop-shadow-md"
+                className="font-medium text-green-400 drop-shadow-md transition-colors hover:text-green-300"
               >
                 đăng ký tài khoản mới
               </Link>

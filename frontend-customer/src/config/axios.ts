@@ -1,7 +1,6 @@
 // import axios, { HttpStatusCode } from 'axios'
 // import { getSession, signOut } from 'next-auth/react'
 
-
 // import { API_ROOT, TIMEOUT } from '@/constants/apis'
 // import { Routes } from '@/constants/routers'
 

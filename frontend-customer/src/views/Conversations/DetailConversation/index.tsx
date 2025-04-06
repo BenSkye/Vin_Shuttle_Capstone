@@ -13,6 +13,8 @@ import { IConversation } from '@/interface/conversation.interface'
 
 // pages/conversations/[id].tsx
 
+// pages/conversations/[id].tsx
+
 const ConversationDetail = ({ id }: { id: string }) => {
   const { data: conversation, isLoading, error, sendMessage } = useConversationSocket(id as string)
   const [message, setMessage] = useState('')
@@ -43,8 +45,9 @@ const ConversationDetail = ({ id }: { id: string }) => {
         {(conversation as IConversation)?.listMessage.map((msg, index) => (
           <div
             key={index}
-            className={`rounded-lg p-4 ${msg.senderId === '' || 'userid' ? 'ml-auto w-3/4 bg-blue-100' : 'w-3/4 bg-white'
-              }`}
+            className={`rounded-lg p-4 ${
+              msg.senderId === '' || 'userid' ? 'ml-auto w-3/4 bg-blue-100' : 'w-3/4 bg-white'
+            }`}
           >
             <p className="text-gray-800">{msg.content}</p>
             <small className="text-xs text-gray-500">
@@ -76,4 +79,3 @@ const ConversationDetail = ({ id }: { id: string }) => {
 }
 
 export default ConversationDetail
-

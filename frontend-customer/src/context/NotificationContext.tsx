@@ -33,8 +33,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       // Update local state and maintain sorting
       setNotificationList((prev) => {
         const updated = prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
-        return updated.sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return updated.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       })
 
@@ -52,8 +52,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       // Update local state and maintain sorting
       setNotificationList((prev) => {
         const updated = prev.map((notif) => ({ ...notif, isRead: true }))
-        return updated.sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return updated.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       })
 

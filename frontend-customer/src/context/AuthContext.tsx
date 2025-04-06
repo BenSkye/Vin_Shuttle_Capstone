@@ -21,7 +21,6 @@ import {
   unregisterLogout,
 } from '@/service/user.service'
 
-
 type User = {
   id: string
   phone?: string
@@ -30,8 +29,8 @@ type User = {
 
 type AuthContextType = {
   authUser: User | null
-  isLoggedIn: boolean,
-  isLoading: boolean,
+  isLoggedIn: boolean
+  isLoading: boolean
   login: (
     accessToken: string,
     refreshToken: string | undefined,
@@ -40,7 +39,6 @@ type AuthContextType = {
     name?: string
   ) => void
   logout: () => void
-
 }
 
 // Create context with a default value

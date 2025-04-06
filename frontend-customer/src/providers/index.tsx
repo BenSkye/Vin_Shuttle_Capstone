@@ -1,9 +1,10 @@
 'use client'
 
+import { Toaster } from 'react-hot-toast'
+
 import { AuthProvider } from '@/context/AuthContext'
 import { NotificationProvider } from '@/context/NotificationContext'
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider'
-import { Toaster } from 'react-hot-toast'
 
 interface ProvidersProps {
   children: React.ReactNode

@@ -112,7 +112,6 @@ export interface BookingRouteRequest {
   paymentMethod: 'pay_os' | 'cash' | 'momo'
 }
 
-
 export interface BookingSharedRequest {
   startPoint: {
     position: {

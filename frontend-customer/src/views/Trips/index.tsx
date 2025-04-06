@@ -7,10 +7,10 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 import { TripStatus } from '@/constants/trip.enum'
-
-import { Trip } from '@/interface/trip.interface'
 import { useTripQuery } from '@/hooks/queries/trip.query'
 import useTripSocket from '@/hooks/sockets/useTripSocket'
+
+import { Trip } from '@/interface/trip.interface'
 
 const TripListPage = () => {
   const { data: trips, isLoading, error } = useTripQuery()

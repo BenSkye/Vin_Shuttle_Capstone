@@ -1,4 +1,4 @@
-import { TripCancelBy } from "@/constants/trip.enum"
+import { TripCancelBy } from '@/constants/trip.enum'
 
 export interface LocationData {
   latitude: number
@@ -23,19 +23,18 @@ export interface Trip {
     name: string
     licensePlate: string
   }
-  timeStartEstimate: number,
-  timeEndEstimate: number,
+  timeStartEstimate: number
+  timeEndEstimate: number
   amount: number
   status: string
   statusHistory: object[]
-  serviceType: string,
-  isRating: boolean,
+  serviceType: string
+  isRating: boolean
   servicePayload:
-  | BookingHourPayloadDto
-  | BookingScenicRoutePayloadDto
-  | BookingDestinationPayloadDto
-  | BookingSharePayloadDto
-  ,
+    | BookingHourPayloadDto
+    | BookingScenicRoutePayloadDto
+    | BookingDestinationPayloadDto
+    | BookingSharePayloadDto
   refundAmount?: number
   cancellationReason?: string
   cancellationTime?: number
