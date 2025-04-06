@@ -11,11 +11,24 @@ import { Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 
 import { imgAccess } from '@/constants/imgAccess'
 import useTrackingSocket from '@/hooks/useTrackingSocket'
+import { RouteResponse, routeService } from '@/service/mapScenic'
 
 // Dynamic imports để tránh lỗi SSR
 const DynamicMapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
     ssr: false,
 })
+
+// Colors for waypoint markers
+const COLORS = [
+    '#2ecc71', // xanh lá
+    '#e74c3c', // đỏ
+    '#f1c40f', // vàng
+    '#9b59b6', // tím
+    '#3498db', // xanh dương
+    '#e67e22', // cam
+    '#1abc9c', // ngọc
+    '#34495e', // xám đen
+]
 
 // Fix icon marker
 if (typeof window !== 'undefined') {
@@ -44,6 +57,18 @@ const createVehicleIcon = (heading: number = 0) => {
     })
 }
 
+// Custom waypoint marker
+const createCustomIcon = ({ color }: { color: string }) => {
+    return L.divIcon({
+        html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-6">
+            <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z" clip-rule="evenodd" />
+        </svg>`,
+        className: '',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+    })
+}
+
 // Helper function to check if two positions are the same
 const arePositionsEqual = (pos1: L.LatLng, pos2: L.LatLng, threshold = 0.0000001) => {
     return Math.abs(pos1.lat - pos2.lat) < threshold && Math.abs(pos1.lng - pos2.lng) < threshold
@@ -58,6 +83,31 @@ const areWaypointsEqual = (wp1: L.LatLng[], wp2: L.LatLng[]) => {
     }
 
     return true
+}
+
+// Component to display saved route
+function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
+    const map = useMap()
+
+    useEffect(() => {
+        if (!map || coordinates.length < 2) return
+
+        const polyline = L.polyline(coordinates, {
+            color: '#3498db',
+            weight: 6,
+            opacity: 0.9,
+        }).addTo(map)
+
+        map.fitBounds(polyline.getBounds())
+
+        return () => {
+            if (polyline) {
+                map.removeLayer(polyline)
+            }
+        }
+    }, [map, coordinates])
+
+    return null
 }
 
 // Dynamic import của Leaflet Routing Machine để tránh lỗi SSR
@@ -356,11 +406,49 @@ interface ScenicRealTimeTripMapProps {
     pickupLocation: [number, number];
     destinationLocation?: [number, number];
     vehicleId: string;
+    selectedRoute?: RouteResponse;
+    routeId?: string;
 }
 
-const ScenicRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }: ScenicRealTimeTripMapProps) => {
+const ScenicRealTimeTripMap = memo(({
+    pickupLocation,
+    destinationLocation,
+    vehicleId,
+    selectedRoute: propSelectedRoute,
+    routeId
+}: ScenicRealTimeTripMapProps) => {
     const mapRef = useRef<L.Map | null>(null)
     const { data: vehicleLocation, isLoading } = useTrackingSocket(vehicleId)
+    const [loadedRoute, setLoadedRoute] = useState<RouteResponse | null>(null)
+    const [isLoadingRoute, setIsLoadingRoute] = useState(false)
+    const [routeError, setRouteError] = useState<string | null>(null)
+
+    // Determine the route to display (prop or fetched)
+    const selectedRoute = useMemo(() => {
+        return propSelectedRoute || loadedRoute;
+    }, [propSelectedRoute, loadedRoute]);
+
+    // Fetch route data if routeId is provided but no selectedRoute
+    useEffect(() => {
+        const fetchRouteData = async () => {
+            if (!routeId || propSelectedRoute) return;
+
+            setIsLoadingRoute(true);
+            setRouteError(null);
+
+            try {
+                const routeData = await routeService.getRouteById(routeId);
+                setLoadedRoute(routeData);
+            } catch (error) {
+                console.error('Error fetching route data:', error);
+                setRouteError('Không thể tải dữ liệu tuyến đường');
+            } finally {
+                setIsLoadingRoute(false);
+            }
+        };
+
+        fetchRouteData();
+    }, [routeId, propSelectedRoute]);
 
     // Memoize the vehicle marker to prevent re-renders
     const vehicleMarkerComponent = useMemo(() => {
@@ -374,20 +462,39 @@ const ScenicRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehic
         )
     }, [vehicleLocation?.latitude, vehicleLocation?.longitude, vehicleLocation?.heading])
 
-    // Memoize the routing control to prevent re-renders
-    const routingControlComponent = useMemo(() => {
-        if (!vehicleLocation) return null
+    // Memoize route display to prevent unnecessary re-renders
+    const routeDisplayComponent = useMemo(() => {
+        if (!selectedRoute) return null
 
         return (
-            <RoutingControl
-                pickup={pickupLocation}
-                destination={destinationLocation}
-                vehicleLocation={vehicleLocation}
-            />
+            <>
+                <SavedRouteDisplay
+                    coordinates={selectedRoute.scenicRouteCoordinates.map((coord) =>
+                        L.latLng(coord.lat, coord.lng)
+                    )}
+                />
+                {selectedRoute.waypoints.map((waypoint, index) => (
+                    <Marker
+                        key={waypoint.id}
+                        position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                        icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
+                    >
+                        <Popup>{waypoint.name}</Popup>
+                    </Marker>
+                ))}
+            </>
         )
-    }, [pickupLocation, destinationLocation, vehicleLocation?.latitude, vehicleLocation?.longitude])
+    }, [selectedRoute])
 
     const initialCenter = useMemo(() => pickupLocation, [pickupLocation])
+
+    if (isLoadingRoute) {
+        return <div className="h-96 w-full rounded-lg shadow-lg flex items-center justify-center bg-gray-100">Đang tải thông tin tuyến đường...</div>
+    }
+
+    if (routeError) {
+        return <div className="h-96 w-full rounded-lg shadow-lg flex items-center justify-center bg-red-50 text-red-500">{routeError}</div>
+    }
 
     return (
         <div className="h-96 w-full rounded-lg shadow-lg">
@@ -413,23 +520,14 @@ const ScenicRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehic
                     destinationLocation={destinationLocation}
                     vehicleLocation={vehicleLocation}
                 >
-                    {/* Routing control */}
-                    {routingControlComponent}
 
-                    {/* Điểm đón */}
-                    <Marker position={pickupLocation}>
-                        <Popup>📍 Điểm đón của bạn</Popup>
-                    </Marker>
+                    {routeDisplayComponent}
 
-                    {/* Điểm đến nếu có */}
-                    {destinationLocation && (
-                        <Marker position={destinationLocation}>
-                            <Popup>🏁 Điểm đến của bạn</Popup>
-                        </Marker>
-                    )}
-
-                    {/* Vị trí xe */}
+                    {/* Vehicle location */}
                     {vehicleMarkerComponent}
+
+
+
                 </MapBoundsController>
             </DynamicMapContainer>
         </div>

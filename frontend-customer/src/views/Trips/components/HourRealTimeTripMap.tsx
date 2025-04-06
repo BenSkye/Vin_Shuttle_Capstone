@@ -392,13 +392,13 @@ const MapBoundsController = memo(({
 
 MapBoundsController.displayName = 'MapBoundsController'
 
-interface DesRealTimeTripMapProps {
+interface HourRealTimeTripMapProps {
     pickupLocation: [number, number];
     destinationLocation?: [number, number];
     vehicleId: string;
 }
 
-const DesRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }: DesRealTimeTripMapProps) => {
+const HourRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }: HourRealTimeTripMapProps) => {
     const mapRef = useRef<L.Map | null>(null)
     const { data: vehicleLocation, isLoading } = useTrackingSocket(vehicleId)
     const [routingControlMounted, setRoutingControlMounted] = useState(false)
@@ -415,45 +415,13 @@ const DesRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleI
         )
     }, [vehicleLocation?.latitude, vehicleLocation?.longitude, vehicleLocation?.heading])
 
-    // Create routing control only once when we first get vehicle location
-    useEffect(() => {
-        if (vehicleLocation && !routingControlMounted) {
-            setRoutingControlMounted(true)
+    // Calculate the initial center based on vehicle location or fallback to pickup location
+    const initialCenter = useMemo(() => {
+        if (vehicleLocation) {
+            return [vehicleLocation.latitude, vehicleLocation.longitude] as [number, number]
         }
-    }, [vehicleLocation, routingControlMounted])
-
-    // Ensure important props are always updated with refs
-    const routingPropsRef = useRef({
-        pickup: pickupLocation,
-        destination: destinationLocation,
-        vehicleLocation
-    })
-
-    // Update ref when any routing-related prop changes
-    useEffect(() => {
-        routingPropsRef.current = {
-            pickup: pickupLocation,
-            destination: destinationLocation,
-            vehicleLocation
-        }
-    }, [pickupLocation, destinationLocation, vehicleLocation])
-
-    const initialCenter = useMemo(() => pickupLocation, [pickupLocation])
-
-    // Memoize the routing control component itself
-    const stableRoutingControl = useMemo(() => {
-        if (!routingControlMounted || !vehicleLocation) return null
-
-        return (
-            <RoutingControl
-                key="routing-control"
-                pickup={pickupLocation}
-                destination={destinationLocation}
-                vehicleLocation={vehicleLocation}
-            />
-        )
-        // Include vehicleLocation in dependency array for proper routing updates, but maintain DOM stability with key prop
-    }, [routingControlMounted, pickupLocation, destinationLocation, vehicleLocation])
+        return pickupLocation
+    }, [vehicleLocation, pickupLocation])
 
     return (
         <div className="h-96 w-full rounded-lg shadow-lg">
@@ -474,34 +442,44 @@ const DesRealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleI
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                <MapBoundsController
-                    pickupLocation={pickupLocation}
-                    destinationLocation={destinationLocation}
-                    vehicleLocation={vehicleLocation}
-                >
-                    {/* Routing control - now more stable */}
-                    {stableRoutingControl}
+                {/* Only show vehicle marker */}
+                {vehicleMarkerComponent}
 
-                    {/* Điểm đón */}
-                    <Marker position={pickupLocation}>
-                        <Popup>📍 Điểm đón của bạn</Popup>
-                    </Marker>
-
-                    {/* Điểm đến nếu có */}
-                    {destinationLocation && (
-                        <Marker position={destinationLocation}>
-                            <Popup>🏁 Điểm đến của bạn</Popup>
-                        </Marker>
-                    )}
-
-                    {/* Vị trí xe */}
-                    {vehicleMarkerComponent}
-                </MapBoundsController>
+                {/* Auto-center on vehicle when it updates */}
+                {vehicleLocation && (
+                    <VehiclePositionUpdater
+                        position={[vehicleLocation.latitude, vehicleLocation.longitude]}
+                    />
+                )}
             </DynamicMapContainer>
         </div>
     )
 })
 
-DesRealTimeTripMap.displayName = 'DesRealTimeTripMap'
+// Helper component to auto-center map on vehicle position updates
+const VehiclePositionUpdater = ({ position }: { position: [number, number] }) => {
+    const map = useMap()
+    const lastPositionRef = useRef<[number, number] | null>(null)
 
-export default DesRealTimeTripMap
+    useEffect(() => {
+        if (!map || !position) return
+
+        // Only recenter if position actually changed
+        if (
+            !lastPositionRef.current ||
+            position[0] !== lastPositionRef.current[0] ||
+            position[1] !== lastPositionRef.current[1]
+        ) {
+            map.setView(position, map.getZoom())
+            lastPositionRef.current = position
+        }
+    }, [position, map])
+
+    return null
+}
+
+VehiclePositionUpdater.displayName = 'VehiclePositionUpdater'
+
+HourRealTimeTripMap.displayName = 'HourRealTimeTripMap'
+
+export default HourRealTimeTripMap

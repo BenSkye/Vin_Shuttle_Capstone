@@ -80,10 +80,27 @@ const RoutingMachineComponent = memo(({
 }: RoutingMachineProps) => {
   const map = useMap()
   const routingControlRef = useRef<L.Routing.Control | null>(null)
-  const previousWaypointsRef = useRef<L.LatLng[] | null>(null)
+
+  const previousVehiclePositionRef = useRef<L.LatLng | null>(null)
   const routingInitializedRef = useRef<boolean>(false)
   const lastUpdateTimeRef = useRef<number>(0)
   const pendingUpdateRef = useRef<NodeJS.Timeout | null>(null)
+  const vehicleDataRef = useRef(vehicleLocation)
+  const pickupRef = useRef(pickup)
+  const destinationRef = useRef(destination)
+
+  // Update refs when props change
+  useEffect(() => {
+    vehicleDataRef.current = vehicleLocation
+    pickupRef.current = pickup
+    destinationRef.current = destination
+  }, [vehicleLocation, pickup, destination])
+
+  const hasVehicleMovedSignificantly = (newPos: L.LatLng) => {
+    const prev = previousVehiclePositionRef.current
+    if (!prev) return true
+    return !arePositionsEqual(prev, newPos, 0.0001)
+  }
 
   // Create waypoints with useMemo to prevent unnecessary recalculations
   const waypoints = useMemo(() => {
@@ -95,12 +112,12 @@ const RoutingMachineComponent = memo(({
       points.push(vehiclePoint)
     }
 
-    // Always add pickup point
-    points.push(L.latLng(pickup[0], pickup[1]))
-
-    // Add destination if it exists
+    // Add destination if it exists, otherwise use pickup
     if (destination) {
       points.push(L.latLng(destination[0], destination[1]))
+    } else {
+      // If no destination, route to pickup
+      points.push(L.latLng(pickup[0], pickup[1]))
     }
 
     return points
@@ -140,36 +157,15 @@ const RoutingMachineComponent = memo(({
     }, 300); // 300ms debounce delay
   }, []);
 
-  // Setup or update routing control
+  // Initial setup of routing control only once
   useEffect(() => {
-    if (!map || waypoints.length < 2) return
-
-    // Throttle updates to prevent excessive re-routing
-    const now = Date.now();
-    const throttleTime = 500; // ms
-
-    if (now - lastUpdateTimeRef.current < throttleTime && routingInitializedRef.current) {
-      // If we need to update but are being throttled, schedule an update
-      if (routingControlRef.current && vehicleLocation) {
-        updateRouteWaypoints(waypoints);
-      }
-      return;
-    }
-
-    lastUpdateTimeRef.current = now;
-
-    // If we already have a routing control, update its waypoints
-    if (routingControlRef.current && routingInitializedRef.current) {
-      // Only update if vehicle position changed (first waypoint)
-      if (waypoints.length > 0 && vehicleLocation) {
-        updateRouteWaypoints(waypoints);
-      }
-      return
-    }
+    if (!map) return
 
     // Create new routing control if none exists yet
+    const initialWaypoints = waypoints.map(wp => L.Routing.waypoint(wp))
+
     const routingControl = L.Routing.control({
-      waypoints: waypoints.map(wp => L.Routing.waypoint(wp)),
+      waypoints: initialWaypoints,
       lineOptions: {
         styles: [{ color: '#6366F1', weight: 4 }],
         extendToWaypoints: true,
@@ -197,6 +193,11 @@ const RoutingMachineComponent = memo(({
     routingControlRef.current = routingControl
     routingInitializedRef.current = true
 
+    // For initial vehicle position
+    if (vehicleLocation) {
+      previousVehiclePositionRef.current = L.latLng(vehicleLocation.latitude, vehicleLocation.longitude)
+    }
+
     return () => {
       // Clear any pending updates
       if (pendingUpdateRef.current) {
@@ -210,7 +211,46 @@ const RoutingMachineComponent = memo(({
         routingInitializedRef.current = false
       }
     }
-  }, [map, waypoints, vehicleLocation, updateRouteWaypoints])
+    // Only run this effect once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map])
+
+  // Separate effect for handling vehicle position updates
+  useEffect(() => {
+    if (!map || !routingControlRef.current || !vehicleLocation || !routingInitializedRef.current) return
+
+    const now = Date.now();
+    const throttleTime = 500; // ms
+
+    // Skip updates if we're still within throttle time
+    if (now - lastUpdateTimeRef.current < throttleTime) {
+      return;
+    }
+
+    const vehiclePos = L.latLng(vehicleLocation.latitude, vehicleLocation.longitude)
+
+    // Only update if vehicle moved significantly
+    if (hasVehicleMovedSignificantly(vehiclePos)) {
+      lastUpdateTimeRef.current = now;
+      previousVehiclePositionRef.current = vehiclePos;
+
+      // Get current waypoints and update only the vehicle position (first waypoint)
+      if (routingControlRef.current) {
+        const currentWaypoints = routingControlRef.current.getWaypoints();
+
+        if (currentWaypoints.length >= 2) {
+          // Create updated waypoints array with just the vehicle and destination
+          const updatedWaypoints = [
+            L.Routing.waypoint(vehiclePos),
+            // Keep the destination waypoint
+            currentWaypoints[currentWaypoints.length - 1]
+          ];
+
+          routingControlRef.current.setWaypoints(updatedWaypoints);
+        }
+      }
+    }
+  }, [vehicleLocation?.latitude, vehicleLocation?.longitude, map])
 
   return null
 })
@@ -361,6 +401,7 @@ interface RealTimeTripMapProps {
 const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }: RealTimeTripMapProps) => {
   const mapRef = useRef<L.Map | null>(null)
   const { data: vehicleLocation, isLoading } = useTrackingSocket(vehicleId)
+  const [routingControlMounted, setRoutingControlMounted] = useState(false)
 
   // Memoize the vehicle marker to prevent re-renders
   const vehicleMarkerComponent = useMemo(() => {
@@ -374,20 +415,45 @@ const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }
     )
   }, [vehicleLocation?.latitude, vehicleLocation?.longitude, vehicleLocation?.heading])
 
-  // Memoize the routing control to prevent re-renders
-  const routingControlComponent = useMemo(() => {
-    if (!vehicleLocation) return null
+  // Create routing control only once when we first get vehicle location
+  useEffect(() => {
+    if (vehicleLocation && !routingControlMounted) {
+      setRoutingControlMounted(true)
+    }
+  }, [vehicleLocation, routingControlMounted])
+
+  // Ensure important props are always updated with refs
+  const routingPropsRef = useRef({
+    pickup: pickupLocation,
+    destination: destinationLocation,
+    vehicleLocation
+  })
+
+  // Update ref when any routing-related prop changes
+  useEffect(() => {
+    routingPropsRef.current = {
+      pickup: pickupLocation,
+      destination: destinationLocation,
+      vehicleLocation
+    }
+  }, [pickupLocation, destinationLocation, vehicleLocation])
+
+  const initialCenter = useMemo(() => pickupLocation, [pickupLocation])
+
+  // Memoize the routing control component itself
+  const stableRoutingControl = useMemo(() => {
+    if (!routingControlMounted || !vehicleLocation) return null
 
     return (
       <RoutingControl
+        key="routing-control"
         pickup={pickupLocation}
         destination={destinationLocation}
         vehicleLocation={vehicleLocation}
       />
     )
-  }, [pickupLocation, destinationLocation, vehicleLocation?.latitude, vehicleLocation?.longitude])
-
-  const initialCenter = useMemo(() => pickupLocation, [pickupLocation])
+    // Include vehicleLocation in dependency array for proper routing updates, but maintain DOM stability with key prop
+  }, [routingControlMounted, pickupLocation, destinationLocation, vehicleLocation])
 
   return (
     <div className="h-96 w-full rounded-lg shadow-lg">
@@ -413,8 +479,8 @@ const RealTimeTripMap = memo(({ pickupLocation, destinationLocation, vehicleId }
           destinationLocation={destinationLocation}
           vehicleLocation={vehicleLocation}
         >
-          {/* Routing control */}
-          {routingControlComponent}
+          {/* Routing control - now more stable */}
+          {stableRoutingControl}
 
           {/* Điểm đón */}
           <Marker position={pickupLocation}>
