@@ -1,5 +1,6 @@
-import { Routes } from '@/constants/routers'
 import Link from 'next/link'
+
+import { Routes } from '@/constants/routers'
 
 interface LogoProps {
   size?: 'small' | 'medium' | 'large'
@@ -31,7 +32,7 @@ export const Logo = ({ size = 'medium', showText = true, className = '' }: LogoP
         >
           <path
             d="M481,101h-20V41c0-22.056-17.944-40-40-40H91C68.944,1,51,18.944,51,41v60H31c-16.542,0-30,13.458-30,30v40 c0,16.542,13.458,30,30,30h20v210c0,22.056,17.944,40,40,40v40c0,11.028,8.972,20,20,20h40c11.028,0,20-8.972,20-20v-40h170v40 c0,11.028,8.972,20,20,20h40c11.028,0,20-8.972,20-20v-40c22.056,0,40-17.944,40-40V201h20c16.542,0,30-13.458,30-30v-40 C511,114.458,497.542,101,481,101z"
-            className="fill-none stroke-secondary-900/20 stroke-[16] translate-y-2"
+            className="translate-y-2 fill-none stroke-secondary-900/20 stroke-[16]"
           />
           <path
             d="M481,101h-20V41c0-22.056-17.944-40-40-40H91C68.944,1,51,18.944,51,41v60H31c-16.542,0-30,13.458-30,30v40 c0,16.542,13.458,30,30,30h20v210c0,22.056,17.944,40,40,40v40c0,11.028,8.972,20,20,20h40c11.028,0,20-8.972,20-20v-40h170v40 c0,11.028,8.972,20,20,20h40c11.028,0,20-8.972,20-20v-40c22.056,0,40-17.944,40-40V201h20c16.542,0,30-13.458,30-30v-40 C511,114.458,497.542,101,481,101z M71,101c24.429,0,355.227,0,370,0c0,41.114,0,144.491,0,190H71C71,271.005,71,123.301,71,101z"
@@ -57,7 +58,7 @@ export const Logo = ({ size = 'medium', showText = true, className = '' }: LogoP
       </div>
       {showText && (
         <span
-          className={`${textSize} whitespace-nowrap font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500 transition-all duration-300 group-hover:from-primary-600 group-hover:to-accent-600`}
+          className={`${textSize} whitespace-nowrap bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text font-bold text-transparent transition-all duration-300 group-hover:from-primary-600 group-hover:to-accent-600`}
         >
           VinShuttle
         </span>

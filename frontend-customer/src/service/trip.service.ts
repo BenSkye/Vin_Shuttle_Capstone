@@ -54,7 +54,6 @@ export const createRating = async (tripId: string, rate: number, feedback: strin
   }
 }
 
-
 export const cancelTrip = async (tripId: string, reason: string) => {
   try {
     const response = await apiClient.post(`/trip/cancel-trip/`, {

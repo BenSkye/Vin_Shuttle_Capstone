@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
@@ -18,8 +18,8 @@ const useNotificationSocket = () => {
     setLoading(true)
     try {
       const notificationData = await getPersonalNotification()
-      const sortedNotifications = notificationData.sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const sortedNotifications = notificationData.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
       setNotifications(sortedNotifications)
       const unreadNotifications = sortedNotifications.filter((notification) => !notification.isRead)
@@ -70,8 +70,8 @@ const useNotificationSocket = () => {
     const handleNewNotification = (newNotification: INotification) => {
       setNotifications((prevNotifications) => {
         const updatedNotifications = [newNotification, ...prevNotifications]
-        return updatedNotifications.sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return updatedNotifications.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       })
       setUnreadCount((prevCount) => prevCount + 1)
@@ -104,7 +104,7 @@ const useNotificationSocket = () => {
     unreadCount,
     isLoading: loading,
     error,
-    refetch: fetchInitialData
+    refetch: fetchInitialData,
   }
 }
 

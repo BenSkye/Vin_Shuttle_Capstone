@@ -25,8 +25,6 @@ export const tripStatusText: Record<TripStatus, string> = {
   [TripStatus.CANCELLED]: 'Đã hủy',
 }
 
-
-
 export enum TripCancelBy {
   CUSTOMER = 'customer',
   DRIVER = 'driver',

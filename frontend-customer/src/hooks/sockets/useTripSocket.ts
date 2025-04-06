@@ -1,36 +1,38 @@
 import { useEffect } from 'react'
+
 import { useQueryClient } from '@tanstack/react-query'
-import { tripSocketService } from '@/service/socket/trip.socket'
+
 import { QUERY_KEYS } from '@/constants/queryKeys'
 
+import { tripSocketService } from '@/service/socket/trip.socket'
 
 const useTripSocket = (id?: string) => {
-    const queryClient = useQueryClient()
+  const queryClient = useQueryClient()
 
-    useEffect(() => {
-        // Kết nối socket
-        tripSocketService.connect()
+  useEffect(() => {
+    // Kết nối socket
+    tripSocketService.connect()
 
-        // Thiết lập socket listeners
-        const cleanupFunctions: (() => void)[] = []
+    // Thiết lập socket listeners
+    const cleanupFunctions: (() => void)[] = []
 
-        if (id) {
-            const unsubscribe = tripSocketService.onTripDetailUpdate(id, (updatedTrip) => {
-                queryClient.setQueryData(QUERY_KEYS.TRIPS.DETAIL(id), updatedTrip)
-            })
-            cleanupFunctions.push(unsubscribe)
-        } else {
-            const unsubscribe = tripSocketService.onTripUpdate((updatedTrips) => {
-                queryClient.setQueryData(QUERY_KEYS.TRIPS.LIST(), updatedTrips)
-            })
-            cleanupFunctions.push(unsubscribe)
-        }
+    if (id) {
+      const unsubscribe = tripSocketService.onTripDetailUpdate(id, (updatedTrip) => {
+        queryClient.setQueryData(QUERY_KEYS.TRIPS.DETAIL(id), updatedTrip)
+      })
+      cleanupFunctions.push(unsubscribe)
+    } else {
+      const unsubscribe = tripSocketService.onTripUpdate((updatedTrips) => {
+        queryClient.setQueryData(QUERY_KEYS.TRIPS.LIST(), updatedTrips)
+      })
+      cleanupFunctions.push(unsubscribe)
+    }
 
-        return () => {
-            cleanupFunctions.forEach(fn => fn())
-            tripSocketService.disconnect()
-        }
-    }, [id, queryClient])
+    return () => {
+      cleanupFunctions.forEach((fn) => fn())
+      tripSocketService.disconnect()
+    }
+  }, [id, queryClient])
 }
 
 export default useTripSocket

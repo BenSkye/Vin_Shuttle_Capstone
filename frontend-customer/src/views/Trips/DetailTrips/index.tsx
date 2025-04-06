@@ -1,97 +1,98 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Rate, Spin, notification, Button, Modal, Input } from 'antd';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { FaClock, FaMapMarkerAlt } from 'react-icons/fa';
-import { IoCarSport } from 'react-icons/io5';
-import { BsChatDots } from 'react-icons/bs';
+import { useEffect, useState } from 'react'
 
-import { ServiceType } from '@/constants/service-type.enum';
-import { TripStatus } from '@/constants/trip.enum';
+import { Button, Input, Modal, Rate, Spin, notification } from 'antd'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { BsChatDots } from 'react-icons/bs'
+import { FaClock, FaMapMarkerAlt } from 'react-icons/fa'
+import { IoCarSport } from 'react-icons/io5'
 
-import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap';
-import ScenicRealTimeTripMap from '@/views/Trips/components/ScenicRealTimeTripMap';
-import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap';
-import HourRealTimeTripMap from '@/views/Trips/components/HourRealTimeTripMap';
+import { ServiceType } from '@/constants/service-type.enum'
+import { TripStatus } from '@/constants/trip.enum'
 
-import TripRatingForm from '@/views/Trips/components/tripRatingForm';
-import TripRatingView from '@/views/Trips/components/tripRatingView';
+import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap'
+import HourRealTimeTripMap from '@/views/Trips/components/HourRealTimeTripMap'
+import RealTimeTripMap from '@/views/Trips/components/RealTimeTripMap'
+import ScenicRealTimeTripMap from '@/views/Trips/components/ScenicRealTimeTripMap'
+import TripRatingForm from '@/views/Trips/components/tripRatingForm'
+import TripRatingView from '@/views/Trips/components/tripRatingView'
 
 import {
+  BookingDestinationPayloadDto,
   BookingHourPayloadDto,
   BookingScenicRoutePayloadDto,
-  BookingDestinationPayloadDto,
-  Trip,
   BookingSharePayloadDto,
-} from '@/interface/trip.interface';
-import { cancelTrip } from '../../../service/trip.service';
-import useTripSocket from '../../../hooks/useTripSocket';
+  Trip,
+} from '@/interface/trip.interface'
+
+import useTripSocket from '../../../hooks/useTripSocket'
+import { cancelTrip } from '../../../service/trip.service'
 
 export default function DetailTripPage({ id }: { id: string }) {
-  const { data, isLoading, error, refetch } = useTripSocket(id as string);
-  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [isCanceling, setIsCanceling] = useState(false);
-  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const { data, isLoading, error, refetch } = useTripSocket(id as string)
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [isCanceling, setIsCanceling] = useState(false)
+  const [ratingSubmitted, setRatingSubmitted] = useState(false)
 
   const handleCancelTrip = async () => {
     if (!cancelReason.trim()) {
       notification.warning({
         message: 'Lý do hủy chuyến',
         description: 'Vui lòng nhập lý do hủy chuyến.',
-      });
-      return;
+      })
+      return
     }
 
-    setIsCanceling(true);
+    setIsCanceling(true)
     try {
-      await cancelTrip(id, cancelReason);
+      await cancelTrip(id, cancelReason)
       notification.success({
         message: 'Thành công',
         description: 'Chuyến đi đã được hủy thành công!',
-      });
-      setIsCancelModalVisible(false);
+      })
+      setIsCancelModalVisible(false)
 
       // Refresh trip data to update status
-      await refetch();
+      await refetch()
     } catch (error: any) {
       notification.error({
         message: 'Lỗi',
         description: error.message || 'Không thể hủy chuyến đi. Vui lòng thử lại sau.',
-      });
+      })
     } finally {
-      setIsCanceling(false);
+      setIsCanceling(false)
     }
-  };
+  }
 
   const showCancelModal = () => {
-    setIsCancelModalVisible(true);
-  };
+    setIsCancelModalVisible(true)
+  }
 
   const hideCancelModal = () => {
-    setIsCancelModalVisible(false);
-    setCancelReason('');
-  };
+    setIsCancelModalVisible(false)
+    setCancelReason('')
+  }
 
   if (isLoading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Spin size="large" tip="Đang tải chi tiết chuyến đi..." />
       </div>
-    );
+    )
 
   if (error) {
     notification.error({
       message: 'Lỗi',
       description: error.message || 'Lỗi khi tải chi tiết chuyến đi',
-    });
+    })
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-xl text-red-500">Có lỗi xảy ra khi tải dữ liệu chuyến đi</p>
       </div>
-    );
+    )
   }
 
   if (!data)
@@ -99,19 +100,19 @@ export default function DetailTripPage({ id }: { id: string }) {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-xl text-gray-500">Không tìm thấy chuyến đi</p>
       </div>
-    );
+    )
 
-  const trip = data as Trip;
+  const trip = data as Trip
 
   const renderServiceDetails = (trip: Trip) => {
     const baseCardStyle =
-      'bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300';
-    const labelStyle = 'text-gray-600 font-medium text-sm sm:text-base';
-    const valueStyle = 'text-gray-800 font-semibold text-base sm:text-lg';
+      'bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300'
+    const labelStyle = 'text-gray-600 font-medium text-sm sm:text-base'
+    const valueStyle = 'text-gray-800 font-semibold text-base sm:text-lg'
 
     switch (trip.serviceType) {
       case ServiceType.BOOKING_HOUR:
-        const hourPayload = trip.servicePayload as BookingHourPayloadDto;
+        const hourPayload = trip.servicePayload as BookingHourPayloadDto
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -137,10 +138,10 @@ export default function DetailTripPage({ id }: { id: string }) {
                   <p className={`${valueStyle} sm:ml-auto`}>
                     {trip.timeStartEstimate
                       ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
-                        timeZone: 'Asia/Ho_Chi_Minh',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
+                          timeZone: 'Asia/Ho_Chi_Minh',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
                       : 'Chưa xác định'}
                   </p>
                 </div>
@@ -183,11 +184,11 @@ export default function DetailTripPage({ id }: { id: string }) {
               </motion.div>
             )}
           </motion.div>
-        );
+        )
 
       case ServiceType.BOOKING_SCENIC_ROUTE:
-        const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto;
-        console.log(scenicPayload);
+        const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto
+        console.log(scenicPayload)
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -245,11 +246,11 @@ export default function DetailTripPage({ id }: { id: string }) {
               </motion.div>
             )}
           </motion.div>
-        );
+        )
 
       case ServiceType.BOOKING_DESTINATION:
-        const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto;
-        console.log('destinationPayload', destinationPayload);
+        const destinationPayload = trip.servicePayload as BookingDestinationPayloadDto
+        console.log('destinationPayload', destinationPayload)
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -295,7 +296,6 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-
                 {trip.status === TripStatus.PICKUP ? (
                   <RealTimeTripMap
                     pickupLocation={[
@@ -325,11 +325,10 @@ export default function DetailTripPage({ id }: { id: string }) {
               </motion.div>
             )}
           </motion.div>
-        );
-
+        )
 
       case ServiceType.BOOKING_SHARE:
-        const bookingSharePayload = trip.servicePayload as BookingSharePayloadDto;
+        const bookingSharePayload = trip.servicePayload as BookingSharePayloadDto
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -389,66 +388,70 @@ export default function DetailTripPage({ id }: { id: string }) {
               </motion.div>
             )}
           </motion.div>
-        );
+        )
 
       default:
         return (
           <div className={baseCardStyle}>
             <p className="text-gray-500">Loại dịch vụ không xác định</p>
           </div>
-        );
+        )
     }
-  };
+  }
 
   // Helper to translate trip status to Vietnamese - updated to match trips list page
   const getStatusText = (status: string) => {
     switch (status) {
       case TripStatus.BOOKING:
-        return 'Đang đặt';
+        return 'Đang đặt'
       case TripStatus.CONFIRMED:
-        return 'Đã xác  nhận';
+        return 'Đã xác  nhận'
       case TripStatus.PICKUP:
-        return 'Đang đón';
+        return 'Đang đón'
       case TripStatus.IN_PROGRESS:
-        return 'Đang trong chuyến đi';
+        return 'Đang trong chuyến đi'
       case TripStatus.COMPLETED:
-        return 'Đã hoàn thành';
+        return 'Đã hoàn thành'
       case TripStatus.CANCELLED:
-        return 'Đã hủy';
+        return 'Đã hủy'
       default:
-        return status;
+        return status
     }
-  };
+  }
 
   // Get status badge style - updated to match trips list page
   const getStatusStyle = (status: string) => {
     switch (status) {
       case TripStatus.BOOKING:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800'
       case TripStatus.CONFIRMED:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800'
       case TripStatus.PICKUP:
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-100 text-orange-800'
       case TripStatus.IN_PROGRESS:
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-indigo-100 text-indigo-800'
       case TripStatus.COMPLETED:
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800'
       case TripStatus.CANCELLED:
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800'
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   // Function to determine if the map should be shown
   const shouldShowMap = (status: string) => {
-    return status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
-  };
+    return status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS
+  }
 
   // Helper to check if chat feature should be available
   const canChatWithDriver = (status: string) => {
-    return status === TripStatus.CONFIRMED || status === TripStatus.PICKUP || status === TripStatus.IN_PROGRESS;
-  };
+    return (
+      status === TripStatus.CONFIRMED ||
+      status === TripStatus.PICKUP ||
+      status === TripStatus.IN_PROGRESS
+    )
+  }
 
   return (
     <div className="min-h-screen py-6 sm:py-12">
@@ -476,7 +479,6 @@ export default function DetailTripPage({ id }: { id: string }) {
                 href={`/conversations`}
                 className="ml-auto flex items-center gap-2 rounded bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
               >
-
                 <span>Chat với tài xế</span>
               </Link>
             )}
@@ -556,10 +558,7 @@ export default function DetailTripPage({ id }: { id: string }) {
           {trip.status === TripStatus.COMPLETED && (
             <div className="mt-6 border-t border-gray-200 pt-6 sm:mt-8 sm:pt-8">
               {!trip.isRating && !ratingSubmitted ? (
-                <TripRatingForm
-                  tripId={id}
-                  onSuccess={() => setRatingSubmitted(true)}
-                />
+                <TripRatingForm tripId={id} onSuccess={() => setRatingSubmitted(true)} />
               ) : (
                 <TripRatingView tripId={trip._id} />
               )}
@@ -575,5 +574,5 @@ export default function DetailTripPage({ id }: { id: string }) {
         </div>
       </motion.div>
     </div>
-  );
+  )
 }

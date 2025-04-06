@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
@@ -19,27 +19,31 @@ const useTrackingSocket = (vehicleId?: string) => {
   const socket = useMemo(() => initSocket(SOCKET_NAMESPACE.TRACKING), [])
 
   // Create a stable function to check if location has changed significantly
-  const hasLocationChangedSignificantly = useCallback((newLocation: LocationData, oldLocation: LocationData) => {
-    if (!oldLocation) return true
+  const hasLocationChangedSignificantly = useCallback(
+    (newLocation: LocationData, oldLocation: LocationData) => {
+      if (!oldLocation) return true
 
-    // Consider a 1 meter change or heading change of 5 degrees significant
-    const latDiff = Math.abs(newLocation.latitude - oldLocation.latitude)
-    const lngDiff = Math.abs(newLocation.longitude - oldLocation.longitude)
+      // Consider a 1 meter change or heading change of 5 degrees significant
+      const latDiff = Math.abs(newLocation.latitude - oldLocation.latitude)
+      const lngDiff = Math.abs(newLocation.longitude - oldLocation.longitude)
 
-    // Approximate conversion from degrees to meters at equator (very rough estimate)
-    const meterDiffLat = latDiff * 111000
-    const meterDiffLng = lngDiff * 111000 * Math.cos(oldLocation.latitude * Math.PI / 180)
+      // Approximate conversion from degrees to meters at equator (very rough estimate)
+      const meterDiffLat = latDiff * 111000
+      const meterDiffLng = lngDiff * 111000 * Math.cos((oldLocation.latitude * Math.PI) / 180)
 
-    const distanceChanged = Math.sqrt(meterDiffLat * meterDiffLat + meterDiffLng * meterDiffLng) > 1
+      const distanceChanged =
+        Math.sqrt(meterDiffLat * meterDiffLat + meterDiffLng * meterDiffLng) > 1
 
-    // Check if heading has changed by more than 5 degrees
-    const headingChanged =
-      newLocation.heading !== null &&
-      oldLocation.heading !== null &&
-      Math.abs((newLocation.heading - oldLocation.heading + 180) % 360 - 180) > 5
+      // Check if heading has changed by more than 5 degrees
+      const headingChanged =
+        newLocation.heading !== null &&
+        oldLocation.heading !== null &&
+        Math.abs(((newLocation.heading - oldLocation.heading + 180) % 360) - 180) > 5
 
-    return distanceChanged || headingChanged
-  }, [])
+      return distanceChanged || headingChanged
+    },
+    []
+  )
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -91,11 +95,14 @@ const useTrackingSocket = (vehicleId?: string) => {
   }, [vehicleId, socket, hasLocationChangedSignificantly])
 
   // Return memoized data to prevent unnecessary re-renders
-  const result = useMemo(() => ({
-    data: location,
-    isLoading: loading,
-    error
-  }), [location, loading, error])
+  const result = useMemo(
+    () => ({
+      data: location,
+      isLoading: loading,
+      error,
+    }),
+    [location, loading, error]
+  )
 
   return result
 }
