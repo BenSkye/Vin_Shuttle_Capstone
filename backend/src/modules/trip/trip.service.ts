@@ -672,12 +672,14 @@ export class TripService implements ITripService {
         body: `Khách hàng đã hủy cuốc xe ${serviceTypeText[tripUpdate.serviceType]} số hiệu ${tripUpdate._id.toString()}`,
       };
       await this.notificationService.createNotification(notificationForDriver);
-      this.tripGateway.emitTripUpdate(tripUpdate.driverId.toString(), listDriverTrip);
-      this.tripGateway.emitTripUpdateDetail(
-        tripUpdate.driverId.toString(),
-        tripUpdate._id.toString(),
-        tripAfterUpdate,
-      );
+      await this.tripGateway.emitTripUpdate(tripUpdate.driverId.toString(), listDriverTrip);
+      if (trip.serviceType !== ServiceType.BOOKING_SHARE) {
+        await this.tripGateway.emitTripUpdateDetail(
+          tripUpdate.driverId.toString(),
+          tripUpdate._id.toString(),
+          tripAfterUpdate,
+        );
+      }
     }
     if (tripUpdate.cancelledBy === TripCancelBy.DRIVER) {
       const notificationForCustomer = {

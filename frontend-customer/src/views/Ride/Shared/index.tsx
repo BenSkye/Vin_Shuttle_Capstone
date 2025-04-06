@@ -116,33 +116,33 @@ const SharedBookingFlow = () => {
         }
     }
 
-    const calculateDistance = useCallback(() => {
-        // Early return if points are not valid
-        if (!startPoint.position.lat || !endPoint.position.lat) {
-            return { distance: 2, duration: 5 }
-        }
+    // const calculateDistance = useCallback(() => {
+    //     // Early return if points are not valid
+    //     if (!startPoint.position.lat || !endPoint.position.lat) {
+    //         return { distance: 2, duration: 5 }
+    //     }
 
-        // Calculate distance in km between two points using Haversine formula
-        const R = 6371 // Radius of the Earth in km
-        const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
-        const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos((startPoint.position.lat * Math.PI) / 180) *
-            Math.cos((endPoint.position.lat * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2)
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        const distance = R * c
+    //     // Calculate distance in km between two points using Haversine formula
+    //     const R = 6371 // Radius of the Earth in km
+    //     const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
+    //     const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
+    //     const a =
+    //         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    //         Math.cos((startPoint.position.lat * Math.PI) / 180) *
+    //         Math.cos((endPoint.position.lat * Math.PI) / 180) *
+    //         Math.sin(dLon / 2) *
+    //         Math.sin(dLon / 2)
+    //     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    //     const distance = R * c
 
-        // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
-        const duration = Math.ceil(distance * 2)
+    //     // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
+    //     const duration = Math.ceil(distance * 2)
 
-        setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
-        setEstimatedDuration(duration || 5)
+    //     setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
+    //     setEstimatedDuration(duration || 5)
 
-        return { distance, duration }
-    }, [startPoint.position, endPoint.position])
+    //     return { distance, duration }
+    // }, [startPoint.position, endPoint.position])
 
     const handleNumberOfSeatsChange = useCallback((seats: number) => {
         setNumberOfSeats(seats)
@@ -158,13 +158,13 @@ const SharedBookingFlow = () => {
         setError(null)
 
         try {
-            const { distance, duration } = calculateDistance()
+            // const { distance, duration } = calculateDistance()
 
             const payload: BookingSharedRequest = {
                 startPoint,
                 endPoint,
-                durationEstimate: duration,
-                distanceEstimate: distance,
+                durationEstimate: estimatedDuration,
+                distanceEstimate: estimatedDistance,
                 numberOfSeat: numberOfSeats,
                 paymentMethod: paymentMethod
             }
@@ -178,7 +178,7 @@ const SharedBookingFlow = () => {
         } finally {
             setLoading(false)
         }
-    }, [startPoint, endPoint, numberOfSeats, calculateDistance, paymentMethod])
+    }, [startPoint, endPoint, numberOfSeats, paymentMethod])
 
     const handleNextStep = useCallback(() => {
         if (currentStep === 'location' && startPoint.address && endPoint.address) {
@@ -206,6 +206,8 @@ const SharedBookingFlow = () => {
                             loading={loading}
                             numberOfSeats={numberOfSeats}
                             onNumberOfSeatsChange={handleNumberOfSeatsChange}
+                            setEstimateDistance={setEstimatedDistance}
+                            setEstimateDuration={setEstimatedDuration}
                         />
                         <Radio.Group
                             onChange={(e) => handlePaymentMethodChange(e.target.value)}

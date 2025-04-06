@@ -44,17 +44,23 @@ interface SharedLocationProps {
     loading: boolean
     numberOfSeats: number
     onNumberOfSeatsChange: (seats: number) => void
+    setEstimateDistance: (distance: number) => void
+    setEstimateDuration: (duration: number) => void
 }
 
 // Component to display route between two points
 const RouteDisplay = ({
     startPoint,
     endPoint,
-    onRouteInfoChange
+    onRouteInfoChange,
+    setEstimateDistance,
+    setEstimateDuration
 }: {
     startPoint: { position: { lat: number; lng: number } }
     endPoint: { position: { lat: number; lng: number } }
     onRouteInfoChange: (info: { distance: number; duration: number } | null) => void
+    setEstimateDistance: (distance: number) => void
+    setEstimateDuration: (duration: number) => void
 }) => {
     const [routePoints, setRoutePoints] = useState<[number, number][]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -96,6 +102,8 @@ const RouteDisplay = ({
                         distance: distanceKm,
                         duration: durationMin
                     })
+                    setEstimateDistance(distanceKm)
+                    setEstimateDuration(durationMin)
                 } else {
                     // If no route available, just draw a straight line between points
                     setRoutePoints([
@@ -284,6 +292,8 @@ const SharedLocation = ({
     loading,
     numberOfSeats,
     onNumberOfSeatsChange,
+    setEstimateDistance,
+    setEstimateDuration,
 }: SharedLocationProps) => {
     const [isFetching, setIsFetching] = useState(false)
     const [isClient, setIsClient] = useState(false)
@@ -469,6 +479,8 @@ const SharedLocation = ({
                                 startPoint={startPoint}
                                 endPoint={endPoint}
                                 onRouteInfoChange={setRouteInfo}
+                                setEstimateDistance={setEstimateDistance}
+                                setEstimateDuration={setEstimateDuration}
                             />
                         )}
 

@@ -6,6 +6,7 @@ class TripSocketService {
     private socket = SocketService.getInstance(SOCKET_NAMESPACE.TRIPS)
 
     connect() {
+        console.log('Connecting to trip socket...')
         if (!this.socket.connected) {
             this.socket.connect()
         }

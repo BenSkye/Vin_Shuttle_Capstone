@@ -85,7 +85,9 @@ const TripTrackingScreen = () => {
 
   const {
     data: sharedItineraryDetail,
+    updateItineraryMessage: updateItineraryMessage,
     isLoading: sharedItineraryLoading,
+    isTripInItineraryCancel: isTripInItineraryCancel,
     error: sharedItineraryError,
     resetHook
   } = useSharedItinerarySocket(
@@ -97,7 +99,18 @@ const TripTrackingScreen = () => {
   React.useEffect(() => {
     const handleFetchTrip = async () => {
       await initializeLocationData();
+
+      // Kiểm tra trip bị hủy ngay sau khi khởi tạo
+      if (trip?.status === TripStatus.CANCELLED) {
+        Alert.alert(
+          'Thông báo',
+          'Khách hàng đã hủy chuyến đi',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+        return; // Dừng xử lý tiếp nếu trip đã hủy
+      }
     }
+
     if (trip) {
       handleFetchTrip();
     }
@@ -113,7 +126,18 @@ const TripTrackingScreen = () => {
   useEffect(() => {
     if (sharedItineraryDetail) {
       console.log('sharedItineraryDetail', sharedItineraryDetail);
-      setSharedItinerary(sharedItineraryDetail as SharedItinerary); // Set the shared itinerary data
+      setSharedItinerary(sharedItineraryDetail as SharedItinerary);
+      console.log('updateItineraryMessage129', updateItineraryMessage)
+      if (updateItineraryMessage) {
+        Alert.alert(
+          'Thông báo',
+          updateItineraryMessage,
+          [{ text: 'OK' }]
+        );
+      }
+      if (isTripInItineraryCancel) {
+        setTripId(sharedItineraryDetail.stops[0].trip);
+      }
     }
   }, [sharedItineraryDetail]);
 
@@ -192,18 +216,8 @@ const TripTrackingScreen = () => {
     }
   };
 
-  // const fetchSharedItineraryData = async (tripId: string) => {
-  //   try {
-  //     const itinerary = await getShareRouteByTripId(tripId); // Replace with actual API call
-  //     if (itinerary) {
-  //       console.log("itinerary160", itinerary)
-  //       setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching shared itinerary data:', error);
-  //     Alert.alert('Lỗi', 'Không thể tải dữ liệu lịch trình chia sẻ');
-  //   }
-  // }
+
+
   // Event handlers
   const handleBack = () => navigation.goBack();
 
@@ -453,6 +467,7 @@ const TripTrackingScreen = () => {
         onStopPress={(stop: sharedItineraryStop) => {
           setTripId(stop.trip);
         }}
+        tripStopSelected={trip?._id || ''}
       />
 
       {/* Header */}
