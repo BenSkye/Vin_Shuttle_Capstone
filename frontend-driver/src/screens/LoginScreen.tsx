@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { authService } from '../services/authServices';
 import { styles } from '../styles/LoginStyle';
 import { useAuth } from '~/context/AuthContext';
+
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +38,12 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
           routes: [{ name: 'Home' }],
         });
       } else {
-        Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không đúng');
+        // Check for role-specific errors
+        if (response.roleError) {
+          Alert.alert('Quyền truy cập bị từ chối', response.message || 'Tài khoản không có quyền tài xế');
+        } else {
+          Alert.alert('Đăng nhập thất bại', 'Email hoặc mật khẩu không đúng');
+        }
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi đăng nhập';

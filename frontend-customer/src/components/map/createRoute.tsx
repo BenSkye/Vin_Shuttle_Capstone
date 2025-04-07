@@ -10,7 +10,7 @@ import iconRetina from 'leaflet/dist/images/marker-icon-2x.png'
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
 import '@/styles/map.css'
 
@@ -88,7 +88,241 @@ const renderStatusBadge = (status: 'draft' | 'active' | 'inactive') => {
     inactive: { color: 'bg-red-200 text-red-800', text: 'Ngừng hoạt động' },
   }
   const config = statusConfig[status]
-  return <span className={`rounded-full px-2 py-1 text-sm ${config.color}`}>{config.text}</span>
+  return <span className={`rounded-full px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm ${config.color}`}>{config.text}</span>
+}
+
+// Custom control component to display routes inside the map
+function RouteListControl({
+  savedRoutes,
+  selectedRoute,
+  setSelectedRoute,
+  setSelectedRouteId,
+  selectedRouteId,
+  selectRoute
+}: {
+  savedRoutes: RouteResponse[]
+  selectedRoute: RouteResponse | null
+  setSelectedRoute: (route: RouteResponse | null) => void
+  setSelectedRouteId: (id: string | null) => void
+  selectedRouteId: string | null
+  selectRoute: (route: RouteResponse) => void
+}) {
+  const [collapsed, setCollapsed] = useState(false)
+  const map = useMap()
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  const getRouteItemClasses = (routeId: string) => {
+    const baseClasses = 'p-2 sm:p-3 rounded-lg cursor-pointer transition-all duration-300 border-2 break-words'
+
+    if (selectedRouteId === routeId) {
+      return `${baseClasses} bg-blue-50 border-blue-500 transform scale-[1.02] shadow-md`
+    }
+
+    return `${baseClasses} bg-gray-50 hover:bg-gray-100 border-transparent`
+  }
+
+  // Add custom control on map mount
+  useEffect(() => {
+    if (!map || !containerRef.current) return
+
+    // Create a Leaflet control
+    const Control = L.Control.extend({
+      options: {
+        position: 'topright'
+      },
+
+      onAdd: function () {
+        // Add margin to move control slightly to the right
+        if (containerRef.current) {
+          containerRef.current.style.marginRight = '10px';
+        }
+        return containerRef.current as HTMLElement
+      }
+    })
+
+    const control = new Control()
+    control.addTo(map)
+
+    // Prevent map click events from propagating
+    if (containerRef.current) {
+      L.DomEvent.disableClickPropagation(containerRef.current)
+      L.DomEvent.disableScrollPropagation(containerRef.current)
+    }
+
+    return () => {
+      control.remove()
+    }
+  }, [map])
+
+  // Container classes based on collapsed state
+  const containerClasses = collapsed
+    ? 'leaflet-control route-control-collapsed w-auto p-0'
+    : 'leaflet-control route-control-expanded w-[calc(100%-32px)] max-w-xs sm:w-80'
+
+  return (
+    <div ref={containerRef} className={`${containerClasses} absolute right-4 top-2 z-[1000] max-h-[75vh] overflow-y-auto rounded-lg bg-white shadow-lg transition-all duration-300`}>
+      {collapsed ? (
+        // Collapsed view - just a button to expand
+        <button
+          onClick={() => setCollapsed(false)}
+          className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Hiển thị danh sách lộ trình"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      ) : (
+        // Expanded view
+        <>
+          {/* Header with toggle button */}
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white p-3">
+            <h2 className="text-lg font-bold text-black">
+              {selectedRoute ? 'Chi tiết lộ trình' : 'Danh sách lộ trình'}
+            </h2>
+            <button
+              onClick={() => setCollapsed(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+              aria-label="Thu gọn"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Body content */}
+          <div className="max-h-[50vh] sm:max-h-[70vh] overflow-y-auto p-3">
+            {!selectedRoute ? (
+              // Danh sách routes với hiệu ứng chọn
+              <div className="space-y-2">
+                {savedRoutes.map((route, index) => (
+                  <div
+                    key={route._id || index}
+                    className={getRouteItemClasses(route._id)}
+                    onClick={() => selectRoute(route)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Chọn lộ trình ${route.name}`}
+                    onKeyDown={(e) => e.key === 'Enter' && selectRoute(route)}
+                  >
+                    <div className="font-medium text-black">{route.name}</div>
+                    <div className="text-sm text-gray-600">
+                      {new Date(route.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="mt-1">{renderStatusBadge(route.status)}</div>
+                  </div>
+                ))}
+                {savedRoutes.length === 0 && (
+                  <p className="text-center text-gray-500">Chưa có lộ trình nào được lưu</p>
+                )}
+              </div>
+            ) : (
+              // Chi tiết route đã chọn
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setSelectedRoute(null)
+                    setSelectedRouteId(null)
+                  }}
+                  className="mb-2 flex items-center gap-2 text-blue-500 hover:text-blue-700"
+                  aria-label="Quay lại danh sách"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Quay lại danh sách
+                </button>
+                <div className="rounded-lg border-2 border-blue-500 bg-white p-2 sm:p-4 shadow-sm">
+                  <h3 className="mb-2 text-lg sm:text-xl font-bold text-black">{selectedRoute.name}</h3>
+                  <p className="mb-2 sm:mb-4 text-sm sm:text-base text-gray-600">
+                    {selectedRoute.description || 'Không có mô tả'}
+                  </p>
+
+                  <div className="mb-2 sm:mb-4">
+                    <h4 className="mb-1 sm:mb-2 font-medium text-gray-700">Các điểm dừng:</h4>
+                    <div className="space-y-1 sm:space-y-2">
+                      {selectedRoute.waypoints.map((waypoint, index) => (
+                        <div
+                          key={waypoint.id}
+                          className="flex items-center gap-2 rounded-md bg-gray-50 p-1 sm:p-2"
+                          style={{ borderLeft: `4px solid ${COLORS[index % COLORS.length]}` }}
+                        >
+                          <span className="font-medium text-gray-700">{index + 1}.</span>
+                          <span className="text-sm sm:text-base text-gray-600">{waypoint.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 sm:space-y-2">
+                    <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-sm sm:text-base">{selectedRoute.waypoints.length} điểm dừng</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-sm sm:text-base">Thời gian dự kiến: {selectedRoute.estimatedDuration} phút</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-sm sm:text-base">Khoảng cách dự kiến: {selectedRoute.totalDistance} km</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                      <span className="text-sm sm:text-base font-medium">Trạng thái:</span>
+                      {renderStatusBadge(selectedRoute.status)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default function CreateRoute({
@@ -134,188 +368,55 @@ export default function CreateRoute({
     [onRouteSelect]
   )
 
-  // Animation effect when route is selected
-  const getRouteItemClasses = (routeId: string) => {
-    const baseClasses = 'p-3 rounded-lg cursor-pointer transition-all duration-300 border-2'
-
-    if (selectedRouteId === routeId) {
-      return `${baseClasses} bg-blue-50 border-blue-500 transform scale-[1.02] shadow-md`
-    }
-
-    return `${baseClasses} bg-gray-50 hover:bg-gray-100 border-transparent`
-  }
-
   return (
-    <div className="flex h-screen">
-      {/* Sidebar for route list */}
-      <div className="w-80 overflow-y-auto bg-white p-4 shadow-lg">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-black">
-            {selectedRoute ? 'Chi tiết lộ trình' : 'Danh sách lộ trình'}
-          </h2>
-        </div>
+    <div className="h-screen w-full">
+      <MapContainer
+        center={mapCenter}
+        zoom={15.5}
+        style={{ height: '100%', width: '100%' }}
+        // maxBounds={[
+        //   [10.83, 106.83], // Tọa độ góc dưới bên trái
+        //   [10.85, 106.86], // Tọa độ góc trên bên phải
+        // ]}
+        maxBoundsViscosity={1.0}
+        minZoom={16}
+        maxZoom={19}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-        <div className="space-y-2">
-          {!selectedRoute ? (
-            // Danh sách routes với hiệu ứng chọn
-            savedRoutes.map((route, index) => (
-              <div
-                key={route._id || index}
-                className={getRouteItemClasses(route._id)}
-                onClick={() => selectRoute(route)}
+        {/* Route list control inside map */}
+        <RouteListControl
+          savedRoutes={savedRoutes}
+          selectedRoute={selectedRoute}
+          setSelectedRoute={setSelectedRoute}
+          setSelectedRouteId={setSelectedRouteId}
+          selectedRouteId={selectedRouteId}
+          selectRoute={selectRoute}
+        />
+
+        {selectedRoute && (
+          <>
+            <SavedRouteDisplay
+              coordinates={selectedRoute.scenicRouteCoordinates.map((coord) =>
+                L.latLng(coord.lat, coord.lng)
+              )}
+            />
+            {selectedRoute.waypoints.map((waypoint, index) => (
+              <Marker
+                key={waypoint.id}
+                position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
               >
-                <div className="font-medium text-black">{route.name}</div>
-                <div className="text-sm text-gray-600">
-                  {new Date(route.createdAt).toLocaleDateString()}
-                </div>
-                <div className="mt-1">{renderStatusBadge(route.status)}</div>
-              </div>
-            ))
-          ) : (
-            // Chi tiết route đã chọn
-            <div className="space-y-4">
-              <button
-                onClick={() => {
-                  setSelectedRoute(null)
-                  setSelectedRouteId(null)
-                }}
-                className="mb-4 flex items-center gap-2 text-blue-500 hover:text-blue-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Quay lại danh sách
-              </button>
-              <div className="rounded-lg border-2 border-blue-500 bg-white p-4 shadow-sm">
-                <h3 className="mb-2 text-xl font-bold text-black">{selectedRoute.name}</h3>
-                <p className="mb-4 text-gray-600">
-                  {selectedRoute.description || 'Không có mô tả'}
-                </p>
-
-                <div className="mb-4">
-                  <h4 className="mb-2 font-medium text-gray-700">Các điểm dừng:</h4>
-                  <div className="space-y-2">
-                    {selectedRoute.waypoints.map((waypoint, index) => (
-                      <div
-                        key={waypoint.id}
-                        className="flex items-center gap-2 rounded-md bg-gray-50 p-2"
-                        style={{ borderLeft: `4px solid ${COLORS[index % COLORS.length]}` }}
-                      >
-                        <span className="font-medium text-gray-700">{index + 1}.</span>
-                        <span className="text-gray-600">{waypoint.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span>{selectedRoute.waypoints.length} điểm dừng</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span>Thời gian dự kiến: {selectedRoute.estimatedDuration} phút</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span>Khoảng cách dự kiến: {selectedRoute.totalDistance} km</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <span className="font-medium">Trạng thái:</span>
-                    {renderStatusBadge(selectedRoute.status)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {savedRoutes.length === 0 && (
-            <p className="text-center text-gray-500">Chưa có lộ trình nào được lưu</p>
-          )}
-        </div>
-      </div>
-
-      {/* Map display */}
-      <div className="flex-grow">
-        <MapContainer
-          center={mapCenter}
-          zoom={15.5}
-          style={{ height: '100%', width: '100%' }}
-          maxBounds={[
-            [10.83, 106.83], // Tọa độ góc dưới bên trái
-            [10.85, 106.86], // Tọa độ góc trên bên phải
-          ]}
-          maxBoundsViscosity={1.0}
-          minZoom={16}
-          maxZoom={19}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {selectedRoute && (
-            <>
-              <SavedRouteDisplay
-                coordinates={selectedRoute.scenicRouteCoordinates.map((coord) =>
-                  L.latLng(coord.lat, coord.lng)
-                )}
-              />
-              {selectedRoute.waypoints.map((waypoint, index) => (
-                <Marker
-                  key={waypoint.id}
-                  position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
-                  icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
-                >
-                  <Popup>{waypoint.name}</Popup>
-                </Marker>
-              ))}
-            </>
-          )}
-        </MapContainer>
-      </div>
+                <Popup>{waypoint.name}</Popup>
+              </Marker>
+            ))}
+          </>
+        )}
+      </MapContainer>
     </div>
   )
 }
+

@@ -44,8 +44,11 @@ const DateTimeSelection = ({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">Chọn ngày & giờ</h2>
+
       {/* Grid container with responsive columns */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+
         {/* Date Selection Card */}
         <Card
           className="shadow-sm transition-shadow duration-300 hover:shadow-md"

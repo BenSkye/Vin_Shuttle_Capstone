@@ -1,64 +1,50 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { message } from 'antd'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { FiPhone } from 'react-icons/fi'
 
 import { Routes } from '@/constants/routers'
-
-import { useAuth } from '../../../context/AuthContext'
-import { loginCustomer, verifyOTP } from '../../../service/user.service'
+import { useAuth as useAuthContext } from '@/context/AuthContext'
+import { useAuth as useAuthHook } from '@/hooks/useAuth'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { login } = useAuth()
+  const [messageApi, contextHolder] = message.useMessage()
+  const { login } = useAuthContext()
+  const { doLogin, isLoginPending, loginError } = useAuthHook({
+    onLoginSuccess: (data) => {
+      if (data.token && data.userId) {
+        login(data.token.accessToken, data.token.refreshToken || '', data.userId)
+      }
+    },
+  })
   const [formData, setFormData] = useState({ phone: '', otp: '' })
-  const [shouldFetch, setShouldFetch] = useState(false)
   const [showOtp, setShowOtp] = useState(false)
   const [error, setError] = useState('')
-  const [messageApi, contextHolder] = message.useMessage()
-
-  useEffect(() => {
-    const fetchOTP = async () => {
-      if (!shouldFetch) return
-      try {
-        const response = await loginCustomer({ phone: formData.phone })
-        setShowOtp(true)
-        setError('')
-        messageApi.success({
-          content: `Mã OTP của bạn là: ${response.data}`,
-          duration: 10,
-        })
-      } catch (err) {
-        console.log(err)
-        setError('Gửi mã OTP thất bại. Vui lòng thử lại.')
-      } finally {
-        setShouldFetch(false)
-      }
-    }
-    fetchOTP()
-  }, [shouldFetch, formData.phone, messageApi])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     try {
       if (!showOtp) {
-        setShouldFetch(true)
-      } else {
-        const response = await verifyOTP({ phone: formData.phone, code: formData.otp })
-        if (response.isValid) {
-          login(response.token.accessToken, response.token.refreshToken || '', response.userId)
-          router.push(Routes.HOME)
-        } else {
-          setError('Mã OTP không hợp lệ. Vui lòng thử lại.')
+        // First step: Send OTP
+        const response = await doLogin({ phone: formData.phone })
+        if (response.isValid && response.data) {
+          setShowOtp(true)
+          messageApi.success({
+            content: `Mã OTP của bạn là: ${response.data}`,
+            duration: 10,
+          })
         }
+      } else {
+        // Second step: Verify OTP
+        await doLogin({ phone: formData.phone, code: formData.otp })
       }
-    } catch {
-      setError('Có lỗi xảy ra khi xác thực OTP. Vui lòng thử lại.')
+    } catch (err) {
+      console.log(err)
     }
   }
 
@@ -112,7 +98,8 @@ export default function LoginPage() {
                     type="tel"
                     placeholder="Số điện thoại"
                     required
-                    className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+                    disabled={isLoginPending}
+                    className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400 disabled:opacity-50"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
@@ -127,7 +114,8 @@ export default function LoginPage() {
                       type="text"
                       placeholder="Nhập mã OTP"
                       required
-                      className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+                      disabled={isLoginPending}
+                      className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400 disabled:opacity-50"
                       value={formData.otp}
                       onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
                     />
@@ -135,21 +123,22 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {error && (
+              {(error || loginError) && (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-center text-sm font-medium text-red-400 drop-shadow-md"
                 >
-                  {error}
+                  {error || (loginError instanceof Error ? loginError.message : 'Có lỗi xảy ra. Vui lòng thử lại.')}
                 </motion.p>
               )}
 
               <button
                 type="submit"
-                className="w-full rounded-md bg-green-500 py-3 font-medium text-white shadow-lg transition-all hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-black/50 active:scale-[0.98]"
+                disabled={isLoginPending}
+                className="w-full rounded-md bg-green-500 py-3 font-medium text-white shadow-lg transition-all hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-black/50 active:scale-[0.98] disabled:opacity-50"
               >
-                {showOtp ? 'Xác nhận OTP' : 'Gửi mã OTP'}
+                {isLoginPending ? 'Đang xử lý...' : showOtp ? 'Xác nhận OTP' : 'Gửi mã OTP'}
               </button>
             </motion.form>
           </div>

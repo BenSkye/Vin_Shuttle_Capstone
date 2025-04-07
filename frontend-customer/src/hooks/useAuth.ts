@@ -1,235 +1,130 @@
-// import { useMutation } from '@tanstack/react-query'
-// import { signIn, useSession } from 'next-auth/react'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef } from 'react'
+import { message } from 'antd'
 
-// import { API } from '@/constants/apis'
-// import { STATUS_CODE } from '@/constants/error-codes'
-// import { Routes } from '@/constants/routers'
-// import { useDebouncedCallback } from './shared';
+import { Routes } from '@/constants/routers'
+import { useDebouncedCallback } from '@/hooks/shared/useDebouncedCallback'
+import { loginCustomer, registerCustomer, verifyOTP } from '@/service/user.service'
+import { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse, ApiError } from '@/interface/auth.interface'
 
-// import { authService } from '@/services/auth.service'
+export const useAuth = ({ 
+  onLoginSuccess,
+}: { 
+  onLoginSuccess?: (data: LoginResponse) => void
+} = {}) => {
+  const router = useRouter()
+  const [messageApi] = message.useMessage()
+  const successMessageRef = useRef<{ content: string; duration: number } | null>(null)
+  const errorMessageRef = useRef<{ content: string; duration: number } | null>(null)
 
-// import { posty } from '@/utils/request'
+  useEffect(() => {
+    if (successMessageRef.current) {
+      messageApi.success(successMessageRef.current)
+      successMessageRef.current = null
+    }
+  }, [messageApi])
 
-// export const useAuth = () => {
-//   const { data, status } = useSession()
+  useEffect(() => {
+    if (errorMessageRef.current) {
+      messageApi.error(errorMessageRef.current)
+      errorMessageRef.current = null
+    }
+  }, [messageApi])
 
-//   return {
-//     token: data?.user?.accessToken,
-//     authenticated: status === 'authenticated',
-//     loading: status === 'loading',
-//     user: data?.user || {},
-//     id: data?.user?.id,
-//     email: data?.user?.email,
-//     firstName: data?.user?.firstName,
-//     lastName: data?.user?.lastName,
+  // Login mutation
+  const { mutate: loginMutate, isPending: isLoginPending, error: loginError } = useMutation({
+    mutationFn: async (credentials: LoginCredentials): Promise<LoginResponse> => {
+      if (!credentials.code) {
+        // First step: Send OTP
+        const response = await loginCustomer({ phone: credentials.phone })
+        return { isValid: true, data: response.data }
+      } else {
+        // Second step: Verify OTP
+        const response = await verifyOTP({ phone: credentials.phone, code: credentials.code })
+        return response
+      }
+    },
+    onSuccess: (data) => {
+      if (data.isValid && data.token) {
+        successMessageRef.current = {
+          content: 'Đăng nhập thành công! Đang chuyển hướng...',
+          duration: 1
+        }
+        setTimeout(() => {
+          onLoginSuccess?.(data)
+          router.push(Routes.HOME)
+        }, 1000)
+      }
+    },
+    onError: (error: unknown) => {
+      const err = error as ApiError
+      const errorMessage = err?.response?.data?.vnMessage || err?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.'
+      errorMessageRef.current = {
+        content: errorMessage,
+        duration: 5,
+      }
+    }
+  })
 
-//   }
-// }
+  // Register mutation
+  const { mutate: registerMutate, isPending: isRegisterPending, error: registerError } = useMutation({
+    mutationFn: async (data: RegisterCredentials): Promise<RegisterResponse> => {
+      const response = await registerCustomer(data)
+      return response
+    },
+    onSuccess: () => {
+      successMessageRef.current = {
+        content: 'Đăng ký thành công! Chuyển đến trang đăng nhập...',
+        duration: 2
+      }
+      setTimeout(() => {
+        router.push(Routes.AUTH.LOGIN)
+      }, 1000)
+    },
+    onError: (error: unknown) => {
+      const err = error as ApiError
+      const errorMessage = err?.response?.data?.vnMessage || err?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.'
+      errorMessageRef.current = {
+        content: errorMessage,
+        duration: 5,
+      }
+    }
+  })
 
-// export const useAuthVerifyToken = ({ onSuccess, onError } = {}) => {
-//   const { mutate, isPending } = useMutation(
-//     // async (body) => await posty(API.AUTH.VERIFY_TOKEN, body),
-//     {
-//       onSuccess: () => {
-//         onSuccess?.()
-//       },
-//       onError: () => {
-//         onError?.()
-//       },
-//     }
-//   )
+  const handleRegister = async (data: RegisterCredentials): Promise<RegisterResponse> => {
+    return new Promise((resolve, reject) => {
+      registerMutate(data, {
+        onSuccess: (data) => resolve(data),
+        onError: (error) => reject(error),
+      })
+    })
+  }
 
-//   const doVerifyToken = useDebouncedCallback(mutate)
+  const doRegister = useDebouncedCallback(handleRegister)
 
-//   return { doVerifyToken, isLoading: isPending }
-// }
+  const handleLogin = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+    return new Promise((resolve, reject) => {
+      loginMutate(credentials, {
+        onSuccess: (data) => resolve(data),
+        onError: (error) => reject(error),
+      })
+    })
+  }
 
-// export const useLogin = () => {
-//   const mutation = useMutation({
-//     mutationFn: async (credentials) => {
-//       try {
-//         const response = await authService.login(credentials)
+  const doLogin = useDebouncedCallback(handleLogin)
 
-//         if (response.statusCode === STATUS_CODE.NORMAL) {
-//           const userInfo = {
-//             id: response.data.userInfo.id,
-//             email: response.data.userInfo.email,
-//             firstName: response.data.userInfo.firstName,
-//             lastName: response.data.userInfo.lastName,
-//             firstNameTranscription: response.data.userInfo.firstNameTranscription,
-//             lastNameTranscription: response.data.userInfo.lastNameTranscription,
-//           }
+  const logout = useCallback(() => {
+    router.push(Routes.AUTH.LOGIN)
+  }, [router])
 
-//           const userInfoString = tryParseString(userInfo)
-
-//           const result = await signIn('credentials', {
-//             ...credentials,
-//             token: response.data.token,
-//             userInfo: userInfoString,
-//             redirect: false,
-//           })
-
-//           if (result.error) {
-//             throw new Error(result.error)
-//           }
-
-//           return response.data
-//         }
-
-//         throw new Error(response.message)
-//       } catch (error) {
-//         const errorMessage = error.response?.data?.message || error.message
-//         throw new Error(errorMessage)
-//       }
-//     },
-//     onSuccess: async () => {
-//       if (typeof window !== 'undefined') {
-//         window.location.href = Routes.HOME
-//       }
-//     },
-//   })
-
-//   const doLogin = useDebouncedCallback(mutation.mutate)
-
-//   return { doLogin, isLoading: mutation.isPending, error: mutation.error }
-// }
-
-// export const useSignup = ({ onSuccess, onError } = {}) => {
-//   const mutation = useMutation({
-//     mutationFn: async (formData) => {
-//       try {
-//         const response = await authService.signup(formData)
-
-//         if (response.statusCode === STATUS_CODE.NORMAL) {
-//           return response.data
-//         }
-
-//         throw new Error(response.message)
-//       } catch (error) {
-//         const errorMessage = error.response?.data?.message || error.message
-//         throw new Error(errorMessage)
-//       }
-//     },
-//     onSuccess: (data) => {
-//       onSuccess?.(data)
-//     },
-//     onError: (error) => {
-//       onError?.(error)
-//     },
-//   })
-
-//   const doSignup = useDebouncedCallback(mutation.mutate)
-
-//   return { doSignup, isLoading: mutation.isPending, error: mutation.error }
-// }
-
-// export const useResendEmailSignup = ({ onSuccess, onError } = {}) => {
-//   const mutation = useMutation({
-//     mutationFn: async (email) => {
-//       return await authService.resendEmailSignup(email)
-//     },
-//     onSuccess: (data) => {
-//       onSuccess?.(data)
-//     },
-//     onError: (error) => {
-//       onError?.(error)
-//     },
-//   })
-
-//   const doResendEmailSignup = useDebouncedCallback(mutation.mutate)
-
-//   return {
-//     doResendEmailSignup,
-//     isLoading: mutation.isPending,
-//     error: mutation.error,
-//   }
-// }
-
-// export const useAuthVerifyEmail = ({ onSuccess, onError } = {}) => {
-//   const mutation = useMutation({
-//     mutationFn: async ({ email, token }) => {
-//       try {
-//         const response = await authService.verifyEmail({ email, token })
-
-//         if (response.statusCode === STATUS_CODE.NORMAL) {
-//           return response.data
-//         }
-
-//         throw new Error(response.message)
-//       } catch (error) {
-//         const errorMessage = error.response?.data?.message || error.message
-//         throw new Error(errorMessage)
-//       }
-//     },
-//     onSuccess: (data) => {
-//       onSuccess?.(data)
-//     },
-//     onError: (error) => {
-//       onError?.(error)
-//     },
-//   })
-
-//   const doVerifyEmail = useDebouncedCallback(mutation.mutate)
-
-//   return {
-//     doVerifyEmail,
-//     isLoading: mutation.isPending,
-//     error: mutation.error,
-//   }
-// }
-
-// export const useSendResetPasswordEmail = ({ onSuccess, onError } = {}) => {
-//   const mutation = useMutation({
-//     mutationFn: async (email) => {
-//       try {
-//         const response = await authService.sendResetPasswordEmail(email)
-
-//         if (response.statusCode === STATUS_CODE.NORMAL) {
-//           return response.data
-//         }
-
-//         throw new Error(response.message)
-//       } catch (error) {
-//         const errorMessage = error.response?.data?.message || error.message
-//         throw new Error(errorMessage)
-//       }
-//     },
-//     onSuccess: (data) => {
-//       onSuccess?.(data)
-//     },
-//     onError: (error) => {
-//       onError?.(error)
-//     },
-//   })
-
-//   const doSendResetPasswordEmail = useDebouncedCallback(mutation.mutate)
-
-//   return { doSendResetPasswordEmail, isLoading: mutation.isPending, error: mutation.error }
-// }
-
-// export const useResetPassword = ({ onSuccess, onError } = {}) => {
-//   const mutation = useMutation({
-//     mutationFn: async (data) => {
-//       try {
-//         const response = await authService.resetPassword(data)
-//         if (response.statusCode === STATUS_CODE.NORMAL) {
-//           return response.data
-//         }
-//         throw new Error(response.message)
-//       } catch (error) {
-//         const errorMessage = error.response?.data?.message || error.message
-//         throw new Error(errorMessage)
-//       }
-//     },
-//     onSuccess: (data) => {
-//       onSuccess?.(data)
-//     },
-//     onError: (error) => {
-//       onError?.(error)
-//     },
-//   })
-
-//   const doResetPassword = useDebouncedCallback(mutation.mutate)
-
-//   return { doResetPassword, isLoading: mutation.isPending, error: mutation.error }
-// }
+  return {
+    doLogin,
+    doRegister,
+    logout,
+    isLoginPending,
+    isRegisterPending,
+    loginError,
+    registerError,
+  }
+}

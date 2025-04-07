@@ -123,12 +123,20 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 ">
-      <View className='mt-10'>
-        <Text className="mb-4 text-xl font-bold text-gray-800">
-          <Icon name="history" size={24} color="#1f2937" /> Lịch sử cuốc xe
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="mt-10 flex-row items-center">
+        {/* Nút Quay lại */}
+        <TouchableOpacity
+          className="p-2"
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-left" size={24} color="#1f2937" />
+        </TouchableOpacity>
+        <Text className="ml-2 text-xl font-bold text-gray-800">
+          <Icon name="history" size={24} color="#1f2937" /> Lịch sử Cuốc Xe
         </Text>
       </View>
+
       {/* Tab Selector */}
       <View className="flex-row border-b border-gray-200 bg-white">
         <TouchableOpacity
@@ -156,7 +164,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
         <View className="p-4">
           {activeTab === "unpaid" && (
             <TouchableOpacity
-              className={`flex-row items-center justify-center rounded-lg py-3 mb-2 bg-blue-500`}
+              className="flex-row items-center justify-center rounded-lg py-3 mb-2 bg-blue-500"
               onPress={handleTransferTrip}
             >
               <Icon name="bank-transfer" size={20} color="white" />
@@ -164,8 +172,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
                 Chuyển tiền hệ thống các cuốc xe tài xế thu tiền
               </Text>
             </TouchableOpacity>
-          )
-          }
+          )}
 
           {loading ? (
             <ActivityIndicator size="large" color="#2563eb" />

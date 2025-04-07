@@ -1,5 +1,5 @@
-import apiClient from './apiClient';
-import { PriceManagement, UpdateServiceConfigRequest } from './interface';
+import apiClient from "./apiClient";
+import { PriceManagement, UpdateServiceConfigRequest } from "./interface";
 
 export const priceManagementServices = {
   /**
@@ -7,10 +7,10 @@ export const priceManagementServices = {
    */
   async getPrices(): Promise<PriceManagement[]> {
     try {
-      const response = await apiClient.get('/pricing/vehicle-pricings');
+      const response = await apiClient.get("/pricing/vehicle-pricings");
       return response.data;
     } catch (error) {
-      console.error('Error fetching price configurations:', error);
+      console.error("Error fetching price configurations:", error);
       throw error;
     }
   },
@@ -21,7 +21,12 @@ export const priceManagementServices = {
    * @param data Dữ liệu cập nhật
    */
   async updateServiceConfig(
-    serviceType: 'booking_hour' | 'booking_trip' | 'booking_share',
+    serviceType:
+      | "booking_hour"
+      | "booking_destination"
+      | "booking_share"
+      | "booking_scenic_route"
+      | "booking_bus_route",
     data: UpdateServiceConfigRequest
   ): Promise<UpdateServiceConfigRequest> {
     try {
@@ -41,7 +46,11 @@ export const priceManagementServices = {
    * @param serviceType Loại dịch vụ (booking_hour/booking_trip/booking_share)
    */
   async getServiceConfig(
-    serviceType: 'booking_hour' | 'booking_trip' | 'booking_share' | "booking_bus_route"
+    serviceType:
+      | "booking_hour"
+      | "booking_trip"
+      | "booking_share"
+      | "booking_bus_route"
   ): Promise<UpdateServiceConfigRequest> {
     try {
       const response = await apiClient.get(
@@ -70,7 +79,10 @@ export const priceManagementServices = {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error updating price configuration with ID ${priceId}:`, error);
+      console.error(
+        `Error updating price configuration with ID ${priceId}:`,
+        error
+      );
       throw error;
     }
   },
@@ -81,13 +93,18 @@ export const priceManagementServices = {
    */
   async getPriceById(priceId: string): Promise<PriceManagement> {
     try {
-      const response = await apiClient.get(`/pricing/vehicle-pricings/${priceId}`);
+      const response = await apiClient.get(
+        `/pricing/vehicle-pricings/${priceId}`
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching price configuration with ID ${priceId}:`, error);
+      console.error(
+        `Error fetching price configuration with ID ${priceId}:`,
+        error
+      );
       throw error;
     }
-  }
+  },
 };
 
 // Re-export các interface để sử dụng nơi khác nếu cần

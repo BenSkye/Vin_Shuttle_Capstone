@@ -100,8 +100,7 @@ export default function Category() {
       key: 'action',
       render: (_: unknown, record: VehicleCategory) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record)}>Sửa</Button>
-          <Button type="link" danger onClick={() => handleDelete(record)}>Xóa</Button>
+          <Button type="primary" onClick={() => handleEdit(record)}>Cập nhật</Button>
         </Space>
       ),
     },
@@ -109,10 +108,6 @@ export default function Category() {
 
   const handleEdit = (record: VehicleCategory) => {
     router.push(`/category/${record._id}`);
-  };
-
-  const handleDelete = (record: VehicleCategory) => {
-    console.log('Delete category:', record);
   };
 
   const handleAddCategory = async (values: CategoryFormValues) => {

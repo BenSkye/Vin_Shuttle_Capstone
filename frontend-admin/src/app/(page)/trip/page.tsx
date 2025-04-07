@@ -231,7 +231,17 @@ export default function TripHistoryPage() {
       dataIndex: "serviceType",
       key: "serviceType",
       render: (serviceType) => {
-        return serviceType === "booking_hour" ? "Đặt theo giờ" : serviceType;
+        return serviceType === "booking_hour"
+          ? "Đặt theo giờ"
+          : serviceType === "booking_destination"
+          ? "Đặt xe theo điểm đến"
+          : serviceType === "booking_share"
+          ? "Đặt xe chia sẻ"
+          : serviceType === "booking_scenic_route"
+          ? "Đặt xe theo tuyến cố định"
+          : serviceType === "booking_bus_route"
+          ? "Đặt xe theo tuyến xe buýt"
+          : "N/A";
       },
     },
     {
@@ -333,10 +343,14 @@ export default function TripHistoryPage() {
                 formatter={(value) =>
                   new Intl.NumberFormat("vi-VN", {
                     style: "currency",
-                    currency: "VND"
+                    currency: "VND",
                   }).format(Number(value))
                 }
-                valueStyle={{ color: '#3f8600', fontWeight: 'bold', fontSize: '24px' }}
+                valueStyle={{
+                  color: "#3f8600",
+                  fontWeight: "bold",
+                  fontSize: "24px",
+                }}
               />
             </Card>
 
