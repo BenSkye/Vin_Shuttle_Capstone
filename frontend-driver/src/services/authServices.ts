@@ -2,6 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { deleteUserPushToken } from '~/services/userServices';
 import apiClient from '~/services/apiClient';
 import { LoginCredentials, LoginResponse } from '~/interface/auth';
+import { jwtDecode } from 'jwt-decode';
+
+// Add JWT payload interface
+interface JwtPayload {
+  _id: string;
+  name: string;
+  role: string;
+  exp: number;
+  iat: number;
+}
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
@@ -12,8 +22,21 @@ export const authService = {
       console.log('refreshToken:', response.data.token.refreshToken);
       console.log('userId:', response.data.userId);
 
-      // Lưu tokens và userId vào AsyncStorage
-      if (response.data.isValid) {
+      // Validate role before saving tokens
+      if (response.data.isValid && response.data.token.accessToken) {
+        const decoded = this.decodeAccessToken(response.data.token.accessToken);
+        
+        if (!this.isDriver(decoded)) {
+          console.error('Login rejected: User is not a driver');
+          return {
+            ...response.data,
+            isValid: false,
+            roleError: true,
+            message: 'Tài khoản không có quyền truy cập ứng dụng tài xế'
+          };
+        }
+
+        // Lưu tokens và userId vào AsyncStorage
         await AsyncStorage.multiSet([
           ['accessToken', response.data.token.accessToken],
           ['refreshToken', response.data.token.refreshToken],
@@ -26,6 +49,15 @@ export const authService = {
       console.error('Login error:', error);
       throw error;
     }
+  },
+
+  // Add decoding methods similar to admin version
+  decodeAccessToken(token: string): JwtPayload {
+    return jwtDecode<JwtPayload>(token);
+  },
+
+  isDriver(decodedToken: JwtPayload): boolean {
+    return decodedToken.role === "driver";
   },
 
   async logout(): Promise<void> {

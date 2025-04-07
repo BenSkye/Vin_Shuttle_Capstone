@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "VinShuttle Driver",
-    "slug": "vinshuttle-driver-app",
+    "slug": "vinshuttledriver",
     "version": "1.0.0",
     "web": {
       "favicon": "./src/assets/favicon.png"
@@ -30,26 +30,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/driver-logo-app.png",
         "backgroundColor": "#ffffff"
-      },
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "https",
-              "host": "vinshuttle-driver-app--547rluc51z.expo.app",
-              "pathPrefix": "/Home"
-            }
-          ],
-          "category": ["BROWSABLE", "DEFAULT"]
-        }
-      ]
+      }
     },
     "extra": {
-      "slug":"vinshuttle-driver-app",
+      "slug":"vinshuttledriver",
       "eas": {
-        "projectId": "26140332-4529-441f-9ebb-14a47d86ae58"
+        "projectId": "2d99b6ac-0d50-499e-b5d1-c88612712ce7"
       }
     }
   }
