@@ -95,7 +95,7 @@ export class AuthService implements IAuthService {
       name: userExist.name,
       _id: userExist._id.toString(),
     });
-    await this.smsService.sendSms(phone, `Mã OTP của bạn là: ${otp}`);
+    await this.smsService.sendSmsWithoutBrandname(phone, `Mã OTP của bạn là: ${otp}`);
     return otp;
   }
 
