@@ -125,7 +125,7 @@ export class TripService implements ITripService {
           {
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Invalid bus stops',
-            vnMessage: 'Trạm dừng không hợp lệ',
+            vnMessage: 'Trip: Trạm dừng không hợp lệ',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -249,8 +249,54 @@ export class TripService implements ITripService {
     return await this.tripRepository.find({ customerId }, []);
   }
 
-  async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
-    return await this.tripRepository.find({ driverId }, []);
+  async getPersonalDriverTrip(driverId: string, query?: tripParams): Promise<TripDocument[]> {
+    const filterProcessed: any = query;
+    if (query?.customerPhone) {
+      const customer = await this.userRepository.findUser({
+        phone: query.customerPhone,
+        role: UserRole.CUSTOMER,
+      });
+      console.log('customer', customer);
+      if (!customer) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Customer not found',
+            vnMessage: 'Không tìm thấy khách hàng',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.customerId = customer._id.toString();
+      //loại bỏ field customerPhone
+      delete filterProcessed.customerPhone;
+    }
+    if (query?.vehicleName) {
+      const vehicle = await this.vehicleRepository.getVehicle(
+        {
+          name: { $regex: query.vehicleName, $options: 'i' },
+        },
+        ['_id'],
+      );
+      if (!vehicle) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle not found',
+            vnMessage: 'Không tìm thấy xe',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.vehicleId = vehicle._id.toString();
+      delete filterProcessed.vehicleName;
+    }
+    console.log('driverId', driverId);
+    filterProcessed.driverId = driverId;
+    console.log('filterProcessed', filterProcessed);
+    const { filter, options } = processQueryParams(filterProcessed, []);
+    console.log('filter', filter);
+    return await this.tripRepository.find(filter, [], options);
   }
 
   async getPersonalCustomerTripById(customerId: string, id: string): Promise<TripDocument> {
@@ -263,7 +309,7 @@ export class TripService implements ITripService {
     );
   }
 
-  async getPersonalDriverTripById(driverId: string, id: string): Promise<TripDocument> {
+  async getPersonalDriverTripById(driverId: string, id: string,): Promise<TripDocument> {
     return await this.tripRepository.findOne(
       {
         _id: id,
@@ -777,6 +823,7 @@ export class TripService implements ITripService {
   }
 
   async checkoutTransferTrip(tripIds: string[]): Promise<object> {
+    console.log('tripIds', tripIds);
     const trips = await this.tripRepository.find(
       {
         _id: { $in: tripIds },
@@ -787,6 +834,7 @@ export class TripService implements ITripService {
     );
     const bookingCode = generateBookingCode();
     const totalAmount = trips.reduce((total, trip) => total + trip.amount, 0);
+    console.log('totalAmount', totalAmount);
     const tripIdList = trips.map(trip => trip._id.toString());
     const payment = await this.momoService.createTransferTripPaymentLink({
       bookingCode: bookingCode,

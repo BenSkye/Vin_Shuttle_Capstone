@@ -27,7 +27,7 @@ export class RatingController {
   constructor(
     @Inject(RATING_SERVICE)
     private readonly ratingService: IRatingService,
-  ) {}
+  ) { }
 
   @Post('create-rating')
   @HttpCode(HttpStatus.CREATED)
@@ -63,10 +63,10 @@ export class RatingController {
 
   @Get('average-rating')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  @ApiBearerAuth(HEADER.AUTHORIZATION)
-  @ApiBearerAuth(HEADER.CLIENT_ID)
+  // @UseGuards(AuthGuard)
+  // @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  // @ApiBearerAuth(HEADER.AUTHORIZATION)
+  // @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get average rating of driver or customer' })
   @ApiQuery({
     name: 'serviceType',

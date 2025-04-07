@@ -22,7 +22,7 @@ export class Ticket {
   @Prop({ required: true, type: Number, min: 1 })
   numberOfSeats: number;
 
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: Number, min: 0 })
   fare: number;
 
   @Prop({ required: true, type: Date })

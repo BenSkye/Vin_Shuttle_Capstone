@@ -157,7 +157,7 @@ export class MomoService implements IMomoService {
       const result = await axios(options);
       console.log('result68', result.data);
       if (result.data.resultCode == 0) {
-        return result.data.payUrl;
+        return result.data.deeplink;
       } else {
         throw new HttpException(
           {

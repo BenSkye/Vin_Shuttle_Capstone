@@ -31,6 +31,10 @@ export class PassengerInfoDto {
   email?: string;
 }
 
+export interface ITicketData extends CreateTicketDto {
+  fare: number;
+}
+
 export class CreateTicketDto {
   @ApiProperty({
     description: 'ID tuyến xe',
@@ -68,15 +72,6 @@ export class CreateTicketDto {
   @IsNumber()
   @Min(1)
   numberOfSeats: number;
-
-  @ApiProperty({
-    description: 'Giá vé',
-    example: 50000,
-    minimum: 0
-  })
-  @IsNumber()
-  @Min(0)
-  fare: number;
 
   @ApiProperty({
     description: 'Thời gian lên xe',

@@ -12,7 +12,7 @@ export class RatingService implements IRatingService {
   constructor(
     @Inject(RATING_REPOSITORY) private readonly ratingRepository: IRatingRepository,
     @Inject(TRIP_REPOSITORY) private readonly tripRepository: ITripRepository,
-  ) {}
+  ) { }
 
   async createRating(customerId: string, data: ICreateRating): Promise<RatingDocument> {
     const trip = await this.tripRepository.findById(data.tripId, ['customerId', 'status']);
@@ -51,12 +51,15 @@ export class RatingService implements IRatingService {
     const findQuery: any = {};
     if (query.driverId) {
       findQuery.driverId = query.driverId;
+      delete filter.driverId;
     }
     if (query.customerId) {
       findQuery.customerId = query.customerId;
+      delete filter.customerId;
     }
     if (query.serviceType) {
-      findQuery.serviceType = query.serviceType;
+      findQuery.serviceType = query.serviceType
+      delete filter.serviceType;
     }
     findQuery.status = TripStatus.COMPLETED;
     console.log('findQuery', findQuery);
@@ -66,8 +69,11 @@ export class RatingService implements IRatingService {
     if (trips.length === 0) {
       return 0;
     }
-    filter.tripId = { $in: trips.map(trip => trip._id) };
-    const ratings = await this.ratingRepository.getRatings(filter.tripId, ['rate']);
+    const listTripId = trips.map(trip => trip._id.toString());
+    const ratingFilter = {
+      tripId: { $in: listTripId }
+    };
+    const ratings = await this.ratingRepository.getRatings(ratingFilter, ['rate']);
     if (ratings.length === 0) {
       return 0;
     }
