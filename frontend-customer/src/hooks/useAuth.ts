@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { message } from 'antd'
 
 import { Routes } from '@/constants/routers'
@@ -8,13 +8,29 @@ import { useDebouncedCallback } from '@/hooks/shared/useDebouncedCallback'
 import { loginCustomer, registerCustomer, verifyOTP } from '@/service/user.service'
 import { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse, ApiError } from '@/interface/auth.interface'
 
-
 export const useAuth = ({ 
   onLoginSuccess,
 }: { 
   onLoginSuccess?: (data: LoginResponse) => void
 } = {}) => {
   const router = useRouter()
+  const [messageApi] = message.useMessage()
+  const successMessageRef = useRef<{ content: string; duration: number } | null>(null)
+  const errorMessageRef = useRef<{ content: string; duration: number } | null>(null)
+
+  useEffect(() => {
+    if (successMessageRef.current) {
+      messageApi.success(successMessageRef.current)
+      successMessageRef.current = null
+    }
+  }, [messageApi])
+
+  useEffect(() => {
+    if (errorMessageRef.current) {
+      messageApi.error(errorMessageRef.current)
+      errorMessageRef.current = null
+    }
+  }, [messageApi])
 
   // Login mutation
   const { mutate: loginMutate, isPending: isLoginPending, error: loginError } = useMutation({
@@ -31,10 +47,10 @@ export const useAuth = ({
     },
     onSuccess: (data) => {
       if (data.isValid && data.token) {
-        message.success({
+        successMessageRef.current = {
           content: 'Đăng nhập thành công! Đang chuyển hướng...',
           duration: 1
-        })
+        }
         setTimeout(() => {
           onLoginSuccess?.(data)
           router.push(Routes.HOME)
@@ -44,10 +60,10 @@ export const useAuth = ({
     onError: (error: unknown) => {
       const err = error as ApiError
       const errorMessage = err?.response?.data?.vnMessage || err?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.'
-      message.error({
+      errorMessageRef.current = {
         content: errorMessage,
         duration: 5,
-      })
+      }
     }
   })
 
@@ -58,10 +74,10 @@ export const useAuth = ({
       return response
     },
     onSuccess: () => {
-      message.success({
+      successMessageRef.current = {
         content: 'Đăng ký thành công! Chuyển đến trang đăng nhập...',
         duration: 2
-      })
+      }
       setTimeout(() => {
         router.push(Routes.AUTH.LOGIN)
       }, 1000)
@@ -69,10 +85,10 @@ export const useAuth = ({
     onError: (error: unknown) => {
       const err = error as ApiError
       const errorMessage = err?.response?.data?.vnMessage || err?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.'
-      message.error({
+      errorMessageRef.current = {
         content: errorMessage,
         duration: 5,
-      })
+      }
     }
   })
 
