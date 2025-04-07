@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Column } from '@/interfaces/index';
 import { Customer } from "@/interfaces/index";
 import { getCustomer } from "@/services/api/user";
-
+//yessir
 const columns: Column<Customer>[] = [
     { header: "ID", accessor: "id", className: "hidden md:table-cell" },
     { header: "Name", accessor: "name" },
