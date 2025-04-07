@@ -4,9 +4,11 @@ import apiClient from './apiClient';
 import { SharedItinerary } from '~/interface/share-itinerary';
 
 
-export const getPersonalTrips = async (): Promise<Trip[]> => {
+export const getPersonalTrips = async (query?: any): Promise<Trip[]> => {
   try {
-    const response = await apiClient.get('/trip/driver-personal-trip');
+    const response = await apiClient.get('/trip/driver-personal-trip', {
+      params: query,
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching personal trips:', error);
@@ -120,6 +122,18 @@ export const getShareRouteByTripId = async (tripId: string): Promise<SharedItine
     return response.data;
   } catch (error) {
     console.error('Error fetching shared route:', error);
+    throw error;
+  }
+}
+
+export const getPaymentLinkTransferTrip = async (tripIds: string[]): Promise<any> => {
+  try {
+    const response = await apiClient.get('/trip/check-out-transfer-trip', {
+      params: { tripIds }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching payment link:', error);
     throw error;
   }
 }
