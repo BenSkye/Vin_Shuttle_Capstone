@@ -28,8 +28,16 @@ export class BusRouteRepository implements IBusRouteRepository {
   async findById(id: string): Promise<BusRouteDocument> {
     return await this.busRouteModel
       .findById(id)
-      .populate('stops.stopId')
-      .populate('vehicleCategory')
+      .populate([
+        {
+          path: 'stops.stopId',
+          select: 'name position address'
+        },
+        {
+          path: 'vehicleCategory',
+          select: 'name description'
+        }
+      ])
       .exec();
   }
 

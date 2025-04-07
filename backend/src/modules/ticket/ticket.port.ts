@@ -1,8 +1,8 @@
-import { CreateTicketDto, UpdateTicketStatusDto } from './ticket.dto';
+import { CreateTicketDto, UpdateTicketStatusDto, ITicketData } from './ticket.dto';
 import { TicketDocument } from './ticket.schema';
 
 export interface ITicketRepository {
-  create(ticket: CreateTicketDto): Promise<TicketDocument>;
+  create(ticket: ITicketData): Promise<TicketDocument>;
   findById(id: string): Promise<TicketDocument>;
   updateStatus(id: string, status: string): Promise<TicketDocument>;
   findActiveByTrip(tripId: string): Promise<TicketDocument[]>;
