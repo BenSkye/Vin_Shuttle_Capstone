@@ -1,13 +1,8 @@
-import { cn } from '@/libs/utils'
 import { motion } from 'framer-motion'
 
-export const Button = ({
-  variant = 'primary',
-  size = 'md',
-  className,
-  children,
-  ...props
-}) => {
+import { cn } from '@/libs/utils'
+
+export const Button = ({ variant = 'primary', size = 'md', className, children, ...props }) => {
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary-hover',
     secondary: 'bg-secondary text-white hover:bg-secondary-hover',

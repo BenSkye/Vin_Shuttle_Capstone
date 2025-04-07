@@ -33,7 +33,7 @@ export interface IBookingService {
   bookingDestination(
     customerId: string,
     data: IBookingDestinationBody,
-  ): Promise<{ newBooking: BookingDocument; paymentUrl: string }>;
+  ): Promise<{ newBooking: BookingDocument; paymentUrl?: string }>;
 
   bookingSharedItinerary(
     customerId: string,

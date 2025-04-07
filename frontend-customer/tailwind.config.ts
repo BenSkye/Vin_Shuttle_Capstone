@@ -1,7 +1,7 @@
-import type { Config } from 'tailwindcss'
-import tailwindAnimate from 'tailwindcss-animate'
 import forms from '@tailwindcss/forms'
 import typography from '@tailwindcss/typography'
+import type { Config } from 'tailwindcss'
+import tailwindAnimate from 'tailwindcss-animate'
 
 export default {
   darkMode: ['class'],
@@ -93,7 +93,7 @@ export default {
         divider: {
           DEFAULT: '#e2e8f0',
           secondary: '#f1f5f9',
-        }
+        },
       },
       borderRadius: {
         DEFAULT: '0.5rem',
@@ -140,9 +140,5 @@ export default {
       },
     },
   },
-  plugins: [
-    tailwindAnimate,
-    forms,
-    typography,
-  ],
+  plugins: [tailwindAnimate, forms, typography],
 } satisfies Config

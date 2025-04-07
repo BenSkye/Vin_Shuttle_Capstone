@@ -28,7 +28,7 @@ export class TripController {
   constructor(
     @Inject(TRIP_SERVICE)
     private readonly tripService: ITripService,
-  ) {}
+  ) { }
 
   @Get('customer-personal-trip')
   @HttpCode(HttpStatus.OK)
@@ -48,8 +48,20 @@ export class TripController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver personal trip' })
-  async getDriverPersonalTrip(@Request() req) {
-    return await this.tripService.getPersonalDriverTrip(req.user._id);
+  @ApiQuery({
+    name: "isPrepaid",
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPrepaid',
+  })
+  @ApiQuery({
+    name: 'isPayed',
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPayed',
+  })
+  async getDriverPersonalTrip(@Request() req, @Query() query: tripParams) {
+    return await this.tripService.getPersonalDriverTrip(req.user._id, query);
   }
 
   @Get('customer-personal-trip/:id')
@@ -211,6 +223,18 @@ export class TripController {
     description: 'Filter by trip status',
   })
   @ApiQuery({
+    name: "isPrepaid",
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPrepaid',
+  })
+  @ApiQuery({
+    name: 'isPayed',
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPayed',
+  })
+  @ApiQuery({
     name: 'driverName',
     required: false,
     type: String,
@@ -250,5 +274,22 @@ export class TripController {
   })
   async listQuery(@Query() query: tripParams) {
     return await this.tripService.getTripByQuery(query);
+  }
+
+  @Get('check-out-transfer-trip')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Check out transfer trip' })
+  @ApiQuery({
+    name: 'tripIds',
+    required: true,
+    type: Array,
+    description: 'List of trip IDs to check out',
+  })
+  async checkoutTransferTrip(@Query() data: { tripIds: string[] }) {
+    return await this.tripService.checkoutTransferTrip(data.tripIds);
   }
 }

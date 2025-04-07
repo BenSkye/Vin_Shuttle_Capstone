@@ -7,10 +7,10 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 import { TripStatus } from '@/constants/trip.enum'
-
-import { Trip } from '@/interface/trip.interface'
 import { useTripQuery } from '@/hooks/queries/trip.query'
 import useTripSocket from '@/hooks/sockets/useTripSocket'
+
+import { Trip } from '@/interface/trip.interface'
 
 const TripListPage = () => {
   const { data: trips, isLoading, error } = useTripQuery()
@@ -32,8 +32,8 @@ const TripListPage = () => {
     switch (status) {
       case TripStatus.BOOKING:
         return { text: 'Đang đặt', className: 'bg-yellow-100 text-yellow-800' }
-      case TripStatus.PAYED:
-        return { text: 'Đã thanh toán', className: 'bg-blue-100 text-blue-800' }
+      case TripStatus.CONFIRMED:
+        return { text: 'Đã xác  nhận', className: 'bg-blue-100 text-blue-800' }
       case TripStatus.PICKUP:
         return { text: 'Đang đón', className: 'bg-orange-100 text-orange-800' }
       case TripStatus.IN_PROGRESS:

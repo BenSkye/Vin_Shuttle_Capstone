@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "VinShuttle Driver",
+    "slug": "vinshuttle-driver-app",
     "version": "1.0.0",
     "web": {
       "favicon": "./src/assets/favicon.png"
@@ -9,9 +9,10 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [],
+    "plugins": [
+    ],
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
+    "icon": "./src/assets/driver-logo-app.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/splash.png",
@@ -25,13 +26,28 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.vin.shuttle",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/driver-logo-app.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.luannguyen123.myexpoapp"
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "vinshuttle-driver-app--547rluc51z.expo.app",
+              "pathPrefix": "/Home"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "extra": {
+      "slug":"vinshuttle-driver-app",
       "eas": {
         "projectId": "26140332-4529-441f-9ebb-14a47d86ae58"
       }

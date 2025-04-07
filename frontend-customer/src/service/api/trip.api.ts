@@ -1,15 +1,15 @@
-import { Trip } from "@/interface/trip.interface"
-import apiClient from "@/service/apiClient"
+import { Trip } from '@/interface/trip.interface'
+import apiClient from '@/service/apiClient'
 
 export const TripApiService = {
-    getPersonalTrips: async (): Promise<Trip[]> => {
-        const response = await apiClient.get('/trip/customer-personal-trip')
-        console.log(response.data)
-        return response.data
-    },
+  getPersonalTrips: async (): Promise<Trip[]> => {
+    const response = await apiClient.get('/trip/customer-personal-trip')
+    console.log(response.data)
+    return response.data
+  },
 
-    getPersonalTripById: async (id: string): Promise<Trip> => {
-        const response = await apiClient.get(`/trip/customer-personal-trip/${id}`)
-        return response.data
-    }
+  getPersonalTripById: async (id: string): Promise<Trip> => {
+    const response = await apiClient.get(`/trip/customer-personal-trip/${id}`)
+    return response.data
+  },
 }

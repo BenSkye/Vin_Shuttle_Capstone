@@ -5,17 +5,18 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
+  SafeAreaView,
   TouchableOpacity,
-  Modal,
+  Linking,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { format } from 'date-fns';
-import { getPersonalTrips, Trip, getRatingByTripId } from '../services/tripServices';
+import { getPersonalTrips, Trip, getRatingByTripId, Rating, getPaymentLinkTransferTrip } from '../services/tripServices';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Ionicons } from '@expo/vector-icons';
-import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
-import { ServiceType } from '~/constants/service-type.enum';
-import { BookingDestinationPayloadDto, BookingHourPayloadDto, Rating } from '~/interface/trip';
+import { tripStatusText, TripStatus } from '../constants/trip.enum';
+import { TripCard } from '~/components/TripHistory/TripCard';
+import { TripDetailsModal } from '~/components/TripHistory/TripDetailsModal';
+
+type TabType = 'paid' | 'unpaid';
 
 export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -25,23 +26,23 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
   const [showTripDetails, setShowTripDetails] = useState(false);
   const [tripRating, setTripRating] = useState<Rating | null>(null);
   const [loadingRating, setLoadingRating] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('paid');
 
   const fetchTrips = async () => {
     try {
       setLoading(true);
-      const allTrips = await getPersonalTrips();
+      let allTrips: Trip[] = [];
+
+      if (activeTab === 'paid') {
+        allTrips = await getPersonalTrips({ isPayed: true });
+      } else {
+        allTrips = await getPersonalTrips({ isPrepaid: false, isPayed: false, status: TripStatus.COMPLETED });
+      }
 
       // Filter only completed and cancelled trips
       const historyTrips = allTrips.filter((trip) =>
         ['completed', 'cancelled'].includes(trip.status.toLowerCase())
       );
-
-      // Sort by time, newest first
-      // historyTrips.sort((a, b) => {
-      //   const timeA = new Date(a.updatedAt || a.createdAt).getTime();
-      //   const timeB = new Date(b.updatedAt || b.createdAt).getTime();
-      //   return timeB - timeA; // Descending order (newest first)
-      // });
 
       setTrips(historyTrips);
     } catch (error) {
@@ -59,14 +60,16 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
 
   useEffect(() => {
     fetchTrips();
+  }, [activeTab]);
 
+  useEffect(() => {
     // Refresh when returning to this screen
     const unsubscribe = navigation.addListener('focus', () => {
       fetchTrips();
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, activeTab]);
 
   const handleShowTripDetails = async (trip: Trip) => {
     setSelectedTrip(trip);
@@ -85,472 +88,115 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     }
   };
 
-  const getStatusText = (status: string): string => {
-    const statusLower = status.toLowerCase() as TripStatus;
-    return tripStatusText[statusLower] || 'Không xác định';
-  };
-
-  const getStatusColor = (status: string): string => {
-    const statusLower = status.toLowerCase() as TripStatus;
-    const color = tripStatusColor[statusLower];
-
-    switch (color) {
-      case 'gold':
-        return 'text-yellow-500';
-      case 'blue':
-        return 'text-blue-600';
-      case 'green':
-        return 'text-green-600';
-      case 'red':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
+  const handleTransferTrip = async () => {
+    // Lọc ra các trip có isPrepaid là false và isPayed là false
+    const unpaidTrips = trips.filter((trip) => !trip.isPrepaid && !trip.isPayed);
+    const tripIds = unpaidTrips.map((trip) => trip._id);
+    if (tripIds.length === 0) {
+      Alert.alert('Thông báo', 'Không có chuyến đi nào cần thanh toán.');
+      return;
     }
-  };
-
-  const getStatusBadge = (status: string): JSX.Element => {
-    const statusLower = status.toLowerCase();
-    let bgColor, textColor, iconName;
-
-    if (statusLower === 'completed') {
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-800';
-      iconName = 'check-circle';
-    } else {
-      // cancelled
-      bgColor = 'bg-red-100';
-      textColor = 'text-red-800';
-      iconName = 'close-circle';
-    }
-
-    return (
-      <View className={`flex-row items-center rounded-full px-3 py-1 ${bgColor}`}>
-        <Icon name={iconName} size={14} className={textColor} />
-        <Text className={`${textColor} ml-1 text-xs font-medium`}>{getStatusText(status)}</Text>
-      </View>
-    );
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    try {
-      return format(new Date(dateString), 'HH:mm dd/MM/yyyy');
-    } catch (e) {
-      return 'Invalid date';
-    }
-  };
-
-  // Render stars based on rating value
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const maxStars = 5;
-
-    for (let i = 1; i <= maxStars; i++) {
-      stars.push(
-        <Icon
-          key={i}
-          name={i <= rating ? 'star' : 'star-outline'}
-          size={20}
-          color={i <= rating ? '#FFD700' : '#D3D3D3'}
-          style={{ marginRight: 2 }}
-        />
+    const totalAmount = unpaidTrips.reduce((total, trip) => total + trip.amount, 0);
+    // atlert cho người dùng biết số tiền cần chuyển và xác nhận 
+    const confirmMessage = `Tổng số tiền cần chuyển cho hệ thống là ${totalAmount.toLocaleString('vi-VN')} VNĐ. Bạn có chắc chắn muốn chuyển tiền không?`;
+    const userConfirmed = await new Promise((resolve) => {
+      Alert.alert(
+        'Xác Nhận',
+        confirmMessage,
+        [
+          { text: 'Không', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Xác Nhận', onPress: () => resolve(true) },
+        ]
       );
+    });
+    if (!userConfirmed) return;
+    console.log('Chuyển tiền cho hệ thống với các chuyến đi:', tripIds);
+    try {
+      const paymentResult = await getPaymentLinkTransferTrip(tripIds);
+      console.log('Payment link:', paymentResult);
+      const paymentLink = paymentResult.paymentUrl;
+      // Mở liên kết thanh toán trong trình duyệt
+      Linking.openURL(paymentLink);
+    } catch (error) {
+      console.error('Error fetching payment link:', error);
     }
-
-    return <View style={{ flexDirection: 'row', alignItems: 'center' }}>{stars}</View>;
-  };
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-100 ">
+      <View className='mt-10'>
+        <Text className="mb-4 text-xl font-bold text-gray-800">
+          <Icon name="history" size={24} color="#1f2937" /> Lịch sử chuyến đi
+        </Text>
+      </View>
+      {/* Tab Selector */}
+      <View className="flex-row border-b border-gray-200 bg-white">
+        <TouchableOpacity
+          className={`flex-1 items-center py-3 ${activeTab === 'paid' ? 'border-b-2 border-blue-500' : ''}`}
+          onPress={() => setActiveTab('paid')}
+        >
+          <Text className={`font-medium ${activeTab === 'paid' ? 'text-blue-600' : 'text-gray-500'}`}>
+            Đã thanh toán
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className={`flex-1 items-center py-3 ${activeTab === 'unpaid' ? 'border-b-2 border-blue-500' : ''}`}
+          onPress={() => setActiveTab('unpaid')}
+        >
+          <Text className={`font-medium ${activeTab === 'unpaid' ? 'text-blue-600' : 'text-gray-500'}`}>
+            Chưa thanh toán
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         className="flex-1"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <View className="p-4">
-          <Text className="mb-4 text-xl font-bold text-gray-800">
-            <Icon name="history" size={24} color="#1f2937" /> Lịch sử chuyến đi
-          </Text>
+          {activeTab === "unpaid" && (
+            <TouchableOpacity
+              className={`flex-row items-center justify-center rounded-lg py-3 mb-2 bg-blue-500`}
+              onPress={handleTransferTrip}
+            >
+              <Icon name="bank-transfer" size={20} color="white" />
+              <Text className="ml-2 text-white font-medium">
+                Chuyển tiền hệ thống các chuyến đi tài xế thu tiền
+              </Text>
+            </TouchableOpacity>
+          )
+          }
 
           {loading ? (
             <ActivityIndicator size="large" color="#2563eb" />
           ) : trips.length > 0 ? (
             trips.map((trip) => (
-              <TouchableOpacity
+              <TripCard
                 key={trip._id}
+                trip={trip}
                 onPress={() => handleShowTripDetails(trip)}
-                className="mb-4 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-                <View className="p-4">
-                  <View className="mb-3 flex-row items-center justify-between">
-                    <Text className="font-bold text-gray-800">
-                      {trip.customerId?.name || 'Khách hàng'}
-                    </Text>
-                    {getStatusBadge(trip.status)}
-                  </View>
-
-                  {/* <View className="flex-row items-center mb-2">
-                    <Icon name="calendar" size={16} color="#4b5563" />
-                    <Text className="ml-2 text-gray-600 text-sm">
-                      {formatDate(trip.createdAt)}
-                    </Text>
-                  </View> */}
-
-                  <View className="mb-2 flex-row items-center">
-                    <Icon name="car" size={16} color="#4b5563" />
-                    <Text className="ml-2 text-sm text-gray-600">
-                      {trip.vehicleId?.name || 'N/A'} ({trip.vehicleId?.licensePlate || 'N/A'})
-                    </Text>
-                  </View>
-
-                  <View className="mt-2 flex-row justify-between border-t border-gray-100 pt-2">
-                    <View className="flex-row items-center">
-                      <Icon name="currency-usd" size={16} color="#4b5563" />
-                      <Text className="ml-1 font-medium text-gray-700">
-                        {trip.amount?.toLocaleString('vi-VN') || '0'} VNĐ
-                      </Text>
-                    </View>
-                    <Text className="text-sm text-blue-600">Xem chi tiết</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+              />
             ))
           ) : (
             <View className="flex-row items-center justify-center rounded-lg bg-white p-8 shadow-sm">
               <Icon name="history-off" size={24} color="#6b7280" />
-              <Text className="ml-2 text-center text-gray-500">Không có lịch sử chuyến đi nào</Text>
+              <Text className="ml-2 text-center text-gray-500">
+                {activeTab === 'paid'
+                  ? 'Không có chuyến đi đã thanh toán nào'
+                  : 'Không có chuyến đi chưa thanh toán nào'}
+              </Text>
             </View>
           )}
         </View>
       </ScrollView>
 
-      {/* Trip Details Modal */}
-      {selectedTrip && (
-        <Modal
-          visible={showTripDetails}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowTripDetails(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-            <View
-              style={{
-                backgroundColor: 'white',
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-                padding: 20,
-                maxHeight: '80%',
-              }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 15,
-                }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Chi tiết chuyến đi</Text>
-                <TouchableOpacity onPress={() => setShowTripDetails(false)}>
-                  <Ionicons name="close" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={{ maxHeight: '90%' }}>
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                    Thông tin khách hàng
-                  </Text>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Tên:</Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.customerId?.name || 'N/A'}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>SĐT:</Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.customerId?.phone || 'N/A'}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                    Thông tin chuyến đi
-                  </Text>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                      Mã chuyến:
-                    </Text>
-                    <Text style={{ width: '70%', color: '#333' }}>{selectedTrip._id}</Text>
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                      Trạng thái:
-                    </Text>
-                    <Text
-                      style={{
-                        width: '70%',
-                        color: selectedTrip.status === 'completed' ? 'green' : 'red',
-                      }}>
-                      {getStatusText(selectedTrip.status)}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                      Loại dịch vụ:
-                    </Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.serviceType === ServiceType.BOOKING_HOUR
-                        ? 'Đặt theo giờ'
-                        : selectedTrip.serviceType === ServiceType.BOOKING_DESTINATION
-                          ? 'Đặt theo điểm đến'
-                          : 'Khác'}
-                    </Text>
-                  </View>
-
-                  {selectedTrip.serviceType === ServiceType.BOOKING_HOUR && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingVertical: 8,
-                        borderBottomWidth: 1,
-                        borderBottomColor: '#f0f0f0',
-                      }}>
-                      <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                        Thời lượng:
-                      </Text>
-                      <Text style={{ width: '70%', color: '#333' }}>
-                        {
-                          (selectedTrip.servicePayload as BookingHourPayloadDto).bookingHour
-                            .totalTime
-                        }{' '}
-                        phút
-                      </Text>
-                    </View>
-                  )}
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                      Địa chỉ đón:
-                    </Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.serviceType === ServiceType.BOOKING_HOUR
-                        ? (selectedTrip.servicePayload as BookingHourPayloadDto).bookingHour
-                            .startPoint.address
-                        : selectedTrip.serviceType === ServiceType.BOOKING_DESTINATION
-                          ? (selectedTrip.servicePayload as BookingDestinationPayloadDto)
-                              .bookingDestination.startPoint.address
-                          : 'N/A'}
-                    </Text>
-                  </View>
-
-                  {selectedTrip.serviceType === ServiceType.BOOKING_DESTINATION && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingVertical: 8,
-                        borderBottomWidth: 1,
-                        borderBottomColor: '#f0f0f0',
-                      }}>
-                      <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                        Địa chỉ đến:
-                      </Text>
-                      <Text style={{ width: '70%', color: '#333' }}>
-                        {
-                          (selectedTrip.servicePayload as BookingDestinationPayloadDto)
-                            .bookingDestination.endPoint.address
-                        }
-                      </Text>
-                    </View>
-                  )}
-
-                  {/* <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Ngày tạo:</Text>
-                    <Text style={{ width: '70%', color: '#333' }}>{formatDate(selectedTrip.createdAt)}</Text>
-                  </View> */}
-
-                  {/* {selectedTrip.updatedAt && (
-                    <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-                      <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Cập nhật:</Text>
-                      <Text style={{ width: '70%', color: '#333' }}>{formatDate(selectedTrip.updatedAt)}</Text>
-                    </View>
-                  )} */}
-                </View>
-
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                    Thông tin thanh toán
-                  </Text>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Số tiền:</Text>
-                    <Text style={{ width: '70%', fontWeight: 'bold', color: '#333' }}>
-                      {selectedTrip.amount?.toLocaleString('vi-VN') || '0'} VNĐ
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                    Thông tin phương tiện
-                  </Text>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Tên xe:</Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.vehicleId?.name || 'N/A'}
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      paddingVertical: 8,
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#f0f0f0',
-                    }}>
-                    <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>Biển số:</Text>
-                    <Text style={{ width: '70%', color: '#333' }}>
-                      {selectedTrip.vehicleId?.licensePlate || 'N/A'}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Add Rating Section */}
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                    Đánh giá từ khách hàng
-                  </Text>
-
-                  {loadingRating ? (
-                    <View style={{ padding: 10, alignItems: 'center' }}>
-                      <ActivityIndicator size="small" color="#2563eb" />
-                      <Text style={{ marginTop: 8, color: '#666' }}>Đang tải đánh giá...</Text>
-                    </View>
-                  ) : tripRating ? (
-                    <>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          paddingVertical: 8,
-                          borderBottomWidth: 1,
-                          borderBottomColor: '#f0f0f0',
-                        }}>
-                        <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                          Điểm đánh giá:
-                        </Text>
-                        <View style={{ width: '70%', flexDirection: 'row', alignItems: 'center' }}>
-                          {renderStars(tripRating.rate)}
-                          <Text style={{ marginLeft: 5, color: '#333' }}>
-                            ({tripRating.rate}/5)
-                          </Text>
-                        </View>
-                      </View>
-
-                      {tripRating.feedback && (
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            paddingVertical: 8,
-                            borderBottomWidth: 1,
-                            borderBottomColor: '#f0f0f0',
-                          }}>
-                          <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                            Nhận xét:
-                          </Text>
-                          <Text style={{ width: '70%', color: '#333' }}>{tripRating.feedback}</Text>
-                        </View>
-                      )}
-
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          paddingVertical: 8,
-                          borderBottomWidth: 1,
-                          borderBottomColor: '#f0f0f0',
-                        }}>
-                        <Text style={{ width: '30%', fontWeight: '500', color: '#666' }}>
-                          Ngày đánh giá:
-                        </Text>
-                        <Text style={{ width: '70%', color: '#333' }}>
-                          {formatDate(tripRating.createdAt)}
-                        </Text>
-                      </View>
-                    </>
-                  ) : (
-                    <View
-                      style={{
-                        padding: 15,
-                        backgroundColor: '#f9f9f9',
-                        borderRadius: 8,
-                        alignItems: 'center',
-                      }}>
-                      <Icon name="star-off" size={24} color="#6b7280" />
-                      <Text style={{ textAlign: 'center', color: '#6b7280', marginTop: 8 }}>
-                        Chưa có đánh giá cho chuyến đi này
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-      )}
+      <TripDetailsModal
+        visible={showTripDetails}
+        onClose={() => setShowTripDetails(false)}
+        trip={selectedTrip}
+        tripRating={tripRating}
+        loadingRating={loadingRating}
+      />
     </SafeAreaView>
   );
 }

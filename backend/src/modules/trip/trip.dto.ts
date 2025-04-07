@@ -11,6 +11,8 @@ export interface ICreateTripDto {
   scheduleId: string;
   serviceType: ServiceType;
   amount: number;
+  isPrepaid?: boolean;
+  isPayed?: boolean;
   servicePayload:
   | BookingHourPayloadDto
   | BookingScenicRoutePayloadDto
@@ -36,6 +38,8 @@ export interface IUpdateTripDto {
   cancellationReason?: string;
   cancelledBy?: TripCancelBy;
   refundAmount?: number;
+  isPrepaid?: boolean;
+  isPayed?: boolean;
   statusHistory?: Array<{
     status: TripStatus;
     changedAt: Date;
@@ -97,4 +101,6 @@ export interface tripParams extends QueryOptions {
   vehicleName?: string;
   status?: TripStatus;
   serviceType?: ServiceType;
+  isPrepaid?: boolean;
+  isPayed?: boolean;
 }

@@ -1,8 +1,9 @@
 'use client'
 
-import { Routes } from '@/constants/routers'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+
+import { Routes } from '@/constants/routers'
 
 export default function NotFound() {
   return (

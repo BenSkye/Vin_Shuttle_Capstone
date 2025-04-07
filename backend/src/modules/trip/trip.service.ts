@@ -125,7 +125,7 @@ export class TripService implements ITripService {
           {
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Invalid bus stops',
-            vnMessage: 'Trạm dừng không hợp lệ',
+            vnMessage: 'Trip: Trạm dừng không hợp lệ',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -249,8 +249,54 @@ export class TripService implements ITripService {
     return await this.tripRepository.find({ customerId }, []);
   }
 
-  async getPersonalDriverTrip(driverId: string): Promise<TripDocument[]> {
-    return await this.tripRepository.find({ driverId }, []);
+  async getPersonalDriverTrip(driverId: string, query?: tripParams): Promise<TripDocument[]> {
+    const filterProcessed: any = query;
+    if (query?.customerPhone) {
+      const customer = await this.userRepository.findUser({
+        phone: query.customerPhone,
+        role: UserRole.CUSTOMER,
+      });
+      console.log('customer', customer);
+      if (!customer) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Customer not found',
+            vnMessage: 'Không tìm thấy khách hàng',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.customerId = customer._id.toString();
+      //loại bỏ field customerPhone
+      delete filterProcessed.customerPhone;
+    }
+    if (query?.vehicleName) {
+      const vehicle = await this.vehicleRepository.getVehicle(
+        {
+          name: { $regex: query.vehicleName, $options: 'i' },
+        },
+        ['_id'],
+      );
+      if (!vehicle) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle not found',
+            vnMessage: 'Không tìm thấy xe',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.vehicleId = vehicle._id.toString();
+      delete filterProcessed.vehicleName;
+    }
+    console.log('driverId', driverId);
+    filterProcessed.driverId = driverId;
+    console.log('filterProcessed', filterProcessed);
+    const { filter, options } = processQueryParams(filterProcessed, []);
+    console.log('filter', filter);
+    return await this.tripRepository.find(filter, [], options);
   }
 
   async getPersonalCustomerTripById(customerId: string, id: string): Promise<TripDocument> {
@@ -263,7 +309,7 @@ export class TripService implements ITripService {
     );
   }
 
-  async getPersonalDriverTripById(driverId: string, id: string): Promise<TripDocument> {
+  async getPersonalDriverTripById(driverId: string, id: string,): Promise<TripDocument> {
     return await this.tripRepository.findOne(
       {
         _id: id,
@@ -317,7 +363,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (trip.status !== TripStatus.PAYED) {
+    if (trip.status !== TripStatus.CONFIRMED) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
@@ -486,6 +532,13 @@ export class TripService implements ITripService {
     //update timeEnd to current time
     const timeEnd = dayjs();
     console.log('end trip', timeEnd.toDate());
+    // if (!trip.isPrepaid) {
+    //   updatedTrip = await this.tripRepository.updateTrip(tripId, {
+    //     timeEnd: timeEnd.toDate(),
+    //     status: TripStatus.COMPLETED,
+    //     isPayed: true,
+    //   });
+    // } else {}
     const updatedTrip = await this.tripRepository.updateTrip(tripId, {
       timeEnd: timeEnd.toDate(),
       status: TripStatus.COMPLETED,
@@ -612,7 +665,7 @@ export class TripService implements ITripService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (![TripStatus.PAYED, TripStatus.PICKUP].includes(trip.status)) {
+    if (![TripStatus.CONFIRMED, TripStatus.PICKUP].includes(trip.status)) {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
@@ -627,21 +680,23 @@ export class TripService implements ITripService {
     const cancelledBy =
       trip.customerId._id.toString() === userId ? TripCancelBy.CUSTOMER : TripCancelBy.DRIVER;
 
-    let refundAmount: number;
-    if (cancelledBy === TripCancelBy.DRIVER) {
-      refundAmount = trip.amount
-    }
-    else if (cancelledBy === TripCancelBy.CUSTOMER) {
-      // For hourly/scenic bookings with time-dependent refunds 
-      if (trip.status === TripStatus.PAYED &&
-        [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
-        // Check if cancellation is more than 1 hour before scheduled start
-        const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
-        const timeCondition = isMoreThanOneHour ? 'MORE_THAN_1_HOUR' : 'LES_THAN_1_HOUR';
-        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status][timeCondition];
-      } else {
-        // Standard refund calculation for other service types or PICKUP status
-        refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status];
+    let refundAmount: number = 0;
+    if (trip.isPrepaid && trip.isPayed) {
+      if (cancelledBy === TripCancelBy.DRIVER) {
+        refundAmount = trip.amount
+      }
+      else if (cancelledBy === TripCancelBy.CUSTOMER) {
+        // For hourly/scenic bookings with time-dependent refunds 
+        if (trip.status === TripStatus.CONFIRMED &&
+          [ServiceType.BOOKING_HOUR, ServiceType.BOOKING_SCENIC_ROUTE].includes(trip.serviceType)) {
+          // Check if cancellation is more than 1 hour before scheduled start
+          const isMoreThanOneHour = trip.timeStartEstimate.getTime() - cancellationTime.getTime() > 60 * 60 * 1000;
+          const timeCondition = isMoreThanOneHour ? 'MORE_THAN_1_HOUR' : 'LES_THAN_1_HOUR';
+          refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status][timeCondition];
+        } else {
+          // Standard refund calculation for other service types or PICKUP status
+          refundAmount = trip.amount * TripRefundPercent.CUSTOMER[trip.serviceType][trip.status];
+        }
       }
     }
 
@@ -672,12 +727,14 @@ export class TripService implements ITripService {
         body: `Khách hàng đã hủy cuốc xe ${serviceTypeText[tripUpdate.serviceType]} số hiệu ${tripUpdate._id.toString()}`,
       };
       await this.notificationService.createNotification(notificationForDriver);
-      this.tripGateway.emitTripUpdate(tripUpdate.driverId.toString(), listDriverTrip);
-      this.tripGateway.emitTripUpdateDetail(
-        tripUpdate.driverId.toString(),
-        tripUpdate._id.toString(),
-        tripAfterUpdate,
-      );
+      await this.tripGateway.emitTripUpdate(tripUpdate.driverId.toString(), listDriverTrip);
+      if (trip.serviceType !== ServiceType.BOOKING_SHARE) {
+        await this.tripGateway.emitTripUpdateDetail(
+          tripUpdate.driverId.toString(),
+          tripUpdate._id.toString(),
+          tripAfterUpdate,
+        );
+      }
     }
     if (tripUpdate.cancelledBy === TripCancelBy.DRIVER) {
       const notificationForCustomer = {
@@ -718,13 +775,12 @@ export class TripService implements ITripService {
       )
     }
 
+
     await this.handleRefundForTrip(tripUpdate._id.toString(), refundAmount); //excute refund money
     //excute refund money
 
     return tripUpdate;
   }
-
-
 
   async handleRefundForTrip(tripId: string, refundAmount: number): Promise<void> {
     console.log('tripId721', tripId);
@@ -739,7 +795,7 @@ export class TripService implements ITripService {
       },
       ["transId"]
     )
-    if (!booking) {
+    if (!booking || !booking.transId) {
       return
     }
     console.log('booking725', booking);
@@ -759,10 +815,55 @@ export class TripService implements ITripService {
         status: {
           $nin: [TripStatus.BOOKING],
         },
+        isPayed: true
       },
       ['amount', 'refundAmount'],
     );
     return Trips.reduce((total, trip) => total + (trip.amount - (trip.refundAmount || 0)), 0);
+  }
+
+  async checkoutTransferTrip(tripIds: string[]): Promise<object> {
+    console.log('tripIds', tripIds);
+    const trips = await this.tripRepository.find(
+      {
+        _id: { $in: tripIds },
+        status: TripStatus.COMPLETED,
+        isPayed: false,
+      },
+      [],
+    );
+    const bookingCode = generateBookingCode();
+    const totalAmount = trips.reduce((total, trip) => total + trip.amount, 0);
+    console.log('totalAmount', totalAmount);
+    const tripIdList = trips.map(trip => trip._id.toString());
+    const payment = await this.momoService.createTransferTripPaymentLink({
+      bookingCode: bookingCode,
+      amount: totalAmount,
+      tripIds: tripIdList,
+      description: "Chuyển tiền chuyến đi tài xế thu tiền mặt",
+      returnUrl: 'return-transfer-trips',
+    })
+    return {
+      paymentUrl: payment,
+    }
+  }
+
+  async transferTripAmountSuccess(tripIds: string[]): Promise<void> {
+    const trips = await this.tripRepository.find(
+      {
+        _id: { $in: tripIds },
+        status: TripStatus.COMPLETED,
+        isPayed: false,
+      },
+      [],
+    );
+    const tripIdList = trips.map(trip => trip._id.toString());
+    for (const tripid of tripIdList) {
+      await this.tripRepository.updateTrip(tripid, {
+        isPayed: true,
+      });
+    }
+
   }
 
   // run every minute
@@ -774,7 +875,7 @@ export class TripService implements ITripService {
   //   const endTimeOut = new Date(now.getTime() - 15 * 60 * 1000);
   //   console.log('endTimeOut', endTimeOut);
   //   const trips = await this.tripRepository.find({
-  //     status: TripStatus.PAYED,
+  //     status: TripStatus.CONFIRMED,
   //     timeEndEstimate: { $lte: endTimeOut },
   //     timeStart: null,
   //   }, []);

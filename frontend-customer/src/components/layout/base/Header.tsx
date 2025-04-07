@@ -1,12 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
+import { Routes } from '@/constants/routers'
+
 import { useAuth } from '@/context/AuthContext'
 import { useNotification } from '@/context/NotificationContext'
-import { PublicHeader } from '../components/PublicHeader'
+
 import { PrivateHeader } from '../components/PrivateHeader'
-import { Routes } from '@/constants/routers'
+import { PublicHeader } from '../components/PublicHeader'
 
 export default function Header() {
   const router = useRouter()

@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SOCKET_NAMESPACE } from '@/constants/socket.enum'
 
@@ -11,14 +11,48 @@ const useTrackingSocket = (vehicleId?: string) => {
   const [location, setLocation] = useState<LocationData>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+
+  // Use refs to keep track of the latest location without causing re-renders
+  const locationRef = useRef<LocationData>(null)
+
+  // Memoize the socket connection to prevent unnecessary socket reconnections
+  const socket = useMemo(() => initSocket(SOCKET_NAMESPACE.TRACKING), [])
+
+  // Create a stable function to check if location has changed significantly
+  const hasLocationChangedSignificantly = useCallback(
+    (newLocation: LocationData, oldLocation: LocationData) => {
+      if (!oldLocation) return true
+
+      // Consider a 1 meter change or heading change of 5 degrees significant
+      const latDiff = Math.abs(newLocation.latitude - oldLocation.latitude)
+      const lngDiff = Math.abs(newLocation.longitude - oldLocation.longitude)
+
+      // Approximate conversion from degrees to meters at equator (very rough estimate)
+      const meterDiffLat = latDiff * 111000
+      const meterDiffLng = lngDiff * 111000 * Math.cos((oldLocation.latitude * Math.PI) / 180)
+
+      const distanceChanged =
+        Math.sqrt(meterDiffLat * meterDiffLat + meterDiffLng * meterDiffLng) > 1
+
+      // Check if heading has changed by more than 5 degrees
+      const headingChanged =
+        newLocation.heading !== null &&
+        oldLocation.heading !== null &&
+        Math.abs(((newLocation.heading - oldLocation.heading + 180) % 360) - 180) > 5
+
+      return distanceChanged || headingChanged
+    },
+    []
+  )
+
   useEffect(() => {
-    const socket = initSocket(SOCKET_NAMESPACE.TRACKING)
     const fetchInitialData = async () => {
       setLoading(true)
       try {
         if (vehicleId) {
-          const LastVehicleLocation = await getLastVehicleLocation(vehicleId)
-          setLocation(LastVehicleLocation)
+          const lastVehicleLocation = await getLastVehicleLocation(vehicleId)
+          setLocation(lastVehicleLocation)
+          locationRef.current = lastVehicleLocation
         }
         setLoading(false)
       } catch (err) {
@@ -32,7 +66,6 @@ const useTrackingSocket = (vehicleId?: string) => {
       fetchInitialData()
     }
 
-    console.log('Attempting to connect to socket...')
     if (!socket.connected) {
       socket.connect()
     }
@@ -44,9 +77,11 @@ const useTrackingSocket = (vehicleId?: string) => {
 
     if (vehicleId) {
       const eventKey = `update_location_${vehicleId}`
-      console.log(`Listening for: ${eventKey}`)
       socket.on(eventKey, (updatedLocation: LocationData) => {
-        setLocation(updatedLocation)
+        if (hasLocationChangedSignificantly(updatedLocation, locationRef.current)) {
+          locationRef.current = updatedLocation
+          setLocation(updatedLocation)
+        }
       })
     }
 
@@ -54,11 +89,22 @@ const useTrackingSocket = (vehicleId?: string) => {
       if (vehicleId) {
         socket.off(`update_location_${vehicleId}`)
       }
-      socket.disconnect()
+      // Don't disconnect the socket on component unmount
+      // This will be handled by the socket service when the app is closed
     }
-  }, [vehicleId])
+  }, [vehicleId, socket, hasLocationChangedSignificantly])
 
-  return { data: location, isLoading: loading, error }
+  // Return memoized data to prevent unnecessary re-renders
+  const result = useMemo(
+    () => ({
+      data: location,
+      isLoading: loading,
+      error,
+    }),
+    [location, loading, error]
+  )
+
+  return result
 }
 
 export default useTrackingSocket

@@ -41,7 +41,7 @@ const ActionButtons = ({
   const status = tripStatus.toLowerCase();
 
   switch (status) {
-    case TripStatus.PAYED:
+    case TripStatus.CONFIRMED:
       return (
         <TouchableOpacity style={styles.actionButton} onPress={onPickup} disabled={!isTracking}>
           <MaterialIcons name="person" size={20} color="#fff" />

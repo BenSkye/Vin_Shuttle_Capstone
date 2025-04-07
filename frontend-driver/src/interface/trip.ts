@@ -27,15 +27,17 @@ export interface Trip {
     name: string;
     licensePlate: string;
   };
+  isPrepaid?: boolean;
+  isPayed?: boolean;
   amount: number;
   status: string;
   statusHistory: object[];
   serviceType: string;
   servicePayload:
-    | BookingHourPayloadDto
-    | BookingScenicRoutePayloadDto
-    | BookingDestinationPayloadDto
-    | BookingSharePayloadDto;
+  | BookingHourPayloadDto
+  | BookingScenicRoutePayloadDto
+  | BookingDestinationPayloadDto
+  | BookingSharePayloadDto;
 }
 
 export interface BookingHourPayloadDto {

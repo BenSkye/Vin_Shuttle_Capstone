@@ -1,15 +1,22 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import dynamic from 'next/dynamic'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+
 import { Radio, Space, Typography } from 'antd'
+import dynamic from 'next/dynamic'
+
+import { PaymentMethod } from '@/constants/payment.enum'
+
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import SharedLocation from '@/views/Ride/components/sharedLocation'
 
-import { AvailableVehicle, BookingDestinationRequest, BookingResponse } from '@/interface/booking.interface'
+import {
+  AvailableVehicle,
+  BookingDestinationRequest,
+  BookingResponse,
+} from '@/interface/booking.interface'
 import { bookingDestination } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
-import { PaymentMethod } from '@/constants/payment.enum'
 
 // Dynamic import components outside the component to prevent reloading
 const { Title } = Typography
@@ -19,7 +26,9 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 //yessir
 
 const DestinationBookingPage = () => {
-  const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'payment' | 'checkout'>('location')
+  const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'payment' | 'checkout'>(
+    'location'
+  )
   const [passengerCount, setPassengerCount] = useState(1)
   const [startPoint, setStartPoint] = useState<{
     position: { lat: number; lng: number }
@@ -49,10 +58,9 @@ const DestinationBookingPage = () => {
   >([])
   const [error, setError] = useState<string | null>(null)
   // Set default values for estimated distance and duration
-  const [estimatedDistance, setEstimatedDistance] = useState<number>(2)
-  const [durationEstimate, setDurationEstimate] = useState<number>(5)
+  const [estimatedDistance, setEstimatedDistance] = useState<number>(0)
+  const [durationEstimate, setDurationEstimate] = useState<number>(0)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
-
 
   // Check if code is running in browser
   useEffect(() => {
@@ -63,48 +71,49 @@ const DestinationBookingPage = () => {
     setPaymentMethod(method)
   }, [])
 
-  const handleStartLocationChange = useCallback((
-    newPosition: { lat: number; lng: number },
-    newAddress: string
-  ) => {
-    setStartPoint({
-      position: newPosition,
-      address: newAddress,
-    })
-  }, [])
+  const handleStartLocationChange = useCallback(
+    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+      setStartPoint({
+        position: newPosition,
+        address: newAddress,
+      })
+    },
+    []
+  )
 
-  const handleEndLocationChange = useCallback((
-    newPosition: { lat: number; lng: number },
-    newAddress: string
-  ) => {
-    setEndPoint({
-      position: newPosition,
-      address: newAddress,
-    })
-  }, [])
+  const handleEndLocationChange = useCallback(
+    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+      setEndPoint({
+        position: newPosition,
+        address: newAddress,
+      })
+    },
+    []
+  )
+  //
 
-  const calculateDistance = useCallback(() => {
-    // Calculate distance in km between two points using Haversine formula
-    const R = 6371 // Radius of the Earth in km
-    const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
-    const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((startPoint.position.lat * Math.PI) / 180) *
-      Math.cos((endPoint.position.lat * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    const distance = R * c
+  // const calculateDistance = useCallback(() => {
+  //   // Calculate distance in km between two points using Haversine formula
+  //   const R = 6371 // Radius of the Earth in km
+  //   const dLat = ((endPoint.position.lat - startPoint.position.lat) * Math.PI) / 180
+  //   const dLon = ((endPoint.position.lng - startPoint.position.lng) * Math.PI) / 180
+  //   const a =
+  //     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+  //     Math.cos((startPoint.position.lat * Math.PI) / 180) *
+  //     Math.cos((endPoint.position.lat * Math.PI) / 180) *
+  //     Math.sin(dLon / 2) *
+  //     Math.sin(dLon / 2)
+  //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  //   const distance = R * c
 
-    // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
-    const duration = Math.ceil(distance * 2)
+  //   // Calculate estimated duration (rough estimate: 1 km = 2 minutes)
+  //   const duration = Math.ceil(distance * 2)
 
-    setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
-    setDurationEstimate(duration || 5)
+  //   setEstimatedDistance(parseFloat(distance.toFixed(2)) || 2)
+  //   setDurationEstimate(duration || 5)
 
-    return { distance, duration }
-  }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
+  //   return { distance, duration }
+  // }, [startPoint.position.lat, startPoint.position.lng, endPoint.position.lat, endPoint.position.lng])
 
   const detectUserLocation = useCallback(async () => {
     if (!isBrowser) return // Only run in browser
@@ -122,7 +131,7 @@ const DestinationBookingPage = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
+          maximumAge: 0,
         })
       })
 
@@ -174,21 +183,24 @@ const DestinationBookingPage = () => {
     }
   }
 
-  const handleVehicleSelection = useCallback((categoryId: string, quantity: number) => {
-    setSelectedVehicles((prev) => {
-      const existing = prev.find((v) => v.categoryVehicleId === categoryId)
-      const vehicleCategory = availableVehicles.find(v => v.vehicleCategory._id === categoryId)
-      const name = vehicleCategory ? vehicleCategory.vehicleCategory.name : ''
+  const handleVehicleSelection = useCallback(
+    (categoryId: string, quantity: number) => {
+      setSelectedVehicles((prev) => {
+        const existing = prev.find((v) => v.categoryVehicleId === categoryId)
+        const vehicleCategory = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
+        const name = vehicleCategory ? vehicleCategory.vehicleCategory.name : ''
 
-      if (existing) {
-        if (quantity === 0) {
-          return prev.filter((v) => v.categoryVehicleId !== categoryId)
+        if (existing) {
+          if (quantity === 0) {
+            return prev.filter((v) => v.categoryVehicleId !== categoryId)
+          }
+          return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
         }
-        return prev.map((v) => (v.categoryVehicleId === categoryId ? { ...v, quantity } : v))
-      }
-      return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity, name }] : prev
-    })
-  }, [availableVehicles])
+        return quantity > 0 ? [...prev, { categoryVehicleId: categoryId, quantity, name }] : prev
+      })
+    },
+    [availableVehicles]
+  )
 
   const fetchAvailableVehicles = useCallback(async () => {
     setLoading(true)
@@ -196,7 +208,7 @@ const DestinationBookingPage = () => {
 
     try {
       // Use calculateDistance to update estimatedDistance and estimatedDuration
-      calculateDistance()
+      // calculateDistance()
 
       if (!startPoint.address || !endPoint.address) {
         setError('Vui lòng chọn địa điểm đón và trả khách')
@@ -205,16 +217,16 @@ const DestinationBookingPage = () => {
       }
 
       console.log('Calling vehicleSearchDestination with params:', {
-        estimatedDuration: durationEstimate || 5,
-        estimatedDistance: estimatedDistance || 2,
+        estimatedDuration: durationEstimate,
+        estimatedDistance: estimatedDistance,
         endPoint: endPoint.position,
         startPoint: startPoint.position,
       })
 
       // Call API to get available vehicles using vehicleSearchDestination
       const vehicles = await vehicleSearchDestination(
-        durationEstimate || 5, // Use default value if not available
-        estimatedDistance || 2, // Use default value if not available
+        durationEstimate, // Use default value if not available
+        estimatedDistance, // Use default value if not available
         endPoint.position,
         startPoint.position
       )
@@ -230,7 +242,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [startPoint, endPoint, durationEstimate, estimatedDistance, calculateDistance])
+  }, [startPoint, endPoint, durationEstimate, estimatedDistance])
 
   const handleConfirmBooking = useCallback(async () => {
     if (selectedVehicles.length === 0) {
@@ -250,16 +262,20 @@ const DestinationBookingPage = () => {
         distanceEstimate: estimatedDistance,
         vehicleCategories: {
           categoryVehicleId: selectedVehicles[0].categoryVehicleId,
-          name: selectedVehicles[0].name
+          name: selectedVehicles[0].name,
         },
-        paymentMethod: 'pay_os',
+        paymentMethod: paymentMethod,
       }
 
       console.log('Calling bookingDestination with payload:', payload)
 
       const response = await bookingDestination(payload)
       console.log('bookingDestination response:', response)
-
+      if (response.newBooking.paymentMethod === PaymentMethod.CASH) {
+        //redirect to trips page
+        message.success('Đặt xe thành công!')
+        window.location.href = '/trips'
+      }
       setBookingResponse(response)
       setCurrentStep('checkout')
     } catch (error) {
@@ -268,7 +284,7 @@ const DestinationBookingPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance])
+  }, [selectedVehicles, startPoint, endPoint, durationEstimate, estimatedDistance, paymentMethod])
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {
@@ -278,15 +294,21 @@ const DestinationBookingPage = () => {
     } else if (currentStep === 'payment') {
       handleConfirmBooking()
     }
-  }, [currentStep, startPoint.address, endPoint.address, selectedVehicles.length, fetchAvailableVehicles, handleConfirmBooking])
+  }, [
+    currentStep,
+    startPoint.address,
+    endPoint.address,
+    selectedVehicles.length,
+    fetchAvailableVehicles,
+    handleConfirmBooking,
+  ])
 
   const handleBackStep = useCallback(() => {
     if (currentStep === 'vehicle') {
       setCurrentStep('location')
     } else if (currentStep === 'payment') {
       setCurrentStep('vehicle')
-    }
-    else if (currentStep === 'checkout') {
+    } else if (currentStep === 'checkout') {
       setCurrentStep('payment')
     }
   }, [currentStep])
@@ -306,13 +328,15 @@ const DestinationBookingPage = () => {
                 detectUserLocation={detectUserLocation}
                 numberOfSeats={passengerCount}
                 onNumberOfSeatsChange={setPassengerCount}
+                setEstimateDistance={setEstimatedDistance}
+                setEstimateDuration={setDurationEstimate}
               />
             )}
             <div className="flex justify-end">
               <button
                 onClick={handleNextStep}
                 disabled={!startPoint.address || !endPoint.address || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
                 aria-label="Tìm xe"
                 tabIndex={0}
               >
@@ -334,7 +358,7 @@ const DestinationBookingPage = () => {
             <div className="flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại trang chọn địa điểm"
                 tabIndex={0}
               >
@@ -343,7 +367,7 @@ const DestinationBookingPage = () => {
               <button
                 onClick={handleNextStep}
                 disabled={selectedVehicles.length === 0 || loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white disabled:bg-gray-300 hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
@@ -359,36 +383,36 @@ const DestinationBookingPage = () => {
               Chọn phương thức thanh toán
             </Title> */}
             <Radio.Group
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethod)}
               value={paymentMethod}
               className="w-full"
             >
               <Space direction="vertical" className="w-full">
-                <Radio value="pay_os" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.PAY_OS} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="h-8 mr-3" />
+                    <img src="/images/payos-logo.png" alt="PayOS" className="mr-3 h-8" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
-                <Radio value="momo" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.MOMO} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="h-8 mr-3" />
+                    <img src="/images/momo-logo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-                <Radio value="cash" className="w-full p-4 border rounded-lg">
+                <Radio value={PaymentMethod.CASH} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/cash-logo.png" alt="Cash" className="h-8 mr-3" />
+                    <img src="/images/cash-logo.png" alt="Cash" className="mr-3 h-8" />
                     <span>Thanh toán tiền mặt</span>
                   </div>
                 </Radio>
               </Space>
             </Radio.Group>
 
-            <div className="flex justify-between mt-6">
+            <div className="mt-6 flex justify-between">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại chọn địa điểm"
                 tabIndex={0}
               >
@@ -396,7 +420,7 @@ const DestinationBookingPage = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 transition-colors"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
                 aria-label="Xác nhận thanh toán"
                 tabIndex={0}
               >
@@ -408,13 +432,11 @@ const DestinationBookingPage = () => {
       case 'checkout':
         return (
           <div className="space-y-6">
-            {bookingResponse && (
-              <CheckoutPage bookingResponse={bookingResponse} />
-            )}
+            {bookingResponse && <CheckoutPage bookingResponse={bookingResponse} />}
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white hover:bg-gray-600 transition-colors"
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại chọn xe"
                 tabIndex={0}
               >
@@ -446,7 +468,9 @@ const DestinationBookingPage = () => {
 
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <div className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -456,7 +480,9 @@ const DestinationBookingPage = () => {
             <span>Chọn địa điểm</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -466,7 +492,9 @@ const DestinationBookingPage = () => {
             <span>Chọn xe</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -476,7 +504,9 @@ const DestinationBookingPage = () => {
             <span>Phương thức thanh toán</span>
           </div>
 
-          <div className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}>
+          <div
+            className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
@@ -489,7 +519,11 @@ const DestinationBookingPage = () => {
       </div>
 
       {error && (
-        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700" role="alert" aria-live="assertive">
+        <div
+          className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+          role="alert"
+          aria-live="assertive"
+        >
           {error}
         </div>
       )}

@@ -1,0 +1,12 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.vin.shuttle",
+            "sha256_cert_fingerprints": [
+                "0D:61:2E:9A:00:8F:8F:A6:CB:DC:F1:27:11:08:53:CA:63:FD:B2:40:D4:9B:03:84:A6:66:87:EF:CE:4B:DC:FC"
+            ]
+        }
+    }
+]

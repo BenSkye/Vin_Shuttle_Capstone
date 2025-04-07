@@ -156,9 +156,9 @@ export default function TripHistoryPage() {
         color = "blue";
         text = "Đặt xe";
         break;
-      case "payed":
+      case "confirmed":
         color = "purple";
-        text = "Đã thanh toán";
+        text = "Đã xác  nhận";
         break;
       case "pickup":
         color = "orange";
@@ -264,7 +264,7 @@ export default function TripHistoryPage() {
       render: renderStatus,
       filters: [
         { text: "Đặt xe", value: "booking" },
-        { text: "Đã thanh toán", value: "payed" },
+        { text: "Đã xác  nhận", value: "confirmed" },
         { text: "Đón khách", value: "pickup" },
         { text: "Đang di chuyển", value: "in_progress" },
         { text: "Hoàn thành", value: "completed" },
@@ -370,7 +370,7 @@ export default function TripHistoryPage() {
                   onChange={handleStatusChange}
                 >
                   <Option value="booking">Đặt xe</Option>
-                  <Option value="payed">Đã thanh toán</Option>
+                  <Option value="confirmed">Đã xác  nhận</Option>
                   <Option value="pickup">Đón khách</Option>
                   <Option value="in_progress">Đang di chuyển</Option>
                   <Option value="completed">Hoàn thành</Option>

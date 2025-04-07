@@ -80,13 +80,19 @@ export class SharedItineraryGateway implements OnGatewayInit, OnGatewayConnectio
         console.log(`Client disconnected: ${client.id}`);
     }
 
-    async emitUpdatedSharedItineraryDetail(userId: string, sharedItineraryId: string, sharedItinerary: any) {
+    async emitUpdatedSharedItineraryDetail(userId: string, sharedItineraryId: string, sharedItinerary: any, message: string, isTripInItineraryCancel?: boolean) {
         const socketIds = await SocketUtils.getSocketIds(
             this.redisService,
             SOCKET_NAMESPACE.SHARE_ITINERARY,
             userId,
         );
-        await SocketUtils.safeEmit(this.server, socketIds, `updated_shared_itinerary_${sharedItineraryId}`, sharedItinerary,
+        const data = {
+            message: message,
+            sharedItinerary: sharedItinerary,
+            isTripInItineraryCancel: isTripInItineraryCancel || false
+        }
+        console.log('data93', data);
+        await SocketUtils.safeEmit(this.server, socketIds, `updated_shared_itinerary_${sharedItineraryId}`, data,
             {
                 debug: true,
             }

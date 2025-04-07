@@ -10,6 +10,8 @@ import { SharedItinerary } from '~/interface/share-itinerary';
 
 const useSharedItinerarySocket = (id: string) => {
     const [sharedItineraryDetail, setSharedItineraryDetail] = useState<SharedItinerary | null>(null);
+    const [updateItineraryMessage, setUpdateItineraryMessage] = useState<string | null>(null);
+    const [isTripInItineraryCancel, setIsTripInItineraryCancel] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     const [resetSignal, setResetSignal] = useState(0);
@@ -50,9 +52,11 @@ const useSharedItinerarySocket = (id: string) => {
 
                 if (id) {
                     const eventKey = `updated_shared_itinerary_${id}`
-                    socketInstance.on(eventKey, (updatedSharedItinerary: SharedItinerary) => {
-                        console.log('updatedTrip', updatedSharedItinerary);
-                        setSharedItineraryDetail(updatedSharedItinerary)
+                    socketInstance.on(eventKey, (data: { sharedItinerary: SharedItinerary, message: string, isTripInItineraryCancel: boolean }) => {
+                        console.log('updatedTrip', data.sharedItinerary);
+                        setSharedItineraryDetail(data.sharedItinerary)
+                        setUpdateItineraryMessage(data.message);
+                        setIsTripInItineraryCancel(data.isTripInItineraryCancel);
                     })
                 }
 
@@ -75,7 +79,7 @@ const useSharedItinerarySocket = (id: string) => {
     }, [isLogin, id, resetSignal]);
     const resetHook = () => setResetSignal(prev => prev + 1);
 
-    return { data: id ? sharedItineraryDetail : null, isLoading: loading, error, resetHook };
+    return { data: id ? sharedItineraryDetail : null, updateItineraryMessage, isTripInItineraryCancel, isLoading: loading, error, resetHook };
 };
 
 export default useSharedItinerarySocket;

@@ -1,7 +1,11 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
+
+import dynamic from 'next/dynamic'
+
 import { ServiceType } from '@/constants/service-type.enum'
+
 import { BookingResponse } from '@/interface/booking.interface'
 import {
   BookingDestinationPayloadDto,
@@ -11,6 +15,11 @@ import {
   Trip,
 } from '@/interface/trip.interface'
 import { getPersonalTripById } from '@/service/trip.service'
+
+// Dynamic import for ScenicRouteMiniMap
+const ScenicRouteMiniMap = dynamic(() => import('@/views/Trips/components/ScenicRouteMiniMap'), {
+  ssr: false,
+})
 
 const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse }) => {
   const [booking, setBooking] = useState<BookingResponse['newBooking'] | null>(null)
@@ -43,12 +52,12 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         // Kiểm tra nguồn gốc để đảm bảo bảo mật
         if (event.origin === window.location.origin) {
           if (event.data === 'PAYMENT_SUCCESS') {
-            setShowPaymentDialog(false);
-            const returnUrl = '/trips';
-            setTimeout(() => window.location.href = returnUrl, 200);
+            setShowPaymentDialog(false)
+            const returnUrl = '/trips'
+            setTimeout(() => (window.location.href = returnUrl), 200)
           }
         }
-      };
+      }
 
       if (typeof window !== 'undefined') {
         window.addEventListener('message', handleMessage)
@@ -106,10 +115,12 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         return (
           <div className="mb-4 rounded-lg border p-4">
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Thời gian:</span> {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
+              <span className="font-semibold">Thời gian:</span>{' '}
+              {(trip.servicePayload as BookingHourPayloadDto).bookingHour.totalTime} phút
             </p>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Điểm đón:</span> {(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}
+              <span className="font-semibold">Điểm đón:</span>{' '}
+              {(trip.servicePayload as BookingHourPayloadDto).bookingHour.startPoint.address}
             </p>
           </div>
         )
@@ -118,14 +129,33 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
           <div className="mb-4 rounded-lg border p-4">
             <h3 className="mb-2 text-lg font-semibold">Tour tham quan</h3>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Tuyến đường:</span> {(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId}
+              <span className="font-semibold">Tuyến đường:</span>{' '}
+              {(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId}
             </p>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Khoảng cách:</span> {
+              <span className="font-semibold">Khoảng cách:</span>{' '}
+              {
                 (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
                   .distanceEstimate
-              } km
+              }{' '}
+              km
             </p>
+
+            {/* Add map display for the scenic route */}
+            <div className="mt-3">
+              <ScenicRouteMiniMap
+                pickupLocation={[
+                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
+                    .startPoint.position.lat,
+                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
+                    .startPoint.position.lng,
+                ]}
+                routeId={
+                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+                }
+                height="h-48"
+              />
+            </div>
           </div>
         )
       case ServiceType.BOOKING_DESTINATION:
@@ -133,13 +163,15 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
           <div className="mb-4 rounded-lg border p-4">
             <h3 className="mb-2 text-lg font-semibold">Điểm đến cố định</h3>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Điểm đón:</span> {
+              <span className="font-semibold">Điểm đón:</span>{' '}
+              {
                 (trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.startPoint
                   .address
               }
             </p>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Điểm đến:</span> {
+              <span className="font-semibold">Điểm đến:</span>{' '}
+              {
                 (trip.servicePayload as BookingDestinationPayloadDto).bookingDestination.endPoint
                   .address
               }
@@ -151,10 +183,12 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
           <div className="mb-4 rounded-lg border p-4">
             <h3 className="mb-2 text-lg font-semibold">Đi chung xe</h3>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Số chỗ:</span> {(trip.servicePayload as BookingSharePayloadDto).bookingShare.numberOfSeat}
+              <span className="font-semibold">Số chỗ:</span>{' '}
+              {(trip.servicePayload as BookingSharePayloadDto).bookingShare.numberOfSeat}
             </p>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Điểm đến:</span> {(trip.servicePayload as BookingSharePayloadDto).bookingShare.endPoint.address}
+              <span className="font-semibold">Điểm đến:</span>{' '}
+              {(trip.servicePayload as BookingSharePayloadDto).bookingShare.endPoint.address}
             </p>
           </div>
         )
@@ -168,15 +202,15 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
   if (!booking) return <div className="py-8 text-center">Không tìm thấy thông tin đơn hàng</div>
 
   return (
-    <div className="flex flex-col lg:flex-row max-w-full justify-center p-4 gap-6">
+    <div className="flex max-w-full flex-col justify-center gap-6 p-4 lg:flex-row">
       {/* Booking Details Section */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 rounded-lg bg-white p-4 md:p-6 shadow-md">
-        <h2 className="mb-4 md:mb-6 text-xl md:text-2xl font-semibold text-center">
+      <div className="w-full rounded-lg bg-white p-4 shadow-md md:p-6 lg:w-1/2 xl:w-2/5">
+        <h2 className="mb-4 text-center text-xl font-semibold md:mb-6 md:text-2xl">
           Chi tiết đơn hàng #{booking.bookingCode}
         </h2>
 
-        <div className="mb-4 md:mb-6 rounded-lg border p-3 md:p-4">
-          <h4 className="mb-2 md:mb-4 text-base md:text-lg font-semibold">Thông tin thanh toán</h4>
+        <div className="mb-4 rounded-lg border p-3 md:mb-6 md:p-4">
+          <h4 className="mb-2 text-base font-semibold md:mb-4 md:text-lg">Thông tin thanh toán</h4>
           <div className="space-y-2">
             <p className="text-sm md:text-base">
               <span className="font-semibold">Phương thức:</span>{' '}
@@ -197,18 +231,16 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         </div>
 
         <div className="mb-4 md:mb-6">
-          <h4 className="mb-2 md:mb-4 text-base md:text-lg font-semibold">Chi tiết các chuyến đi</h4>
+          <h4 className="mb-2 text-base font-semibold md:mb-4 md:text-lg">
+            Chi tiết các chuyến đi
+          </h4>
           <div className="space-y-3">
-            {trips?.map((trip) => (
-              <div key={trip._id}>
-                {renderTripDetails(trip)}
-              </div>
-            ))}
+            {trips?.map((trip) => <div key={trip._id}>{renderTripDetails(trip)}</div>)}
           </div>
         </div>
 
         <div className="flex flex-col items-center rounded-lg bg-blue-50 p-3 md:p-4">
-          <h3 className="text-lg md:text-xl font-bold text-blue-600">
+          <h3 className="text-lg font-bold text-blue-600 md:text-xl">
             Tổng tiền: {booking.totalAmount.toLocaleString('vi-VN')} VND
           </h3>
         </div>
@@ -219,7 +251,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         <div className={`w-full ${isMobile ? 'order-first' : 'lg:w-1/2 xl:w-3/5'}`}>
           <div className="sticky top-4">
             {showPaymentDialog && (
-              <div className="relative min-h-[500px] rounded-lg border overflow-hidden">
+              <div className="relative min-h-[500px] overflow-hidden rounded-lg border">
                 {iframeLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-blue-500"></div>

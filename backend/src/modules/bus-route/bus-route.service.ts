@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { IBusRouteService, IBusRouteRepository, ICreateBusRouteData } from './bus-route.port';
 import { BusRouteDocument } from './bus-route.schema';
 import { CreateBusRouteDto, RouteStopDto, UpdateBusRouteDto } from './bus-route.dto';
@@ -10,6 +10,7 @@ import { IPricingService } from '../pricing/pricing.port';
 import { VEHICLE_CATEGORY_SERVICE } from '../vehicle-categories/vehicle-category.di-token';
 import { IVehicleCategoryService } from '../vehicle-categories/vehicle-category.port';
 import { ServiceType } from 'src/share/enums';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class BusRouteService implements IBusRouteService {
@@ -129,24 +130,72 @@ export class BusRouteService implements IBusRouteService {
   ): Promise<number> {
     const route = await this.getRouteById(routeId);
 
-    const fromStop = route.stops.find(s => s.stopId.toString() === fromStopId);
-    const toStop = route.stops.find(s => s.stopId.toString() === toStopId);
+    console.log('====================================');
+    console.log('route', route);
+    console.log('====================================');
+
+    const fromStop = route.stops.find(s => {
+      const stopId = s.stopId instanceof Types.ObjectId ? s.stopId.toString() : s.stopId;
+      return stopId === fromStopId;
+    });
+
+    const toStop = route.stops.find(s => {
+      const stopId = s.stopId instanceof Types.ObjectId ? s.stopId.toString() : s.stopId;
+      return stopId === toStopId;
+    });
+
+    console.log('====================================');
+    console.log('fromStop', fromStop);
+    console.log('====================================');
+
+    console.log('====================================');
+    console.log('toStop', toStop);
+    console.log('====================================');
 
     if (!fromStop || !toStop) {
-      throw new NotFoundException('Invalid bus stops');
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid bus stops',
+          vnMessage: 'BusRoute: Trạm dừng không hợp lệ',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    // calculate distance between two stops
+    // Tính khoảng cách giữa hai điểm dừng
     const distance = Math.abs(toStop.distanceFromStart - fromStop.distanceFromStart);
 
-    // use pricing service to calculate price
+    // Lấy pricing config của tuyến xe buýt
+    const busServiceConfig = await this.pricingService.getServiceConfig(ServiceType.BOOKING_BUS_ROUTE);
+    if (!busServiceConfig) {
+      throw new BadRequestException({
+        message: 'Bus route service config not found',
+        vnMessage: 'Không tìm thấy cấu hình dịch vụ xe buýt',
+      });
+    }
+
+    // Lấy pricing config của loại xe được gán cho tuyến
+    const pricing = await this.pricingService.findVehiclePricing({
+      vehicle_category: route.vehicleCategory,
+      service_config: busServiceConfig._id,
+    });
+
+    if (!pricing) {
+      throw new BadRequestException({
+        message: 'Vehicle category does not have pricing configuration for bus route service',
+        vnMessage: 'Loại phương tiện chưa được cấu hình giá cho dịch vụ xe buýt',
+      });
+    }
+
+    // Tính giá vé dựa trên khoảng cách và pricing config
     const fare = await this.pricingService.calculatePrice(
-      'booking_trip', // service_type for bus route
+      ServiceType.BOOKING_BUS_ROUTE,
       route.vehicleCategory.toString(),
-      distance, // total_units is distance
+      distance,
     );
 
-    // multiply by number of seats
+    // Nhân với số lượng ghế
     return fare * numberOfSeats;
   }
 }

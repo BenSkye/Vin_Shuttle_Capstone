@@ -4,8 +4,11 @@ import { BOOKING_REPOSITORY, BOOKING_SERVICE } from 'src/modules/booking/booking
 import { IBookingRepository, IBookingService } from 'src/modules/booking/booking.port';
 import { BookingDocument } from 'src/modules/booking/booking.schema';
 import { ICheckoutService } from 'src/modules/checkout/checkout.port';
+import { TRIP_REPOSITORY, TRIP_SERVICE } from 'src/modules/trip/trip.di-token';
+import { ITripRepository, ITripService } from 'src/modules/trip/trip.port';
 import { MOMO_PROVIDER, PAYOS_PROVIDER } from 'src/share/di-token';
 import { IMomoService, IPayosService } from 'src/share/share.port';
+
 
 @Injectable()
 export class CheckoutService implements ICheckoutService {
@@ -18,6 +21,8 @@ export class CheckoutService implements ICheckoutService {
     private readonly payosService: IPayosService,
     @Inject(MOMO_PROVIDER)
     private readonly momoService: IMomoService, // Replace with actual type if available
+    @Inject(TRIP_SERVICE)
+    private readonly tripService: ITripService,
   ) { }
 
   async CheckoutBooking(bookingId: string): Promise<CheckoutResponseDataType> {
@@ -90,7 +95,6 @@ export class CheckoutService implements ICheckoutService {
     return paymentResult;
   }
 
-
   async momoCalbackReturn(reqBody: any): Promise<boolean> {
     console.log('reqBody94', reqBody);
     if (reqBody.resultCode === 0) {
@@ -106,5 +110,18 @@ export class CheckoutService implements ICheckoutService {
     }
   }
 
-
+  async momoTransferTripCalbackReturn(reqBody: any): Promise<boolean> {
+    console.log('reqBody', reqBody);
+    if (reqBody.resultCode === 0) {
+      const extraData = Buffer.from(reqBody.extraData, 'base64').toString('utf-8');
+      const tripIds = JSON.parse(extraData).tripIds;
+      const updatedTrips = await this.tripService.transferTripAmountSuccess(
+        tripIds
+      );
+      console.log('updatedTrips', updatedTrips);
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

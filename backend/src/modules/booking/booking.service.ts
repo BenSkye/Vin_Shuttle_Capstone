@@ -418,7 +418,7 @@ export class BookingService implements IBookingService {
     async bookingDestination(
         customerId: string,
         data: IBookingDestinationBody
-    ): Promise<{ newBooking: BookingDocument, paymentUrl: string }> {
+    ): Promise<{ newBooking: BookingDocument, paymentUrl?: string }> {
         const {
             startPoint,
             endPoint,
@@ -505,8 +505,7 @@ export class BookingService implements IBookingService {
             const vehicleCategory = availableVehicles.find(
                 v => v.vehicleCategory._id.toString() === vehicle.categoryId.toString()
             );
-
-            const TripDto = {
+            let TripDto = {
                 customerId,
                 driverId: driverSchedule.driver._id.toString(),
                 timeStartEstimate: bookingStartTime.toDate(),
@@ -515,6 +514,8 @@ export class BookingService implements IBookingService {
                 scheduleId: driverSchedule._id.toString(),
                 serviceType: ServiceType.BOOKING_DESTINATION,
                 amount: vehicleCategory.price,
+                isPrepaid: true,
+                isPayed: true,
                 servicePayload: {
                     bookingDestination: {
                         startPoint: {
@@ -530,6 +531,14 @@ export class BookingService implements IBookingService {
                     }
                 }
             };
+            if (paymentMethod === PaymentMethod.CASH) {
+                TripDto = {
+                    ...TripDto,
+                    isPrepaid: false,
+                    isPayed: false
+                }
+            }
+
 
             const newTrip = await this.tripService.createTrip(TripDto);
             ListTrip.push(newTrip._id);
@@ -552,6 +561,14 @@ export class BookingService implements IBookingService {
                 message: 'fail to create booking',
                 vnMessage: 'Lỗi tạo booking',
             }, HttpStatus.BAD_REQUEST);
+        }
+        if (paymentMethod === PaymentMethod.CASH) {
+            // xác nhận booking và trips
+            const updatedBooking = await this.payBookingSuccess(newBooking.bookingCode)
+            return {
+                newBooking: updatedBooking,
+                paymentUrl: null
+            }
         }
         let paymentResult;
         if (paymentMethod === PaymentMethod.PAY_OS) {
@@ -849,7 +866,7 @@ export class BookingService implements IBookingService {
         for (const tripId of listTripId) {
             const tripUpdate = await this.tripRepository.updateStatus(
                 tripId.toString(),
-                TripStatus.PAYED
+                TripStatus.CONFIRMED
             )
             if (!tripUpdate) {
                 throw new HttpException({
@@ -871,17 +888,19 @@ export class BookingService implements IBookingService {
                     console.log('updatedSharedItinerary871', updatedSharedItinerary)
                 } else if (sharedItinerary.status === SharedItineraryStatus.PLANNED) {
                     const updatedSharedItinerary = await this.sharedItineraryService.saveASharedItineraryFromRedisToDBByTripID(tripId.toString())
+                    const message = "Cuốc xe mới được ghép"
                     await this.sharedItineraryGateway.emitUpdatedSharedItineraryDetail(
                         tripUpdate.driverId.toString(),
                         updatedSharedItinerary._id.toString(),
-                        updatedSharedItinerary
+                        updatedSharedItinerary,
+                        message
                     )
                 }
             }
             const notificationForCustomer = {
                 received: tripUpdate.customerId.toString(),
-                title: `Cuốc xe ${tripUpdate._id.toString()} đã thanh toán`,
-                body: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)} của bạn đã được thanh toán thành công`,
+                title: `Cuốc xe ${tripUpdate._id.toString()} đã được xác nhận`,
+                body: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)} của bạn đã được xác nhận thành công`,
             }
             const notificationForDriver = {
                 received: tripUpdate.driverId.toString(),

@@ -56,6 +56,9 @@ const TripTrackingScreen = () => {
   const navigation = useNavigation();
   const { location, isTracking } = useLocation();
 
+  // Add state for bottom card collapse
+  const [isBottomCardCollapsed, setIsBottomCardCollapsed] = useState(false);
+
   // States
   const [customerPickupLocation, setCustomerPickupLocation] = useState<Position>({
     lat: 0,
@@ -85,7 +88,9 @@ const TripTrackingScreen = () => {
 
   const {
     data: sharedItineraryDetail,
+    updateItineraryMessage: updateItineraryMessage,
     isLoading: sharedItineraryLoading,
+    isTripInItineraryCancel: isTripInItineraryCancel,
     error: sharedItineraryError,
     resetHook
   } = useSharedItinerarySocket(
@@ -97,7 +102,18 @@ const TripTrackingScreen = () => {
   React.useEffect(() => {
     const handleFetchTrip = async () => {
       await initializeLocationData();
+
+      // Kiểm tra trip bị hủy ngay sau khi khởi tạo
+      if (trip?.status === TripStatus.CANCELLED) {
+        Alert.alert(
+          'Thông báo',
+          'Khách hàng đã hủy chuyến đi',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+        return; // Dừng xử lý tiếp nếu trip đã hủy
+      }
     }
+
     if (trip) {
       handleFetchTrip();
     }
@@ -113,7 +129,18 @@ const TripTrackingScreen = () => {
   useEffect(() => {
     if (sharedItineraryDetail) {
       console.log('sharedItineraryDetail', sharedItineraryDetail);
-      setSharedItinerary(sharedItineraryDetail as SharedItinerary); // Set the shared itinerary data
+      setSharedItinerary(sharedItineraryDetail as SharedItinerary);
+      console.log('updateItineraryMessage129', updateItineraryMessage)
+      if (updateItineraryMessage) {
+        Alert.alert(
+          'Thông báo',
+          updateItineraryMessage,
+          [{ text: 'OK' }]
+        );
+      }
+      if (isTripInItineraryCancel) {
+        setTripId(sharedItineraryDetail.stops[0].trip);
+      }
     }
   }, [sharedItineraryDetail]);
 
@@ -162,10 +189,12 @@ const TripTrackingScreen = () => {
         setWaypoints(payload.bookingScenicRoute.routeId.waypoints || []);
         setShowScenicRoute(true);
       } else if (isInProgress && payload.bookingScenicRoute.routeId) {
-        fetchScenicRouteData(
-          payload.bookingScenicRoute.routeId._id ||
-          (payload.bookingScenicRoute.routeId as unknown as string)
-        );
+        // If routeId is just a string, use it directly
+        const routeId = typeof payload.bookingScenicRoute.routeId === 'string'
+          ? payload.bookingScenicRoute.routeId
+          : (payload.bookingScenicRoute.routeId as ScenicRouteDto)._id || '';
+
+        fetchScenicRouteData(routeId);
       }
     } else if (trip.serviceType === ServiceType.BOOKING_SHARE) {
       setIsShareItinerary(true);
@@ -192,18 +221,8 @@ const TripTrackingScreen = () => {
     }
   };
 
-  // const fetchSharedItineraryData = async (tripId: string) => {
-  //   try {
-  //     const itinerary = await getShareRouteByTripId(tripId); // Replace with actual API call
-  //     if (itinerary) {
-  //       console.log("itinerary160", itinerary)
-  //       setSharedItinerary(itinerary as SharedItinerary); // Set the shared itinerary data
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching shared itinerary data:', error);
-  //     Alert.alert('Lỗi', 'Không thể tải dữ liệu lịch trình chia sẻ');
-  //   }
-  // }
+
+
   // Event handlers
   const handleBack = () => navigation.goBack();
 
@@ -347,21 +366,37 @@ const TripTrackingScreen = () => {
     }
   };
 
+
   const handleCompleteTrip = async () => {
     if (!trip?._id) {
       Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
       return;
     }
 
+    // Kiểm tra trạng thái thanh toán
+    if (!trip?.isPrepaid && !trip?.isPayed) {
+      const userConfirmed = await new Promise((resolve) => {
+        Alert.alert(
+          'Xác Nhận',
+          'Chuyến đi này chưa được thanh toán. Bạn đã thu tiền khách?',
+          [
+            { text: 'Không', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Xác Nhận', onPress: () => resolve(true) },
+          ]
+        );
+      });
+
+      if (!userConfirmed) return;
+    }
+
+    // Xử lý hoàn thành chuyến đi chung
     try {
       setLoading(true);
       const updatedTrip = await completeTrip(trip._id);
       setTrip(updatedTrip);
 
       Alert.alert('Thành công', 'Đã hoàn thành chuyến đi');
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1500);
+      setTimeout(() => navigation.goBack(), 1500);
     } catch (error) {
       console.error('Complete trip error:', error);
       Alert.alert('Lỗi', 'Không thể hoàn thành chuyến đi');
@@ -409,6 +444,11 @@ const TripTrackingScreen = () => {
     setIsScenicRouteCollapsed(!isScenicRouteCollapsed);
   };
 
+  // Add handler for toggling bottom card
+  const toggleBottomCard = () => {
+    setIsBottomCardCollapsed(!isBottomCardCollapsed);
+  };
+
   if (isLoading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -453,10 +493,11 @@ const TripTrackingScreen = () => {
         onStopPress={(stop: sharedItineraryStop) => {
           setTripId(stop.trip);
         }}
+        tripStopSelected={trip?._id || ''}
       />
 
       {/* Header */}
-      <TripHeader tripStatus={trip?.status || ''} onBack={handleBack} />
+      <TripHeader tripStatus={trip?.status as TripStatus} onBack={handleBack} />
 
       {/* Timer manager (non-visual component) */}
       {trip?.serviceType === ServiceType.BOOKING_HOUR && timerActive && (
@@ -469,89 +510,105 @@ const TripTrackingScreen = () => {
       )}
 
       {/* Bottom info card */}
+      <View style={[styles.bottomCard, isBottomCardCollapsed && styles.collapsedBottomCard]}>
+        {/* Hide/Show button */}
+        <TouchableOpacity style={styles.hideButton} onPress={toggleBottomCard}>
+          <Ionicons
+            name={isBottomCardCollapsed ? "chevron-up" : "chevron-down"}
+            size={24}
+            color="#555"
+          />
+        </TouchableOpacity>
 
-      <View style={styles.bottomCard}>
-        {/* Tracking status warning */}
-        <TrackingStatusWarning isTracking={isTracking} />
+        {isBottomCardCollapsed ? (
+          <Text style={{ textAlign: 'center', color: '#666', fontWeight: '500' }}>
+            {trip?.serviceType === ServiceType.BOOKING_HOUR && timerActive ? formatRemainingTime() : 'Đang trong chuyến'}
+          </Text>
+        ) : (
+          <>
+            {/* Tracking status warning */}
+            <TrackingStatusWarning isTracking={isTracking} />
 
-        {/* Trip type information */}
-        <TripTypeInfo serviceType={trip?.serviceType || ''} />
+            {/* Trip type information */}
+            <TripTypeInfo serviceType={trip?.serviceType || ''} />
 
-        {/* Customer Info Card */}
-        <CustomerInfoCard
-          trip={trip}
-          isCollapsed={isCustomerInfoCollapsed}
-          onToggleCollapse={toggleCustomerCollapse}
-          onViewMorePress={toggleCustomerInfo}
-        />
+            {/* Customer Info Card */}
+            <CustomerInfoCard
+              trip={trip}
+              isCollapsed={isCustomerInfoCollapsed}
+              onToggleCollapse={toggleCustomerCollapse}
+              onViewMorePress={toggleCustomerInfo}
+            />
 
-        {/* Show scenic route information */}
-        {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
-          <View style={styles.scenicRouteInfo}>
-            <TouchableOpacity
-              style={styles.scenicRouteHeader}
-              onPress={toggleScenicRouteCollapse}>
-              <Text style={styles.scenicRouteTitle}>
-                Tuyến đường cố định: {scenicRouteData.name}
-              </Text>
-              <Ionicons
-                name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
-                size={24}
-                color="#9C27B0"
-              />
-            </TouchableOpacity>
-
-            {!isScenicRouteCollapsed && (
-              <View style={styles.scenicRouteContent}>
-                <Text style={styles.scenicRouteDescription}>{scenicRouteData.description}</Text>
-                <Text style={styles.scenicRouteStats}>
-                  Dự kiến: {scenicRouteData.totalDistance}km -{' '}
-                  {Math.round(scenicRouteData.estimatedDuration / 60)} phút
-                </Text>
-                {waypoints.length > 0 && (
-                  <Text style={styles.waypointText}>
-                    Điểm tham quan: {waypoints.map((wp) => wp.name).join(', ')}
+            {/* Show scenic route information */}
+            {trip?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE && scenicRouteData && (
+              <View style={styles.scenicRouteInfo}>
+                <TouchableOpacity
+                  style={styles.scenicRouteHeader}
+                  onPress={toggleScenicRouteCollapse}>
+                  <Text style={styles.scenicRouteTitle}>
+                    Tuyến đường cố định: {scenicRouteData.name}
                   </Text>
+                  <Ionicons
+                    name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
+                    size={24}
+                    color="#9C27B0"
+                  />
+                </TouchableOpacity>
+
+                {!isScenicRouteCollapsed && (
+                  <View style={styles.scenicRouteContent}>
+                    <Text style={styles.scenicRouteDescription}>{scenicRouteData.description}</Text>
+                    <Text style={styles.scenicRouteStats}>
+                      Dự kiến: {scenicRouteData.totalDistance}km -{' '}
+                      {Math.round(scenicRouteData.estimatedDuration / 60)} phút
+                    </Text>
+                    {waypoints.length > 0 && (
+                      <Text style={styles.waypointText}>
+                        Điểm tham quan: {waypoints.map((wp) => wp.name).join(', ')}
+                      </Text>
+                    )}
+                  </View>
                 )}
               </View>
             )}
-          </View>
+
+            {/* Destination information */}
+            {trip?.serviceType !== ServiceType.BOOKING_SCENIC_ROUTE && (
+              <DestinationInfo
+                serviceType={trip?.serviceType || ''}
+                servicePayload={trip?.servicePayload}
+                showDestination={showDestination}
+                routeToDestination={routeToDestination}
+                onToggleRouteDestination={toggleRouteDestination}
+              />
+            )}
+
+            {/* Proximity information */}
+            {trip.status === TripStatus.PICKUP && (<ProximityInfo
+              tripStatus={trip?.status || ''}
+              location={location}
+              customerPickupLocation={customerPickupLocation}
+            />)}
+
+
+            {/* Action buttons */}
+            <View style={{ marginTop: 10 }}>
+              <ActionButtons
+                loading={loading}
+                tripStatus={trip?.status || ''}
+                serviceType={trip?.serviceType || ''}
+                timerActive={timerActive}
+                isTracking={isTracking}
+                onPickup={handlePickup}
+                onStartTrip={handleStartTrip}
+                onCompleteTrip={handleCompleteTrip}
+                onEarlyEnd={handleEarlyEndRequest}
+                formatRemainingTime={formatRemainingTime}
+              />
+            </View>
+          </>
         )}
-
-        {/* Destination information */}
-        {trip?.serviceType !== ServiceType.BOOKING_SCENIC_ROUTE && (
-          <DestinationInfo
-            serviceType={trip?.serviceType || ''}
-            servicePayload={trip?.servicePayload}
-            showDestination={showDestination}
-            routeToDestination={routeToDestination}
-            onToggleRouteDestination={toggleRouteDestination}
-          />
-        )}
-
-        {/* Proximity information */}
-        {trip.status === TripStatus.PICKUP && (<ProximityInfo
-          tripStatus={trip?.status || ''}
-          location={location}
-          customerPickupLocation={customerPickupLocation}
-        />)}
-
-
-        {/* Action buttons */}
-        <View style={{ marginTop: 10 }}>
-          <ActionButtons
-            loading={loading}
-            tripStatus={trip?.status || ''}
-            serviceType={trip?.serviceType || ''}
-            timerActive={timerActive}
-            isTracking={isTracking}
-            onPickup={handlePickup}
-            onStartTrip={handleStartTrip}
-            onCompleteTrip={handleCompleteTrip}
-            onEarlyEnd={handleEarlyEndRequest}
-            formatRemainingTime={formatRemainingTime}
-          />
-        </View>
       </View>
 
       {/* Modals */}

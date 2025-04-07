@@ -4,8 +4,8 @@ import {
   BookingDestinationRequest,
   BookingHourRequest,
   BookingRouteRequest,
-  IBooking,
   BookingSharedRequest,
+  IBooking,
 } from '@/interface/booking.interface'
 import { BookingResponse } from '@/interface/booking.interface'
 import apiClient from '@/service/apiClient'
