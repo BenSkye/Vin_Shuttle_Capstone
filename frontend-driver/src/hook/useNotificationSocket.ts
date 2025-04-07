@@ -40,6 +40,18 @@ const useNotificationSocket = () => {
   }, [isLogin]);
 
   useEffect(() => {
+    if (isLogin) {
+        // Small delay to ensure AsyncStorage has latest tokens
+        const timer = setTimeout(() => {
+            console.log('Initializing notification socket after login...');
+            // Your socket connection code
+        }, 500);
+        
+        return () => clearTimeout(timer);
+    }
+  }, [isLogin]);
+
+  useEffect(() => {
     if (!socket || !isLogin) return;
 
     const fetchInitialData = async () => {
