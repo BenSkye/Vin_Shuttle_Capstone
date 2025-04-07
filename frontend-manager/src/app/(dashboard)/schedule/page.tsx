@@ -5,7 +5,7 @@ import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Form, Button, Select, message, Alert, } from 'antd';
 import { Activity } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
-import Announcements from '@/components/Announcements';
+
 
 import { Driver } from '@/interfaces/index';
 import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';

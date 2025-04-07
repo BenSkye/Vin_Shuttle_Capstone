@@ -3,12 +3,12 @@ import { useState, useEffect, useRef } from "react";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role } from "@/libs/data";
+
 import Image from "next/image";
-import Link from "next/link";
+
 import { Column } from '@/interfaces/index';
 import { Driver, DriverFilters } from "@/interfaces/index";
-import { getDriver, createDriver, filterDriver } from "@/services/api/driver";
+import { createDriver, filterDriver } from "@/services/api/driver";
 
 const columns: Column<Driver>[] = [
     {
@@ -47,12 +47,10 @@ const DriverPage = () => {
         phone: '',
         email: '',
     });
-    const [searchQuery, setSearchQuery] = useState('');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const itemsPerPage = 5;
-    const [activeFilters, setActiveFilters] = useState(false);
 
     const totalPages = Math.ceil(drivers.length / itemsPerPage);
 
@@ -150,8 +148,6 @@ const DriverPage = () => {
     };
 
     const handleSearch = (query: string) => {
-        setSearchQuery(query);
-
         if (query.trim()) {
             // If there's a search query, update the name filter and apply it
             const searchFilters = {
@@ -163,7 +159,7 @@ const DriverPage = () => {
         } else {
             // If search is cleared, reset to current filters without the name
             const { name, ...restFilters } = filterParams;
-            console.log("Cleared search, using filters:", restFilters);
+            console.log("Cleared search, using filters:", name, restFilters);
             fetchDrivers(restFilters);
         }
         setCurrentPage(1);

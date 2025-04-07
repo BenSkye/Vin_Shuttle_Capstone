@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
-import TableSearch from "@/components/TableSearch";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Column } from '@/interfaces/index';
@@ -88,7 +88,7 @@ const CustomerPage = () => {
             <div className="flex items-center justify-between">
                 <h1 className="hidden md:block text-lg font-semibold">Danh Sách Khách Hàng</h1>
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <TableSearch />
+
                     <div className="flex items-center gap-4 self-end">
                         <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
                             <Image src="/icons/filter.svg" alt="" width={14} height={14} />

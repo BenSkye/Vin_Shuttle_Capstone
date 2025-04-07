@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { role } from '../libs/data'
-import { FaStar } from "react-icons/fa";
+
 
 const menuItems = [
     {

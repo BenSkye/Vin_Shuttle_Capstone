@@ -3,7 +3,7 @@ import CountChart from '@/components/CountChart'
 import AttendanceChart from '@/components/AttendanceChart'
 import FinanceChart from '@/components/FinanceChart'
 import EventCalendar from '@/components/EventCalendar'
-import Announcements from '@/components/Announcements'
+
 import Menu from '@/components/Menu'
 import Link from 'next/link'
 import Image from 'next/image'
