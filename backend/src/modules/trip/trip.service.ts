@@ -250,7 +250,13 @@ export class TripService implements ITripService {
   }
 
   async getPersonalDriverTrip(driverId: string, query?: tripParams): Promise<TripDocument[]> {
-    const filterProcessed: any = query;
+    let filterProcessed: any
+    if (!query) {
+      filterProcessed = {}
+    } else {
+      filterProcessed = query;
+    }
+
     if (query?.customerPhone) {
       const customer = await this.userRepository.findUser({
         phone: query.customerPhone,

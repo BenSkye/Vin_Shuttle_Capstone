@@ -13,6 +13,7 @@ export interface ITokenProvider {
 
 export interface ISMSProvider {
   sendSms(phone: string, content: string): Promise<any>;
+  sendSmsWithoutBrandname(phone: string, content: string): Promise<any>;
 }
 
 export interface IPayosService {
