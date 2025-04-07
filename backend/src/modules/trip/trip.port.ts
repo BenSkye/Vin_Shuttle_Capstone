@@ -17,8 +17,8 @@ export interface ITripRepository {
 export interface ITripService {
   createTrip(createTripDto: ICreateTripDto): Promise<TripDocument>;
   checkTrip(createTripDto: ICreateTripDto): Promise<boolean>;
-  getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]>;
-  getPersonalDriverTrip(driverId: string): Promise<TripDocument[]>;
+  getPersonalCustomerTrip(customerId: string, query?: tripParams): Promise<TripDocument[]>;
+  getPersonalDriverTrip(driverId: string, query?: tripParams): Promise<TripDocument[]>;
   getPersonalCustomerTripById(customerId: string, id: string): Promise<TripDocument>;
   getPersonalDriverTripById(driverId: string, id: string): Promise<TripDocument>;
   calculateBusRouteFare(

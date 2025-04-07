@@ -48,8 +48,20 @@ export class TripController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get driver personal trip' })
-  async getDriverPersonalTrip(@Request() req) {
-    return await this.tripService.getPersonalDriverTrip(req.user._id);
+  @ApiQuery({
+    name: "isPrepaid",
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPrepaid',
+  })
+  @ApiQuery({
+    name: 'isPayed',
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPayed',
+  })
+  async getDriverPersonalTrip(@Request() req, @Query() query: tripParams) {
+    return await this.tripService.getPersonalDriverTrip(req.user._id, query);
   }
 
   @Get('customer-personal-trip/:id')
@@ -209,6 +221,18 @@ export class TripController {
     required: false,
     enum: TripStatus,
     description: 'Filter by trip status',
+  })
+  @ApiQuery({
+    name: "isPrepaid",
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPrepaid',
+  })
+  @ApiQuery({
+    name: 'isPayed',
+    required: false,
+    type: Boolean,
+    description: 'Filter by trip isPayed',
   })
   @ApiQuery({
     name: 'driverName',
