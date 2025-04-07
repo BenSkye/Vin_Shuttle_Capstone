@@ -12,6 +12,7 @@ import { useAuth as useAuthContext } from '@/context/AuthContext'
 import { useAuth as useAuthHook } from '@/hooks/useAuth'
 
 export default function LoginPage() {
+  const [messageApi, contextHolder] = message.useMessage()
   const { login } = useAuthContext()
   const { doLogin, isLoginPending, loginError } = useAuthHook({
     onLoginSuccess: (data) => {
@@ -23,7 +24,6 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ phone: '', otp: '' })
   const [showOtp, setShowOtp] = useState(false)
   const [error, setError] = useState('')
-  const [messageApi, contextHolder] = message.useMessage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,8 +43,8 @@ export default function LoginPage() {
         // Second step: Verify OTP
         await doLogin({ phone: formData.phone, code: formData.otp })
       }
-    } catch (_) {
-      setError('Có lỗi xảy ra. Vui lòng thử lại.')
+    } catch (err) {
+      console.log(err)
     }
   }
 
