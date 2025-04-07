@@ -60,7 +60,7 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
       animate={{ opacity: 1, y: 0 }}
       className="rounded-lg bg-white p-6 shadow"
     >
-      <h3 className="mb-4 text-xl font-bold text-gray-800">Đánh giá chuyến đi</h3>
+      <h3 className="mb-4 text-xl font-bold text-gray-800">Đánh giá cuốc xe</h3>
 
       <div className="mb-4 flex flex-col items-center">
         <Rate

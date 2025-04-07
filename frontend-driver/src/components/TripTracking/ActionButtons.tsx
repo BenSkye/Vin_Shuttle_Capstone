@@ -55,7 +55,7 @@ const ActionButtons = ({
           onPress={onStartTrip}
           disabled={!isTracking}>
           <MaterialIcons name="play-arrow" size={20} color="#fff" />
-          <Text style={styles.actionButtonText}>Bắt đầu chuyến đi</Text>
+          <Text style={styles.actionButtonText}>Bắt đầu cuốc xe</Text>
         </TouchableOpacity>
       );
     case TripStatus.IN_PROGRESS:
@@ -82,7 +82,7 @@ const ActionButtons = ({
             onPress={onCompleteTrip}
             disabled={!isTracking}>
             <MaterialIcons name="done" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Hoàn thành chuyến đi</Text>
+            <Text style={styles.actionButtonText}>Hoàn thành cuốc xe</Text>
           </TouchableOpacity>
         );
       }
@@ -90,7 +90,7 @@ const ActionButtons = ({
       return (
         <View style={[styles.actionButton, { backgroundColor: '#8BC34A' }]}>
           <MaterialIcons name="check-circle" size={20} color="#fff" />
-          <Text style={styles.actionButtonText}>Chuyến đi đã hoàn thành</Text>
+          <Text style={styles.actionButtonText}>Cuốc xe đã hoàn thành</Text>
         </View>
       );
     default:

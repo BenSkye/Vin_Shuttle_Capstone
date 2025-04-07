@@ -6,7 +6,7 @@ import { IRedisService } from 'src/share/share.port';
 
 @Injectable()
 export class RedisService implements IRedisService {
-  constructor(@Inject(REDIS_CLIENT) private readonly redisClient: Redis) {}
+  constructor(@Inject(REDIS_CLIENT) private readonly redisClient: Redis) { }
 
   async set(key: string, value: string, ttl?: number): Promise<void> {
     if (ttl) {
@@ -46,19 +46,19 @@ export class RedisService implements IRedisService {
     return this.redisClient.smembers(userSocketsKey);
   }
 
-  async setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
-    const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
-    await this.redisClient.sadd(vehicleUsersKey, userId);
-    await this.redisClient.expire(vehicleUsersKey, 86400);
-  }
+  // async setUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
+  //   const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+  //   await this.redisClient.sadd(vehicleUsersKey, userId);
+  //   await this.redisClient.expire(vehicleUsersKey, 86400);
+  // }
 
-  async deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
-    const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
-    await this.redisClient.srem(vehicleUsersKey, userId);
-  }
+  // async deleteUserTrackingVehicle(userId: string, vehicleId: string): Promise<void> {
+  //   const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+  //   await this.redisClient.srem(vehicleUsersKey, userId);
+  // }
 
-  async getVehicleSubscribers(vehicleId: string): Promise<string[]> {
-    const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
-    return this.redisClient.smembers(vehicleUsersKey);
-  }
+  // async getVehicleSubscribers(vehicleId: string): Promise<string[]> {
+  //   const vehicleUsersKey = `vehicleSubscribers${SOCKET_NAMESPACE.TRACKING}:${vehicleId}`;
+  //   return this.redisClient.smembers(vehicleUsersKey);
+  // }
 }

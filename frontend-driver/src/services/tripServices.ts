@@ -41,7 +41,7 @@ export const pickUp = async (tripId: string): Promise<Trip> => {
 };
 
 /**
- * Bắt đầu chuyến đi
+ * Bắt đầu cuốc xe
  */
 export const startTrip = async (tripId: string): Promise<Trip> => {
   try {
@@ -54,7 +54,7 @@ export const startTrip = async (tripId: string): Promise<Trip> => {
 };
 
 /**
- * Hoàn thành chuyến đi, trả khách
+ * Hoàn thành cuốc xe, trả khách
  */
 export const completeTrip = async (tripId: string): Promise<Trip> => {
   try {
@@ -80,7 +80,7 @@ export const getSenicRouteById = async (routeId: string): Promise<ScenicRouteDto
 };
 
 /**
- * Lấy đánh giá theo ID chuyến đi
+ * Lấy đánh giá theo ID cuốc xe
  */
 export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
   try {
@@ -93,7 +93,7 @@ export const getRatingByTripId = async (tripId: string): Promise<Trip> => {
 };
 
 /**
- * Hủy chuyến đi
+ * Hủy cuốc xe
  */
 export const cancelTrip = async (tripId: string, reason: string): Promise<Trip> => {
   try {

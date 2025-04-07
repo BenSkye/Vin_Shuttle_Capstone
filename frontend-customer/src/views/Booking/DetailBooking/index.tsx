@@ -72,19 +72,18 @@ export default function BookingDetailPage({ id }: { id: string }) {
           <div className="space-y-2">
             <p className="text-sm text-gray-500">Trạng Thái</p>
             <span
-              className={`rounded-full px-3 py-1 text-sm font-medium ${
-                bookingStatusColor[booking.status] === 'green'
+              className={`rounded-full px-3 py-1 text-sm font-medium ${bookingStatusColor[booking.status] === 'green'
                   ? 'bg-green-100 text-green-800'
                   : bookingStatusColor[booking.status] === 'red'
                     ? 'bg-red-100 text-red-800'
                     : 'bg-yellow-100 text-yellow-800'
-              }`}
+                }`}
             >
               {booking.status.replace('_', ' ')}
             </span>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500">Số Chuyến</p>
+            <p className="text-sm text-gray-500">Số Cuốc xe</p>
             <p className="text-lg font-semibold">{booking.trips.length}</p>
           </div>
           <div className="space-y-2">
@@ -104,13 +103,12 @@ export default function BookingDetailPage({ id }: { id: string }) {
             <div key={index} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <div
-                  className={`h-4 w-4 rounded-full ${
-                    bookingStatusColor[history.status] === 'green'
+                  className={`h-4 w-4 rounded-full ${bookingStatusColor[history.status] === 'green'
                       ? 'bg-green-500'
                       : bookingStatusColor[history.status] === 'red'
                         ? 'bg-red-500'
                         : 'bg-yellow-500'
-                  }`}
+                    }`}
                 ></div>
                 {index !== booking.statusHistory.length - 1 && (
                   <div className="mt-2 h-full w-0.5 bg-gray-200"></div>
@@ -130,14 +128,14 @@ export default function BookingDetailPage({ id }: { id: string }) {
 
       {/* Trips List */}
       <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-semibold">Danh Sách Chuyến</h2>
+        <h2 className="mb-6 text-xl font-semibold">Danh Sách Cuốc xe</h2>
         <div className="space-y-4">
           {booking.trips.map((tripId, index) => (
             <div
               key={tripId}
               className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
             >
-              <span className="text-gray-700">Chuyến {index + 1}</span>
+              <span className="text-gray-700">Cuốc xe {index + 1}</span>
               <Link
                 href={`/trips/${tripId}`}
                 className="font-medium text-blue-600 hover:text-blue-800"

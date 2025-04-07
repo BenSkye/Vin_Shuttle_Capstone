@@ -21,7 +21,7 @@ export class RatingService implements IRatingService {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: `Trip not found ${data.tripId}`,
-          vnMessage: `Không tìm thấy chuyến đi ${data.tripId}`,
+          vnMessage: `Không tìm thấy cuốc xe ${data.tripId}`,
         },
         HttpStatus.NOT_FOUND,
       );
@@ -32,7 +32,7 @@ export class RatingService implements IRatingService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `Trip is not completed yet`,
-          vnMessage: `Chuyến đi chưa hoàn thành`,
+          vnMessage: `Cuốc xe chưa hoàn thành`,
         },
         HttpStatus.BAD_REQUEST,
       );

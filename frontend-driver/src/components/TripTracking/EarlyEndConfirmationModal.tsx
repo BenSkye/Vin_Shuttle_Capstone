@@ -28,7 +28,7 @@ const EarlyEndConfirmationModal: React.FC<EarlyEndConfirmationModalProps> = ({
           <View style={styles.confirmationBody}>
             <Text style={styles.confirmationText}>
               Bạn còn {remainingTimeFormatted} phút trong thời gian thuê xe. Bạn có chắc chắn muốn
-              kết thúc chuyến đi sớm không?
+              kết thúc cuốc xe sớm không?
             </Text>
           </View>
 
