@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { IBusRouteService } from '../bus-route/bus-route.port';
 import { BUS_ROUTE_SERVICE } from '../bus-route/bus-route.di-token';
-import { CreateTicketDto, UpdateTicketStatusDto } from './ticket.dto';
+import { CreateTicketDto, ITicketData, UpdateTicketStatusDto } from './ticket.dto';
 import { TICKET_REPOSITORY, TRIP_SEAT_REPOSITORY } from './ticket.di-token';
 import { ITicketRepository, ITicketService, ITripSeatRepository } from './ticket.port';
 import { TicketDocument } from './ticket.schema';
@@ -21,56 +21,58 @@ export class TicketService implements ITicketService {
   ) {}
 
   async createTicket(createTicketDto: CreateTicketDto): Promise<TicketDocument> {
-    // Kiểm tra số ghế còn trống
-    const isAvailable = await this.checkAvailability(
+    // Check seat availability first
+    const isAvailable = await this.tripSeatRepository.checkAvailability(
       createTicketDto.busTrip,
       createTicketDto.fromStop,
       createTicketDto.toStop,
-      createTicketDto.numberOfSeats,
+      createTicketDto.numberOfSeats
     );
 
     if (!isAvailable) {
-      throw new BadRequestException('Not enough seats available for this trip segment');
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Not enough seats available',
+          vnMessage: 'Không đủ ghế trống',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    // Tính giá vé
+    // Calculate fare based on route, stops and number of seats
     const fare = await this.busRouteService.calculateFare(
       createTicketDto.busRoute,
       createTicketDto.fromStop,
       createTicketDto.toStop,
-      createTicketDto.numberOfSeats,
+      createTicketDto.numberOfSeats
     );
 
-    // Tạo vé
-    const ticket = await this.ticketRepository.create({
+    // Create ticket data with calculated fare
+    const ticketData: ITicketData = {
       ...createTicketDto,
       fare,
-    });
+      status: TicketStatus.PENDING,
+    };
 
-    // Cập nhật số ghế đã đặt
+    // Create ticket with calculated fare
+    const ticket = await this.ticketRepository.create(ticketData);
+
+    // Update available seats
     await this.tripSeatRepository.updateSeats(
       createTicketDto.busTrip,
       createTicketDto.fromStop,
       createTicketDto.toStop,
-      createTicketDto.numberOfSeats,
+      createTicketDto.numberOfSeats
     );
 
-    // Thông báo cập nhật số ghế trống
-    const occupiedSeats = await this.tripSeatRepository.getOccupiedSeats(
-      createTicketDto.busTrip,
-      createTicketDto.fromStop,
-      createTicketDto.toStop,
-    );
-    const MAX_SEATS = 50; // Should get from vehicle config
+    // Notify about seat update
     await this.ticketGateway.notifySeatsUpdate(
       createTicketDto.busTrip,
       createTicketDto.fromStop,
       createTicketDto.toStop,
-      MAX_SEATS - occupiedSeats,
+      createTicketDto.numberOfSeats
     );
-
-    // Thông báo trạng thái vé mới
-    await this.ticketGateway.notifyTicketStatusChange(ticket);
 
     return ticket;
   }
