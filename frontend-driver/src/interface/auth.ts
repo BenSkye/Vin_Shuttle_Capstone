@@ -1,10 +1,12 @@
 export interface LoginResponse {
   isValid: boolean;
-  token: {
+  token?: {
     accessToken: string;
     refreshToken: string;
   };
-  userId: string;
+  userId?: string;
+  roleError?: boolean;
+  message?: string;
 }
 
 export interface LoginCredentials {
