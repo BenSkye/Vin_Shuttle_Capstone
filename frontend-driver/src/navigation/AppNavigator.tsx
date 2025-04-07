@@ -38,9 +38,9 @@ function TabNavigator() {
             case 'Lịch trình':
               iconName = focused ? 'calendar' : 'calendar-outline';
               break;
-            case 'Lịch sử':
-              iconName = focused ? 'time' : 'time-outline';
-              break;
+            // case 'Lịch sử':
+            //   iconName = focused ? 'time' : 'time-outline';
+            //   break;
             case 'Thông báo':
               iconName = focused ? 'notifications' : 'notifications-outline';
               break;
@@ -69,7 +69,7 @@ function TabNavigator() {
       })}>
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Lịch trình" component={ScheduleScreen} />
-      <Tab.Screen name="Lịch sử" component={TripHistoryScreen} />
+      {/* <Tab.Screen name="Lịch sử" component={TripHistoryScreen} /> */}
       {/* <Tab.Screen name="Thông báo" component={NotificationScreen} /> */}
       <Tab.Screen
         name="Thông báo"
@@ -124,6 +124,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="TripTracking" component={TripTrackingScreen} />
         <Stack.Screen name="ConversationDetail" component={ConversationDetailScreen} />
+        <Stack.Screen name="TripHistory" component={TripHistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

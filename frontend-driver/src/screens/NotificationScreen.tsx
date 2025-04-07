@@ -44,7 +44,7 @@ export default function NotificationScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 mt-6 bg-gray-100">
       <View className="flex-1 px-4 pt-2">
         {/* Header with unread count and mark all as read button */}
         <View className="flex-row items-center justify-between mb-4">
