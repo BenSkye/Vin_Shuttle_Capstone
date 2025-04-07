@@ -1,24 +1,26 @@
-'use client'
-import { useEffect, useState } from 'react';
-import { Layout, Table, Tabs, Button, Form, message } from 'antd';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
-import Sidebar from '../../_components/common/Sidebar';
-import UpdateConfig from '../../_components/money/updateConfig';
-import UpdatePrice from '../../_components/money/updatePrice';
-import { pricingConfigServices } from '../../services/pricingServices';
-import { priceManagementServices } from '../../services/priceConfigServices';
-import { categoryService } from '../../services/categoryServices';
-import { PricingConfig, PriceManagement } from '../../services/interface';
-import AddPrice from '../../_components/money/addPrice';
+"use client";
+import { useEffect, useState } from "react";
+import { Layout, Table, Tabs, Button, Form, message } from "antd";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import type { ColumnsType } from "antd/es/table";
+import Sidebar from "../../_components/common/Sidebar";
+import UpdateConfig from "../../_components/money/updateConfig";
+import UpdatePrice from "../../_components/money/updatePrice";
+import { pricingConfigServices } from "../../services/pricingServices";
+import { priceManagementServices } from "../../services/priceConfigServices";
+import { categoryService } from "../../services/categoryServices";
+import { PricingConfig, PriceManagement } from "../../services/interface";
+import AddPrice from "../../_components/money/addPrice";
 
 const { Header, Content } = Layout;
 
 // Map cho loại dịch vụ
 const serviceTypeMap: { [key: string]: string } = {
-  'booking_hour': 'Đặt xe theo giờ',
-  'booking_trip': 'Đặt xe theo chuyến cố định',
-  'booking_share': 'Đặt xe đi chung'
+  booking_hour: "Đặt xe theo giờ",
+  booking_destination: "Đặt xe theo điểm đến",
+  booking_share: "Đặt xe đi chung",
+  booking_scenic_route: "Đặt xe theo tuyến cố định",
+  booking_bus_route: "Chuyến xe buýt",
 };
 
 export default function Money() {
@@ -27,7 +29,9 @@ export default function Money() {
   const [categories, setCategories] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingConfig, setEditingConfig] = useState<PricingConfig | null>(null);
+  const [editingConfig, setEditingConfig] = useState<PricingConfig | null>(
+    null
+  );
   const [form] = Form.useForm();
   const [editPriceModalVisible, setEditPriceModalVisible] = useState(false);
   const [, setEditingPrice] = useState<PriceManagement | null>(null);
@@ -44,21 +48,23 @@ export default function Money() {
       const [configsData, pricesData, categoriesData] = await Promise.all([
         pricingConfigServices.getServiceConfigs(),
         priceManagementServices.getPrices(),
-        categoryService.getCategories()
+        categoryService.getCategories(),
       ]);
 
       setServiceConfigs(configsData);
       setPrices(pricesData);
-      
-      const categoryMap = categoriesData.reduce((acc, category) => ({
-        ...acc,
-        [category._id]: category.name
-      }), {});
+
+      const categoryMap = categoriesData.reduce(
+        (acc, category) => ({
+          ...acc,
+          [category._id]: category.name,
+        }),
+        {}
+      );
       setCategories(categoryMap);
-      // @ts-nocheck
     } catch (error: unknown) {
-        console.log(error)
-      message.error('Không thể tải dữ liệu');
+      console.log(error);
+      message.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -78,18 +84,24 @@ export default function Money() {
       if (!editingConfig) return;
 
       await priceManagementServices.updateServiceConfig(
-        editingConfig.service_type as 'booking_hour' | 'booking_trip' | 'booking_share',
+        editingConfig.service_type as
+          | "booking_hour"
+          | "booking_destination"
+          | "booking_share"
+          | "booking_scenic_route"
+          | "booking_bus_route",
         {
           base_unit: Number(values.base_unit),
           base_unit_type: editingConfig.base_unit_type,
         }
       );
 
-      message.success('Cập nhật thành công');
+      message.success("Cập nhật thành công");
       setEditModalVisible(false);
       fetchData();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật';
+      const errorMessage =
+        error instanceof Error ? error.message : "Có lỗi xảy ra khi cập nhật";
       message.error(errorMessage);
     }
   };
@@ -99,7 +111,7 @@ export default function Money() {
     priceForm.setFieldsValue({
       vehicle_category: record.vehicle_category,
       service_config: record.service_config,
-      tiered_pricing: record.tiered_pricing
+      tiered_pricing: record.tiered_pricing,
     });
     setEditPriceModalVisible(true);
   };
@@ -108,11 +120,14 @@ export default function Money() {
     try {
       const values = await priceForm.validateFields();
       await pricingConfigServices.updatePricing(values);
-      message.success('Cập nhật giá thành công');
+      message.success("Cập nhật giá thành công");
       setEditPriceModalVisible(false);
       fetchData();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật giá';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi cập nhật giá";
       message.error(errorMessage);
     }
   };
@@ -128,39 +143,41 @@ export default function Money() {
 
   const configColumns: ColumnsType<PricingConfig> = [
     {
-      title: 'Loại dịch vụ',
-      dataIndex: 'service_type',
-      key: 'service_type',
-      render: (service_type: string) => serviceTypeMap[service_type] || service_type
+      title: "Loại dịch vụ",
+      dataIndex: "service_type",
+      key: "service_type",
+      render: (service_type: string) =>
+        serviceTypeMap[service_type] || service_type,
     },
     {
-      title: 'Đơn vị cơ bản',
-      dataIndex: 'base_unit',
-      key: 'base_unit',
+      title: "Đơn vị cơ bản",
+      dataIndex: "base_unit",
+      key: "base_unit",
     },
     {
-      title: 'Loại đơn vị',
-      dataIndex: 'base_unit_type',
-      key: 'base_unit_type',
+      title: "Loại đơn vị",
+      dataIndex: "base_unit_type",
+      key: "base_unit_type",
     },
     {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
-      title: 'Cập nhật lần cuối',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
+      title: "Cập nhật lần cuối",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
-      title: 'Thao tác',
-      key: 'action',
+      title: "Thao tác",
+      key: "action",
       render: (_, record) => (
-        <Button 
-          icon={<EditOutlined />} 
+        <Button
+          type="primary"
+          icon={<EditOutlined />}
           onClick={() => handleEdit(record)}
         >
           Sửa
@@ -171,59 +188,65 @@ export default function Money() {
 
   const priceColumns: ColumnsType<PriceManagement> = [
     {
-      title: 'Danh mục xe',
-      dataIndex: 'vehicle_category',
-      key: 'vehicle_category',
-      render: (category_id: string) => categories[category_id] || 'N/A'
+      title: "Danh mục xe",
+      dataIndex: "vehicle_category",
+      key: "vehicle_category",
+      render: (category_id: string) => categories[category_id] || "N/A",
     },
     {
-      title: 'Loại dịch vụ',
-      dataIndex: 'service_config',
-      key: 'service_config',
+      title: "Loại dịch vụ",
+      dataIndex: "service_config",
+      key: "service_config",
       render: (config_id: string) => {
-        const config = serviceConfigs.find(c => c._id === config_id);
-        return config ? serviceTypeMap[config.service_type] || config.service_type : 'N/A';
-      }
+        const config = serviceConfigs.find((c) => c._id === config_id);
+        return config
+          ? serviceTypeMap[config.service_type] || config.service_type
+          : "N/A";
+      },
     },
     {
-      title: 'Giá theo khoảng',
-      dataIndex: 'tiered_pricing',
-      key: 'tiered_pricing',
-      render: (tiered_pricing: Array<{ _id: string; range: string; price: number }>, record: PriceManagement) => {
-        const config = serviceConfigs.find(c => c._id === record.service_config);
-        const unit = config?.service_type === 'booking_hour' ? 'phút' : 'km';
-        
+      title: "Giá theo khoảng",
+      dataIndex: "tiered_pricing",
+      key: "tiered_pricing",
+      render: (
+        tiered_pricing: Array<{ _id: string; range: string; price: number }>,
+        record: PriceManagement
+      ) => {
+        const config = serviceConfigs.find(
+          (c) => c._id === record.service_config
+        );
+        const unit = config?.service_type === "booking_hour" ? "phút" : "km";
+
         return (
           <ul>
             {tiered_pricing.map((tier) => (
               <li key={tier._id}>
-                {`${tier.range} ${unit}: ${tier.price.toLocaleString('vi-VN')} VNĐ`}
+                {`${tier.range} ${unit}: ${tier.price.toLocaleString(
+                  "vi-VN"
+                )} VNĐ`}
               </li>
             ))}
           </ul>
         );
-      }
+      },
     },
     {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
-      title: 'Cập nhật lần cuối',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
+      title: "Cập nhật lần cuối",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
-      title: 'Thao tác',
-      key: 'action',
+      title: "Thao tác",
+      key: "action",
       render: (_, record) => (
-        <Button 
-          icon={<EditOutlined />} 
-          onClick={() => handleEditPrice(record)}
-        >
+        <Button icon={<EditOutlined />} onClick={() => handleEditPrice(record)}>
           Sửa giá
         </Button>
       ),
@@ -232,8 +255,8 @@ export default function Money() {
 
   const items = [
     {
-      key: '1',
-      label: 'Cấu hình giá dịch vụ',
+      key: "1",
+      label: "Cấu hình giá dịch vụ",
       children: (
         <Table
           columns={configColumns}
@@ -244,12 +267,16 @@ export default function Money() {
       ),
     },
     {
-      key: '2',
-      label: 'Quản lý giá cả',
+      key: "2",
+      label: "Quản lý giá cả",
       children: (
         <>
           <div className="mb-4">
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={showAddModal}
+            >
               Thêm giá mới
             </Button>
           </div>
@@ -276,14 +303,14 @@ export default function Money() {
         </Content>
       </Layout>
 
-      <UpdateConfig 
+      <UpdateConfig
         visible={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
         onOk={handleUpdate}
         form={form}
       />
 
-      <UpdatePrice 
+      <UpdatePrice
         visible={editPriceModalVisible}
         onCancel={() => setEditPriceModalVisible(false)}
         onOk={handleUpdatePrice}
@@ -293,7 +320,7 @@ export default function Money() {
         serviceTypeMap={serviceTypeMap}
       />
 
-      <AddPrice 
+      <AddPrice
         visible={isAddModalVisible}
         onCancel={() => setIsAddModalVisible(false)}
         onSuccess={handleAddSuccess}

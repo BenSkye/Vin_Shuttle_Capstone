@@ -111,25 +111,25 @@ export default function Home() {
       dataIndex: 'role',
       key: 'role',
     },
-    {
-      title: 'Hành động',
-      key: 'action',
-      render: (_: unknown, record: UserData) => (
-        <Space size="middle">
-          <Button type="link" onClick={() => handleEdit(record)}>Sửa</Button>
-          <Button type="link" danger onClick={() => handleDelete(record)}>Xóa</Button>
-        </Space>
-      ),
-    },
+    // {
+    //   title: 'Hành động',
+    //   key: 'action',
+    //   render: (_: unknown, record: UserData) => (
+    //     <Space size="middle">
+    //       <Button type="link" onClick={() => handleEdit(record)}>Sửa</Button>
+    //       <Button type="link" danger onClick={() => handleDelete(record)}>Xóa</Button>
+    //     </Space>
+    //   ),
+    // },
   ];
 
-  const handleEdit = (record: UserData) => {
-    console.log('Edit user:', record);
-  };
+  // const handleEdit = (record: UserData) => {
+  //   console.log('Edit user:', record);
+  // };
 
-  const handleDelete = (record: UserData) => {
-    console.log('Delete user:', record);
-  };
+  // const handleDelete = (record: UserData) => {
+  //   console.log('Delete user:', record);
+  // };
 
   // Xử lý search
   const handleSearch = (value: string) => {
