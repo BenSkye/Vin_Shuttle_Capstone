@@ -38,7 +38,7 @@ const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({ visible, onClose,
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Mã chuyến đi:</Text>
+              <Text style={styles.infoLabel}>Mã cuốc xe:</Text>
               <Text style={styles.infoValue}>{trip._id}</Text>
             </View>
 

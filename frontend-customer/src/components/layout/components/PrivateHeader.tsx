@@ -50,7 +50,7 @@ const privateNavItems = [
 
 const userMenuItems = [
   { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
-  { label: 'Lịch sử chuyến đi', href: Routes.TRIPS, icon: FiClock },
+  { label: 'Lịch sử cuốc xe', href: Routes.TRIPS, icon: FiClock },
   { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
   { label: 'Cuộc trò chuyện', href: Routes.CHAT, icon: FiMessageSquare },
 ]
@@ -259,9 +259,8 @@ export function PrivateHeader({
                           >
                             <span>{item.label}</span>
                             <FiChevronDown
-                              className={`h-5 w-5 transition-transform ${
-                                expandedSections.includes(item.label) ? 'rotate-180' : ''
-                              }`}
+                              className={`h-5 w-5 transition-transform ${expandedSections.includes(item.label) ? 'rotate-180' : ''
+                                }`}
                             />
                           </button>
                           <AnimatePresence>
@@ -312,9 +311,8 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Thông báo</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('notifications') ? 'rotate-180' : ''
-                    }`}
+                    className={`h-5 w-5 transition-transform ${expandedSections.includes('notifications') ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
                 <AnimatePresence>
@@ -376,9 +374,8 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Tài khoản</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('userActions') ? 'rotate-180' : ''
-                    }`}
+                    className={`h-5 w-5 transition-transform ${expandedSections.includes('userActions') ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
                 <AnimatePresence>

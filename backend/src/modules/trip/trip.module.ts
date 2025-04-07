@@ -15,6 +15,7 @@ import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itinerary.module';
 import { NotificationModule } from 'src/modules/notification/notification.module';
 import { BookingModule } from 'src/modules/booking/booking.module';
+import { TrackingModule } from 'src/modules/tracking/tracking.module';
 
 const dependencies = [
   {
@@ -48,6 +49,7 @@ const dependencies = [
     forwardRef(() => BookingModule),
     forwardRef(() => SharedItineraryModule),
     NotificationModule,
+    TrackingModule
   ],
   controllers: [TripController],
   providers: [...dependencies],

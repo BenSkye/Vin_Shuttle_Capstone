@@ -358,7 +358,7 @@ export class SharedItineraryService implements ISharedItineraryService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -368,7 +368,7 @@ export class SharedItineraryService implements ISharedItineraryService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not shared itinerary',
-          vnMessage: 'Chuyến đi không phải là chuyến đi chia sẻ',
+          vnMessage: 'Cuốc xe không phải là cuốc xe chia sẻ',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -407,7 +407,7 @@ export class SharedItineraryService implements ISharedItineraryService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -436,7 +436,7 @@ export class SharedItineraryService implements ISharedItineraryService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Shared itinerary not found',
-          vnMessage: 'Chuyến đi chia sẻ không tồn tại',
+          vnMessage: 'Cuốc xe chia sẻ không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -482,7 +482,7 @@ export class SharedItineraryService implements ISharedItineraryService {
     if (filteredStops.length === 0) {
       await this.sharedItineraryRepository.updateStatusSharedItinerary(sharedItineraryId, SharedItineraryStatus.CANCELLED)
     }
-    const message = `Chuyến đi ${tripId} đã bị hủy`;
+    const message = `Cuốc xe ${tripId} đã bị hủy`;
     await this.sharedItineraryGateway.emitUpdatedSharedItineraryDetail(
       sharedItinerary.driverId.toString(),
       sharedItineraryId,

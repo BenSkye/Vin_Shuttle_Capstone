@@ -59,6 +59,17 @@ export class AuthService implements IAuthService {
         );
       }
     }
+    const userExistEmail = await this.userRepository.findUser({ email: data.email });
+    if (userExistEmail) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Email already exist',
+          vnMessage: 'Email đã tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (data.password) {
       const passwordHash = await bcrypt.hash(data.password, 10);
       data.password = passwordHash;

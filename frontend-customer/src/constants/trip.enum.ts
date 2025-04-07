@@ -20,7 +20,7 @@ export const tripStatusText: Record<TripStatus, string> = {
   [TripStatus.BOOKING]: 'Đang đặt',
   [TripStatus.CONFIRMED]: 'Đã xác  nhận',
   [TripStatus.PICKUP]: 'Đang đón',
-  [TripStatus.IN_PROGRESS]: 'Đang trong chuyến đi',
+  [TripStatus.IN_PROGRESS]: 'Đang trong cuốc xe',
   [TripStatus.COMPLETED]: 'Đã hoàn thành',
   [TripStatus.CANCELLED]: 'Đã hủy',
 }

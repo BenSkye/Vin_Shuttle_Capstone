@@ -93,7 +93,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     const unpaidTrips = trips.filter((trip) => !trip.isPrepaid && !trip.isPayed);
     const tripIds = unpaidTrips.map((trip) => trip._id);
     if (tripIds.length === 0) {
-      Alert.alert('Thông báo', 'Không có chuyến đi nào cần thanh toán.');
+      Alert.alert('Thông báo', 'Không có cuốc xe nào cần thanh toán.');
       return;
     }
     const totalAmount = unpaidTrips.reduce((total, trip) => total + trip.amount, 0);
@@ -110,7 +110,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
       );
     });
     if (!userConfirmed) return;
-    console.log('Chuyển tiền cho hệ thống với các chuyến đi:', tripIds);
+    console.log('Chuyển tiền cho hệ thống với các cuốc xe:', tripIds);
     try {
       const paymentResult = await getPaymentLinkTransferTrip(tripIds);
       console.log('Payment link:', paymentResult);
@@ -126,7 +126,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
     <SafeAreaView className="flex-1 bg-gray-100 ">
       <View className='mt-10'>
         <Text className="mb-4 text-xl font-bold text-gray-800">
-          <Icon name="history" size={24} color="#1f2937" /> Lịch sử chuyến đi
+          <Icon name="history" size={24} color="#1f2937" /> Lịch sử cuốc xe
         </Text>
       </View>
       {/* Tab Selector */}
@@ -161,7 +161,7 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
             >
               <Icon name="bank-transfer" size={20} color="white" />
               <Text className="ml-2 text-white font-medium">
-                Chuyển tiền hệ thống các chuyến đi tài xế thu tiền
+                Chuyển tiền hệ thống các cuốc xe tài xế thu tiền
               </Text>
             </TouchableOpacity>
           )
@@ -182,8 +182,8 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
               <Icon name="history-off" size={24} color="#6b7280" />
               <Text className="ml-2 text-center text-gray-500">
                 {activeTab === 'paid'
-                  ? 'Không có chuyến đi đã thanh toán nào'
-                  : 'Không có chuyến đi chưa thanh toán nào'}
+                  ? 'Không có cuốc xe đã thanh toán nào'
+                  : 'Không có cuốc xe chưa thanh toán nào'}
               </Text>
             </View>
           )}
