@@ -83,8 +83,24 @@ export class DriverBusScheduleService implements IDriverBusScheduleService {
       throw new NotFoundException('Vehicle not found');
     }
 
-    if (vehicle.operationStatus !== VehicleOperationStatus.AVAILABLE) {
-      throw new BadRequestException('Vehicle is not available');
+    if (vehicle.operationStatus !== VehicleOperationStatus.PENDING) {
+
+      console.log('====================================');
+      console.log('vehicle.operationStatus', vehicle.operationStatus);
+      console.log('====================================');
+
+
+      console.log('====================================');
+      console.log('VehicleOperationStatus.AVAILABLE',VehicleOperationStatus.AVAILABLE);
+      console.log('====================================');
+
+      throw new HttpException( {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Vehicle is not available',
+          vnMessage: 'driver-schedule: phương tiện không có sẵn',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Check for schedule conflicts
