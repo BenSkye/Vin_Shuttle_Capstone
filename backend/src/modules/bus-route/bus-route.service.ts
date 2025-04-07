@@ -135,12 +135,12 @@ export class BusRouteService implements IBusRouteService {
     console.log('====================================');
 
     const fromStop = route.stops.find(s => {
-      const stopId = s.stopId instanceof Types.ObjectId ? s.stopId.toString() : s.stopId;
+      const stopId = s.stopId._id ? s.stopId._id.toString() : s.stopId.toString();
       return stopId === fromStopId;
     });
 
     const toStop = route.stops.find(s => {
-      const stopId = s.stopId instanceof Types.ObjectId ? s.stopId.toString() : s.stopId;
+      const stopId = s.stopId._id ? s.stopId._id.toString() : s.stopId.toString();
       return stopId === toStopId;
     });
 

@@ -1,16 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsEmail, IsOptional, IsEnum } from 'class-validator';
 import { UserRole, UserStatus } from 'src/share/enums';
 import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateUserDto {
-  name?: string;
+  name: string;
   phone: string;
   email?: string;
   password?: string;
   avatar?: string;
-  role: UserRole;
+  role?: UserRole;
 }
-
 
 export interface IUpdateUserDto {
   name?: string;
@@ -23,32 +23,47 @@ export interface IUpdateUserDto {
 
 export class CreateUserDto {
   @ApiProperty({
-    default: 'User Name',
-    example: 'KhanhHg',
-    minLength: 2,
-    maxLength: 100,
+    description: 'Tên người dùng',
+    example: 'Nguyen Van A'
   })
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @ApiProperty({
-    description: 'User phone',
-    example: '00800808808',
+    description: 'Số điện thoại',
+    example: '0838683868'
   })
+  @IsString()
+  @IsNotEmpty()
   phone: string;
 
   @ApiProperty({
-    description: 'User Email',
-    example: 'KhanhHg8386@gmail.com',
-    required: false,
+    description: 'Email',
+    example: 'example@email.com',
+    required: false
   })
-  email: string;
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 
   @ApiProperty({
-    description: 'User password',
-    example: 'Khanhdz123',
-    required: false,
+    description: 'Mật khẩu',
+    example: 'password123',
+    required: false
   })
-  password: string;
+  @IsString()
+  @IsOptional()
+  password?: string;
+
+  @ApiProperty({
+    description: 'Vai trò người dùng',
+    enum: UserRole,
+    default: UserRole.CUSTOMER
+  })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 
   @ApiProperty({
     description: 'User avatar',
@@ -57,13 +72,6 @@ export class CreateUserDto {
     required: false,
   })
   avatar: string;
-
-  @ApiProperty({
-    description: 'User role',
-    example: 'customer',
-    required: false,
-  })
-  role: UserRole;
 }
 
 export class UpdateUserDto {

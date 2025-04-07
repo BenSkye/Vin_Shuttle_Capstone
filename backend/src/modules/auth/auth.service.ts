@@ -24,7 +24,7 @@ export class AuthService implements IAuthService {
   ) { }
 
   async registerCustomer(data: ICreateUserDto): Promise<object> {
-    //check if phone allready exist
+    //check if phone already exist
     const userExist = await this.userRepository.findUser({ phone: data.phone });
     if (userExist) {
       throw new HttpException(
@@ -36,14 +36,15 @@ export class AuthService implements IAuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    // Validate required fields based on role
     if (data.role !== UserRole.CUSTOMER) {
-      //kiểm tra xem có email và password hay không
       if (!data.email) {
         throw new HttpException(
           {
             statusCode: HttpStatus.BAD_REQUEST,
-            message: 'Email is required',
-            vnMessage: 'Email là bắt buộc',
+            message: 'Email is required for non-customer roles',
+            vnMessage: 'Email là bắt buộc đối với tài khoản không phải khách hàng',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -52,17 +53,31 @@ export class AuthService implements IAuthService {
         throw new HttpException(
           {
             statusCode: HttpStatus.BAD_REQUEST,
-            message: 'Password is required',
-            vnMessage: 'Mật khẩu là bắt buộc',
+            message: 'Password is required for non-customer roles',
+            vnMessage: 'Mật khẩu là bắt buộc đối với tài khoản không phải khách hàng',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
     }
-    if (data.password) {
-      const passwordHash = await bcrypt.hash(data.password, 10);
-      data.password = passwordHash;
+
+    // For customer role, only name and phone are required
+    if (data.role === UserRole.CUSTOMER && (!data.name || !data.phone)) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Name and phone are required for customer registration',
+          vnMessage: 'Tên và số điện thoại là bắt buộc đối với đăng ký khách hàng',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
+
+    // Hash password if provided
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+
     const newUser = await this.userRepository.createUser(data);
     if (!newUser) {
       throw new HttpException(
@@ -95,7 +110,7 @@ export class AuthService implements IAuthService {
       name: userExist.name,
       _id: userExist._id.toString(),
     });
-    await this.smsService.sendSms(phone, `Mã OTP của bạn là: ${otp}`);
+    await this.smsService.sendSmsWithoutBrandname(phone, `Mã OTP của bạn là: ${otp}`);
     return otp;
   }
 
