@@ -125,7 +125,7 @@ export class TripService implements ITripService {
           {
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Invalid bus stops',
-            vnMessage: 'Trạm dừng không hợp lệ',
+            vnMessage: 'Trip: Trạm dừng không hợp lệ',
           },
           HttpStatus.BAD_REQUEST,
         );
