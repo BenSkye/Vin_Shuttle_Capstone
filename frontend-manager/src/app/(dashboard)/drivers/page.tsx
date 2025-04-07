@@ -25,10 +25,7 @@ const columns: Column<Driver>[] = [
         accessor: "createdAt",
         className: "hidden md:table-cell",
     },
-    {
-        header: "Action",
-        accessor: "action",
-    },
+
 ];
 
 const DriverPage = () => {
@@ -273,7 +270,7 @@ const DriverPage = () => {
             </td>
 
             {/* Action Column */}
-            <td className="px-4 py-2">
+            {/* <td className="px-4 py-2">
                 <div className="flex items-center gap-2">
                     <Link href={`/drivers/${item._id}`}>
                         <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
@@ -286,7 +283,7 @@ const DriverPage = () => {
                         </button>
                     )}
                 </div>
-            </td>
+            </td> */}
         </tr>
     );
 

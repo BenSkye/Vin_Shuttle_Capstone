@@ -10,7 +10,7 @@ import Announcements from '@/components/Announcements';
 import { Driver } from '@/interfaces/index';
 import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
 import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
-import { format } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 
 import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
@@ -52,6 +52,13 @@ const SchedulePage = () => {
 
     // Add ref for ScheduleCalendar
     const calendarRef = React.useRef<{ getCurrentWeek: () => Date }>(null);
+
+    // Check if a date is in the past
+    const isDateInPast = (date: Date | string) => {
+        const today = startOfDay(new Date());
+        const dateToCheck = typeof date === 'string' ? new Date(date) : date;
+        return isBefore(dateToCheck, today);
+    };
 
     // Tải dữ liệu ban đầu
     useEffect(() => {
@@ -162,6 +169,16 @@ const SchedulePage = () => {
     // Xử lý sự kiện
     const handleActivityClick = (activity: Activity) => {
         setError(null);
+
+        // Check if the activity date is in the past
+        if (activity.date && isDateInPast(activity.date)) {
+            message.warning("Không thể chỉnh sửa lịch trình trong quá khứ");
+            setModalType('view');
+            setSelectedActivity(activity);
+            setIsModalOpen(true);
+            return;
+        }
+
         setSelectedActivity(activity);
         setModalType('update'); // Đặt loại modal thành 'update'
         setIsModalOpen(true);
@@ -200,6 +217,13 @@ const SchedulePage = () => {
 
     const handleSlotClick = (time: string, day: number, date: Date) => {
         setError(null);
+
+        // Check if the date is in the past
+        if (isDateInPast(date)) {
+            message.warning("Không thể thêm lịch trình cho ngày trong quá khứ");
+            return;
+        }
+
         setSelectedTime(time);
         setSelectedDay(day);
         setSelectedActivity(null);
@@ -227,6 +251,14 @@ const SchedulePage = () => {
 
             if (!selectedDate) {
                 const errorMessage = "Lỗi tính toán ngày";
+                setError(errorMessage);
+                message.error(errorMessage);
+                return;
+            }
+
+            // Check if the date is in the past
+            if (isDateInPast(selectedDate)) {
+                const errorMessage = "Không thể thêm lịch trình cho ngày trong quá khứ";
                 setError(errorMessage);
                 message.error(errorMessage);
                 return;
@@ -269,6 +301,15 @@ const SchedulePage = () => {
         try {
             setError(null);
             setLoading(true);
+
+            // Check if the date is in the past
+            if (isDateInPast(selectedDate)) {
+                const errorMessage = "Không thể cập nhật lịch trình cho ngày trong quá khứ";
+                setError(errorMessage);
+                message.error(errorMessage);
+                return;
+            }
+
             const values = await updateForm.validateFields();
 
             await updateDriverSchedule(
@@ -300,6 +341,12 @@ const SchedulePage = () => {
     };
 
     const switchToUpdateMode = () => {
+        // Check if the date is in the past
+        if (selectedDate && isDateInPast(selectedDate)) {
+            message.warning("Không thể chỉnh sửa lịch trình trong quá khứ");
+            return;
+        }
+
         setModalType('update');
     };
 
@@ -329,13 +376,24 @@ const SchedulePage = () => {
                     <strong>Ca:</strong> {selectedActivity.endTime}
                     ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
                 </p>
-                <Button
-                    type="primary"
-                    onClick={switchToUpdateMode}
-                    className="mt-4"
-                >
-                    Chỉnh Sửa Lịch Trình
-                </Button>
+                {selectedActivity.date && !isDateInPast(selectedActivity.date) && (
+                    <Button
+                        type="primary"
+                        onClick={switchToUpdateMode}
+                        className="mt-4"
+                    >
+                        Chỉnh Sửa Lịch Trình
+                    </Button>
+                )}
+                {selectedActivity.date && isDateInPast(selectedActivity.date) && (
+                    <Alert
+                        message="Không thể chỉnh sửa"
+                        description="Lịch trình trong quá khứ không thể được chỉnh sửa"
+                        type="warning"
+                        showIcon
+                        className="mt-4"
+                    />
+                )}
             </div>
         );
     };
@@ -541,6 +599,11 @@ const SchedulePage = () => {
 
             // Create assignments for each day and shift
             for (const date of weekDates) {
+                // Skip past dates
+                if (isDateInPast(date)) {
+                    continue;
+                }
+
                 for (const shift of shifts) {
                     // Get next driver and vehicle from pools
                     const driver = driverPool[driverIndex % driverPool.length];
@@ -636,7 +699,7 @@ const SchedulePage = () => {
             </div>
             <div className="w-full lg:w-1/3 flex flex-col gap-8">
                 <EventCalendar />
-                <Announcements />
+
             </div>
         </div>
     );

@@ -477,7 +477,7 @@ const DestinationBookingPage = () => {
                 style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
-            <span>Chọn địa điểm</span>
+            <span className="hidden sm:inline">Chọn địa điểm</span>
           </div>
 
           <div
@@ -489,7 +489,7 @@ const DestinationBookingPage = () => {
                 style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
-            <span>Chọn xe</span>
+            <span className="hidden sm:inline">Chọn xe</span>
           </div>
 
           <div
@@ -501,7 +501,7 @@ const DestinationBookingPage = () => {
                 style={{ width: `${getStepProgress('payment')}%` }}
               />
             </div>
-            <span>Phương thức thanh toán</span>
+            <span className="hidden sm:inline">Phương thức thanh toán</span>
           </div>
 
           <div
@@ -513,7 +513,7 @@ const DestinationBookingPage = () => {
                 style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
-            <span>Thanh toán</span>
+            <span className="hidden sm:inline">Thanh toán</span>
           </div>
         </div>
       </div>

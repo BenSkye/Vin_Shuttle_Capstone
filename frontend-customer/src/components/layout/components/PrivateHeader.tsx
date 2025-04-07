@@ -224,7 +224,7 @@ export function PrivateHeader({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-[9998] backdrop-blur-sm md:hidden"
             onClick={toggleMenu}
           >
             <motion.div
@@ -259,9 +259,8 @@ export function PrivateHeader({
                           >
                             <span>{item.label}</span>
                             <FiChevronDown
-                              className={`h-5 w-5 transition-transform ${
-                                expandedSections.includes(item.label) ? 'rotate-180' : ''
-                              }`}
+                              className={`h-5 w-5 transition-transform ${expandedSections.includes(item.label) ? 'rotate-180' : ''
+                                }`}
                             />
                           </button>
                           <AnimatePresence>
@@ -312,9 +311,8 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Thông báo</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('notifications') ? 'rotate-180' : ''
-                    }`}
+                    className={`h-5 w-5 transition-transform ${expandedSections.includes('notifications') ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
                 <AnimatePresence>
@@ -376,9 +374,8 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Tài khoản</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('userActions') ? 'rotate-180' : ''
-                    }`}
+                    className={`h-5 w-5 transition-transform ${expandedSections.includes('userActions') ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
                 <AnimatePresence>

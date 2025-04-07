@@ -1,0 +1,165 @@
+Test Case ID,Module,Test Case Description,Test Steps,Expected Result,Priority,Status
+
+# Authentication Tests
+AUTH-001,Login,Verify successful login with valid credentials,"1. Navigate to login page
+2. Enter valid email
+3. Enter valid password
+4. Click login button","1. User should be redirected to dashboard
+2. User session should be created
+3. JWT token should be stored",High,Not Started
+
+AUTH-002,Login,Verify login failure with invalid credentials,"1. Navigate to login page
+2. Enter invalid email
+3. Enter invalid password
+4. Click login button","1. Error message should be displayed
+2. User should remain on login page
+3. No session should be created",High,Not Started
+
+AUTH-003,Logout,Verify successful logout,"1. Login to the application
+2. Click logout button
+3. Confirm logout","1. User should be redirected to login page
+2. Session should be destroyed
+3. JWT token should be removed",High,Not Started
+
+# Navigation Tests
+NAV-001,Menu Navigation,Verify menu item navigation,"1. Login to the application
+2. Click on each menu item","1. Should navigate to correct page
+2. URL should update accordingly
+3. Page content should load correctly",High,Not Started
+
+NAV-002,Responsive Menu,Verify menu behavior on mobile devices,"1. Open application on mobile device
+2. Check menu collapse/expand
+3. Verify menu items visibility","1. Menu should collapse on mobile
+2. Hamburger menu should be visible
+3. Menu items should be accessible",Medium,Not Started
+
+# Table Component Tests
+TABLE-001,Table Search,Verify table search functionality,"1. Navigate to table page
+2. Enter search term
+3. Verify filtered results","1. Table should filter based on search term
+2. Results should update in real-time
+3. Empty state should show when no results",High,Not Started
+
+TABLE-002,Table Pagination,Verify table pagination,"1. Navigate to table page
+2. Click next/previous page
+3. Verify page size change","1. Page should change correctly
+2. Data should update
+3. Page size should change when selected",High,Not Started
+
+# Calendar Tests
+CAL-001,Event Calendar,Verify event display,"1. Navigate to calendar page
+2. Check event rendering
+3. Verify event details","1. Events should be displayed correctly
+2. Event details should be visible
+3. Event times should be accurate",High,Not Started
+
+CAL-002,Event Creation,Verify new event creation,"1. Navigate to calendar page
+2. Click add event button
+3. Fill event details
+4. Save event","1. Event form should open
+2. Event should be saved
+3. New event should appear in calendar",High,Not Started
+
+# Chart Tests
+CHART-001,Attendance Chart,Verify attendance data display,"1. Navigate to attendance page
+2. Check chart rendering
+3. Verify data accuracy","1. Chart should render correctly
+2. Data should be accurate
+3. Legend should be visible",Medium,Not Started
+
+CHART-002,Finance Chart,Verify finance data display,"1. Navigate to finance page
+2. Check income/expense chart
+3. Verify data calculations","1. Chart should show correct data
+2. Calculations should be accurate
+3. Trends should be visible",Medium,Not Started
+
+# User Management Tests
+USER-001,User Profile,Verify user profile display,"1. Navigate to profile page
+2. Check user information
+3. Verify avatar display","1. Profile should display correctly
+2. User info should be accurate
+3. Avatar should be visible",Medium,Not Started
+
+USER-002,User Settings,Verify settings update,"1. Navigate to settings
+2. Update user preferences
+3. Save changes","1. Settings should update
+2. Changes should persist
+3. Success message should show",Medium,Not Started
+
+# Form Tests
+FORM-001,Form Validation,Verify input validation,"1. Open form
+2. Submit empty form
+3. Enter invalid data","1. Validation errors should show
+2. Form should not submit
+3. Error messages should be clear",High,Not Started
+
+FORM-002,Form Submission,Verify successful submission,"1. Fill form correctly
+2. Submit form
+3. Check response","1. Form should submit
+2. Success message should show
+3. Data should be saved",High,Not Started
+
+# Map Tests
+MAP-001,Map Display,Verify map rendering,"1. Navigate to map page
+2. Check map load
+3. Verify markers","1. Map should load correctly
+2. Markers should be visible
+3. Controls should work",Medium,Not Started
+
+MAP-002,Route Display,Verify route visualization,"1. Select start/end points
+2. Calculate route
+3. Check route display","1. Route should be calculated
+2. Route should be displayed
+3. Distance/time should show",Medium,Not Started
+
+# Performance Tests
+PERF-001,Page Load Time,Verify page load performance,"1. Measure initial load time
+2. Check resource loading
+3. Verify render time","1. Load time should be < 3s
+2. Resources should load efficiently
+3. No layout shifts",High,Not Started
+
+PERF-002,Data Loading,Verify data fetch performance,"1. Load large datasets
+2. Measure response time
+3. Check UI responsiveness","1. Data should load < 2s
+2. UI should remain responsive
+3. Loading states should show",High,Not Started
+
+# Accessibility Tests
+A11Y-001,Keyboard Navigation,Verify keyboard accessibility,"1. Navigate using Tab key
+2. Check focus indicators
+3. Verify keyboard shortcuts","1. All elements should be focusable
+2. Focus should be visible
+3. Shortcuts should work",High,Not Started
+
+A11Y-002,Screen Reader,Verify screen reader compatibility,"1. Test with screen reader
+2. Check ARIA labels
+3. Verify announcements","1. Content should be readable
+2. ARIA labels should be present
+3. Navigation should be clear",High,Not Started
+
+# Error Handling Tests
+ERR-001,API Error Handling,Verify API error responses,"1. Trigger API errors
+2. Check error messages
+3. Verify recovery","1. Errors should be handled
+2. User should be notified
+3. App should recover gracefully",High,Not Started
+
+ERR-002,Network Error,Verify offline behavior,"1. Disable network
+2. Perform actions
+3. Re-enable network","1. Offline message should show
+2. Data should be cached
+3. Should sync when online",Medium,Not Started
+
+# Localization Tests
+LOC-001,Language Switch,Verify language change,"1. Change language
+2. Check translations
+3. Verify persistence","1. Language should change
+2. All text should translate
+3. Setting should persist",Medium,Not Started
+
+LOC-002,Date/Time Format,Verify date/time localization,"1. Change locale
+2. Check date formats
+3. Verify time zones","1. Dates should format correctly
+2. Times should adjust
+3. Formats should match locale",Medium,Not Started 

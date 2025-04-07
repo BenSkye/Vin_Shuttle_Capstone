@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, forwardRef } from 'react';
-import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek } from 'date-fns';
+import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek, isBefore, startOfDay } from 'date-fns';
 import { Button } from 'antd';
 import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
 import { Activity } from '@/interfaces';
@@ -51,6 +51,12 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     const nextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
     const today = () => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
+    // Check if a date is in the past
+    const isDateInPast = (date: Date) => {
+        const today = startOfDay(new Date());
+        return isBefore(date, today);
+    };
+
     // Filter activities for the current week view
     const filteredActivities = activities.filter(activity => {
         if (activity.date) {
@@ -84,6 +90,13 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     const handleSlotClick = (time: string, dayIndex: number) => {
         if (onSlotClick) {
             const actualDate = days[dayIndex]; // This is the actual date for the clicked cell
+
+            // Check if the date is in the past
+            if (isDateInPast(actualDate)) {
+                console.log(`Cannot schedule for past date: ${format(actualDate, 'yyyy-MM-dd')}`);
+                return; // Don't allow scheduling for past dates
+            }
+
             console.log(`Clicked on: ${format(actualDate, 'yyyy-MM-dd')} - Shift ${time}`);
             onSlotClick(time, dayIndex, actualDate);
         }
@@ -117,7 +130,7 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                 <div className="grid grid-cols-8 bg-gray-100 text-gray-700">
                     <div className="p-3 border font-medium">Shift</div>
                     {days.map((day, i) => (
-                        <div key={i} className="p-3 border text-center font-medium">
+                        <div key={i} className={`p-3 border text-center font-medium ${isDateInPast(day) ? 'bg-gray-200' : ''}`}>
                             <div>{format(day, 'EEEE')}</div>
                             <div className="text-xs text-gray-500">{format(day, 'MMM d')}</div>
                         </div>
@@ -132,13 +145,13 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                         </div>
                         {days.map((day, dayIndex) => {
                             const dayActivities = getActivitiesForTimeAndDay(time, dayIndex);
-
+                            const isPastDate = isDateInPast(day);
 
                             return (
                                 <div
                                     key={`${time}-${dayIndex}`}
-                                    className="relative p-2 border hover:bg-gray-50 cursor-pointer min-h-[120px]"
-                                    onClick={() => handleSlotClick(time, dayIndex)}
+                                    className={`relative p-2 border ${isPastDate ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} min-h-[120px]`}
+                                    onClick={() => !isPastDate && handleSlotClick(time, dayIndex)}
                                 >
                                     {dayActivities.map(activity => (
                                         <div
@@ -151,12 +164,14 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                                         </div>
                                     ))}
 
-                                    {/* Always show the plus icon in the bottom right corner */}
-                                    <div className="absolute bottom-2 right-2 flex items-center justify-center">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-100 transition-colors">
-                                            <PlusOutlined className="text-gray-500 hover:text-blue-600 text-base" />
+                                    {/* Only show the plus icon for future dates */}
+                                    {!isPastDate && (
+                                        <div className="absolute bottom-2 right-2 flex items-center justify-center">
+                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-blue-100 transition-colors">
+                                                <PlusOutlined className="text-gray-500 hover:text-blue-600 text-base" />
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             );
                         })}
