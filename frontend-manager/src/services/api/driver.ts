@@ -1,5 +1,6 @@
 import axiosInstance from "./axios";
 import { uploadDriverImage } from "@/utils/firebase";
+import { DriverFilters } from "@/interfaces/index";
 
 export const getDriverSchedule = async () => {
     const startday = "2021-10-01";
@@ -92,3 +93,38 @@ export const getPersonalDriverSchedule = async () => {
         console.log('lỗi fetch lịch driver', error)
     }
 }
+
+
+
+export const filterDriver = async (filters: DriverFilters = {}) => {
+    try {
+        const {
+            sortOrder,
+            orderBy,
+            skip,
+            limit,
+            role,
+            phone,
+            email,
+            name,
+        } = filters;
+
+        const response = await axiosInstance.get('/users', {
+            params: {
+                sortOrder,
+                orderBy,
+                ...(skip !== undefined && { skip }),
+                ...(limit !== undefined && { limit }),
+                role,
+                ...(phone && { phone }),
+                ...(email && { email }),
+                ...(name && { name }),
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching drivers:', error);
+        throw error;
+    }
+};

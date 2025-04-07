@@ -289,34 +289,30 @@ const SharedBookingFlow = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div
-            className={`flex-1 text-center ${
-              currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'
-            }`}
+            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'
+              }`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  currentStep === 'location' ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: '100%' }}
               />
             </div>
-            <span>Chọn địa điểm</span>
+            <span className="hidden sm:inline">Chọn địa điểm</span>
           </div>
           <div
-            className={`flex-1 text-center ${
-              currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'
-            }`}
+            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'
+              }`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
               />
             </div>
-            <span>Thanh toán</span>
+            <span className="hidden sm:inline">Thanh toán</span>
           </div>
         </div>
       </div>

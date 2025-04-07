@@ -92,13 +92,13 @@ const HourlyBookingPage = () => {
         )?.vehicleCategory
         return quantity > 0
           ? [
-              ...prev,
-              {
-                categoryVehicleId: categoryId,
-                quantity,
-                name: vehicleCategory?.name || '',
-              },
-            ]
+            ...prev,
+            {
+              categoryVehicleId: categoryId,
+              quantity,
+              name: vehicleCategory?.name || '',
+            },
+          ]
           : prev
       })
     },
@@ -515,39 +515,36 @@ const HourlyBookingPage = () => {
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: `${getStepProgress('datetime')}%` }}
               />
             </div>
-            <span>Chọn ngày & giờ</span>
+            <span className="hidden sm:inline">Chọn ngày & giờ</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
-            <span>Chọn loại xe</span>
+            <span className="hidden sm:inline">Chọn loại xe</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
-            <span>Chọn địa điểm</span>
+            <span className="hidden sm:inline">Chọn địa điểm</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'payment' ? 'text-blue-500' : 'text-gray-500'}`}
@@ -558,20 +555,19 @@ const HourlyBookingPage = () => {
                 style={{ width: `${getStepProgress('payment')}%` }}
               />
             </div>
-            <span>Phương thức thanh toán</span>
+            <span className="hidden sm:inline">Phương thức thanh toán</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
                 style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
-            <span>Thanh toán</span>
+            <span className="hidden sm:inline">Thanh toán</span>
           </div>
         </div>
       </div>

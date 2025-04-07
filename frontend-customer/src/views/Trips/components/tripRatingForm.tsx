@@ -24,6 +24,11 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
   const [comment, setComment] = useState('')
   const { mutate: createRating, isPending } = useCreateRatingMutation()
 
+  const handleRatingChange = (value: number) => {
+    console.log('Rating changed to:', value)
+    setRating(value)
+  }
+
   const handleSubmit = () => {
     createRating(
       { tripId, rate: rating, feedback: comment },
@@ -60,9 +65,8 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
       <div className="mb-4 flex flex-col items-center">
         <Rate
           tooltips={desc}
-          onChange={setRating}
+          onChange={handleRatingChange}
           value={rating}
-          character={<FaStar className="text-yellow-400" />}
           className="text-2xl sm:text-3xl"
         />
         {rating > 0 && <Text className="mt-2 text-blue-600">{desc[rating - 1]}</Text>}
