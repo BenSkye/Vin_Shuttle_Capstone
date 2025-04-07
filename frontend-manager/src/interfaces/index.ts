@@ -67,3 +67,14 @@ export interface Vehicle {
     operationStatus: string;
 
 }
+
+export interface DriverFilters {
+    sortOrder?: string;
+    orderBy?: string;
+    skip?: number;
+    limit?: number;
+    role?: string;
+    phone?: string;
+    email?: string;
+    name?: string;
+}

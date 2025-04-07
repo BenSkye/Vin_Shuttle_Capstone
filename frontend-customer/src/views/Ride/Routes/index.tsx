@@ -106,13 +106,13 @@ const RoutesBooking = () => {
         const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
         return quantity > 0
           ? [
-              ...prev,
-              {
-                categoryVehicleId: categoryId,
-                quantity,
-                name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-              },
-            ]
+            ...prev,
+            {
+              categoryVehicleId: categoryId,
+              quantity,
+              name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+            },
+          ]
           : prev
       })
     },
@@ -523,7 +523,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('datetime')}%` }}
               />
             </div>
-            <span>Chọn thời gian</span>
+            <span className="hidden sm:inline">Chọn thời gian</span>
           </div>
 
           <div
@@ -535,7 +535,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('route')}%` }}
               />
             </div>
-            <span>Chọn lộ trình</span>
+            <span className="hidden sm:inline">Chọn lộ trình</span>
           </div>
 
           <div
@@ -547,7 +547,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
-            <span>Chọn xe</span>
+            <span className="hidden sm:inline">Chọn xe</span>
           </div>
 
           <div
@@ -559,7 +559,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
-            <span>Chọn địa điểm</span>
+            <span className="hidden sm:inline">Chọn địa điểm</span>
           </div>
 
           <div
@@ -571,7 +571,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('payment')}%` }}
               />
             </div>
-            <span>Phương thức thanh toán</span>
+            <span className="hidden sm:inline">Phương thức thanh toán</span>
           </div>
 
           <div
@@ -583,7 +583,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
-            <span>Thanh toán</span>
+            <span className="hidden sm:inline">Thanh toán</span>
           </div>
         </div>
       </div>

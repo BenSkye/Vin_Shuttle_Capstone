@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { executeLogout, executeSetIsLoginFalse, executeSetIsLoginTrue } from '@/services/api/user';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-console.log('API Base URL:', API_BASE_URL);
+
 
 // Create an Axios instance
 const axiosInstance = axios.create({
