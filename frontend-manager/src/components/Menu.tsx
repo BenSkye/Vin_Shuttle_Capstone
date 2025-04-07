@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { role } from '../libs/data'
+import { FaStar } from "react-icons/fa";
 
 const menuItems = [
     {
@@ -10,27 +11,32 @@ const menuItems = [
                 icon: "/icons/home.png",
                 label: "Trang chủ",
                 href: "/",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin",],
             },
             {
                 icon: '/icons/car-solid.svg',
                 label: "Tài xế",
                 href: "/drivers",
-                visible: ["admin", "teacher"],
+                visible: ["admin",],
             },
             {
                 icon: "/icons/driver.png",
                 label: "Khách hàng",
                 href: "/customers",
-                visible: ["admin", "teacher"],
+                visible: ["admin",],
             },
             {
                 icon: "/icons/calendar-solid.svg",
                 label: "Lịch trình",
                 href: "/schedule",
-                visible: ["admin", "teacher"],
+                visible: ["admin",],
             },
-
+            {
+                icon: "/icons/star-solid.svg",
+                label: "Đánh giá",
+                href: "/rating",
+                visible: ["admin",],
+            },
 
 
 

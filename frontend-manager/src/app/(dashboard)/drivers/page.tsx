@@ -7,8 +7,8 @@ import { role } from "@/libs/data";
 import Image from "next/image";
 import Link from "next/link";
 import { Column } from '@/interfaces/index';
-import { Driver } from "@/interfaces/index";
-import { getDriver, createDriver } from "@/services/api/driver";
+import { Driver, DriverFilters } from "@/interfaces/index";
+import { getDriver, createDriver, filterDriver } from "@/services/api/driver";
 
 const columns: Column<Driver>[] = [
     {
@@ -35,42 +35,56 @@ const DriverPage = () => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [newDriver, setNewDriver] = useState({
         name: '',
         phone: '',
         email: '',
         password: ''
     });
+    const [filterParams, setFilterParams] = useState<DriverFilters>({
+        sortOrder: 'desc',
+        orderBy: 'createdAt',
+        role: 'driver',
+        name: '',
+        phone: '',
+        email: '',
+    });
+    const [searchQuery, setSearchQuery] = useState('');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const itemsPerPage = 5;
+    const [activeFilters, setActiveFilters] = useState(false);
 
     const totalPages = Math.ceil(drivers.length / itemsPerPage);
 
     useEffect(() => {
-        const fetchDrivers = async () => {
-            try {
-                const response = await getDriver();
-                console.log("Full API Response:", response);
-
-                // Sort drivers by createdAt date (newest first)
-                const sortedDrivers = sortDriversByDate(response);
-                setDrivers(sortedDrivers);
-            } catch (error) {
-                console.error("Error fetching drivers:", error);
-            }
-        };
-
         fetchDrivers();
     }, []);
 
-    // Function to sort drivers by createdAt date (newest first)
-    const sortDriversByDate = (driversList: Driver[]): Driver[] => {
+    const fetchDrivers = async (filters: DriverFilters = { sortOrder: 'desc', role: 'driver', orderBy: 'createdAt' }) => {
+        try {
+            console.log("Fetching drivers with filters:", filters);
+            const response = await filterDriver(filters);
+            console.log("Filtered Drivers Response:", response);
+
+            // Sort drivers according to the specified sort order
+            const sortedDrivers = sortDriversByDate(response, filters.sortOrder);
+            setDrivers(sortedDrivers);
+        } catch (error) {
+            console.error("Error fetching drivers:", error);
+        }
+    };
+
+    // Function to sort drivers by createdAt date based on sortOrder
+    const sortDriversByDate = (driversList: Driver[], sortOrder: string = 'desc'): Driver[] => {
         return [...driversList].sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA; // Sort in descending order (newest first)
+
+            // Sort ascending (oldest first) or descending (newest first) based on sortOrder
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
     };
 
@@ -97,6 +111,76 @@ const DriverPage = () => {
         });
         setImageFile(null);
         setImagePreview(null);
+    };
+
+    const handleOpenFilterModal = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleCloseFilterModal = () => {
+        setIsFilterModalOpen(false);
+    };
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFilterParams(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleApplyFilter = () => {
+        console.log("Applying filters with params:", filterParams);
+        fetchDrivers(filterParams);
+        handleCloseFilterModal();
+        setCurrentPage(1); // Reset to first page when applying filters
+    };
+
+    const handleResetFilter = () => {
+        const defaultFilters = {
+            sortOrder: 'desc',
+            orderBy: 'createdAt',
+            role: 'driver',
+            name: '',
+            phone: '',
+            email: '',
+        };
+        console.log("Resetting filters to defaults:", defaultFilters);
+        setFilterParams(defaultFilters);
+        fetchDrivers(defaultFilters);
+        handleCloseFilterModal();
+        setCurrentPage(1);
+    };
+
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+
+        if (query.trim()) {
+            // If there's a search query, update the name filter and apply it
+            const searchFilters = {
+                ...filterParams,
+                name: query,
+            };
+            console.log("Searching with filters:", searchFilters);
+            fetchDrivers(searchFilters);
+        } else {
+            // If search is cleared, reset to current filters without the name
+            const { name, ...restFilters } = filterParams;
+            console.log("Cleared search, using filters:", restFilters);
+            fetchDrivers(restFilters);
+        }
+        setCurrentPage(1);
+    };
+
+    const handleSortOrderChange = () => {
+        const newSortOrder = filterParams.sortOrder === 'asc' ? 'desc' : 'asc';
+        const updatedFilters = {
+            ...filterParams,
+            sortOrder: newSortOrder
+        };
+        console.log("Changed sort order to:", newSortOrder, "Updated filters:", updatedFilters);
+        setFilterParams(updatedFilters);
+        fetchDrivers(updatedFilters);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,12 +233,7 @@ const DriverPage = () => {
             // Make sure the response has the correct shape before adding to drivers state
             if (response && response._id) {
                 // Refresh the drivers list to get the latest data
-                const updatedDrivers = await getDriver();
-                if (updatedDrivers) {
-                    // Sort the updated drivers list
-                    const sortedDrivers = sortDriversByDate(updatedDrivers);
-                    setDrivers(sortedDrivers);
-                }
+                fetchDrivers(filterParams);
             }
 
             handleCloseModal();
@@ -239,7 +318,7 @@ const DriverPage = () => {
             <div className="flex items-center justify-between">
                 <h1 className="hidden md:block text-lg font-semibold">Danh Sách Tài Xế</h1>
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <TableSearch />
+                    <TableSearch onSearch={handleSearch} />
                     <div className="flex items-center gap-4 self-end">
                         <button
                             className="w-10 h-10 flex items-center justify-center rounded-full
@@ -256,10 +335,22 @@ const DriverPage = () => {
                         >
                             <span className="text-xl font-semibold leading-none select-none">+</span>
                         </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+                        <button
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
+                            onClick={handleOpenFilterModal}
+                            aria-label="Filter drivers"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleOpenFilterModal()}
+                        >
                             <Image src="/icons/filter.svg" alt="Filter" width={14} height={14} />
                         </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+                        <button
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
+                            onClick={handleSortOrderChange}
+                            aria-label="Sort drivers"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSortOrderChange()}
+                        >
                             <Image src="/icons/sort.svg" alt="Sort" width={14} height={14} />
                         </button>
                     </div>
@@ -418,6 +509,108 @@ const DriverPage = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Filter Modal */}
+            {isFilterModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+                    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-800">Lọc Tài Xế</h2>
+                            <button
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                onClick={handleCloseFilterModal}
+                                aria-label="Close filter modal"
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCloseFilterModal()}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Tên tài xế
+                                </label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    value={filterParams.name}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="Nhập tên tài xế"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Số điện thoại
+                                </label>
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    name="phone"
+                                    value={filterParams.phone}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="Nhập số điện thoại"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email
+                                </label>
+                                <input
+                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    value={filterParams.email}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="Nhập email"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="sortOrder" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Sắp xếp
+                                </label>
+                                <select
+                                    id="sortOrder"
+                                    name="sortOrder"
+                                    value={filterParams.sortOrder}
+                                    onChange={handleFilterChange}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                >
+                                    <option value="desc">Mới nhất trước</option>
+                                    <option value="asc">Cũ nhất trước</option>
+                                </select>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleResetFilter}
+                                    className="px-6 py-3 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all font-medium"
+                                >
+                                    Đặt lại
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleApplyFilter}
+                                    className="px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium"
+                                >
+                                    Áp dụng
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
