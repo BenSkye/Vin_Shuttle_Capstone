@@ -21,6 +21,7 @@ const useSharedItinerarySocket = (id: string) => {
         console.log('resetSignalShareItinerary', resetSignal);
         if (!isLogin) return;
         if (!id) {
+            console.log('No ID provided, skipping socket initialization.');
             return
         }
         let socketInstance: Socket | null = null;
@@ -28,6 +29,7 @@ const useSharedItinerarySocket = (id: string) => {
         const initializeSocketAndListeners = async () => {
             try {
                 socketInstance = await initSocket(SOCKET_NAMESPACE.SHARE_ITINERARY);
+                console.log('socketInstance', socketInstance);
                 if (!socketInstance) return;
 
                 // Logic sau khi socket đã sẵn sàng
@@ -79,7 +81,7 @@ const useSharedItinerarySocket = (id: string) => {
     }, [isLogin, id, resetSignal]);
     const resetHook = () => setResetSignal(prev => prev + 1);
 
-    return { data: id ? sharedItineraryDetail : null, updateItineraryMessage, isTripInItineraryCancel, isLoading: loading, error, resetHook };
+    return { data: id ? sharedItineraryDetail : null, updateItineraryMessage, setUpdateItineraryMessage, setIsTripInItineraryCancel, isTripInItineraryCancel, isLoading: loading, error, resetHook };
 };
 
 export default useSharedItinerarySocket;
