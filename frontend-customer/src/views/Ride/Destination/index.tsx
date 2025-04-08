@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-
 import { Radio, Space, Typography, message } from 'antd'
 
 import dynamic from 'next/dynamic'
@@ -441,7 +440,7 @@ const DestinationBookingPage = () => {
                 aria-label="Xác nhận thanh toán"
                 tabIndex={0}
               >
-                Tiếp tục
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>
@@ -554,7 +553,7 @@ const DestinationBookingPage = () => {
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
-                Xác nhận đặt xe
+                {loading ? 'Đang xử lý...' : 'Xác nhận'}
               </button>
             </div>
           </div>

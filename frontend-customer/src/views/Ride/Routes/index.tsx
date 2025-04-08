@@ -582,7 +582,7 @@ const RoutesBooking = () => {
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
-                Xác nhận đặt xe
+                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
               </button>
             </div>
           </div>
