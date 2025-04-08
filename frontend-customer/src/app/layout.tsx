@@ -11,8 +11,8 @@ import '@/styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'VinShuttle - Dịch vụ vận chuyển nội khu thông minh',
-  description: 'Dịch vụ vận chuyển nội khu thông minh tại VinHomes Grand Park',
+  title: 'VinShuttle - Dịch vụ vận chuyển nội khu',
+  description: 'Dịch vụ vận chuyển nội khu tại VinHomes Grand Park',
   icons: {
     icon: '/favicon.svg',
   },

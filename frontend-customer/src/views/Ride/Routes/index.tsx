@@ -627,9 +627,9 @@ const RoutesBooking = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-7 gap-1">
           <div
-            className={`flex-1 text-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -637,11 +637,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('datetime')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn thời gian</span>
+            <span className="hidden text-center text-xs sm:block">Chọn thời gian</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -649,11 +649,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('route')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn lộ trình</span>
+            <span className="hidden text-center text-xs sm:block">Chọn lộ trình</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -661,11 +661,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn xe</span>
+            <span className="hidden text-center text-xs sm:block">Chọn xe</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -673,11 +673,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
+            <span className="hidden text-center text-xs sm:block">Chọn địa điểm</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -685,11 +685,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('payment')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
+            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -697,11 +697,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('confirmation')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Xác nhận</span>
+            <span className="hidden text-center text-xs sm:block">Xác nhận</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -709,7 +709,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Thanh toán</span>
+            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
           </div>
         </div>
       </div>
