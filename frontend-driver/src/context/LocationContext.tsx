@@ -126,7 +126,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       startLocationTracking();
     }
 
-    // Connect/disconnect socket based on trip status
+    // Connect/disconnect socket based on schedule status
     if (isInProgress) {
       connect();
     } else {

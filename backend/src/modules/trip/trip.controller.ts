@@ -37,8 +37,22 @@ export class TripController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get customer personal trip' })
-  async getCustomerPersonalTrip(@Request() req) {
-    return await this.tripService.getPersonalCustomerTrip(req.user._id);
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)',
+  })
+  async getCustomerPersonalTrip(@Request() req, @Query() query: tripParams) {
+    return await this.tripService.getPersonalCustomerTrip(req.user._id, query);
   }
 
   @Get('driver-personal-trip')
@@ -59,6 +73,20 @@ export class TripController {
     required: false,
     type: Boolean,
     description: 'Filter by trip isPayed',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)',
   })
   async getDriverPersonalTrip(@Request() req, @Query() query: tripParams) {
     return await this.tripService.getPersonalDriverTrip(req.user._id, query);

@@ -247,8 +247,57 @@ export class TripService implements ITripService {
     }
   }
 
-  async getPersonalCustomerTrip(customerId: string): Promise<TripDocument[]> {
-    return await this.tripRepository.find({ customerId }, []);
+  async getPersonalCustomerTrip(customerId: string, query?: tripParams): Promise<TripDocument[]> {
+    let filterProcessed: any
+    if (!query) {
+      filterProcessed = {}
+    } else {
+      filterProcessed = query;
+    }
+    if (query?.driverName) {
+      const driver = await this.userRepository.findUser({
+        name: { $regex: query.driverName, $options: 'i' },
+        role: UserRole.DRIVER,
+      });
+      if (!driver) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Driver not found',
+            vnMessage: 'Không tìm thấy tài xế',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.driverId = driver._id.toString();
+      delete filterProcessed.driverName;
+    }
+    if (query?.vehicleName) {
+      const vehicle = await this.vehicleRepository.getVehicle(
+        {
+          name: { $regex: query.vehicleName, $options: 'i' },
+        },
+        ['_id'],
+      );
+      if (!vehicle) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle not found',
+            vnMessage: 'Không tìm thấy xe',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.vehicleId = vehicle._id.toString();
+      delete filterProcessed.vehicleName;
+    }
+    console.log('customerId', customerId);
+    filterProcessed.customerId = customerId;
+    console.log('filterProcessed', filterProcessed);
+    const { filter, options } = processQueryParams(filterProcessed, []);
+    console.log('filter', filter);
+    return await this.tripRepository.find(filter, [], options);
   }
 
   async getPersonalDriverTrip(driverId: string, query?: tripParams): Promise<TripDocument[]> {
