@@ -37,7 +37,7 @@ export class BookingController {
   constructor(
     @Inject(BOOKING_SERVICE)
     private readonly bookingService: IBookingService,
-  ) {}
+  ) { }
 
   @Post('create-booking-hour')
   @HttpCode(HttpStatus.CREATED)
@@ -214,6 +214,19 @@ export class BookingController {
   ) {
     return await this.bookingService.bookingSharedItinerary(req.user._id, data);
   }
+
+  @Post('cancel-booking/:id')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.CUSTOMER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Cancel booking by Booking Code' })
+
+  async cancelBooking(@Param('id') id: string, @Request() req) {
+    return await this.bookingService.cancelBooking(req.user._id, id)
+  }
+
 
   @Get('customer-personal-booking')
   @HttpCode(HttpStatus.CREATED)

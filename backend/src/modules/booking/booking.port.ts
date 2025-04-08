@@ -42,7 +42,7 @@ export interface IBookingService {
 
   payBookingSuccess(bookingCode: number): Promise<BookingDocument>;
   payBookingFail(bookingCode: number): Promise<void>;
-
+  cancelBooking(userId: string, bookingId: string): Promise<boolean>;
   getCustomerPersonalBooking(customerId: string, query: QueryOptions): Promise<BookingDocument[]>;
   getCustomerPersonalBookingById(customerId: string, id: string): Promise<BookingDocument>;
 
