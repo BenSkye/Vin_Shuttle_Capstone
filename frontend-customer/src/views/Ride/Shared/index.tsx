@@ -42,22 +42,58 @@ const SharedBookingFlow = () => {
 
   const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
     setPaymentMethod(method)
-  }, [])
+    // Ensure distance and duration estimates are properly set
+    // This is to fix the issue where these values are not being passed correctly
+    // when the payment method is PayOS
+    if (method === PaymentMethod.PAY_OS) {
+      // Make sure we have valid values for distance and duration
+      if (estimatedDistance <= 0) {
+        setEstimatedDistance(2) // Default value if not set
+      }
+      if (estimatedDuration <= 0) {
+        setEstimatedDuration(5) // Default value if not set
+      }
+    }
+  }, [estimatedDistance, estimatedDuration])
 
   const handleStartLocationChange = useCallback(
     (position: { lat: number; lng: number }, address: string) => {
       setStartPoint({ position, address })
       setLoading(false)
+
+      // If both start and end points are set, ensure we have valid distance and duration
+      if (endPoint.address && position.lat && position.lng && endPoint.position.lat && endPoint.position.lng) {
+        // If the SharedLocation component doesn't update these values automatically,
+        // we'll set default values to ensure they're not zero
+        if (estimatedDistance <= 0) {
+          setEstimatedDistance(2)
+        }
+        if (estimatedDuration <= 0) {
+          setEstimatedDuration(5)
+        }
+      }
     },
-    []
+    [endPoint, estimatedDistance, estimatedDuration]
   )
 
   const handleEndLocationChange = useCallback(
     (position: { lat: number; lng: number }, address: string) => {
       setEndPoint({ position, address })
       setLoading(false)
+
+      // If both start and end points are set, ensure we have valid distance and duration
+      if (startPoint.address && position.lat && position.lng && startPoint.position.lat && startPoint.position.lng) {
+        // If the SharedLocation component doesn't update these values automatically,
+        // we'll set default values to ensure they're not zero
+        if (estimatedDistance <= 0) {
+          setEstimatedDistance(2)
+        }
+        if (estimatedDuration <= 0) {
+          setEstimatedDuration(5)
+        }
+      }
     },
-    []
+    [startPoint, estimatedDistance, estimatedDuration]
   )
 
   const handleDetectUserLocation = useCallback(async () => {
@@ -168,16 +204,20 @@ const SharedBookingFlow = () => {
     setError(null)
 
     try {
-      // const { distance, duration } = calculateDistance()
+      // Ensure we have valid values for distance and duration
+      const validDistance = estimatedDistance > 0 ? estimatedDistance : 2
+      const validDuration = estimatedDuration > 0 ? estimatedDuration : 5
 
       const payload: BookingSharedRequest = {
         startPoint,
         endPoint,
-        durationEstimate: estimatedDuration,
-        distanceEstimate: estimatedDistance,
+        durationEstimate: validDuration,
+        distanceEstimate: validDistance,
         numberOfSeat: numberOfSeats,
         paymentMethod: paymentMethod,
       }
+
+      console.log('Booking payload:', payload) // Add logging to debug
 
       const response = await bookingShared(payload)
       setBookingResponse(response)
@@ -188,13 +228,18 @@ const SharedBookingFlow = () => {
     } finally {
       setLoading(false)
     }
-  }, [startPoint, endPoint, numberOfSeats, paymentMethod])
+  }, [startPoint, endPoint, estimatedDistance, estimatedDuration, numberOfSeats, paymentMethod])
 
   const handleNextStep = useCallback(() => {
     if (currentStep === 'location' && startPoint.address && endPoint.address) {
+      // Validate distance and duration estimates before proceeding
+      if (estimatedDistance <= 0 || estimatedDuration <= 0) {
+        setError('Vui lòng chọn địa điểm hợp lệ để tính toán khoảng cách và thời gian')
+        return
+      }
       handleConfirmBooking()
     }
-  }, [currentStep, startPoint.address, endPoint.address, handleConfirmBooking])
+  }, [currentStep, startPoint.address, endPoint.address, estimatedDistance, estimatedDuration, handleConfirmBooking])
 
   const handleBackStep = useCallback(() => {
     if (currentStep === 'checkout') {

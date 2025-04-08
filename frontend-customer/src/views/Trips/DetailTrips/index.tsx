@@ -138,10 +138,10 @@ export default function DetailTripPage({ id }: { id: string }) {
                   <p className={`${valueStyle} sm:ml-auto`}>
                     {trip.timeStartEstimate
                       ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
-                          timeZone: 'Asia/Ho_Chi_Minh',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
                       : 'Chưa xác định'}
                   </p>
                 </div>
@@ -374,17 +374,32 @@ export default function DetailTripPage({ id }: { id: string }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <RealTimeTripMap
-                  pickupLocation={[
-                    bookingSharePayload.bookingShare.startPoint.position.lat,
-                    bookingSharePayload.bookingShare.startPoint.position.lng,
-                  ]}
-                  destinationLocation={[
-                    bookingSharePayload.bookingShare.endPoint.position.lat,
-                    bookingSharePayload.bookingShare.endPoint.position.lng,
-                  ]}
-                  vehicleId={trip.vehicleId._id}
-                />
+                {trip.status === TripStatus.PICKUP ? (
+                  <RealTimeTripMap
+                    pickupLocation={[
+                      bookingSharePayload.bookingShare.startPoint.position.lat,
+                      bookingSharePayload.bookingShare.startPoint.position.lng,
+                    ]}
+                    destinationLocation={[
+                      bookingSharePayload.bookingShare.endPoint.position.lat,
+                      bookingSharePayload.bookingShare.endPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                    tripStatus={trip.status}
+                  />
+                ) : (
+                  <DesRealTimeTripMap
+                    pickupLocation={[
+                      bookingSharePayload.bookingShare.startPoint.position.lat,
+                      bookingSharePayload.bookingShare.startPoint.position.lng,
+                    ]}
+                    destinationLocation={[
+                      bookingSharePayload.bookingShare.endPoint.position.lat,
+                      bookingSharePayload.bookingShare.endPoint.position.lng,
+                    ]}
+                    vehicleId={trip.vehicleId._id}
+                  />
+                )}
               </motion.div>
             )}
           </motion.div>
