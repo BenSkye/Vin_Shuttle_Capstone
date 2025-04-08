@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConversationController } from './conversation.controller';
 import { ConversationService } from './conversation.service';
@@ -12,6 +12,7 @@ import {
 } from 'src/modules/conversation/conversation.di-token';
 import { ShareModule } from 'src/share/share.module';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
+import { TripModule } from 'src/modules/trip/trip.module';
 
 const dependencies = [
   {
@@ -38,9 +39,10 @@ const dependencies = [
     ]),
     ShareModule,
     KeytokenModule,
+    forwardRef(() => TripModule),
   ],
   controllers: [ConversationController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class ConversationModule {}
+export class ConversationModule { }

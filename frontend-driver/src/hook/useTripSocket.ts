@@ -17,59 +17,75 @@ const useTripSocket = (id?: string) => {
     const { isLogin } = useAuth();
     useEffect(() => {
         console.log('resetSignal', resetSignal);
+        console.log('isLogin20', isLogin);
+        console.log('id21', id);
         if (!isLogin) return;
-        if (!id) {
-            if (resetSignal == 0) return;
-        }
+        // if (!id) {
+        //     if (resetSignal == 0) return;
+        // }
 
         let socketInstance: Socket | null = null;
+        let isMounted = true;
 
         const initializeSocketAndListeners = async () => {
             try {
                 socketInstance = await initSocket(SOCKET_NAMESPACE.TRIPS);
-                if (!socketInstance) return;
-
+                console.log('socketInstance', socketInstance);
+                if (!socketInstance || !isMounted) return;
                 // Logic sau khi socket đã sẵn sàng
-                const fetchInitialData = async () => {
-                    setLoading(true);
-                    try {
-                        if (id) {
-                            const tripDetailData = await getPersonalTripById(id);
-                            console.log('tripDetailData', tripDetailData);
-                            setTripDetail(tripDetailData);
-                        } else {
-                            const initialTrips = await getPersonalTrips();
-                            setTrips(initialTrips);
-                        }
-                    } catch (err) {
-                        setError(err as Error);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-
-                socketInstance.on('connect', () => {
-                    console.log('Socket trip connected:', socketInstance?.id);
-                    fetchInitialData();
-                });
 
                 if (id) {
                     const eventKey = `trip_updated_detail_${id}`
                     socketInstance.on(eventKey, (updatedTrip: Trip) => {
                         console.log('updatedTrip', updatedTrip);
-                        setTripDetail(updatedTrip)
+                        if (isMounted) setTripDetail(updatedTrip);
                     })
                 } else {
                     const eventKey = 'trip_updated'
                     socketInstance.on(eventKey, (updatedTrips: Trip[]) => {
                         console.log('updatedTrips60', updatedTrips);
-                        setTrips(updatedTrips)
+                        if (isMounted) setTrips(updatedTrips);
                     })
                 }
 
+                const fetchInitialData = async () => {
+                    if (!isMounted) return;
+                    setLoading(true);
+                    console.log('Fetching initial data...');
+                    try {
+                        if (id) {
+                            console.log('Fetching trip detail for ID:', id)
+                            const tripDetailData = await getPersonalTripById(id);
+                            console.log('tripDetailData', tripDetailData);
+                            if (isMounted) setTripDetail(tripDetailData);
+                        } else {
+                            const initialTrips = await getPersonalTrips();
+                            if (isMounted) setTrips(initialTrips);
+                        }
+                    } catch (err) {
+                        if (isMounted) setError(err as Error);
+                    } finally {
+                        if (isMounted) setLoading(false);
+                    }
+                };
+
+
+                if (socketInstance.connected) {
+                    await fetchInitialData();
+                } else {
+                    const onConnect = () => {
+                        fetchInitialData();
+                        socketInstance?.off('connect', onConnect);
+                    };
+                    socketInstance.on('connect', onConnect);
+                    socketInstance.connect();
+                }
+
+
                 if (!socketInstance.connected) socketInstance.connect();
             } catch (err) {
-                setError(err as Error);
+                if (isMounted) setError(err as Error);
+                if (isMounted) setLoading(false);
             }
         };
 
@@ -78,14 +94,17 @@ const useTripSocket = (id?: string) => {
         return () => {
             if (socketInstance) {
                 if (id) {
+                    console.log('Disconnecting socket for trip detail...');
                     socketInstance.off(`trip_updated_detail_${id}`)
                 } else {
                     socketInstance.off('trip_updated')
                 }
+                socketInstance.off('connect');
                 socketInstance.disconnect();
             }
         };
     }, [isLogin, id, resetSignal]);
+
     const resetHook = () => setResetSignal(prev => prev + 1);
 
     return { data: id ? tripDetail : trips, isLoading: loading, error, resetHook };

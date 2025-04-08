@@ -469,16 +469,18 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                             <Text className="ml-2 font-medium text-white">Xem cuốc xe</Text>
                           </View>
                         </TouchableOpacity>
+                        {trip.status.toLowerCase() === TripStatus.PICKUP && (
+                          <TouchableOpacity
+                            onPress={() => showCancelTripModal(trip._id)}
+                            className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
+                            disabled={!isInProgress}>
+                            <View className="flex-row items-center justify-center">
+                              <Icon name="cancel" size={20} color="white" />
+                              <Text className="ml-2 font-medium text-white">Hủy</Text>
+                            </View>
+                          </TouchableOpacity>
+                        )}
 
-                        <TouchableOpacity
-                          onPress={() => showCancelTripModal(trip._id)}
-                          className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
-                          disabled={!isInProgress}>
-                          <View className="flex-row items-center justify-center">
-                            <Icon name="cancel" size={20} color="white" />
-                            <Text className="ml-2 font-medium text-white">Hủy</Text>
-                          </View>
-                        </TouchableOpacity>
                       </View>
                     )}
                   </TouchableOpacity>

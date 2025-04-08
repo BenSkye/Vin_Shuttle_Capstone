@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { RATING_REPOSITORY } from 'src/modules/rating/rating.di-token';
-import { ICreateRating, IGetAverageRating } from 'src/modules/rating/rating.dto';
+import { ICreateRating, IGetAverageRating, IGetRatingByQuery } from 'src/modules/rating/rating.dto';
 import { IRatingRepository, IRatingService } from 'src/modules/rating/rating.port';
 import { RatingDocument } from 'src/modules/rating/rating.schema';
 import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { TripStatus } from 'src/share/enums';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class RatingService implements IRatingService {
@@ -41,6 +42,49 @@ export class RatingService implements IRatingService {
     const rating = await this.ratingRepository.create(data);
     await this.tripRepository.updateTrip(data.tripId, { isRating: true });
     return rating;
+  }
+
+  async getRatingByQuery(query: IGetRatingByQuery): Promise<RatingDocument[]> {
+    const filter: any = query;
+    const findQuery: any = {};
+    if (query.driverId) {
+      findQuery.driverId = query.driverId;
+      delete filter.driverId;
+    }
+    if (query.customerId) {
+      findQuery.customerId = query.customerId;
+      delete filter.customerId;
+    }
+    if (query.serviceType) {
+      findQuery.serviceType = query.serviceType
+      delete filter.serviceType;
+    }
+    findQuery.status = TripStatus.COMPLETED;
+    console.log('findQuery', findQuery);
+    const trips = await this.tripRepository.find(findQuery, ['_id']);
+    console.log('trips', trips);
+
+    if (trips.length === 0) {
+      return [];
+    }
+    const listTripId = trips.map(trip => trip._id.toString());
+    console.log('listTripId', listTripId);
+    const ratingFilter: any = {
+      tripId: { $in: listTripId }
+    };
+    if (query.rate) {
+      ratingFilter.rate = query.rate;
+      delete filter.rate;
+    }
+    if (query.feedback) {
+      ratingFilter.feedback = query.feedback;
+      delete filter.feedback;
+    }
+    const { options } = processQueryParams(query, []);
+    console.log('ratingFilter', ratingFilter);
+    const ratings = await this.ratingRepository.getRatings(ratingFilter, [], options);
+    return ratings
+
   }
   async getRatingByTripId(tripId: string): Promise<RatingDocument> {
     return await this.ratingRepository.findOneRating({ tripId }, []);
