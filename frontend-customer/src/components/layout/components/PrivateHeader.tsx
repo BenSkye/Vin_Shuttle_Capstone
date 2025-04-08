@@ -50,7 +50,7 @@ const privateNavItems = [
 
 const userMenuItems = [
   { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
-  { label: 'Lịch sử chuyến đi', href: Routes.TRIPS, icon: FiClock },
+  { label: 'Lịch sử cuốc xe', href: Routes.TRIPS, icon: FiClock },
   { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
   { label: 'Cuộc trò chuyện', href: Routes.CHAT, icon: FiMessageSquare },
 ]

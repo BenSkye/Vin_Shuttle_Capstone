@@ -60,7 +60,7 @@ const MapComponent = ({
   scenicRouteCoordinates = [],
   showScenicRoute = false,
   shareStops = [],
-  currentTripId = '', // ID của chuyến đi hiện tại để highlight
+  currentTripId = '', // ID của cuốc xe hiện tại để highlight
   nextStopIndex = -1, // Chỉ số của điểm dừng phải đi tới
   onStopPress = (stop: sharedItineraryStop) => { }, // Callback khi nhấn vào điểm 
   isShareItinerary = false, // Kiểm tra xem có phải là lộ trình chia sẻ hay không

@@ -51,7 +51,7 @@ export default function DetailTripPage({ id }: { id: string }) {
       await cancelTrip(id, cancelReason)
       notification.success({
         message: 'Thành công',
-        description: 'Chuyến đi đã được hủy thành công!',
+        description: 'Cuốc xe đã được hủy thành công!',
       })
       setIsCancelModalVisible(false)
 
@@ -60,7 +60,7 @@ export default function DetailTripPage({ id }: { id: string }) {
     } catch (error: any) {
       notification.error({
         message: 'Lỗi',
-        description: error.message || 'Không thể hủy chuyến đi. Vui lòng thử lại sau.',
+        description: error.message || 'Không thể hủy cuốc xe. Vui lòng thử lại sau.',
       })
     } finally {
       setIsCanceling(false)
@@ -79,18 +79,18 @@ export default function DetailTripPage({ id }: { id: string }) {
   if (isLoading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Spin size="large" tip="Đang tải chi tiết chuyến đi..." />
+        <Spin size="large" tip="Đang tải chi tiết cuốc xe..." />
       </div>
     )
 
   if (error) {
     notification.error({
       message: 'Lỗi',
-      description: error.message || 'Lỗi khi tải chi tiết chuyến đi',
+      description: error.message || 'Lỗi khi tải chi tiết cuốc xe',
     })
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-xl text-red-500">Có lỗi xảy ra khi tải dữ liệu chuyến đi</p>
+        <p className="text-xl text-red-500">Có lỗi xảy ra khi tải dữ liệu cuốc xe</p>
       </div>
     )
   }
@@ -98,7 +98,7 @@ export default function DetailTripPage({ id }: { id: string }) {
   if (!data)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-xl text-gray-500">Không tìm thấy chuyến đi</p>
+        <p className="text-xl text-gray-500">Không tìm thấy cuốc xe</p>
       </div>
     )
 
@@ -424,7 +424,7 @@ export default function DetailTripPage({ id }: { id: string }) {
       case TripStatus.PICKUP:
         return 'Đang đón'
       case TripStatus.IN_PROGRESS:
-        return 'Đang trong chuyến đi'
+        return 'Đang trong cuốc xe'
       case TripStatus.COMPLETED:
         return 'Đã hoàn thành'
       case TripStatus.CANCELLED:
@@ -526,7 +526,7 @@ export default function DetailTripPage({ id }: { id: string }) {
             <div className="mb-6 sm:mb-8">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-800 sm:text-2xl">
-                  {trip.status === TripStatus.PICKUP ? 'Đang đón bạn' : 'Đang trong chuyến đi'}
+                  {trip.status === TripStatus.PICKUP ? 'Đang đón bạn' : 'Đang trong cuốc xe'}
                 </h2>
                 <div className="flex items-center">
                   <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>

@@ -43,21 +43,19 @@ const BookingForm = ({
         </div>
 
         <div>
-          <label className="mb-2 block text-white">Loại chuyến đi:</label>
+          <label className="mb-2 block text-white">Loại cuốc xe:</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setTripType('one-way')}
-              className={`flex items-center justify-center gap-2 rounded-lg p-3 ${
-                tripType === 'one-way' ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'
-              }`}
+              className={`flex items-center justify-center gap-2 rounded-lg p-3 ${tripType === 'one-way' ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'
+                }`}
             >
               Một chiều →
             </button>
             <button
               onClick={() => setTripType('roundtrip')}
-              className={`flex items-center justify-center gap-2 rounded-lg p-3 ${
-                tripType === 'roundtrip' ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'
-              }`}
+              className={`flex items-center justify-center gap-2 rounded-lg p-3 ${tripType === 'roundtrip' ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'
+                }`}
             >
               Khứ hồi ⇄
             </button>

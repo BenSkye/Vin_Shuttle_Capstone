@@ -399,7 +399,7 @@ export default function TripHistoryPage() {
                     },
                     showSizeChanger: true,
                     pageSizeOptions: ["10", "20", "50", "100"],
-                    showTotal: (total) => `Tổng ${total} chuyến đi`,
+                    showTotal: (total) => `Tổng ${total} cuốc xe`,
                   }}
                   scroll={{ x: "max-content" }}
                 />

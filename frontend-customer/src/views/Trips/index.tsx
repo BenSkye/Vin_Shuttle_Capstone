@@ -22,7 +22,7 @@ const TripListPage = () => {
       console.log('error22', error)
       notification.error({
         message: 'Lỗi',
-        description: error.message || 'Lỗi khi tải danh sách chuyến đi',
+        description: error.message || 'Lỗi khi tải danh sách cuốc xe',
       })
     }
   }, [error])
@@ -37,7 +37,7 @@ const TripListPage = () => {
       case TripStatus.PICKUP:
         return { text: 'Đang đón', className: 'bg-orange-100 text-orange-800' }
       case TripStatus.IN_PROGRESS:
-        return { text: 'Đang trong chuyến đi', className: 'bg-indigo-100 text-indigo-800' }
+        return { text: 'Đang trong cuốc xe', className: 'bg-indigo-100 text-indigo-800' }
       case TripStatus.COMPLETED:
         return { text: 'Đã hoàn thành', className: 'bg-green-100 text-green-800' }
       case TripStatus.CANCELLED:
@@ -50,7 +50,7 @@ const TripListPage = () => {
   if (isLoading) {
     return (
       <div className="flex h-[70vh] items-center justify-center">
-        <Spin size="large" tip="Đang tải danh sách chuyến đi..." />
+        <Spin size="large" tip="Đang tải danh sách cuốc xe..." />
       </div>
     )
   }
@@ -72,7 +72,7 @@ const TripListPage = () => {
             d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
           />
         </svg>
-        <p className="text-xl font-medium text-gray-600">Không có chuyến đi nào</p>
+        <p className="text-xl font-medium text-gray-600">Không có cuốc xe nào</p>
       </div>
     )
   }
@@ -80,7 +80,7 @@ const TripListPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold text-gray-800">
-        Lịch sử chuyến đi
+        Lịch sử cuốc xe
         <div className="mt-2 h-1 w-20 bg-blue-500" />
       </h1>
 

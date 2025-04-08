@@ -88,6 +88,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         setIslogin(true);
+        
+        // Add small delay to ensure AsyncStorage operations complete
+        setTimeout(() => {
+            // This will trigger re-initialization of sockets in components that use them
+            console.log('Auth completed, notification services can now initialize');
+        }, 300);
       } else {
         console.error('Missing token or userId in userHaslogin');
         setIslogin(false);

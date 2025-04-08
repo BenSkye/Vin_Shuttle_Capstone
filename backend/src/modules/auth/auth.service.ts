@@ -60,6 +60,18 @@ export class AuthService implements IAuthService {
         );
       }
     }
+    const userExistEmail = await this.userRepository.findUser({ email: data.email });
+    if (userExistEmail) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Email already exist',
+          vnMessage: 'Email đã tồn tại',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
 
     // For customer role, only name and phone are required
     if (data.role === UserRole.CUSTOMER && (!data.name || !data.phone)) {
@@ -75,7 +87,8 @@ export class AuthService implements IAuthService {
 
     // Hash password if provided
     if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
+      const passwordHash = await bcrypt.hash(data.password, 10);
+      data.password = passwordHash;
     }
 
     const newUser = await this.userRepository.createUser(data);

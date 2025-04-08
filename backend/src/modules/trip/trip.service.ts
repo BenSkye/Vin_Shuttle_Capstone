@@ -39,6 +39,8 @@ import { INotificationService } from 'src/modules/notification/notification.port
 import { BOOKING_REPOSITORY } from 'src/modules/booking/booking.di-token';
 import { IBookingRepository } from 'src/modules/booking/booking.port';
 import { PaymentMethod } from 'src/share/enums/payment.enum';
+import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
+import { ITrackingService } from 'src/modules/tracking/tracking.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -51,8 +53,8 @@ export class TripService implements ITripService {
     private readonly busRouteRepository: IBusRouteRepository,
     @Inject(TRIP_GATEWAY)
     private readonly tripGateway: TripGateway,
-    @Inject(REDIS_PROVIDER)
-    private readonly redisService: IRedisService,
+    @Inject(TRACKING_SERVICE)
+    private readonly trackingService: ITrackingService,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
     @Inject(VEHICLE_REPOSITORY)
@@ -238,7 +240,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Time has duplicate with some trip',
-          vnMessage: 'Trùng lịch với chuyến đi khác',
+          vnMessage: 'Trùng lịch với cuốc xe khác',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -354,7 +356,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -364,7 +366,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Driver is not this trip driver',
-          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+          vnMessage: 'Tài xế không phải tài xế cuốc xe',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -374,7 +376,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not ready to pickup or had been picked up',
-          vnMessage: 'Chuyến đi chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
+          vnMessage: 'Cuốc xe chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -385,7 +387,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip update failed',
-          vnMessage: 'Cập nhật chuyến đi thất bại',
+          vnMessage: 'Cập nhật cuốc xe thất bại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -412,7 +414,7 @@ export class TripService implements ITripService {
       updatedTrip._id.toString(),
       tripAfterUpdate,
     );
-    this.redisService.setUserTrackingVehicle(
+    this.trackingService.setUserTrackingVehicle(
       updatedTrip.customerId.toString(),
       updatedTrip.vehicleId.toString(),
     );
@@ -426,7 +428,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -436,7 +438,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Driver is not this trip driver',
-          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+          vnMessage: 'Tài xế không phải tài xế cuốc xe',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -446,7 +448,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not ready to start or had been started',
-          vnMessage: 'Chuyến đi chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
+          vnMessage: 'Cuốc xe chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -463,7 +465,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip update failed',
-          vnMessage: 'Cập nhật chuyến đi thất bại',
+          vnMessage: 'Cập nhật cuốc xe thất bại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -496,7 +498,7 @@ export class TripService implements ITripService {
       updatedTrip._id.toString(),
       tripAfterUpdate,
     );
-    this.redisService.setUserTrackingVehicle(
+    this.trackingService.setUserTrackingVehicle(
       updatedTrip.customerId.toString(),
       updatedTrip.vehicleId.toString(),
     );
@@ -510,7 +512,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -520,7 +522,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Driver is not this trip driver',
-          vnMessage: 'Tài xế không phải tài xế chuyến đi',
+          vnMessage: 'Tài xế không phải tài xế cuốc xe',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -530,7 +532,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not ready to complete or had been completed',
-          vnMessage: 'Chuyến đi chưa sẵn sàng để hoàn thành hoặc đã được hoàn thành',
+          vnMessage: 'Cuốc xe chưa sẵn sàng để hoàn thành hoặc đã được hoàn thành',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -554,7 +556,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip update failed',
-          vnMessage: 'Cập nhật chuyến đi thất bại',
+          vnMessage: 'Cập nhật cuốc xe thất bại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -587,7 +589,7 @@ export class TripService implements ITripService {
       updatedTrip._id.toString(),
       tripAfterUpdate,
     );
-    this.redisService.deleteUserTrackingVehicle(
+    this.trackingService.deleteUserTrackingVehicle(
       updatedTrip.customerId.toString(),
       updatedTrip.vehicleId.toString(),
     );
@@ -666,7 +668,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip not found',
-          vnMessage: 'Chuyến đi không tồn tại',
+          vnMessage: 'Cuốc xe không tồn tại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -676,7 +678,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not cancellable',
-          vnMessage: 'Chuyến đi không thể hủy',
+          vnMessage: 'Cuốc xe không thể hủy',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -718,7 +720,7 @@ export class TripService implements ITripService {
         {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip update failed',
-          vnMessage: 'Cập nhật chuyến đi thất bại',
+          vnMessage: 'Cập nhật cuốc xe thất bại',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -767,7 +769,7 @@ export class TripService implements ITripService {
         tripUpdate._id.toString(),
         tripAfterUpdate,
       );
-      this.redisService.deleteUserTrackingVehicle(
+      this.trackingService.deleteUserTrackingVehicle(
         tripUpdate.customerId.toString(),
         tripUpdate.vehicleId.toString(),
       );
@@ -846,7 +848,7 @@ export class TripService implements ITripService {
       bookingCode: bookingCode,
       amount: totalAmount,
       tripIds: tripIdList,
-      description: "Chuyển tiền chuyến đi tài xế thu tiền mặt",
+      description: "Chuyển tiền cuốc xe tài xế thu tiền mặt",
       returnUrl: 'return-transfer-trips',
     })
     return {

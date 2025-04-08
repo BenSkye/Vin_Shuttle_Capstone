@@ -14,6 +14,15 @@ export const loginCustomer = async (phoneData: { phone: string }) => {
   }
 }
 
+export const registerCustomer = async (data: { name: string; phone: string }) => {
+  try {
+    const response = await apiClient.post('auth/register/customer', data)
+    return response.data
+  } catch (error) {
+    throw error
+  }
+}
+
 export const verifyOTP = async (data: { phone: string; code: string }) => {
   try {
     const response = await apiClient.post('otp/verify', {

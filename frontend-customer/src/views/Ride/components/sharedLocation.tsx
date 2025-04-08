@@ -125,9 +125,9 @@ const RouteDisplay = ({
           const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos((startPoint.position.lat * Math.PI) / 180) *
-              Math.cos((endPoint.position.lat * Math.PI) / 180) *
-              Math.sin(dLon / 2) *
-              Math.sin(dLon / 2)
+            Math.cos((endPoint.position.lat * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2)
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
           const distance = R * c
 
@@ -154,9 +154,9 @@ const RouteDisplay = ({
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos((startPoint.position.lat * Math.PI) / 180) *
-            Math.cos((endPoint.position.lat * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2)
+          Math.cos((endPoint.position.lat * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2)
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const distance = R * c
 
@@ -469,9 +469,8 @@ const SharedLocation = ({
     <div className="w-full space-y-4">
       <div
         ref={mapContainerRef}
-        className={`map-container relative overflow-hidden rounded-lg border border-gray-200 shadow-md ${
-          isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen rounded-none' : 'h-[400px]'
-        }`}
+        className={`map-container relative overflow-hidden rounded-lg border border-gray-200 shadow-md ${isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen rounded-none' : 'h-[400px]'
+          }`}
       >
         <MapContainer
           id="map"
@@ -586,9 +585,8 @@ const SharedLocation = ({
 
         {/* Overlay Control Panel */}
         <div
-          className={`absolute left-12 right-4 top-4 transform rounded-lg bg-white p-3 shadow-lg transition-all duration-300 ${
-            isMenuVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-          }`}
+          className={`absolute left-12 right-4 top-4 transform rounded-lg bg-white p-3 shadow-lg transition-all duration-300 ${isMenuVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+            }`}
         >
           <div className="flex flex-col gap-3">
             {/* Start Point Selection */}
@@ -602,11 +600,10 @@ const SharedLocation = ({
               <form onSubmit={(e) => handleSearch(e, 'start')} className="flex gap-2">
                 <input
                   type="text"
-                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${
-                    activePoint === 'start'
+                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
                       ? 'border-blue-500 ring-2 ring-blue-200'
                       : 'border-gray-300'
-                  }`}
+                    }`}
                   placeholder="Nhập địa điểm đón"
                   value={startSearchQuery}
                   onChange={(e) => setStartSearchQuery(e.target.value)}
@@ -639,9 +636,8 @@ const SharedLocation = ({
               <form onSubmit={(e) => handleSearch(e, 'end')} className="flex gap-2">
                 <input
                   type="text"
-                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${
-                    activePoint === 'end' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                  }`}
+                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'end' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                    }`}
                   placeholder="Nhập địa điểm đến"
                   value={endSearchQuery}
                   onChange={(e) => setEndSearchQuery(e.target.value)}
@@ -666,9 +662,8 @@ const SharedLocation = ({
         {/* Map Control Buttons */}
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-4">
           <button
-            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${
-              activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
-            }`}
+            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
+              }`}
             onClick={() => setActivePoint('start')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đón trên bản đồ"
@@ -677,9 +672,8 @@ const SharedLocation = ({
             Chọn điểm đón
           </button>
           <button
-            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${
-              activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
-            }`}
+            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
+              }`}
             onClick={() => setActivePoint('end')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đến trên bản đồ"
@@ -720,7 +714,7 @@ const SharedLocation = ({
               +
             </button>
           </div>
-          <span className="text-sm text-gray-500">Tối đa 4 người cho mỗi chuyến đi chung</span>
+          <span className="text-sm text-gray-500">Tối đa 4 người cho mỗi cuốc xe chung</span>
         </div>
       </div>
 
@@ -728,7 +722,7 @@ const SharedLocation = ({
       {routeInfo && (
         <div className="space-y-2 rounded-lg border border-blue-100 bg-blue-50 p-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-purple-600">Thông tin chuyến đi</h3>
+            <h3 className="text-lg font-semibold text-purple-600">Thông tin cuốc xe</h3>
           </div>
           <div className="ml-10 flex flex-wrap gap-6">
             <div className="flex items-center gap-2">

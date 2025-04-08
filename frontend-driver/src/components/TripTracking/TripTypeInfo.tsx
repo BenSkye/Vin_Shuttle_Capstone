@@ -22,7 +22,7 @@ const TripTypeInfo = ({ serviceType }: TripTypeInfoProps) => {
                 ? 'Đặt xe theo tuyến cố định'
                 : serviceType === ServiceType.BOOKING_SHARE
                   ? 'Đặt xe chia sẻ'
-                  : 'Chuyến đi'}
+                  : 'Cuốc xe'}
         </Text>
       </View>
     </View>

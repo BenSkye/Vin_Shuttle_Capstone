@@ -126,7 +126,7 @@ const DateTimeSelection = ({
           {selectedDate && startTime && (
             <div className="mt-3 rounded-lg bg-blue-50 p-3 sm:p-4">
               <h4 className="mb-2 text-xs font-medium text-gray-700 sm:text-sm">
-                Thông tin chuyến đi:
+                Thông tin cuốc xe:
               </h4>
               <div className="space-y-1 text-xs text-gray-600 sm:space-y-2 sm:text-sm">
                 <p className="flex justify-between">

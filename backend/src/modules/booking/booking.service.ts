@@ -609,7 +609,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: 'You have a trip in progress',
-                vnMessage: 'Bạn đang có chuyến đi khác đang diễn ra'
+                vnMessage: 'Bạn đang có cuốc xe khác đang diễn ra'
             }, HttpStatus.BAD_REQUEST
             )
         }

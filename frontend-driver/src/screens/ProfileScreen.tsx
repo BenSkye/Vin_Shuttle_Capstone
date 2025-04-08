@@ -21,7 +21,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 const settingsOptions = [
   { title: 'Thông tin cá nhân', icon: 'person', color: '#1E88E5' },
   { title: 'Thông báo', icon: 'notifications', color: '#FB8C00' },
-  { title: 'Lịch sử chuyến đi', icon: 'time', color: '#29B6F6' },
+  { title: 'Lịch sử cuốc xe', icon: 'time', color: '#29B6F6' },
   { title: 'Thay đổi mật khẩu', icon: 'lock-closed', color: '#8E24AA' },
   { title: 'Hỗ trợ', icon: 'help-circle', color: '#43A047' },
   { title: 'Điều khoản sử dụng', icon: 'document-text', color: '#EC407A' },
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
   const handleOptionPress = async (option: string) => {
     if (option === 'Đăng xuất') {
       await handleLogout();
-    } else if (option === 'Lịch sử chuyến đi') {
+    } else if (option === 'Lịch sử cuốc xe') {
       navigation.navigate('TripHistory');
     }
     // Add other option handlers as needed

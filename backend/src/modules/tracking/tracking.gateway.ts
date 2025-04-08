@@ -38,7 +38,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(REDIS_PROVIDER) private readonly redisService: IRedisService,
     @Inject(TRACKING_SERVICE) private readonly trackingService: ITrackingService,
-  ) {}
+  ) { }
 
   afterInit(server: Server) {
     server.use(async (socket: Socket, next) => {
@@ -98,7 +98,7 @@ export class TrackingGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     if (vehicleId) {
       await this.trackingService.updateLastVehicleLocation(vehicleId, location);
     }
-    const subscribers = await this.redisService.getVehicleSubscribers(vehicleId);
+    const subscribers = await this.trackingService.getVehicleSubscribers(vehicleId);
     subscribers.forEach(async userId => {
       await this.emitLocationUpdate(userId, vehicleId, location);
     });
