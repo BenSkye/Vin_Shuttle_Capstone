@@ -470,7 +470,7 @@ const RoutesBooking = () => {
                 aria-label="Xác nhận thanh toán"
                 tabIndex={0}
               >
-                Tiếp tục
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>

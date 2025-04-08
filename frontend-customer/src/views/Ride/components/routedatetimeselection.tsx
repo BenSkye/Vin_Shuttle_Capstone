@@ -22,14 +22,33 @@ const RouteDateTimeSelection = ({
     return current && current < dayjs().startOf('day')
   }
 
-  // Disallow past times for today
+  // Disallow times less than 2 minutes from current time
   const disabledTime = (current: dayjs.Dayjs | null) => {
     if (!current || !selectedDate) return {}
-    if (selectedDate.isSame(dayjs(), 'day')) {
-      return {
-        disabledHours: () => Array.from({ length: dayjs().hour() }, (_, i) => i),
-        disabledMinutes: (hour: number) =>
-          hour === dayjs().hour() ? Array.from({ length: dayjs().minute() }, (_, i) => i) : [],
+
+    const now = dayjs()
+    const twoMinutesFromNow = now.add(2, 'minute')
+
+    if (selectedDate.isSame(now, 'day')) {
+      // If the selected hour is the current hour
+      if (now.hour() === twoMinutesFromNow.hour()) {
+        return {
+          disabledHours: () => Array.from({ length: now.hour() }, (_, i) => i),
+          disabledMinutes: (hour: number) => {
+            if (hour === now.hour()) {
+              // Disable all minutes up to 2 minutes from now
+              return Array.from({ length: twoMinutesFromNow.minute() }, (_, i) => i)
+            }
+            return []
+          },
+        }
+      }
+      // If the selected hour is less than the current hour
+      else if (now.hour() > twoMinutesFromNow.hour()) {
+        return {
+          disabledHours: () => Array.from({ length: now.hour() }, (_, i) => i),
+          disabledMinutes: () => [],
+        }
       }
     }
     return {}

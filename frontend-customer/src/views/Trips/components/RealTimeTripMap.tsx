@@ -496,12 +496,7 @@ const RealTimeTripMap = memo(
               <Popup>📍 Điểm đón của bạn</Popup>
             </Marker>
 
-            {/* Điểm đến nếu có */}
-            {destinationLocation && (
-              <Marker position={destinationLocation}>
-                <Popup>🏁 Điểm đến của bạn</Popup>
-              </Marker>
-            )}
+
 
             {/* Vị trí xe */}
             {vehicleMarkerComponent}
