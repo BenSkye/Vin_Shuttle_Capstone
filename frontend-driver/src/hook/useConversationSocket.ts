@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { IConversation } from '~/interface/conversation';
 import { SOCKET_NAMESPACE } from '~/constants/socket.enum';
@@ -11,82 +11,104 @@ const useConversationSocket = (id?: string) => {
   const [conversationDetail, setConversationDetail] = useState<IConversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const { isLogin } = useAuth();
+
   useEffect(() => {
     if (!isLogin) return;
 
-    let socketInstance: Socket | null = null;
+    let isMounted = true;
 
     const initializeSocketAndListeners = async () => {
       try {
-        socketInstance = await initSocket(SOCKET_NAMESPACE.CONVERSATIONS);
-        if (!socketInstance) return;
-        setSocket(socketInstance);
+        // Chỉ khởi tạo socket nếu chưa có hoặc đã disconnect
+        if (!socketRef.current || !socketRef.current.connected) {
+          const socketInstance = await initSocket(SOCKET_NAMESPACE.CONVERSATIONS);
+          if (!socketInstance || !isMounted) return;
+          socketRef.current = socketInstance;
+        }
 
-        // Logic sau khi socket đã sẵn sàng
+        const socket = socketRef.current;
+
         const fetchInitialData = async () => {
+          if (!isMounted) return;
           setLoading(true);
           try {
             if (id) {
               const conversationDetailData = await getConversationById(id);
-              setConversationDetail(conversationDetailData);
+              if (isMounted) setConversationDetail(conversationDetailData);
             } else {
               const initialConversations = await getPersonalConversations();
-              setConversations(initialConversations);
+              if (isMounted) setConversations(initialConversations);
             }
           } catch (err) {
-            setError(err as Error);
+            if (isMounted) setError(err as Error);
           } finally {
-            setLoading(false);
+            if (isMounted) setLoading(false);
           }
         };
 
-        socketInstance.on('connect', () => {
-          console.log('Socket conversation connected:', socketInstance?.id);
+        // Xóa các listener cũ trước khi thêm mới
+        socket.off('connect');
+        socket.off('newMessage');
+        socket.off('conversationsList');
+        socket.off('newConversation');
+
+        socket.on('connect', () => {
+          console.log('Socket conversation connected:', socket.id);
           fetchInitialData();
-          if (id && socketInstance) socketInstance.emit('joinConversation', id);
+          if (id) socket.emit('joinConversation', id);
         });
 
         if (id) {
-          socketInstance.on('newMessage', (updatedConversation: IConversation) => {
-            console.log('newMessage', updatedConversation);
-            setConversationDetail(updatedConversation);
+          socket.on('newMessage', (updatedConversation: IConversation) => {
+            if (isMounted) setConversationDetail(updatedConversation);
           });
         } else {
-          socketInstance.on('conversationsList', (updatedConversations: IConversation[]) => {
-            setConversations(updatedConversations);
+          socket.on('conversationsList', (updatedConversations: IConversation[]) => {
+            if (isMounted) setConversations(updatedConversations);
           });
-          socketInstance.on('newConversation', (newConversation: IConversation) => {
-            setConversations((prev) => [newConversation, ...prev]);
+          socket.on('newConversation', (newConversation: IConversation) => {
+            if (isMounted) setConversations(prev => [newConversation, ...prev]);
           });
         }
 
-        if (!socketInstance.connected) socketInstance.connect();
+        // Nếu đã connect sẵn thì fetch data ngay
+        if (socket.connected) {
+          fetchInitialData();
+          if (id) socket.emit('joinConversation', id);
+        } else {
+          socket.connect();
+        }
+
       } catch (err) {
-        setError(err as Error);
+        if (isMounted) setError(err as Error);
+        if (isMounted) setLoading(false);
       }
     };
 
     initializeSocketAndListeners();
 
     return () => {
-      if (socketInstance) {
+      isMounted = false;
+      // Không disconnect socket ở đây để giữ kết nối khi chuyển qua lại giữa các màn hình
+      // Chỉ remove các listener cụ thể
+      if (socketRef.current) {
         if (id) {
-          socketInstance.emit('leaveConversation', id);
-          socketInstance.off('newMessage');
+          socketRef.current.emit('leaveConversation', id);
+          socketRef.current.off('newMessage');
         } else {
-          socketInstance.off('conversationsList');
-          socketInstance.off('newConversation');
+          socketRef.current.off('conversationsList');
+          socketRef.current.off('newConversation');
         }
-        socketInstance.disconnect();
+        socketRef.current.off('connect');
       }
     };
   }, [isLogin, id]);
 
   const sendMessage = (conversationId: string, content: string) => {
-    if (socket && socket.connected) {
-      socket.emit('sendMessage', { conversationId, content });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('sendMessage', { conversationId, content });
     } else {
       console.error('Socket is not connected');
       setError(new Error('Socket is not connected'));
@@ -110,7 +132,13 @@ const useConversationSocket = (id?: string) => {
     }
   };
 
-  return { data: id ? conversationDetail : conversations, isLoading: loading, error, sendMessage, refreshData };
+  return {
+    data: id ? conversationDetail : conversations,
+    isLoading: loading,
+    error,
+    sendMessage,
+    refreshData
+  };
 };
 
 export default useConversationSocket;

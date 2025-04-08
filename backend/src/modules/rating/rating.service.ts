@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { RATING_REPOSITORY } from 'src/modules/rating/rating.di-token';
-import { ICreateRating, IGetAverageRating } from 'src/modules/rating/rating.dto';
+import { ICreateRating, IGetAverageRating, IGetRatingByQuery } from 'src/modules/rating/rating.dto';
 import { IRatingRepository, IRatingService } from 'src/modules/rating/rating.port';
 import { RatingDocument } from 'src/modules/rating/rating.schema';
 import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
@@ -42,6 +42,19 @@ export class RatingService implements IRatingService {
     await this.tripRepository.updateTrip(data.tripId, { isRating: true });
     return rating;
   }
+
+  // async getRatingByQuery(query: IGetRatingByQuery): Promise<RatingDocument[]> {
+  //   const filter: any = query;
+  //   const findQuery: any = {};
+
+  //   if (query.serviceType) {
+  //     findQuery.serviceType = query.serviceType
+  //     delete filter.serviceType;
+  //   }
+
+  //   return await this.ratingRepository.getRatings(findQuery, []);
+
+  // }
   async getRatingByTripId(tripId: string): Promise<RatingDocument> {
     return await this.ratingRepository.findOneRating({ tripId }, []);
   }

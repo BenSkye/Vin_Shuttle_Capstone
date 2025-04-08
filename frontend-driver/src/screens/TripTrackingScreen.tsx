@@ -89,6 +89,8 @@ const TripTrackingScreen = () => {
   const {
     data: sharedItineraryDetail,
     updateItineraryMessage: updateItineraryMessage,
+    setUpdateItineraryMessage: setUpdateItineraryMessage,
+    setIsTripInItineraryCancel: setIsTripInItineraryCancel,
     isLoading: sharedItineraryLoading,
     isTripInItineraryCancel: isTripInItineraryCancel,
     error: sharedItineraryError,
@@ -137,9 +139,11 @@ const TripTrackingScreen = () => {
           updateItineraryMessage,
           [{ text: 'OK' }]
         );
+        setUpdateItineraryMessage(null); // Reset message after showing alert
       }
       if (isTripInItineraryCancel) {
         setTripId(sharedItineraryDetail.stops[0].trip);
+        setIsTripInItineraryCancel(false); // Reset the flag after handling the alert
       }
     }
   }, [sharedItineraryDetail]);
