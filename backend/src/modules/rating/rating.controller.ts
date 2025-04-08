@@ -86,4 +86,40 @@ export class RatingController {
   async averageRating(@Query() query: IGetAverageRating) {
     return await this.ratingService.averageRating(query);
   }
+
+  @Get('get-rating-by-query')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Get rating by query' })
+  @ApiQuery({
+    name: 'customerId',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'driverId',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'rate',
+    type: Number,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'feedback',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'serviceType',
+    enum: ServiceType,
+    required: false,
+  })
+  async getRatingByQuery(@Query() query: IGetAverageRating) {
+    return await this.ratingService.getRatingByQuery(query);
+  }
 }

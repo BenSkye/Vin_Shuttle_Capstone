@@ -23,9 +23,8 @@ export interface IGetAverageRating {
 export interface IGetRatingByQuery {
   customerId?: string;
   driverId?: string;
-  serviceType?: ServiceType;
   rate?: number;
   feedback?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  serviceType: ServiceType;
+
 }

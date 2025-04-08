@@ -6,6 +6,7 @@ import { RatingDocument } from 'src/modules/rating/rating.schema';
 import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { TripStatus } from 'src/share/enums';
+import { processQueryParams } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class RatingService implements IRatingService {
@@ -43,18 +44,47 @@ export class RatingService implements IRatingService {
     return rating;
   }
 
-  // async getRatingByQuery(query: IGetRatingByQuery): Promise<RatingDocument[]> {
-  //   const filter: any = query;
-  //   const findQuery: any = {};
+  async getRatingByQuery(query: IGetRatingByQuery): Promise<RatingDocument[]> {
+    const filter: any = query;
+    const findQuery: any = {};
+    if (query.driverId) {
+      findQuery.driverId = query.driverId;
+      delete filter.driverId;
+    }
+    if (query.customerId) {
+      findQuery.customerId = query.customerId;
+      delete filter.customerId;
+    }
+    if (query.serviceType) {
+      findQuery.serviceType = query.serviceType
+      delete filter.serviceType;
+    }
+    findQuery.status = TripStatus.COMPLETED;
+    console.log('findQuery', findQuery);
+    const trips = await this.tripRepository.find(findQuery, ['_id']);
+    console.log('trips', trips);
 
-  //   if (query.serviceType) {
-  //     findQuery.serviceType = query.serviceType
-  //     delete filter.serviceType;
-  //   }
+    if (trips.length === 0) {
+      return [];
+    }
+    const listTripId = trips.map(trip => trip._id.toString());
+    console.log('listTripId', listTripId);
+    const ratingFilter: any = {
+      tripId: { $in: listTripId }
+    };
+    if (query.rate) {
+      ratingFilter.rate = query.rate;
+      delete filter.rate;
+    }
+    if (query.feedback) {
+      ratingFilter.feedback = query.feedback;
+      delete filter.feedback;
+    }
+    console.log('ratingFilter', ratingFilter);
+    const ratings = await this.ratingRepository.getRatings(ratingFilter, []);
+    return ratings
 
-  //   return await this.ratingRepository.getRatings(findQuery, []);
-
-  // }
+  }
   async getRatingByTripId(tripId: string): Promise<RatingDocument> {
     return await this.ratingRepository.findOneRating({ tripId }, []);
   }
