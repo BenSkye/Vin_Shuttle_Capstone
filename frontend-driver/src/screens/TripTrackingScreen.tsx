@@ -89,6 +89,8 @@ const TripTrackingScreen = () => {
   const {
     data: sharedItineraryDetail,
     updateItineraryMessage: updateItineraryMessage,
+    setUpdateItineraryMessage: setUpdateItineraryMessage,
+    setIsTripInItineraryCancel: setIsTripInItineraryCancel,
     isLoading: sharedItineraryLoading,
     isTripInItineraryCancel: isTripInItineraryCancel,
     error: sharedItineraryError,
@@ -107,7 +109,7 @@ const TripTrackingScreen = () => {
       if (trip?.status === TripStatus.CANCELLED) {
         Alert.alert(
           'Thông báo',
-          'Khách hàng đã hủy chuyến đi',
+          'Khách hàng đã hủy cuốc xe',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
         return; // Dừng xử lý tiếp nếu trip đã hủy
@@ -137,9 +139,11 @@ const TripTrackingScreen = () => {
           updateItineraryMessage,
           [{ text: 'OK' }]
         );
+        setUpdateItineraryMessage(null); // Reset message after showing alert
       }
       if (isTripInItineraryCancel) {
         setTripId(sharedItineraryDetail.stops[0].trip);
+        setIsTripInItineraryCancel(false); // Reset the flag after handling the alert
       }
     }
   }, [sharedItineraryDetail]);
@@ -255,7 +259,7 @@ const TripTrackingScreen = () => {
   // API handlers
   const handlePickup = async () => {
     if (!trip?._id) {
-      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      Alert.alert('Lỗi', 'Không có thông tin cuốc xe');
       return;
     }
 
@@ -274,7 +278,7 @@ const TripTrackingScreen = () => {
 
   const handleStartTrip = async () => {
     if (!trip?._id) {
-      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      Alert.alert('Lỗi', 'Không có thông tin cuốc xe');
       return;
     }
 
@@ -297,7 +301,7 @@ const TripTrackingScreen = () => {
       if (distanceToPickup > MIN_PROXIMITY) {
         Alert.alert(
           'Quá xa điểm đón',
-          `Bạn cần ở gần khách hàng (trong vòng ${MIN_PROXIMITY}m) để bắt đầu chuyến đi. Hiện tại bạn cách ${Math.round(distanceToPickup)}m.`,
+          `Bạn cần ở gần khách hàng (trong vòng ${MIN_PROXIMITY}m) để bắt đầu cuốc xe. Hiện tại bạn cách ${Math.round(distanceToPickup)}m.`,
           [{ text: 'Đã hiểu' }]
         );
         return;
@@ -357,10 +361,10 @@ const TripTrackingScreen = () => {
         }
       }
 
-      Alert.alert('Thành công', 'Đã bắt đầu chuyến đi');
+      Alert.alert('Thành công', 'Đã bắt đầu cuốc xe');
     } catch (error) {
       console.error('Start trip error:', error);
-      Alert.alert('Lỗi', 'Không thể bắt đầu chuyến đi');
+      Alert.alert('Lỗi', 'Không thể bắt đầu cuốc xe');
     } finally {
       setLoading(false);
     }
@@ -369,7 +373,7 @@ const TripTrackingScreen = () => {
 
   const handleCompleteTrip = async () => {
     if (!trip?._id) {
-      Alert.alert('Lỗi', 'Không có thông tin chuyến đi');
+      Alert.alert('Lỗi', 'Không có thông tin cuốc xe');
       return;
     }
 
@@ -378,7 +382,7 @@ const TripTrackingScreen = () => {
       const userConfirmed = await new Promise((resolve) => {
         Alert.alert(
           'Xác Nhận',
-          'Chuyến đi này chưa được thanh toán. Bạn đã thu tiền khách?',
+          'Cuốc xe này chưa được thanh toán. Bạn đã thu tiền khách?',
           [
             { text: 'Không', style: 'cancel', onPress: () => resolve(false) },
             { text: 'Xác Nhận', onPress: () => resolve(true) },
@@ -389,17 +393,17 @@ const TripTrackingScreen = () => {
       if (!userConfirmed) return;
     }
 
-    // Xử lý hoàn thành chuyến đi chung
+    // Xử lý hoàn thành cuốc xe chung
     try {
       setLoading(true);
       const updatedTrip = await completeTrip(trip._id);
       setTrip(updatedTrip);
 
-      Alert.alert('Thành công', 'Đã hoàn thành chuyến đi');
+      Alert.alert('Thành công', 'Đã hoàn thành cuốc xe');
       setTimeout(() => navigation.goBack(), 1500);
     } catch (error) {
       console.error('Complete trip error:', error);
-      Alert.alert('Lỗi', 'Không thể hoàn thành chuyến đi');
+      Alert.alert('Lỗi', 'Không thể hoàn thành cuốc xe');
     } finally {
       setLoading(false);
     }
@@ -454,7 +458,7 @@ const TripTrackingScreen = () => {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
-          <Text className="mt-4 text-base font-medium text-gray-700">Đang tải thông tin chuyến đi...</Text>
+          <Text className="mt-4 text-base font-medium text-gray-700">Đang tải thông tin cuốc xe...</Text>
         </View>
       </View>
     );

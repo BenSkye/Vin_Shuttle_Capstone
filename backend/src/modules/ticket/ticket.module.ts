@@ -8,6 +8,7 @@ import { TicketService } from './ticket.service';
 import { Ticket, TicketSchema, TripSeat, TripSeatSchema } from './ticket.schema';
 import { BusRouteModule } from '../bus-route/bus-route.module';
 import { TicketGateway } from './ticket.gateway';
+import { VehicleCategoryModule } from '../vehicle-categories/vehicle-category.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { TicketGateway } from './ticket.gateway';
       { name: Ticket.name, schema: TicketSchema },
       { name: TripSeat.name, schema: TripSeatSchema },
     ]),
-    BusRouteModule
+    BusRouteModule,
+    VehicleCategoryModule
   ],
   controllers: [TicketController],
   providers: [

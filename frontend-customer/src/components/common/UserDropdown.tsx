@@ -54,7 +54,7 @@ export function UserDropdown({
             className="flex items-center gap-3 px-4 py-3 transition hover:bg-green-50"
           >
             <FiClock className="text-green-500" />
-            <span>Lịch sử chuyến đi</span>
+            <span>Lịch sử cuốc xe</span>
           </Link>
           <Link
             href={Routes.BOOKING.ROOT}

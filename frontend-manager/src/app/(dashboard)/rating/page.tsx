@@ -12,7 +12,7 @@ const reviews = [
     },
     {
         rating: 4,
-        text: "Chuyến đi khá thoải mái, chỉ tiếc là đến trễ 5 phút",
+        text: "Cuốc xe khá thoải mái, chỉ tiếc là đến trễ 5 phút",
         date: "10/04/2023",
         helpful: 2,
         status: "Chưa trả lời",

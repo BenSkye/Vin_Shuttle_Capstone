@@ -2,8 +2,8 @@ import apiClient from './apiClient';
 import { Trip } from './interface';
 
 /**
- * Lấy danh sách tất cả các chuyến đi
- * @returns Danh sách các chuyến đi
+ * Lấy danh sách tất cả các cuốc xe
+ * @returns Danh sách các cuốc xe
  */
 export const getTripList = async (): Promise<Trip[]> => {
   try {
@@ -16,7 +16,7 @@ export const getTripList = async (): Promise<Trip[]> => {
 };
 
 /**
- * Lấy tổng số tiền từ tất cả các chuyến đi
+ * Lấy tổng số tiền từ tất cả các cuốc xe
  * @returns Tổng số tiền
  */
 export const getTotalAmount = async (): Promise<number> => {

@@ -10,12 +10,16 @@ import { IConversationRepository } from 'src/modules/conversation/conversation.p
 import { CONVERSATION_REPOSITORY } from 'src/modules/conversation/conversation.di-token';
 import { ConversationStatus } from 'src/share/enums/conversation.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
+import { ITripRepository } from 'src/modules/trip/trip.port';
 
 @Injectable()
 export class ConversationService implements IConversationService {
   constructor(
     @Inject(CONVERSATION_REPOSITORY)
     private readonly conversationRepository: IConversationRepository,
+    @Inject(TRIP_REPOSITORY)
+    private readonly tripRepository: ITripRepository,
   ) { }
 
   async createConversation(data: ICreateConversation): Promise<ConversationDocument> {
@@ -142,7 +146,10 @@ export class ConversationService implements IConversationService {
   //     [],
   //   );
   //   conversationsClose.forEach(async conversation => {
-  //     await this.conversationRepository.closeConversation(conversation._id.toString());
+  // const trip= await this.tripRepository.findOne({ _id: conversation.tripId },['status']);
+  // if([TripStatus.CANCELLED,TripStatus.COMPLETED].includes(trip.status)){
+  //   await this.conversationRepository.closeConversation(conversation._id.toString());
+  // }
   //   });
   // }
 }

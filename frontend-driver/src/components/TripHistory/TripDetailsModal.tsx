@@ -81,7 +81,7 @@ export const TripDetailsModal = ({
                             alignItems: 'center',
                             marginBottom: 15,
                         }}>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Chi tiết chuyến đi</Text>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Chi tiết cuốc xe</Text>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#333" />
                         </TouchableOpacity>
@@ -101,7 +101,7 @@ export const TripDetailsModal = ({
                         {/* Trip Information */}
                         <View style={{ marginBottom: 20 }}>
                             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>
-                                Thông tin chuyến đi
+                                Thông tin cuốc xe
                             </Text>
 
                             <DetailRow label="Mã chuyến:" value={trip._id} />
@@ -228,7 +228,7 @@ export const TripDetailsModal = ({
                                     }}>
                                     <Icon name="star-off" size={24} color="#6b7280" />
                                     <Text style={{ textAlign: 'center', color: '#6b7280', marginTop: 8 }}>
-                                        Chưa có đánh giá cho chuyến đi này
+                                        Chưa có đánh giá cho cuốc xe này
                                     </Text>
                                 </View>
                             )}

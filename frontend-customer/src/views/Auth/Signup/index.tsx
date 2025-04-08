@@ -4,39 +4,33 @@ import { useState } from 'react'
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { FiPhone, FiUser } from 'react-icons/fi'
 
 import { Routes } from '@/constants/routers'
+import { useAuth } from '@/hooks/useAuth'
 
 interface SignupFormData {
   name: string
   phone: string
-  otp: string
 }
 
 export default function SignupPage() {
-  const router = useRouter()
+  const { doRegister, isRegisterPending, registerError } = useAuth()
+
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     phone: '',
-    otp: '',
   })
-  const [showOtp, setShowOtp] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      if (!showOtp) {
-        setShowOtp(true)
-        setError('')
-      } else {
-        router.push(Routes.AUTH.LOGIN)
-      }
+      await doRegister({
+        name: formData.name,
+        phone: formData.phone,
+      })
     } catch (err) {
-      console.error(err)
-      setError('Có lỗi xảy ra. Vui lòng thử lại.')
+      console.log(err)
     }
   }
 
@@ -89,7 +83,8 @@ export default function SignupPage() {
                   type="text"
                   placeholder="Họ và tên"
                   required
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+                  disabled={isRegisterPending}
+                  className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400 disabled:opacity-50"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
@@ -101,45 +96,30 @@ export default function SignupPage() {
                   type="tel"
                   placeholder="Số điện thoại"
                   required
-                  className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+                  disabled={isRegisterPending}
+                  className="w-full rounded-lg border border-white/30 bg-white/10 px-10 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400 disabled:opacity-50"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
-
-              {showOtp && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Nhập mã OTP"
-                    required
-                    className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-3 text-white placeholder-white/70 shadow-lg backdrop-blur-lg transition-all focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
-                    value={formData.otp}
-                    onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
-                  />
-                </motion.div>
-              )}
             </div>
 
-            {error && (
+            {registerError && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-center text-sm font-medium text-red-400 drop-shadow-md"
               >
-                {error}
+                {registerError instanceof Error ? registerError.message : 'Có lỗi xảy ra. Vui lòng thử lại.'}
               </motion.p>
             )}
 
             <button
               type="submit"
-              className="w-full rounded-md bg-green-500 py-3 font-medium text-white shadow-lg transition-all hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-black/50 active:scale-[0.98]"
+              disabled={isRegisterPending}
+              className="w-full rounded-md bg-green-500 py-3 font-medium text-white shadow-lg transition-all hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-black/50 active:scale-[0.98] disabled:opacity-50"
             >
-              {showOtp ? 'Xác nhận OTP' : 'Tiếp tục'}
+              {isRegisterPending ? 'Đang xử lý...' : 'Đăng ký'}
             </button>
           </motion.form>
         </div>

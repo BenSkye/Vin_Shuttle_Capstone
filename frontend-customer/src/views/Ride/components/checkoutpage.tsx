@@ -232,7 +232,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
 
         <div className="mb-4 md:mb-6">
           <h4 className="mb-2 text-base font-semibold md:mb-4 md:text-lg">
-            Chi tiết các chuyến đi
+            Chi tiết các cuốc xe
           </h4>
           <div className="space-y-3">
             {trips?.map((trip) => <div key={trip._id}>{renderTripDetails(trip)}</div>)}

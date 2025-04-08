@@ -112,7 +112,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       try {
         setLoading(true);
         await pickUp(tripId);
-        // Refresh danh sách chuyến đi sau khi đón khách thành công
+        // Refresh danh sách cuốc xe sau khi đón khách thành công
         // await fetchActiveTrips();
       } catch (error) {
         console.error('Error picking up customer:', error);
@@ -133,15 +133,15 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       try {
         setCanceling(true);
         await cancelTrip(selectedTripId, cancelReason);
-        Alert.alert('Thành công', 'Đã hủy chuyến đi thành công');
+        Alert.alert('Thành công', 'Đã hủy cuốc xe thành công');
         setShowCancelModal(false);
         setCancelReason('');
-        // Refresh danh sách chuyến đi
+        // Refresh danh sách cuốc xe
         // await fetchActiveTrips();
 
       } catch (error) {
         console.error('Error canceling trip:', error);
-        Alert.alert('Lỗi', 'Không thể hủy chuyến đi. Vui lòng thử lại sau.');
+        Alert.alert('Lỗi', 'Không thể hủy cuốc xe. Vui lòng thử lại sau.');
       } finally {
         setCanceling(false);
       }
@@ -313,7 +313,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <View className="p-4">
           <Text className="mb-4 text-xl font-bold text-gray-800">
-            <Icon name="car-clock" size={24} color="#1f2937" /> Chuyến đi hiện tại
+            <Icon name="car-clock" size={24} color="#1f2937" /> Cuốc xe hiện tại
           </Text>
 
           {/* Hiển thị cảnh báo check-in */}
@@ -466,19 +466,21 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                           disabled={!isInProgress}>
                           <View className="flex-row items-center justify-center">
                             <Icon name="map-marker-path" size={20} color="white" />
-                            <Text className="ml-2 font-medium text-white">Xem chuyến đi</Text>
+                            <Text className="ml-2 font-medium text-white">Xem cuốc xe</Text>
                           </View>
                         </TouchableOpacity>
+                        {trip.status.toLowerCase() === TripStatus.PICKUP && (
+                          <TouchableOpacity
+                            onPress={() => showCancelTripModal(trip._id)}
+                            className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
+                            disabled={!isInProgress}>
+                            <View className="flex-row items-center justify-center">
+                              <Icon name="cancel" size={20} color="white" />
+                              <Text className="ml-2 font-medium text-white">Hủy</Text>
+                            </View>
+                          </TouchableOpacity>
+                        )}
 
-                        <TouchableOpacity
-                          onPress={() => showCancelTripModal(trip._id)}
-                          className={`flex-1 rounded-md bg-red-500 px-4 py-2 ${disabledStyle}`}
-                          disabled={!isInProgress}>
-                          <View className="flex-row items-center justify-center">
-                            <Icon name="cancel" size={20} color="white" />
-                            <Text className="ml-2 font-medium text-white">Hủy</Text>
-                          </View>
-                        </TouchableOpacity>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -489,7 +491,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             <View className="flex-row items-center justify-center rounded-lg bg-white p-8 shadow-sm">
               <Icon name="car-off" size={24} color="#6b7280" />
               <Text className="ml-2 text-center text-gray-500">
-                Không có chuyến đi nào đang hoạt động
+                Không có cuốc xe nào đang hoạt động
               </Text>
             </View>
           )}
@@ -552,19 +554,19 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             <View className="mb-4 flex-row items-center">
               <Icon name="alert-circle-outline" size={28} color="#EF4444" />
               <Text className="ml-2 text-lg font-bold text-red-600">
-                Xác nhận hủy chuyến đi
+                Xác nhận hủy cuốc xe
               </Text>
             </View>
 
             <Text className="mb-2 text-gray-700">
-              Bạn có chắc chắn muốn hủy chuyến đi này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn hủy cuốc xe này? Hành động này không thể hoàn tác.
             </Text>
 
             <View className="mb-4">
               <Text className="mb-1 font-medium text-gray-700">Lý do hủy chuyến:</Text>
               <TextInput
                 className="rounded-md border border-gray-300 px-3 py-2"
-                placeholder="Nhập lý do hủy chuyến đi"
+                placeholder="Nhập lý do hủy cuốc xe"
                 value={cancelReason}
                 onChangeText={setCancelReason}
                 multiline

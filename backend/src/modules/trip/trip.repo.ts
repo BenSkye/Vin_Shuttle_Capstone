@@ -14,7 +14,7 @@ export class TripRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name)
     private readonly tripModel: Model<Trip>,
-  ) {}
+  ) { }
 
   async create(tripDto: ICreateTripDto): Promise<TripDocument> {
     const newTrip = new this.tripModel(tripDto);
@@ -65,7 +65,7 @@ export class TripRepository implements ITripRepository {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: `Trip not found ${id}`,
-          vnMessage: `Không thấy chuyến đi ${id}`,
+          vnMessage: `Không thấy cuốc xe ${id}`,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -82,7 +82,7 @@ export class TripRepository implements ITripRepository {
         {
           statusCode: HttpStatus.NOT_FOUND,
           message: `Trip not found ${id}`,
-          vnMessage: `Không tìm thấy chuyến đi ${id}`,
+          vnMessage: `Không tìm thấy cuốc xe ${id}`,
         },
         HttpStatus.NOT_FOUND,
       );
