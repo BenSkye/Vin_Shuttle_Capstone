@@ -36,7 +36,7 @@ type LocationPoint = {
 const HourlyBookingPage = () => {
   // Define steps for the booking flow
   const [currentStep, setCurrentStep] = useState<
-    'datetime' | 'vehicle' | 'location' | 'payment' | 'checkout'
+    'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
   >('datetime')
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null)
@@ -272,6 +272,9 @@ const HourlyBookingPage = () => {
         }
         break
       case 'payment':
+        setCurrentStep('confirmation')
+        break
+      case 'confirmation':
         handleSubmitBooking()
         break
       default:
@@ -299,8 +302,11 @@ const HourlyBookingPage = () => {
       case 'payment':
         setCurrentStep('location')
         break
-      case 'checkout':
+      case 'confirmation':
         setCurrentStep('payment')
+        break
+      case 'checkout':
+        setCurrentStep('confirmation')
         break
       default:
         break
@@ -455,10 +461,102 @@ const HourlyBookingPage = () => {
               <button
                 onClick={handleNextStep}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
-                aria-label="Xác nhận thanh toán"
+                aria-label="Xác nhận thông tin"
                 tabIndex={0}
               >
                 Tiếp tục
+              </button>
+            </div>
+          </div>
+        )
+
+      case 'confirmation':
+        return (
+          <div className="space-y-6">
+            <Title level={4} className="text-center">
+              Xác nhận thông tin đặt xe
+            </Title>
+
+            <div className="rounded-lg border border-gray-200 p-6">
+              <div className="mb-6 space-y-4">
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Thời gian</h3>
+                    <p className="text-gray-600">
+                      {selectedDate?.format('DD/MM/YYYY')} - {startTime?.format('HH:mm')} ({duration} phút)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h-3a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Loại xe</h3>
+                    <div className="text-gray-600">
+                      {selectedVehicles.map((vehicle, index) => (
+                        <p key={index}>
+                          {vehicle.name} - Số lượng: {vehicle.quantity}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Địa điểm đón</h3>
+                    <p className="text-gray-600">{startPoint.address}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Phương thức thanh toán</h3>
+                    <p className="text-gray-600">
+                      {paymentMethod === PaymentMethod.PAY_OS ? 'Thanh toán qua PayOS' : 'Ví điện tử Momo'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-between">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                aria-label="Quay lại chọn phương thức thanh toán"
+                tabIndex={0}
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
+                aria-label="Xác nhận đặt xe"
+                tabIndex={0}
+              >
+                Xác nhận đặt xe
               </button>
             </div>
           </div>
@@ -472,7 +570,7 @@ const HourlyBookingPage = () => {
               <button
                 onClick={handleBackStep}
                 className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
-                aria-label="Quay lại trang chọn địa điểm"
+                aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
                 Quay lại
@@ -487,8 +585,8 @@ const HourlyBookingPage = () => {
   }
 
   // Progress indicators for each step
-  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'payment' | 'checkout') => {
-    const steps = ['datetime', 'vehicle', 'location', 'payment', 'checkout']
+  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout') => {
+    const steps = ['datetime', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
     const currentIndex = steps.indexOf(currentStep)
     const stepIndex = steps.indexOf(step)
 
@@ -551,6 +649,17 @@ const HourlyBookingPage = () => {
               />
             </div>
             <span className="hidden sm:inline">Phương thức thanh toán</span>
+          </div>
+          <div
+            className={`flex-1 text-center ${currentStep === 'confirmation' ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('confirmation')}%` }}
+              />
+            </div>
+            <span className="hidden sm:inline">Xác nhận</span>
           </div>
           <div
             className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
