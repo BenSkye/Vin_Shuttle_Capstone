@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Radio, Space, Typography } from 'antd'
+import { message, Radio, Space, Typography } from 'antd'
 import dynamic from 'next/dynamic'
 
 import { PaymentMethod } from '@/constants/payment.enum'
@@ -275,6 +275,7 @@ const DestinationBookingPage = () => {
         //redirect to trips page
         message.success('Đặt xe thành công!')
         window.location.href = '/trips'
+        return
       }
       setBookingResponse(response)
       setCurrentStep('checkout')
@@ -400,12 +401,7 @@ const DestinationBookingPage = () => {
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-                <Radio value={PaymentMethod.CASH} className="w-full rounded-lg border p-4">
-                  <div className="flex items-center">
-                    <img src="/images/cash-logo.png" alt="Cash" className="mr-3 h-8" />
-                    <span>Thanh toán tiền mặt</span>
-                  </div>
-                </Radio>
+
               </Space>
             </Radio.Group>
 
