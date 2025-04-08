@@ -215,7 +215,7 @@ export class BookingController {
     return await this.bookingService.bookingSharedItinerary(req.user._id, data);
   }
 
-  @Post('cancel-booking:/:id')
+  @Post('cancel-booking/:id')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.CUSTOMER)
