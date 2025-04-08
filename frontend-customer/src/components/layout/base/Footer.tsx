@@ -53,7 +53,7 @@ export default function Footer() {
           >
             <h3 className="text-lg font-bold text-content-inverse">Về VinShuttle</h3>
             <p className="text-secondary-300">
-              Dịch vụ vận chuyển nội khu thông minh tại VinHomes Grand Park. Chúng tôi cam kết mang
+              Dịch vụ vận chuyển nội khu tại VinHomes Grand Park. Chúng tôi cam kết mang
               đến trải nghiệm di chuyển an toàn, tiện lợi và thân thiện với môi trường.
             </p>
           </motion.div>
