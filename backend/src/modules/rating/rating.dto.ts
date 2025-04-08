@@ -1,4 +1,5 @@
 import { ServiceType } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateRating {
   tripId: string;
@@ -20,7 +21,7 @@ export interface IGetAverageRating {
   serviceType: ServiceType;
 }
 
-export interface IGetRatingByQuery {
+export interface IGetRatingByQuery extends QueryOptions {
   customerId?: string;
   driverId?: string;
   rate?: number;

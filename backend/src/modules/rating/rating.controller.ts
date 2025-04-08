@@ -19,6 +19,7 @@ import { RATING_SERVICE } from 'src/modules/rating/rating.di-token';
 import { ICreateRating, IGetAverageRating } from 'src/modules/rating/rating.dto';
 import { IRatingService } from 'src/modules/rating/rating.port';
 import { ServiceType, UserRole } from 'src/share/enums';
+import { SortOrderOption } from 'src/share/enums/sortOrderOption.enum';
 import { HEADER } from 'src/share/interface';
 
 @ApiTags('rating')
@@ -94,6 +95,7 @@ export class RatingController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get rating by query' })
+
   @ApiQuery({
     name: 'customerId',
     type: String,
@@ -118,6 +120,20 @@ export class RatingController {
     name: 'serviceType',
     enum: ServiceType,
     required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit number of vehicles',
+  })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Skip number of vehicles' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Order by field' })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: SortOrderOption,
+    description: 'Sort order (asc, desc)',
   })
   async getRatingByQuery(@Query() query: IGetAverageRating) {
     return await this.ratingService.getRatingByQuery(query);

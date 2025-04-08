@@ -80,8 +80,9 @@ export class RatingService implements IRatingService {
       ratingFilter.feedback = query.feedback;
       delete filter.feedback;
     }
+    const { options } = processQueryParams(query, []);
     console.log('ratingFilter', ratingFilter);
-    const ratings = await this.ratingRepository.getRatings(ratingFilter, []);
+    const ratings = await this.ratingRepository.getRatings(ratingFilter, [], options);
     return ratings
 
   }
