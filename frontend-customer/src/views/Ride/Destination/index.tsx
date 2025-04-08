@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
+
 import { Radio, Space, Typography, message } from 'antd'
+
 import dynamic from 'next/dynamic'
 
 import { PaymentMethod } from '@/constants/payment.enum'
@@ -284,6 +286,7 @@ const DestinationBookingPage = () => {
         //redirect to trips page
         message.success('Đặt xe thành công!')
         window.location.href = '/trips'
+        return
       }
       setBookingResponse(response)
       setCurrentStep('checkout')

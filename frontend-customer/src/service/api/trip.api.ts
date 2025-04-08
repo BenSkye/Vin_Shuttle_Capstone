@@ -3,7 +3,12 @@ import apiClient from '@/service/apiClient'
 
 export const TripApiService = {
   getPersonalTrips: async (): Promise<Trip[]> => {
-    const response = await apiClient.get('/trip/customer-personal-trip')
+    const response = await apiClient.get('/trip/customer-personal-trip', {
+      params: {
+        orderBy: 'updatedAt',
+        sortOrder: 'desc',
+      }
+    })
     console.log(response.data)
     return response.data
   },
