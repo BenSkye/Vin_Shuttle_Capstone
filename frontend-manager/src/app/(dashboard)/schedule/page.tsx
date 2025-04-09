@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Form, Button, Select, message, Alert, } from 'antd';
-import { Activity } from '@/interfaces/index';
+import { Activity, VehicleCategory, VehiclePopulateCategory } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 
 
@@ -14,6 +14,7 @@ import { format, isBefore, startOfDay } from 'date-fns';
 
 import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
+import { AxiosError } from 'axios';
 
 // Định nghĩa các loại modal để rõ ràng
 type ModalType = 'view' | 'assign' | 'update' | 'none';
@@ -28,7 +29,7 @@ const SchedulePage = () => {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>('');
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [vehicles, setVehicles] = useState<VehiclePopulateCategory[]>([]);
     const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
     const [isAssigningWeekly, setIsAssigningWeekly] = useState(false);
@@ -196,9 +197,11 @@ const SchedulePage = () => {
                     fetchVehicles(activity.date),
                     fetchDrivers(activity.date)
                 ]).then(() => {
+                    console.log('vehicles:', vehicles);
+                    console.log('activity.vehicleId:', activity.vehicleId);
                     const selectedDriver = drivers.find(d => d._id === activity.driverId);
                     const selectedVehicle = vehicles.find(v => v._id === activity.vehicleId);
-
+                    console.log("selectedVehicle:", selectedVehicle);
                     // Sau khi cả hai loại dữ liệu được tải, đặt giá trị form
                     updateForm.setFieldsValue({
                         driverId: {
@@ -207,7 +210,9 @@ const SchedulePage = () => {
                         },
                         vehicleId: {
                             value: activity.vehicleId,
-                            label: selectedVehicle?.name || activity.vehicleName
+                            label: selectedVehicle
+                                ? `${selectedVehicle.name} - ${selectedVehicle.categoryId?.name || 'Chưa phân loại'}`
+                                : activity.vehicleName
                         }
                     });
                 });
@@ -315,8 +320,8 @@ const SchedulePage = () => {
             await updateDriverSchedule(
                 selectedActivity.id,
                 values.driverId.value,
-                selectedDate,
-                selectedTime,
+                // selectedDate,
+                // selectedTime,
                 values.vehicleId.value
             );
 
@@ -324,8 +329,12 @@ const SchedulePage = () => {
             setIsModalOpen(false);
             fetchDriverSchedules();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Không thể cập nhật lịch trình";
-            console.error("Lỗi khi cập nhật lịch trình:", error);
+            let errorMessage = error instanceof Error ? error.message : "Không thể cập nhật lịch trình";
+            if (error instanceof AxiosError) {
+                console.error("Lỗi khi cập nhật lịch trình:", error?.response?.data.vnMessage);
+                errorMessage = error?.response?.data.vnMessage
+            }
+            console.log("Error332:", errorMessage);
             setError(errorMessage);
             message.error(errorMessage);
         } finally {
@@ -440,8 +449,15 @@ const SchedulePage = () => {
                         labelInValue
                         options={vehicles.map(vehicle => ({
                             value: vehicle._id,
-                            label: vehicle.name
+                            label: `${vehicle.name} - ${vehicle.categoryId?.name || 'Chưa phân loại'}`,
+                            vehicle
                         }))}
+                        optionRender={(option) => (
+                            <div>{option.label}</div>
+                        )}
+                        labelRender={(props) => (
+                            <span>{props.label}</span>
+                        )}
                     />
                 </Form.Item>
             </Form>
@@ -491,7 +507,7 @@ const SchedulePage = () => {
                         labelInValue
                         options={vehicles.map(vehicle => ({
                             value: vehicle._id,
-                            label: vehicle.name
+                            label: vehicle.name + '-' + vehicle.categoryId?.name
                         }))}
                     />
                 </Form.Item>

@@ -68,6 +68,17 @@ export interface Vehicle {
 
 }
 
+export interface VehiclePopulateCategory extends Omit<Vehicle, 'categoryId'> {
+    categoryId: VehicleCategory;
+}
+
+export interface VehicleCategory {
+    _id: string;
+    name: string;
+    description: string;
+    numberOfSeat: number;
+}
+
 export interface DriverFilters {
     sortOrder?: string;
     orderBy?: string;

@@ -49,6 +49,17 @@ export class TripRepository implements ITripRepository {
     return result;
   }
 
+  async findWithNotPopulate(query: any, select: string[], options?: QueryOptions): Promise<TripDocument[]> {
+    let queryBuilder = this.tripModel
+      .find(query)
+    if (select && select.length > 0) {
+      queryBuilder = queryBuilder.select(getSelectData(select));
+    }
+    queryBuilder = applyQueryOptions(queryBuilder, options);
+    const result = await queryBuilder.exec();
+    return result;
+  }
+
   async findOne(query: any, select: string[]): Promise<TripDocument> {
     return await this.tripModel
       .findOne(query)

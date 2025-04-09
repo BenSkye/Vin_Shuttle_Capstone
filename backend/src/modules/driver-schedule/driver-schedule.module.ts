@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DriverScheduleController } from 'src/modules/driver-schedule/driver-schedule.controller';
 import {
@@ -15,7 +15,9 @@ import {
 import { DriverScheduleService } from 'src/modules/driver-schedule/driver-schedule.service';
 import { KeytokenModule } from 'src/modules/keytoken/keytoken.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
+import { TripModule } from 'src/modules/trip/trip.module';
 import { UsersModule } from 'src/modules/users/users.module';
+import { VehicleCategoryModule } from 'src/modules/vehicle-categories/vehicle-category.module';
 import { VehiclesModule } from 'src/modules/vehicles/vehicles.module';
 import { ShareModule } from 'src/share/share.module';
 
@@ -46,9 +48,11 @@ const dependencies = [
     ShareModule,
     KeytokenModule,
     TrackingModule,
+    VehicleCategoryModule,
+    forwardRef(() => TripModule),
   ],
   controllers: [DriverScheduleController],
   providers: [...dependencies],
   exports: [...dependencies],
 })
-export class DriverScheduleModule {}
+export class DriverScheduleModule { }
