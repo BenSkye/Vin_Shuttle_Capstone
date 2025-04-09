@@ -9,8 +9,6 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [
-    ],
     "orientation": "portrait",
     "icon": "./src/assets/driver-logo-app.png",
     "userInterfaceStyle": "light",
