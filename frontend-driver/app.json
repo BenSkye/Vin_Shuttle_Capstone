@@ -30,7 +30,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/driver-logo-app.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "extra": {
       "slug":"vinshuttledriver",

@@ -48,8 +48,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       locationSubscription.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: updateInterval,
-          distanceInterval: MIN_DISTANCE_CHANGE,
+          timeInterval: 5000,
+          distanceInterval: 10,
         },
         (locationData) => {
           console.log('Location update:', locationData);
@@ -106,33 +106,47 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Initialize location tracking and app state listener
   useEffect(() => {
-    // Start tracking when component mounts (app starts)
     startLocationTracking();
-    // Set up AppState event listener
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      // Clean up on unmount
-      stopLocationTracking();
-      subscription.remove();
-    };
-  }, [isInProgress, isConnected]);
-
-  // Handle changes to trip status
-  useEffect(() => {
-    // When trip status changes, restart tracking with appropriate settings
-    if (locationSubscription.current) {
-      // Restart tracking with new interval settings
-      startLocationTracking();
-    }
-
-    // Connect/disconnect socket based on trip status
+  
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        startLocationTracking();
+      } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+        if (!isInProgress) {
+          stopLocationTracking();
+        }
+      }
+      appState.current = nextAppState;
+    });
+  
     if (isInProgress) {
       connect();
     } else {
       disconnect();
     }
-  }, [isInProgress, connect, disconnect]);
+  
+    return () => {
+      stopLocationTracking();
+      subscription.remove();
+      disconnect();
+    };
+  }, [isInProgress, isConnected]);
+
+  // Handle changes to trip status
+  // useEffect(() => {
+  //   // When trip status changes, restart tracking with appropriate settings
+  //   if (locationSubscription.current) {
+  //     // Restart tracking with new interval settings
+  //     startLocationTracking();
+  //   }
+
+  //   // Connect/disconnect socket based on trip status
+  //   if (isInProgress) {
+  //     connect();
+  //   } else {
+  //     disconnect();
+  //   }
+  // }, [isInProgress, connect, disconnect]);
 
   return (
     <LocationContext.Provider value={{ location, errorMsg, isTracking }}>
