@@ -1,3 +1,4 @@
+import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
 import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { Card, DatePicker, TimePicker } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
@@ -23,36 +24,50 @@ const RouteDateTimeSelection = ({
   }
 
   // Disallow times less than 2 minutes from current time
-  const disabledTime = (current: dayjs.Dayjs | null) => {
-    if (!current || !selectedDate) return {}
+  const disabledTime = () => {
+    const now = dayjs();
+    const currentHour = now.hour();
+    const currentMinute = now.minute();
 
-    const now = dayjs()
-    const twoMinutesFromNow = now.add(2, 'minute')
+    // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
+    const defaultDisabledHours = () => {
+      const hours = [];
+      // Vô hiệu hóa trước giờ START
+      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i);
+      // Vô hiệu hóa sau giờ END
+      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
+      return hours;
+    };
 
-    if (selectedDate.isSame(now, 'day')) {
-      // If the selected hour is the current hour
-      if (now.hour() === twoMinutesFromNow.hour()) {
-        return {
-          disabledHours: () => Array.from({ length: now.hour() }, (_, i) => i),
-          disabledMinutes: (hour: number) => {
-            if (hour === now.hour()) {
-              // Disable all minutes up to 2 minutes from now
-              return Array.from({ length: twoMinutesFromNow.minute() }, (_, i) => i)
-            }
-            return []
-          },
-        }
-      }
-      // If the selected hour is less than the current hour
-      else if (now.hour() > twoMinutesFromNow.hour()) {
-        return {
-          disabledHours: () => Array.from({ length: now.hour() }, (_, i) => i),
-          disabledMinutes: () => [],
-        }
-      }
+    // Nếu đã chọn ngày VÀ là ngày hiện tại
+    if (selectedDate && selectedDate.isSame(now, 'day')) {
+      return {
+        disabledHours: () => {
+          const hours = [];
+          // Vô hiệu hóa tất cả giờ trước giờ hiện tại
+          for (let i = 0; i < currentHour; i++) hours.push(i);
+          // Vô hiệu hóa sau giờ END
+          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
+          return hours;
+        },
+        disabledMinutes: (hour: number) => {
+          if (hour === currentHour) {
+            return Array.from(
+              { length: currentMinute + BOOKING_BUFFER_MINUTES },
+              (_, i) => i
+            );
+          }
+          return [];
+        },
+      };
     }
-    return {}
-  }
+
+    // Trường hợp chưa chọn ngày hoặc chọn ngày khác
+    return {
+      disabledHours: defaultDisabledHours,
+      disabledMinutes: () => [],
+    };
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
@@ -100,8 +115,8 @@ const RouteDateTimeSelection = ({
             onChange={onStartTimeChange}
             placeholder="Chọn giờ đặt xe"
             locale={locale}
-            disabledTime={() => disabledTime(startTime)}
-            minuteStep={15}
+            disabledTime={disabledTime}
+            minuteStep={1}
             size="large"
             showNow={false}
           />
