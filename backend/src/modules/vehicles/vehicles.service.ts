@@ -14,7 +14,7 @@ export class VehiclesService implements IVehiclesService {
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
     @Inject(VEHICLE_REPOSITORY) private readonly vehicleRepository: IVehiclesRepository,
-  ) {}
+  ) { }
 
   async list(): Promise<VehicleDocument[]> {
     const listVehicle = await this.vehicleRepository.list();
@@ -75,6 +75,14 @@ export class VehiclesService implements IVehiclesService {
     const { filter, options } = processQueryParams(query, ['name']);
 
     const result = await this.vehicleRepository.getListVehicles(filter, [], options);
+    return result;
+  }
+
+  async getListVehiclesPopulateCategory(query: vehicleParams): Promise<VehicleDocument[] | null> {
+    console.log('query', query);
+    const { filter, options } = processQueryParams(query, ['name']);
+
+    const result = await this.vehicleRepository.getListVehiclesPopulateCategory(filter, [], options);
     return result;
   }
 

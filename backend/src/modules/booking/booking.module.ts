@@ -41,7 +41,7 @@ const dependencies = [
     forwardRef(() => TripModule),
     VehiclesModule,
     VehicleCategoryModule,
-    DriverScheduleModule,
+    forwardRef(() => DriverScheduleModule),
     PricingModule,
     SearchModule,
     ScenicRouteModule,

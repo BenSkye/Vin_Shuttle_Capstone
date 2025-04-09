@@ -16,6 +16,12 @@ export interface IVehiclesRepository {
     select: string[],
     options?: QueryOptions,
   ): Promise<VehicleDocument[] | null>;
+  getListVehiclesPopulateCategory(
+    query: object,
+    select: string[],
+    options?: QueryOptions,
+  ): Promise<VehicleDocument[] | null>;
+
   getVehicle(query: object, select: string[]): Promise<VehicleDocument | null>;
   updateOperationStatus(id: string, status: VehicleOperationStatus): Promise<VehicleDocument>;
 }
@@ -26,6 +32,7 @@ export interface IVehiclesService {
   insert(data: ICreateVehicle): Promise<VehicleDocument>;
   update(id: string, dto: IUpdateVehicle): Promise<VehicleDocument>;
   getListVehicles(query: vehicleParams): Promise<VehicleDocument[] | null>;
+  getListVehiclesPopulateCategory(query: vehicleParams): Promise<VehicleDocument[] | null>;
   getVehicleCategoryByVehicleId(vehicleId: string): Promise<VehicleCategoryDocument | null>;
   findById(id: string): Promise<any>;
   update(id: string, data: any): Promise<any>;

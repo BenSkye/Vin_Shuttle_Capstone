@@ -10,6 +10,7 @@ export const getVehicles = async () => {
     }
 }
 
+
 export const getAvailableVehicles = async (date: string) => {
     try {
         const response = await axiosInstance.get(`/driver-schedules/vehicle-not-scheduled/${date}`);

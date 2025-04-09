@@ -325,7 +325,7 @@ export class SearchService implements ISearchService {
           statusCode: HttpStatus.BAD_REQUEST,
           message: `No more Schedule valid for shift ${shifts.join(', ')} in date ${date}`,
           vnMessage:
-            'Không có lịch phù hợp cho ca làm việc ' + shifts.join(', ') + ' vào ngày ' + date,
+            'Không còn lịch phục vụ vào thời gian này, vui lòng chọn thời gian khác',
         },
         HttpStatus.BAD_REQUEST,
       );
