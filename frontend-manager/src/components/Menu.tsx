@@ -38,7 +38,7 @@ const menuItems = [
                 visible: ["admin",],
             },
             {
-                icon: "/icons/bus-solid.svg",
+                icon: "/icons/bus-schedule.svg",
                 label: "Lịch xe Bus",
                 href: "/bus-schedules",
                 visible: ["admin",],
