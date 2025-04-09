@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
+import { Alert, Linking } from 'react-native';
 import useTrackingSocket from '~/hook/useTrackingSocket';
 import { useSchedule } from '~/context/ScheduleContext';
 import { LocationData } from '~/interface/trip';
@@ -30,10 +31,23 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to start location tracking
   const startLocationTracking = async () => {
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      // Kiểm tra trạng thái quyền trước
+      let { status } = await Location.getForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg('Quyền truy cập vị trí bị từ chối!');
-        return false;
+        const permissionResponse = await Location.requestForegroundPermissionsAsync();
+        status = permissionResponse.status;
+        if (status !== 'granted') {
+          setErrorMsg('Quyền truy cập vị trí bị từ chối!');
+          Alert.alert(
+            'Cần quyền vị trí',
+            'Ứng dụng cần truy cập vị trí để hoạt động. Vui lòng cấp quyền trong cài đặt.',
+            [
+              { text: 'Hủy', style: 'cancel' },
+              { text: 'Mở cài đặt', onPress: () => Linking.openSettings() },
+            ]
+          );
+          return false;
+        }
       }
 
       // Configure tracking options based on whether a trip is in progress
@@ -48,24 +62,27 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       locationSubscription.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 5000,
-          distanceInterval: 10,
+          timeInterval: 5000, // Cập nhật mỗi 5 giây
+          distanceInterval: 10, // Cập nhật khi di chuyển 10m
         },
         (locationData) => {
-          console.log('Location update:', locationData);
+          if (!locationData?.coords) {
+            setErrorMsg('Dữ liệu vị trí không hợp lệ');
+            return;
+          }
           const newLocation = {
             latitude: locationData.coords.latitude,
             longitude: locationData.coords.longitude,
-            heading: locationData.coords.heading,
-            speed: locationData.coords.speed,
+            heading: locationData.coords.heading ?? 0, // Mặc định 0 nếu null
+            speed: locationData.coords.speed ?? 0, // Mặc định 0 nếu null
           };
-
+          console.log('Location update:', newLocation);
           setLocation(newLocation);
           setIsTracking(true);
 
           // Only emit location when a trip is in progress
-          console.log('isInProgress', isInProgress);
-          console.log('isConnected', isConnected);
+          console.log('isInProgress:', isInProgress);
+          console.log('isConnected:', isConnected);
           if (isInProgress && isConnected) {
             emitLocationUpdate(newLocation);
           }
@@ -88,26 +105,17 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Handle app state changes
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-      // App has come to the foreground
-      startLocationTracking();
-    } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
-      // App has gone to the background
-      // Only stop tracking if no trip is in progress
-      if (!isInProgress) {
-        stopLocationTracking();
-      }
-    }
-
-    appState.current = nextAppState;
-  };
-
   // Initialize location tracking and app state listener
   useEffect(() => {
-    startLocationTracking();
-  
+    let isMounted = true;
+
+    const initTracking = async () => {
+      if (isMounted) {
+        await startLocationTracking();
+      }
+    };
+    initTracking();
+
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         startLocationTracking();
@@ -118,35 +126,29 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       appState.current = nextAppState;
     });
-  
-    if (isInProgress) {
+
+    // Quản lý socket dựa trên isInProgress
+    if (isInProgress && !isConnected) {
       connect();
-    } else {
+    } else if (!isInProgress && isConnected) {
       disconnect();
     }
-  
+
+    // Cleanup
     return () => {
+      isMounted = false;
       stopLocationTracking();
       subscription.remove();
-      disconnect();
+      if (isConnected) disconnect();
     };
   }, [isInProgress, isConnected]);
 
-  // Handle changes to trip status
-  // useEffect(() => {
-  //   // When trip status changes, restart tracking with appropriate settings
-  //   if (locationSubscription.current) {
-  //     // Restart tracking with new interval settings
-  //     startLocationTracking();
-  //   }
-
-  //   // Connect/disconnect socket based on trip status
-  //   if (isInProgress) {
-  //     connect();
-  //   } else {
-  //     disconnect();
-  //   }
-  // }, [isInProgress, connect, disconnect]);
+  // Debug log để kiểm tra khi deploy
+  useEffect(() => {
+    console.log('Location:', location);
+    console.log('ErrorMsg:', errorMsg);
+    console.log('IsTracking:', isTracking);
+  }, [location, errorMsg, isTracking]);
 
   return (
     <LocationContext.Provider value={{ location, errorMsg, isTracking }}>
