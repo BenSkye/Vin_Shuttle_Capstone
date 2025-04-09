@@ -420,6 +420,7 @@ const SchedulePage = () => {
                         </span>
                     </p>
                     <p className="text-sm text-gray-500 mt-1">Ngày: {selectedDate}</p>
+                    <p className="text-sm text-red-500 mt-1">Các cuốc xe sử dụng lịch này cũng sẽ đổi tài xế và xe theo lịch !</p>
                 </div>
 
                 <Form.Item
