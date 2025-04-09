@@ -1,3 +1,4 @@
+import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
 import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { Card, DatePicker, Select, TimePicker } from 'antd'
 import { InputNumber } from 'antd'
@@ -30,17 +31,50 @@ const DateTimeSelection = ({
   }
 
   // Disallow past times for today
-  const disabledTime = (current: dayjs.Dayjs | null) => {
-    if (!current || !selectedDate) return {}
-    if (selectedDate.isSame(dayjs(), 'day')) {
+  const disabledTime = () => {
+    const now = dayjs();
+    const currentHour = now.hour();
+    const currentMinute = now.minute();
+
+    // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
+    const defaultDisabledHours = () => {
+      const hours = [];
+      // Vô hiệu hóa trước giờ START
+      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i);
+      // Vô hiệu hóa sau giờ END
+      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
+      return hours;
+    };
+
+    // Nếu đã chọn ngày VÀ là ngày hiện tại
+    if (selectedDate && selectedDate.isSame(now, 'day')) {
       return {
-        disabledHours: () => Array.from({ length: dayjs().hour() }, (_, i) => i),
-        disabledMinutes: (hour: number) =>
-          hour === dayjs().hour() ? Array.from({ length: dayjs().minute() }, (_, i) => i) : [],
-      }
+        disabledHours: () => {
+          const hours = [];
+          // Vô hiệu hóa tất cả giờ trước giờ hiện tại
+          for (let i = 0; i < currentHour; i++) hours.push(i);
+          // Vô hiệu hóa sau giờ END
+          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
+          return hours;
+        },
+        disabledMinutes: (hour: number) => {
+          if (hour === currentHour) {
+            return Array.from(
+              { length: currentMinute + BOOKING_BUFFER_MINUTES },
+              (_, i) => i
+            );
+          }
+          return [];
+        },
+      };
     }
-    return {}
-  }
+
+    // Trường hợp chưa chọn ngày hoặc chọn ngày khác
+    return {
+      disabledHours: defaultDisabledHours,
+      disabledMinutes: () => [],
+    };
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
@@ -91,7 +125,7 @@ const DateTimeSelection = ({
             onChange={onStartTimeChange}
             placeholder="Chọn giờ đặt xe"
             locale={locale}
-            disabledTime={() => disabledTime(startTime)}
+            disabledTime={disabledTime}
             minuteStep={1}
             size="large"
             showNow={false}
@@ -139,7 +173,7 @@ const DateTimeSelection = ({
                 </p>
                 <p className="flex justify-between">
                   <span className="font-medium">Thời gian thuê:</span>
-                  <span>{duration / 60} giờ</span>
+                  <span>{(duration / 60).toFixed(2)} giờ</span>
                 </p>
                 <p className="flex justify-between">
                   <span className="font-medium">Giờ kết thúc:</span>
