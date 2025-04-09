@@ -4,7 +4,7 @@
   "scripts": {
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "start": "expo start",
+    "start": "expo start --dev-client",
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
     "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
@@ -33,7 +33,7 @@
     "my-expo-app": "file:",
     "nativewind": "^4.1.23",
     "react": "18.3.1",
-    "react-native": "0.76.7",
+    "react-native": "0.76.9",
     "react-native-calendars": "^1.1309.1",
     "react-native-gesture-handler": "^2.24.0",
     "react-native-maps": "1.10.0",
@@ -64,6 +64,5 @@
     "extends": "universe/native",
     "root": true
   },
-  "main": "node_modules/expo/AppEntry.js",
   "private": true
 }
