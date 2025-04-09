@@ -134,7 +134,7 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                         <Label htmlFor="status">Status</Label>
                         <Select
                             value={formData.status}
-                            onValueChange={(value) => handleChange('status', value)}
+                            onValueChange={(value: string) => handleChange('status', value)}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select status" />

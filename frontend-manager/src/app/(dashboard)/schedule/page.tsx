@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Form, Button, Select, message, Alert, } from 'antd';
-import { Activity, VehicleCategory, VehiclePopulateCategory } from '@/interfaces/index';
+import { Activity, VehiclePopulateCategory } from '@/interfaces/index';
 import EventCalendar from '@/components/EventCalendar';
 
 
@@ -12,7 +12,6 @@ import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
 import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
 import { format, isBefore, startOfDay } from 'date-fns';
 
-import { Vehicle } from '@/interfaces/index';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
 import { AxiosError } from 'axios';
 
