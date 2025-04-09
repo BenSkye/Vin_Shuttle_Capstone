@@ -7,9 +7,13 @@ import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/d
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
 import { ITrackingService } from "src/modules/tracking/tracking.port";
+import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
+import { ITripRepository } from "src/modules/trip/trip.port";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { UserDocument } from "src/modules/users/users.schema";
+import { VEHICLE_CATEGORY_REPOSITORY } from "src/modules/vehicle-categories/vehicle-category.di-token";
+import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehicle-category.port";
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
@@ -31,6 +35,10 @@ export class DriverScheduleService implements IDriverScheduleService {
     private readonly driverScheduleGateway: DriverScheduleGateway,
     @Inject(TRACKING_SERVICE)
     private readonly trackingService: ITrackingService,
+    @Inject(TRIP_REPOSITORY)
+    private readonly tripRepository: ITripRepository,
+    @Inject(VEHICLE_CATEGORY_REPOSITORY)
+    private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
   ) { }
 
   async createListDriverSchedule(
@@ -227,8 +235,8 @@ export class DriverScheduleService implements IDriverScheduleService {
       throw new HttpException(
         {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `Driver ${driver?.name || driverScheduledto.driver} is not active or not a driver`,
-          vnMessage: `Tài xế ${driver?.name || driverScheduledto.driver} không sẵn sàng hoặc không phải là tài xế`,
+          message: `Driver ${driver?.name || driverScheduledto.driver} is not active`,
+          vnMessage: `Tài xế ${driver?.name || driverScheduledto.driver} không sẵn sàng`,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -257,7 +265,7 @@ export class DriverScheduleService implements IDriverScheduleService {
 
     const isExistScheduleWithDriver = await this.driverScheduleRepository.findOneDriverSchedule(
       {
-        date: driverScheduledto.date,
+        date: driverSchedule.date,
         driver: driverScheduledto.driver,
         _id: { $ne: id },
       },
@@ -275,7 +283,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     }
     const isExistScheduleWithVehicle = await this.driverScheduleRepository.findOneDriverSchedule(
       {
-        date: driverScheduledto.date,
+        date: driverSchedule.date,
         vehicle: driverScheduledto.vehicle,
         _id: { $ne: id }, // Loại trừ lịch hiện tại
       },
@@ -291,10 +299,41 @@ export class DriverScheduleService implements IDriverScheduleService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    // kiểm tra xem có cuốc xe nào sử dụng lịch này không
+    const listTripsUsingSchedule = await this.tripRepository.findWithNotPopulate(
+      {
+        scheduleId: id
+      },
+      ["vehicleId", "scheduleId", "driverId"]
+    )
+    if (listTripsUsingSchedule.length > 0) {
+      const vehicleTripUsedID = listTripsUsingSchedule[0].vehicleId;
+      console.log('vehicleTripUsedID', vehicleTripUsedID);
+      const vehicleTripUsed = await this.vehicleRepository.getById(vehicleTripUsedID.toString());
+      if (vehicle.categoryId.toString() !== vehicleTripUsed.categoryId.toString()) {
+        const VehicleCategory = await this.vehicleCategoryRepository.getById(vehicleTripUsed.categoryId.toString())
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: `Schedule has a trip, please use the same vehicle type as the original vehicle`,
+            vnMessage: `Lịch đã có cuốc xe, hãy sử dụng xe có loại xe "${VehicleCategory.name}"`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(
       id,
       driverScheduledto,
     );
+    for (const trip of listTripsUsingSchedule) {
+      await this.tripRepository.updateTrip(trip._id.toString(), {
+        vehicleId: updatedDriverSchedule.vehicle.toString(),
+        driverId: updatedDriverSchedule.driver.toString(),
+        scheduleId: updatedDriverSchedule._id.toString(),
+      })
+    }
     return updatedDriverSchedule;
   }
 
@@ -325,7 +364,7 @@ export class DriverScheduleService implements IDriverScheduleService {
       ['vehicle'],
     );
     const vehicleIds = driverSchedules.map(schedule => schedule.vehicle._id.toString());
-    const vehicles = await this.vehicleRepository.getListVehicles(
+    const vehicles = await this.vehicleRepository.getListVehiclesPopulateCategory(
       {
         _id: { $nin: vehicleIds },
         vehicleCondition: VehicleCondition.IN_USE,

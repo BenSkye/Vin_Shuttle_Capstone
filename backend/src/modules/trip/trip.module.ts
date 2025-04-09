@@ -40,7 +40,7 @@ const dependencies = [
         schema: TripSchema,
       },
     ]),
-    DriverScheduleModule,
+    forwardRef(() => DriverScheduleModule),
     UsersModule,
     VehiclesModule,
     ShareModule,

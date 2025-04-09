@@ -25,7 +25,7 @@ const dependencies = [
   imports: [
     VehiclesModule,
     VehicleCategoryModule,
-    DriverScheduleModule,
+    forwardRef(() => DriverScheduleModule),
     forwardRef(() => TripModule),
     PricingModule,
     ScenicRouteModule,

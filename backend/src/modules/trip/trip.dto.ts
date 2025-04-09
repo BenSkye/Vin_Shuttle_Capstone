@@ -1,3 +1,5 @@
+import { TripDocument } from "src/modules/trip/trip.schema";
+import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 import { ServiceType } from "src/share/enums";
 import { TripCancelBy, TripStatus } from "src/share/enums/trip.enum";
 import { Position, QueryOptions, StartOrEndPoint } from "src/share/interface";
@@ -93,7 +95,6 @@ export class BookingBusRoutePayloadDto {
     numberOfSeat: number;
   };
 }
-
 
 export interface tripParams extends QueryOptions {
   customerPhone?: string;

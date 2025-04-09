@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import axiosInstance from "./axios"
 
 export const DriverSchedule = async (scheduleData: {
@@ -20,20 +21,21 @@ export const DriverSchedule = async (scheduleData: {
 export const updateDriverSchedule = async (
     driverScheduleID: string,
     driver: string,
-    date: string,
-    shift: string,
+    // date: string,
+    // shift: string,
     vehicle: string
 ) => {
     try {
         const response = await axiosInstance.put(`/driver-schedules/update-driver-schedule/${driverScheduleID}`, {
             driver,
-            date,
-            shift,
+            // date,
+            // shift,
             vehicle
         });
         return response.data;
     } catch (error) {
-        if (error instanceof Error) {
+        if (error instanceof AxiosError) {
+            console.log("Error37:", error?.response?.data.vnMessage);
             throw error;
         } else if (typeof error === "object" && error !== null && "response" in error) {
             const err = error as { response?: { data?: { vnMessage?: string, message?: string } } };
