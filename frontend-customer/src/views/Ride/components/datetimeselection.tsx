@@ -92,7 +92,7 @@ const DateTimeSelection = ({
             placeholder="Chọn giờ đặt xe"
             locale={locale}
             disabledTime={() => disabledTime(startTime)}
-            minuteStep={15}
+            minuteStep={1}
             size="large"
             showNow={false}
           />
