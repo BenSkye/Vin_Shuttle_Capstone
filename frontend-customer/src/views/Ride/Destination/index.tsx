@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-
 import { Radio, Space, Typography, message } from 'antd'
 
 import dynamic from 'next/dynamic'
@@ -441,7 +440,7 @@ const DestinationBookingPage = () => {
                 aria-label="Xác nhận thanh toán"
                 tabIndex={0}
               >
-                Tiếp tục
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>
@@ -554,7 +553,7 @@ const DestinationBookingPage = () => {
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
-                Xác nhận đặt xe
+                {loading ? 'Đang xử lý...' : 'Xác nhận'}
               </button>
             </div>
           </div>
@@ -597,9 +596,9 @@ const DestinationBookingPage = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-5 gap-2">
           <div
-            className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -611,7 +610,7 @@ const DestinationBookingPage = () => {
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -623,7 +622,7 @@ const DestinationBookingPage = () => {
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -635,7 +634,7 @@ const DestinationBookingPage = () => {
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`text-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -647,7 +646,7 @@ const DestinationBookingPage = () => {
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div

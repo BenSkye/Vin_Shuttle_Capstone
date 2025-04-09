@@ -340,7 +340,12 @@ export default function CreateRoute({
     const fetchRoutes = async () => {
       try {
         const routes = await routeService.getAllRoutes()
-        setSavedRoutes(routes)
+        console.log('Routes:', routes)
+        // Filter to only include routes with 'active' status
+        const activeRoutes = routes.filter(route => route.status === 'active')
+        console.log('Active routes:', activeRoutes)
+
+        setSavedRoutes(activeRoutes)
       } catch (error) {
         console.error('Failed to fetch routes:', error)
       }
