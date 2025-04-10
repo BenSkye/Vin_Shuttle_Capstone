@@ -9,6 +9,8 @@ export interface IConversation {
   listMessage: IMessage[]
   lastMessage: IMessage
   createdAt: string
+
+
 }
 
 export interface IMessage {
