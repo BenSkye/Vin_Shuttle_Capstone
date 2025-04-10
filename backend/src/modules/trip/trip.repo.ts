@@ -1,12 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import base62 from 'base62';
+import { Model, Types } from 'mongoose';
+import { customAlphabet } from 'nanoid';
 import { ICreateTripDto, IUpdateTripDto } from 'src/modules/trip/trip.dto';
 import { ITripRepository } from 'src/modules/trip/trip.port';
 import { Trip, TripDocument } from 'src/modules/trip/trip.schema';
 import { TripStatus } from 'src/share/enums';
 import { QueryOptions } from 'src/share/interface';
-import { getSelectData } from 'src/share/utils';
+import { codeGenerator, getSelectData } from 'src/share/utils';
 import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
@@ -17,6 +19,7 @@ export class TripRepository implements ITripRepository {
   ) { }
 
   async create(tripDto: ICreateTripDto): Promise<TripDocument> {
+    tripDto.code = await this.generateUniqueShortCode();
     const newTrip = new this.tripModel(tripDto);
     return await newTrip.save();
   }
@@ -104,5 +107,22 @@ export class TripRepository implements ITripRepository {
 
   async deleteTrip(id: string): Promise<void> {
     return await this.tripModel.findByIdAndDelete(id);
+  }
+
+  generateShortCode(): string {
+    return codeGenerator()
+  }
+
+  async generateUniqueShortCode(): Promise<string> {
+    let code: string;
+    let isUnique = false;
+
+    while (!isUnique) {
+      code = this.generateShortCode();
+      const existingTrip = await this.tripModel.findOne({ code });
+      if (!existingTrip) isUnique = true;
+    }
+
+    return code;
   }
 }

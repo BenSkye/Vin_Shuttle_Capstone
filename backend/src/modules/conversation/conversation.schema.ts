@@ -10,6 +10,9 @@ export class Conversation {
   @Prop({ type: Types.ObjectId, ref: 'Trip', required: true })
   tripId: Types.ObjectId;
 
+  @Prop({ type: String, ref: 'Trip', required: true })
+  tripCode: string
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   customerId: Types.ObjectId;
 
