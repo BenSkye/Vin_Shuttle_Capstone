@@ -30,7 +30,7 @@ export const getDriver = async (sortOrder: string = 'desc', role: string = 'driv
         const response = await axiosInstance.get("/users", {
             params: {
                 sortOrder,
-                role: 'driver'
+                role
             }
         });
         console.log("Driver:", response.data);
