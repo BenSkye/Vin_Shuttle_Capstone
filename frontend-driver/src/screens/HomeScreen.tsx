@@ -169,7 +169,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           icon: 'map-marker-distance',
           label: 'Đặt xe theo điểm đến',
           details: trip.servicePayload.bookingDestination?.distanceEstimate
-            ? `${(trip.servicePayload.bookingDestination.distanceEstimate / 1000).toFixed(1)} km`
+            ? `${(trip.servicePayload.bookingDestination.distanceEstimate).toFixed(1)} km`
             : undefined,
         };
 
@@ -178,7 +178,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           icon: 'routes',
           label: 'Đặt xe theo tuyến cố định',
           details: trip.servicePayload.bookingScenicRoute?.distanceEstimate
-            ? `${(trip.servicePayload.bookingScenicRoute.distanceEstimate / 1000).toFixed(1)} km`
+            ? `${(trip.servicePayload.bookingScenicRoute.distanceEstimate).toFixed(1)} km`
             : undefined,
         };
 
