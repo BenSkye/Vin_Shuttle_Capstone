@@ -319,6 +319,7 @@ export class SharedItineraryService implements ISharedItineraryService {
     stops.forEach(stop => {
       if (stop.trip === TempTripId) {
         stop.trip = trip._id.toString();
+        stop.tripCode = trip.code
       }
       stop.order = baseOrder + stop.order;
       newStop.push(stop);
