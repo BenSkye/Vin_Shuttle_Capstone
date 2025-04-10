@@ -40,12 +40,10 @@ const menuItems = [
             {
                 icon: "/icons/bus-schedule.svg",
                 label: "Lịch xe Bus",
-                href: "/bus-schedules",
-                visible: ["admin",],
+                // href: "/bus-schedules",
+                href: "/schedules",
+                visible: ["admin", "manager"],
             }
-
-
-
         ]
     },
 ]
