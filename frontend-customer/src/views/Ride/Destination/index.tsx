@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Radio, Space, Typography, message } from 'antd'
+import { Radio, Space, Typography, message, notification } from 'antd'
 
 import dynamic from 'next/dynamic'
 
@@ -17,7 +17,7 @@ import {
   BookingDestinationRequest,
   BookingResponse,
 } from '@/interface/booking.interface'
-import { bookingDestination } from '@/service/booking.service'
+import { bookingDestination, cancelBooking } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
 
 // Dynamic import components outside the component to prevent reloading
@@ -331,9 +331,32 @@ const DestinationBookingPage = () => {
     } else if (currentStep === 'confirmation') {
       setCurrentStep('payment')
     } else if (currentStep === 'checkout') {
-      setCurrentStep('confirmation')
+      if (bookingResponse && bookingResponse.newBooking._id) {
+        // Cancel the booking when returning from checkout
+        setLoading(true)
+        cancelBooking(bookingResponse.newBooking._id)
+          .then(() => {
+            notification.success({
+              message: 'Hủy đặt xe thành công',
+              description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+            })
+            setBookingResponse(null)
+            setCurrentStep('confirmation')
+          })
+          .catch((error) => {
+            notification.error({
+              message: 'Lỗi khi hủy đặt xe',
+              description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+            })
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      } else {
+        setCurrentStep('confirmation')
+      }
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -567,11 +590,12 @@ const DestinationBookingPage = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
-                aria-label="Quay lại chọn xe"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
+                aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>

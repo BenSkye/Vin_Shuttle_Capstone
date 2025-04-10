@@ -20,6 +20,7 @@ import {
 } from '@/interface/booking.interface'
 import { bookingHour } from '@/service/booking.service'
 import { vehicleSearchHour } from '@/service/search.service'
+import { cancelBooking } from '@/service/booking.service'
 
 const LocationSelection = dynamic(() => import('@/views/Ride/components/locationselection'), {
   ssr: false,
@@ -229,7 +230,9 @@ const HourlyBookingPage = () => {
     setError(null)
 
     try {
+      console.log('Booking data when confirming:', booking)
       const response = await bookingHour(booking)
+      console.log('Booking response data:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
       return response
@@ -306,12 +309,35 @@ const HourlyBookingPage = () => {
         setCurrentStep('payment')
         break
       case 'checkout':
-        setCurrentStep('confirmation')
+        if (bookingResponse && bookingResponse.newBooking._id) {
+          // Cancel the booking when returning from checkout
+          setLoading(true)
+          cancelBooking(bookingResponse.newBooking._id)
+            .then(() => {
+              notification.success({
+                message: 'Hủy đặt xe thành công',
+                description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+              })
+              setBookingResponse(null)
+              setCurrentStep('confirmation')
+            })
+            .catch((error) => {
+              notification.error({
+                message: 'Lỗi khi hủy đặt xe',
+                description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+              })
+            })
+            .finally(() => {
+              setLoading(false)
+            })
+        } else {
+          setCurrentStep('confirmation')
+        }
         break
       default:
         break
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   // Update booking state whenever dependencies change
   useEffect(() => {
@@ -571,11 +597,12 @@ const HourlyBookingPage = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
                 aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>

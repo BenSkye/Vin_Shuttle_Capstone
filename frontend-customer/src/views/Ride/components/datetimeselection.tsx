@@ -1,4 +1,4 @@
-import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
+import { BOOKING_BUFFER_MINUTES, BookingHourDuration, SystemOperatingHours } from '@/constants/booking.constants'
 import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { Card, DatePicker, Select, TimePicker } from 'antd'
 import { InputNumber } from 'antd'
@@ -150,8 +150,8 @@ const DateTimeSelection = ({
             value={duration}
             onChange={(value) => onDurationChange(value || 0)}
             size="large"
-            min={15} // Giá trị tối thiểu là 15 phút
-            max={1440} // Giá trị tối đa là 24 giờ (1440 phút)
+            min={BookingHourDuration.MIN} // Giá trị tối thiểu là 15 phút
+            max={BookingHourDuration.MAX} // Giá trị tối đa là 300 phút
             step={15} // Bước nhảy 15 phút
             addonAfter="phút" // Hiển thị đơn vị "phút"
           />

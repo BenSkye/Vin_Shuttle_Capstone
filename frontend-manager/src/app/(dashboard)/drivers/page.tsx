@@ -12,11 +12,11 @@ import { createDriver, filterDriver } from "@/services/api/driver";
 
 const columns: Column<Driver>[] = [
     {
-        header: "Name",
+        header: "Tên",
         accessor: "name",
     },
     {
-        header: "Phone",
+        header: "Điện thoại",
         accessor: "phone",
         className: "hidden md:table-cell",
     },

@@ -40,7 +40,7 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
+                        placeholder="Nhập email"
                         required
                         className="w-full text-lg"
                     />
@@ -48,14 +48,14 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
 
                 <div className="space-y-3">
                     <label htmlFor="password" className="block text-lg font-medium">
-                        Password
+                        Mật khẩu
                     </label>
                     <Input
                         id="password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
+                        placeholder="Nhập mật khẩu"
                         required
                         className="w-full text-lg"
                     />
@@ -70,7 +70,7 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
                     className="w-full py-3 text-lg"
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Signing in...' : 'Sign in'}
+                    {isLoading ? 'Signing in...' : 'Đăng nhập'}
                 </Button>
             </form>
         </Card>

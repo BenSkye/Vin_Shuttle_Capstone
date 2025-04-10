@@ -11,10 +11,10 @@ import { Customer } from "@/interfaces/index";
 import { getCustomer } from "@/services/api/user";
 //yessir
 const columns: Column<Customer>[] = [
-    { header: "ID", accessor: "id", className: "hidden md:table-cell" },
-    { header: "Name", accessor: "name" },
-    { header: "Phone", accessor: "phone", className: "hidden md:table-cell" },
-    { header: "Email", accessor: "email", className: "hidden lg:table-cell" },
+    { header: "Tên", accessor: "id", className: "hidden md:table-cell" },
+    { header: "Số điện thoại", accessor: "name" },
+
+
 ];
 
 const CustomerPage = () => {

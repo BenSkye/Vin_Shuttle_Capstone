@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography } from 'antd'
+import { Radio, Space, Typography, notification } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -13,7 +13,7 @@ import {
   BookingHourRequest,
   BookingResponse,
 } from '@/interface/booking.interface'
-import { bookingRoute } from '@/service/booking.service'
+import { bookingRoute, cancelBooking } from '@/service/booking.service'
 import { RouteResponse } from '@/service/mapScenic'
 import { vehicleSearchRoute } from '@/service/search.service'
 
@@ -328,9 +328,32 @@ const RoutesBooking = () => {
     } else if (currentStep === 'confirmation') {
       setCurrentStep('payment')
     } else if (currentStep === 'checkout') {
-      setCurrentStep('confirmation')
+      if (bookingResponse && bookingResponse.newBooking._id) {
+        // Cancel the booking when returning from checkout
+        setLoading(true)
+        cancelBooking(bookingResponse.newBooking._id)
+          .then(() => {
+            notification.success({
+              message: 'Hủy đặt xe thành công',
+              description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+            })
+            setBookingResponse(null)
+            setCurrentStep('confirmation')
+          })
+          .catch((error) => {
+            notification.error({
+              message: 'Lỗi khi hủy đặt xe',
+              description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+            })
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      } else {
+        setCurrentStep('confirmation')
+      }
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   // Render content based on the current step
   const renderStepContent = () => {
@@ -579,7 +602,7 @@ const RoutesBooking = () => {
               <button
                 onClick={handleNextStep}
                 disabled={loading}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
@@ -595,11 +618,12 @@ const RoutesBooking = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
                 aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>
