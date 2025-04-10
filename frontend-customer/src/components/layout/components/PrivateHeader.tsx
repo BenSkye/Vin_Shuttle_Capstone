@@ -117,7 +117,7 @@ export function PrivateHeader({
 
   return (
     <>
-      <header className="bg-surface/98 fixed left-0 right-0 top-0 z-[9999] border-b border-divider shadow-sm backdrop-blur-md">
+      <header className="fixed left-0 right-0 top-0 z-[9999] border-b border-divider bg-white/95 shadow-sm">
         <nav className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-4 lg:px-8">
           {/* Left Section - Logo */}
           <motion.div
