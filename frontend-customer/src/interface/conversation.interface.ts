@@ -2,7 +2,8 @@ import { User } from '@/interface/user.interface'
 
 export interface IConversation {
   _id: string
-  tripId: object
+  tripId: object,
+  tripCode: string
   customerId: User
   driverId: User
   listMessage: IMessage[]

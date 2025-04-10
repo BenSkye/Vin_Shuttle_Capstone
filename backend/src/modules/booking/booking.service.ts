@@ -899,18 +899,19 @@ export class BookingService implements IBookingService {
             }
             const notificationForCustomer = {
                 received: tripUpdate.customerId.toString(),
-                title: `Cuốc xe ${tripUpdate._id.toString()} đã được xác nhận`,
+                title: `Cuốc xe ${tripUpdate.code} đã được xác nhận`,
                 body: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)} của bạn đã được xác nhận thành công`,
             }
             const notificationForDriver = {
                 received: tripUpdate.driverId.toString(),
-                title: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới ${tripUpdate._id.toString()}`,
+                title: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới ${tripUpdate.code}`,
                 body: `Bạn có cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)}`,
             }
             await this.notificationService.createNotification(notificationForCustomer)
             await this.notificationService.createNotification(notificationForDriver)
             await this.conversationService.createConversation({
                 tripId: tripUpdate._id.toString(),
+                tripCode: tripUpdate.code,
                 customerId: tripUpdate.customerId.toString(),
                 driverId: tripUpdate.driverId.toString(),
                 timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start

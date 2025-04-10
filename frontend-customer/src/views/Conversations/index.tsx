@@ -129,8 +129,8 @@ const ConversationListPage = () => {
               ? 'translate-x-0'
               : '-translate-x-full'
             : // On desktop
-              'translate-x-0'
-        }`}
+            'translate-x-0'
+          }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
@@ -206,16 +206,33 @@ const ConversationListPage = () => {
                 {getInitial(conv.driverId?.name)}
               </div>
               {/* Conversation Info */}
-              <div className="ml-4 flex-1">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-medium">{conv.driverId?.name}</h2>
-                  <span className="text-sm text-gray-500">
+              <div className="ml-4 flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  {/* Tên tài xế - làm nổi bật */}
+                  <h2 className="text-base font-semibold text-gray-900 truncate">
+                    {conv.driverId?.name || 'Tài xế'}
+                  </h2>
+
+                  {/* Mã chuyến đi - thêm background highlight */}
+                  <div className="flex-shrink-0 bg-blue-50 rounded-md px-2 py-1">
+                    <span className="text-sm font-medium text-blue-700">
+                      {conv.tripCode}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dòng thời gian + tin nhắn */}
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  {/* Tin nhắn cuối - làm nổi bật khi có nội dung */}
+                  <p className={`text-sm truncate ${conv.lastMessage?.content ? 'text-gray-800 font-medium' : 'text-gray-500 italic'}`}>
+                    {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
+                  </p>
+
+                  {/* Thời gian - làm mờ và nhỏ hơn */}
+                  <span className="flex-shrink-0 text-xs text-gray-400">
                     {getTimeString(conv.lastMessage?.createdAt)}
                   </span>
                 </div>
-                <p className="truncate text-sm text-gray-600">
-                  {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
-                </p>
               </div>
             </div>
           ))}
@@ -262,7 +279,7 @@ const ConversationListPage = () => {
                 </div>
                 <div className="ml-3">
                   <h2 className="text-lg font-semibold">
-                    {(conversation as IConversation)?.driverId?.name}
+                    {(conversation as IConversation)?.tripCode}- {(conversation as IConversation)?.driverId?.name}
                   </h2>
                   <p className="text-sm text-gray-600">Driver</p>
                 </div>
@@ -278,9 +295,8 @@ const ConversationListPage = () => {
                       className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-xs rounded-lg p-3 md:max-w-md ${
-                          isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
-                        }`}
+                        className={`max-w-xs rounded-lg p-3 md:max-w-md ${isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
+                          }`}
                       >
                         <p>{msg.content}</p>
                         <p

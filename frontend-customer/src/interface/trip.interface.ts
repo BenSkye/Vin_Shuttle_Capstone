@@ -29,12 +29,13 @@ export interface Trip {
   status: string
   statusHistory: object[]
   serviceType: string
-  isRating: boolean
+  isRating: boolean,
+  code: string,
   servicePayload:
-    | BookingHourPayloadDto
-    | BookingScenicRoutePayloadDto
-    | BookingDestinationPayloadDto
-    | BookingSharePayloadDto
+  | BookingHourPayloadDto
+  | BookingScenicRoutePayloadDto
+  | BookingDestinationPayloadDto
+  | BookingSharePayloadDto
   refundAmount?: number
   cancellationReason?: string
   cancellationTime?: number

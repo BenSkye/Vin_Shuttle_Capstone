@@ -3,6 +3,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import crypto from 'crypto';
 import { Types } from 'mongoose';
+import { customAlphabet } from 'nanoid';
 
 export const convertObjectId = (id: string) => {
   return new Types.ObjectId(id);
@@ -11,6 +12,9 @@ export const convertObjectId = (id: string) => {
 export const getSelectData = (fields: string[]) => {
   return fields.join(' ');
 };
+
+const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const codeGenerator = customAlphabet(alphabet, 6);
 
 export const generateBookingCode = (): number => {
   const timestamp = new Date().getTime();
