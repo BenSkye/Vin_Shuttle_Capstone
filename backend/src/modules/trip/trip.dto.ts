@@ -15,6 +15,7 @@ export interface ICreateTripDto {
   amount: number;
   isPrepaid?: boolean;
   isPayed?: boolean;
+  code?: string;
   servicePayload:
   | BookingHourPayloadDto
   | BookingScenicRoutePayloadDto
@@ -102,6 +103,7 @@ export interface tripParams extends QueryOptions {
   vehicleName?: string;
   status?: TripStatus;
   serviceType?: ServiceType;
+  code?: string;
   isPrepaid?: boolean;
   isPayed?: boolean;
 }
