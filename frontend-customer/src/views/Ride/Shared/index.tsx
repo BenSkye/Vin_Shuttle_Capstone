@@ -286,12 +286,12 @@ const SharedBookingFlow = () => {
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-                <Radio value="cash" className="w-full rounded-lg border p-4">
+                {/* <Radio value="cash" className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
                     <img src="/images/cash-logo.png" alt="Cash" className="mr-3 h-8" />
                     <span>Thanh toán tiền mặt</span>
                   </div>
-                </Radio>
+                </Radio> */}
               </Space>
             </Radio.Group>
             <div className="flex justify-end">

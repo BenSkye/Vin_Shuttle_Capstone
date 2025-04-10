@@ -3,6 +3,7 @@ import { User } from '~/interface/user';
 export interface IConversation {
   _id: string;
   tripId: object;
+  tripCode: string;
   customerId: User;
   driverId: User;
   listMessage: IMessage[];

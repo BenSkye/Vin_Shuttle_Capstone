@@ -75,7 +75,7 @@ export default function ConversationScreen() {
           </View>
           <View style={styles.headerRow}>
             <Text numberOfLines={1} style={[styles.tripIdText, unread && styles.unreadText]}>
-              Cuốc xe {item.tripId ? String(item.tripId._id) : ''}
+              Cuốc xe {item.tripCode ? String(item.tripCode) : ''}
             </Text>
             <Text style={styles.timeText}>{time}</Text>
           </View>

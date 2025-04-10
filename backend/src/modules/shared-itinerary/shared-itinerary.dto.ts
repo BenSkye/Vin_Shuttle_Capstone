@@ -8,6 +8,7 @@ export interface sharedItineraryStop {
   order: number;
   pointType: SharedItineraryStopsType;
   trip: string;
+  tripCode: string;
   point: StartOrEndPoint;
   isPass: boolean;
   isCancel: boolean;

@@ -800,6 +800,7 @@ export class BookingService implements IBookingService {
                 order: 1,
                 pointType: SharedItineraryStopsType.START_POINT,
                 trip: newTrip._id.toString(),
+                tripCode: newTrip.code,
                 point: newTrip.servicePayload.bookingShare.startPoint,
                 isPass: false,
                 isCancel: false
@@ -807,6 +808,7 @@ export class BookingService implements IBookingService {
                 order: 2,
                 pointType: SharedItineraryStopsType.END_POINT,
                 trip: newTrip._id.toString(),
+                tripCode: newTrip.code,
                 point: newTrip.servicePayload.bookingShare.endPoint,
                 isPass: false,
                 isCancel: false
