@@ -299,7 +299,7 @@ export class SharedItineraryService implements ISharedItineraryService {
   async saveASharedItineraryFromRedisToDBByTripID(
     tripId: string,
   ): Promise<SharedItineraryDocument> {
-    const trip = await this.tripRepository.findById(tripId, ['servicePayload']);
+    const trip = await this.tripRepository.findById(tripId, ['servicePayload', 'code']);
     if (!trip) {
       return null;
     }
