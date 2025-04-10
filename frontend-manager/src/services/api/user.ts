@@ -18,7 +18,7 @@ export const getCustomer = async () => {
 export const loginUser = async (email: string, password: string) => {
     try {
         const response = await axiosInstance.post("/auth/login-by-password", {
-            email, 
+            email,
             password
         }, {
             validateStatus: function (status) {

@@ -1,13 +1,18 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 import useConversationSocket from '@/hooks/useConversationSocket'
 
 import { useAuth } from '@/context/AuthContext'
 import { IConversation, IMessage } from '@/interface/conversation.interface'
+import ConversationDetail from './DetailConversation'
 
 const ConversationListPage = () => {
+  const searchParams = useSearchParams()
+  const tripId = searchParams.get('tripId')
+
   const { authUser } = useAuth()
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [showConversationList, setShowConversationList] = useState(true)
@@ -22,6 +27,100 @@ const ConversationListPage = () => {
     error: conversationError,
     sendMessage,
   } = useConversationSocket(selectedConversationId || undefined)
+
+  // Find conversation by tripId and set it as selected
+  useEffect(() => {
+    console.log('TripId from URL:', tripId, 'Type:', typeof tripId);
+
+    if (!tripId) return;
+
+    if (conversations) {
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+
+      if (conversationsArray.length === 0) {
+        console.log('No conversations available yet');
+        return;
+      }
+
+      console.log('Searching for conversation with tripId:', tripId);
+
+      // Debug: Log all tripIds to see what's available
+      conversationsArray.forEach(conv => {
+        const tripIdObj = conv.tripId as any;
+        console.log(
+          'Conv ID:', conv._id,
+          'TripId:', tripIdObj?._id,
+          'TripId type:', typeof conv.tripId,
+          'Matches?', tripIdObj?._id && tripIdObj?._id === tripId
+        );
+      });
+
+      // Find conversation where tripId._id matches the tripId from URL
+      let foundConversation = conversationsArray.find(conv => {
+        const tripIdObj = conv.tripId as any;
+        return tripIdObj?._id === tripId;
+      });
+
+      console.log('Found conversation:', foundConversation);
+
+      if (foundConversation) {
+        console.log('Setting selected conversation to:', foundConversation._id);
+        setSelectedConversationId(foundConversation._id);
+
+        // Immediately show the conversation detail view (hide the list on mobile)
+        if (isMobile) {
+          setShowConversationList(false);
+          setShowSearchSidebar(false);
+        }
+      } else {
+        console.log('Could not find a conversation matching tripId:', tripId);
+        // Log all tripIds to help debug
+        console.log('Available tripIds:', conversationsArray.map(c => (c.tripId as any)?._id).join(', '));
+      }
+    } else {
+      console.log('Conversations data not yet loaded');
+    }
+  }, [tripId, conversations, isMobile]);
+
+  // Additional effect to ensure we have conversation selected when data is available
+  useEffect(() => {
+    const selectConversationFromTripId = () => {
+      if (!tripId || !conversations || selectedConversationId) return;
+
+      console.log('Running additional selection logic');
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+
+      for (const conv of conversationsArray) {
+        // Check if tripId._id matches the URL tripId
+        const tripIdObj = conv.tripId as any;
+        if (tripIdObj?._id === tripId) {
+          console.log('Found match in additional check, selecting:', conv._id);
+          setSelectedConversationId(conv._id);
+          if (isMobile) {
+            setShowConversationList(false);
+            setShowSearchSidebar(false);
+          }
+          break;
+        }
+      }
+    };
+
+    selectConversationFromTripId();
+  }, [tripId, conversations, selectedConversationId, isMobile]);
+
+  // Console log conversation data
+  useEffect(() => {
+    if (conversations) {
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      if (conversationsArray.length > 0) {
+        console.log('All conversations:', conversationsArray[0].tripId);
+      }
+    }
+  }, [conversations]);
+
+  useEffect(() => {
+    console.log('Selected conversation:', conversation)
+  }, [conversation])
 
   const [message, setMessage] = useState('')
 
@@ -206,33 +305,16 @@ const ConversationListPage = () => {
                 {getInitial(conv.driverId?.name)}
               </div>
               {/* Conversation Info */}
-              <div className="ml-4 flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  {/* Tên tài xế - làm nổi bật */}
-                  <h2 className="text-base font-semibold text-gray-900 truncate">
-                    {conv.driverId?.name || 'Tài xế'}
-                  </h2>
-
-                  {/* Mã chuyến đi - thêm background highlight */}
-                  <div className="flex-shrink-0 bg-blue-50 rounded-md px-2 py-1">
-                    <span className="text-sm font-medium text-blue-700">
-                      {conv.tripCode}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Dòng thời gian + tin nhắn */}
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  {/* Tin nhắn cuối - làm nổi bật khi có nội dung */}
-                  <p className={`text-sm truncate ${conv.lastMessage?.content ? 'text-gray-800 font-medium' : 'text-gray-500 italic'}`}>
-                    {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
-                  </p>
-
-                  {/* Thời gian - làm mờ và nhỏ hơn */}
-                  <span className="flex-shrink-0 text-xs text-gray-400">
+              <div className="ml-4 flex-1">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-medium">{conv.driverId?.name}</h2>
+                  <span className="text-sm text-gray-500">
                     {getTimeString(conv.lastMessage?.createdAt)}
                   </span>
                 </div>
+                <p className="truncate text-sm text-gray-600">
+                  {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
+                </p>
               </div>
             </div>
           ))}
@@ -242,97 +324,10 @@ const ConversationListPage = () => {
       {/* Main Conversation Area */}
       <div className="flex h-full flex-1 flex-col bg-gray-100">
         {selectedConversationId ? (
-          conversationLoading ? (
-            <div className="flex flex-1 items-center justify-center">
-              <p>Loading conversation...</p>
-            </div>
-          ) : conversationError ? (
-            <div className="flex flex-1 items-center justify-center text-red-500">
-              Error: {conversationError.message}
-            </div>
-          ) : (
-            <>
-              {/* Conversation Header */}
-              <div className="flex items-center border-b border-gray-200 bg-white p-4">
-                <button
-                  className="mr-3 rounded-full p-2 hover:bg-gray-200 md:hidden"
-                  onClick={handleBackToList}
-                  aria-label="Back to conversations"
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 19l-7-7 7-7"
-                    ></path>
-                  </svg>
-                </button>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
-                  {getInitial((conversation as IConversation)?.driverId?.name)}
-                </div>
-                <div className="ml-3">
-                  <h2 className="text-lg font-semibold">
-                    {(conversation as IConversation)?.tripCode}- {(conversation as IConversation)?.driverId?.name}
-                  </h2>
-                  <p className="text-sm text-gray-600">Driver</p>
-                </div>
-              </div>
-
-              {/* Message List */}
-              <div ref={messageContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4">
-                {(conversation as IConversation)?.listMessage.map((msg, index) => {
-                  const isOutgoing = msg.senderId === authUser?.id
-                  return (
-                    <div
-                      key={index}
-                      className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-xs rounded-lg p-3 md:max-w-md ${isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
-                          }`}
-                      >
-                        <p>{msg.content}</p>
-                        <p
-                          className={`mt-1 text-xs ${isOutgoing ? 'text-blue-100' : 'text-gray-500'}`}
-                        >
-                          {getTimeString(msg.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Message Input */}
-              <div className="border-t border-gray-200 bg-white p-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1 rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Type a message..."
-                    aria-label="Type a message"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
-                    aria-label="Send message"
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
-            </>
-          )
+          <ConversationDetail
+            id={selectedConversationId}
+            onBackClick={isMobile ? handleBackToList : undefined}
+          />
         ) : (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
