@@ -106,7 +106,7 @@ export class AuthService implements IAuthService {
   }
   async loginCustomer(phone: string): Promise<string> {
     //check if phone allready exist
-    const userExist = await this.userRepository.findUser({ phone });
+    const userExist = await this.userRepository.findUser({ phone, role: UserRole.CUSTOMER });
     if (!userExist) {
       throw new HttpException(
         {
