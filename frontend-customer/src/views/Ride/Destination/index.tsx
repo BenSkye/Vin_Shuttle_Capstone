@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Radio, Space, Typography, message } from 'antd'
+import { Radio, Space, Typography, message, Steps } from 'antd'
 
 import dynamic from 'next/dynamic'
 
@@ -581,15 +581,28 @@ const DestinationBookingPage = () => {
     }
   }
 
-  const getStepProgress = (step: 'location' | 'vehicle' | 'payment' | 'confirmation' | 'checkout') => {
+  const getCurrentStep = () => {
     const steps = ['location', 'vehicle', 'payment', 'confirmation', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
-
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
+    return steps.indexOf(currentStep)
   }
+
+  const items = [
+    {
+      title: 'Chọn địa điểm',
+    },
+    {
+      title: 'Chọn xe',
+    },
+    {
+      title: 'Thanh toán',
+    },
+    {
+      title: 'Xác nhận',
+    },
+    {
+      title: 'Hoàn tất',
+    },
+  ]
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
@@ -598,67 +611,13 @@ const DestinationBookingPage = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="grid grid-cols-5 gap-2">
-          <div
-            className={`text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('location')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn xe</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('confirmation')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+        <Steps
+          current={getCurrentStep()}
+          items={items}
+          responsive
+          direction="horizontal"
+          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+        />
       </div>
 
       {error && (
