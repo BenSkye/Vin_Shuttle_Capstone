@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { useMap } from 'react-leaflet'
 
 import '@/styles/locationselection.css'
+import { BOOKING_SHARED_SEAT } from '@/constants/booking.constants'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -695,9 +696,9 @@ const SharedLocation = ({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onNumberOfSeatsChange(Math.max(1, numberOfSeats - 1))}
+              onClick={() => onNumberOfSeatsChange(Math.max(BOOKING_SHARED_SEAT.MIN, numberOfSeats - 1))}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 sm:h-10 sm:w-10 sm:text-base"
-              disabled={numberOfSeats <= 1 || loading}
+              disabled={numberOfSeats <= BOOKING_SHARED_SEAT.MIN || loading}
               aria-label="Giảm số chỗ ngồi"
               tabIndex={0}
             >
@@ -705,16 +706,16 @@ const SharedLocation = ({
             </button>
             <span className="min-w-[3rem] text-center text-lg font-semibold">{numberOfSeats}</span>
             <button
-              onClick={() => onNumberOfSeatsChange(Math.min(4, numberOfSeats + 1))}
+              onClick={() => onNumberOfSeatsChange(Math.min(BOOKING_SHARED_SEAT.MAX, numberOfSeats + 1))}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 sm:h-10 sm:w-10 sm:text-base"
-              disabled={numberOfSeats >= 4 || loading}
+              disabled={numberOfSeats >= BOOKING_SHARED_SEAT.MAX || loading}
               aria-label="Tăng số chỗ ngồi"
               tabIndex={0}
             >
               +
             </button>
           </div>
-          <span className="text-sm text-gray-500">Tối đa 4 người cho mỗi cuốc xe chung</span>
+          <span className="text-sm text-gray-500">Tối đa {BOOKING_SHARED_SEAT.MAX} người cho mỗi cuốc xe chung</span>
         </div>
       </div>
 
