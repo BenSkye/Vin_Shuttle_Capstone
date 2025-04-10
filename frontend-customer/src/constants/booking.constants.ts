@@ -26,3 +26,8 @@ export const SystemOperatingHours = {
 };
 
 export const BOOKING_BUFFER_MINUTES = 5 as const
+
+export const BOOKING_SHARED_SEAT = {
+  MIN: 1,
+  MAX: 11,
+}
