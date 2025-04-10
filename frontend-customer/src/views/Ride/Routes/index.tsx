@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography } from 'antd'
+import { Radio, Space, Typography, Steps } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -608,16 +608,40 @@ const RoutesBooking = () => {
     }
   }
 
-  const getStepProgress = (
-    step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
-  ) => {
-    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
+  const items = [
+    {
+      title: 'Thời gian',
+      description: 'Chọn thời gian',
+    },
+    {
+      title: 'Lộ trình',
+      description: 'Chọn lộ trình',
+    },
+    {
+      title: 'Xe',
+      description: 'Chọn xe',
+    },
+    {
+      title: 'Địa điểm',
+      description: 'Chọn địa điểm',
+    },
+    {
+      title: 'Thanh toán',
+      description: 'Phương thức',
+    },
+    {
+      title: 'Xác nhận',
+      description: 'Xác nhận',
+    },
+    {
+      title: 'Hoàn tất',
+      description: 'Thanh toán',
+    },
+  ]
 
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
+  const getCurrentStep = () => {
+    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
+    return steps.indexOf(currentStep)
   }
 
   return (
@@ -627,91 +651,14 @@ const RoutesBooking = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="grid grid-cols-7 gap-1">
-          <div
-            className={`flex flex-col items-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('datetime')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Chọn thời gian</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('route') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('route')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Chọn lộ trình</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Chọn xe</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('location')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Chọn địa điểm</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('confirmation')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Xác nhận</span>
-          </div>
-
-          <div
-            className={`flex flex-col items-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
-          </div>
-        </div>
+        <Steps
+          current={getCurrentStep()}
+          items={items}
+          size="small"
+          className="custom-steps"
+          responsive={true}
+          labelPlacement="vertical"
+        />
       </div>
 
       {error && (

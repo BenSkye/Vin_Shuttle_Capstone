@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { Alert, Card, Radio, Space, Typography, notification } from 'antd'
+import { Alert, Card, Radio, Space, Typography, notification, Steps } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -34,6 +34,7 @@ type LocationPoint = {
 }
 
 const HourlyBookingPage = () => {
+  const steps = ['datetime', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
   // Define steps for the booking flow
   const [currentStep, setCurrentStep] = useState<
     'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
@@ -584,17 +585,6 @@ const HourlyBookingPage = () => {
     }
   }
 
-  // Progress indicators for each step
-  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout') => {
-    const steps = ['datetime', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
-
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
-  }
-
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
@@ -602,78 +592,20 @@ const HourlyBookingPage = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div
-            className={`flex-1 text-center ${currentStep === 'datetime' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('datetime')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn ngày & giờ</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn loại xe</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('location')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'payment' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'confirmation' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('confirmation')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+        <Steps
+          current={steps.indexOf(currentStep)}
+          items={[
+            { title: 'Chọn thời gian' },
+            { title: 'Chọn xe' },
+            { title: 'Địa điểm' },
+            { title: 'Thanh toán' },
+            { title: 'Xác nhận' },
+            { title: 'Hoàn tất' },
+          ]}
+          responsive
+          direction="horizontal"
+          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+        />
       </div>
 
       {error && (

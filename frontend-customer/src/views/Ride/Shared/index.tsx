@@ -2,14 +2,11 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography } from 'antd'
-import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { Radio, Space, Typography, Steps } from 'antd'
+import { FaMapMarkerAlt, FaCheckCircle, FaCreditCard } from 'react-icons/fa'
 
 import { PaymentMethod } from '@/constants/payment.enum'
-
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
-
 import { bookingShared } from '../../../service/booking.service'
 import CheckoutPage from '../components/checkoutpage'
 import SharedLocation from '../components/sharedLocation'
@@ -22,7 +19,6 @@ type LocationPoint = {
 }
 
 const SharedBookingFlow = () => {
-  const router = useRouter()
   const [currentStep, setCurrentStep] = useState<'location' | 'confirmation' | 'checkout'>('location')
   const [startPoint, setStartPoint] = useState<LocationPoint>({
     position: { lat: 10.840405, lng: 106.843424 },
@@ -430,54 +426,50 @@ const SharedBookingFlow = () => {
         return null
     }
   }
-  //yessir
+
+  const getCurrentStepNumber = () => {
+    switch (currentStep) {
+      case 'location':
+        return 0
+      case 'confirmation':
+        return 1
+      case 'checkout':
+        return 2
+      default:
+        return 0
+    }
+  }
+
+  const steps = [
+    {
+      title: 'Chọn địa điểm',
+      icon: <FaMapMarkerAlt className="text-xl" />
+    },
+    {
+      title: 'Xác nhận',
+      icon: <FaCheckCircle className="text-xl" />
+    },
+    {
+      title: 'Thanh toán',
+      icon: <FaCreditCard className="text-xl" />
+    }
+  ]
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
         Đặt xe chung
       </Title>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div
-            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: '100%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'confirmation' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'confirmation' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: currentStep === 'confirmation' || currentStep === 'checkout' ? '100%' : '0%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+
+      <div>
+        <Steps
+          current={getCurrentStepNumber()}
+          items={steps}
+          className="custom-steps"
+          responsive={true}
+          size="small"
+          labelPlacement="vertical"
+        />
       </div>
 
       {error && (
@@ -491,6 +483,45 @@ const SharedBookingFlow = () => {
       )}
 
       <div className="rounded-lg bg-white p-6 shadow-lg">{renderStepContent()}</div>
+
+      <style jsx global>{`
+        .custom-steps {
+          margin: 0 auto;
+          max-width: 600px;
+        }
+        
+        .custom-steps .ant-steps-item-icon {
+          background-color: #fff;
+          border-color: #e5e7eb;
+        }
+        
+        .custom-steps .ant-steps-item-active .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+        
+        .custom-steps .ant-steps-item-finish .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+        
+        .custom-steps .ant-steps-item-title {
+          font-size: 14px;
+        }
+        
+        @media (max-width: 640px) {
+          .custom-steps .ant-steps-item-title {
+            font-size: 12px;
+          }
+          
+          .custom-steps .ant-steps-item-icon {
+            font-size: 12px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+          }
+        }
+      `}</style>
     </div>
   )
 }
