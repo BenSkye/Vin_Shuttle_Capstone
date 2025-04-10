@@ -1,7 +1,5 @@
 import UserCard from '@/components/UserCard'
-import CountChart from '@/components/CountChart'
-import AttendanceChart from '@/components/AttendanceChart'
-import FinanceChart from '@/components/FinanceChart'
+
 import EventCalendar from '@/components/EventCalendar'
 
 import Menu from '@/components/Menu'
