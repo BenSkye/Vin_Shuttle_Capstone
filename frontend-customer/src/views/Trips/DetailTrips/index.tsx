@@ -103,6 +103,7 @@ export default function DetailTripPage({ id }: { id: string }) {
     )
 
   const trip = data as Trip
+  console.log('driverId:', trip.driverId._id)
 
   const renderServiceDetails = (trip: Trip) => {
     const baseCardStyle =
@@ -504,9 +505,10 @@ export default function DetailTripPage({ id }: { id: string }) {
             {/* Chat with driver button */}
             {canChatWithDriver(trip.status) && (
               <Link
-                href={`/conversations`}
+                href={`/conversations?tripId=${trip._id}`}
                 className="ml-auto flex items-center gap-2 rounded bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
               >
+                <BsChatDots className="text-lg" />
                 <span>Chat với tài xế</span>
               </Link>
             )}

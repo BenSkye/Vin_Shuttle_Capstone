@@ -33,6 +33,7 @@ export interface Trip {
   status: string;
   statusHistory: object[];
   serviceType: string;
+  code: string;
   servicePayload:
   | BookingHourPayloadDto
   | BookingScenicRoutePayloadDto

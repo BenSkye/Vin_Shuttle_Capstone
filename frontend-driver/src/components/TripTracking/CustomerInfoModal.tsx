@@ -39,7 +39,7 @@ const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({ visible, onClose,
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Mã cuốc xe:</Text>
-              <Text style={styles.infoValue}>{trip._id}</Text>
+              <Text style={styles.infoValue}>{trip.code}</Text>
             </View>
 
             <View style={styles.infoRow}>
