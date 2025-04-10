@@ -28,7 +28,7 @@ export class ConversationController {
   constructor(
     @Inject(CONVERSATION_SERVICE)
     private readonly conversationService: IConversationService,
-  ) {}
+  ) { }
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
