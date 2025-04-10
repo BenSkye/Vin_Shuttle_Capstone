@@ -62,6 +62,7 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
     if (!name) return '?'
     return name.charAt(0).toUpperCase()
   }
+  //yessir
 
   return (
     <div className="flex h-full flex-col bg-gray-100">
