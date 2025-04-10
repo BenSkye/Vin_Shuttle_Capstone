@@ -2,12 +2,16 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography, Steps } from 'antd'
+import { Radio, Space, Typography, notification, Steps } from 'antd'
+
+
 import { FaMapMarkerAlt, FaCheckCircle, FaCreditCard } from 'react-icons/fa'
 
 import { PaymentMethod } from '@/constants/payment.enum'
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
-import { bookingShared } from '../../../service/booking.service'
+
+import { bookingShared, cancelBooking } from '../../../service/booking.service'
+
 import CheckoutPage from '../components/checkoutpage'
 import SharedLocation from '../components/sharedLocation'
 
@@ -243,9 +247,32 @@ const SharedBookingFlow = () => {
     if (currentStep === 'confirmation') {
       setCurrentStep('location')
     } else if (currentStep === 'checkout') {
-      setCurrentStep('confirmation')
+      if (bookingResponse && bookingResponse.newBooking._id) {
+        // Cancel the booking when returning from checkout
+        setLoading(true)
+        cancelBooking(bookingResponse.newBooking._id)
+          .then(() => {
+            notification.success({
+              message: 'Hủy đặt xe thành công',
+              description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+            })
+            setBookingResponse(null)
+            setCurrentStep('confirmation')
+          })
+          .catch((error) => {
+            notification.error({
+              message: 'Lỗi khi hủy đặt xe',
+              description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+            })
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      } else {
+        setCurrentStep('confirmation')
+      }
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -413,11 +440,12 @@ const SharedBookingFlow = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
                 aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>

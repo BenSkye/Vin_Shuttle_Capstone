@@ -102,3 +102,18 @@ export const bookingShared = async (payload: BookingSharedRequest): Promise<Book
     throw new Error('Lỗi kết nối máy chủ')
   }
 }
+
+export const cancelBooking = async (id: string) => {
+  try {
+    const response = await apiClient.post(`/booking/cancel-booking/${id}`)
+    console.log('response', response.data)
+    return response.data
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      const serverError = error.response.data
+      console.error('severError', serverError.statusCode)
+      throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định')
+    }
+    throw new Error('Lỗi kết nối máy chủ')
+  }
+}
