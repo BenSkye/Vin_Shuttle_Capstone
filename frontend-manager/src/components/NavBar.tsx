@@ -1,62 +1,32 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-
+import { useAuth } from '../contexts/AuthContext';
 
 const NavBar = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState('');
-    const [userRole, setUserRole] = useState('');
+    const { authUser, isLoggedIn, logout } = useAuth();
     const [showDropdown, setShowDropdown] = useState(false);
     const router = useRouter();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    const handleClickOutside = (event: MouseEvent) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            setShowDropdown(false);
+        }
+    };
+
+    // Add event listener for outside clicks
     useEffect(() => {
-        // Check login status on component mount
-        const checkLoginStatus = () => {
-            const token = Cookies.get('authorization'); // Retrieve token from cookies
-            setIsLoggedIn(!!token);
-
-            if (token) {
-                try {
-                    const user = JSON.parse(Cookies.get('user') || '{}'); // Retrieve user data from cookies
-                    setUserName(user.name || 'User');
-                    setUserRole(user.role || 'Admin');
-                } catch (error) {
-                    console.error('Error parsing user data:', error);
-                    setUserName('User');
-                    setUserRole('Admin');
-                }
-            }
-        };
-
-        checkLoginStatus();
-
-        // Close dropdown when clicking outside
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setShowDropdown(false);
-            }
-        };
-
         document.addEventListener('mousedown', handleClickOutside);
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        document.cookie = "accessToken=; path=/; domain=" + window.location.hostname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-        document.cookie = "refreshToken=; path=/; domain=" + window.location.hostname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC";
-
-        setIsLoggedIn(false);
+        logout();
         setShowDropdown(false);
         router.push('/login');
     };
@@ -72,7 +42,7 @@ const NavBar = () => {
 
                 {/* Icon and user/auth section */}
                 <div className='flex items-center gap-6 justify-end w-full'>
-                    {isLoggedIn ? (
+                    {isLoggedIn && authUser ? (
                         <>
                             <div className='bg-white rounded-fully w-7 h-7 flex items-center justify-center'>
                                 <Image src='/icons/message.svg' alt="" width={20} height={20} />
@@ -92,8 +62,8 @@ const NavBar = () => {
                                     onClick={() => setShowDropdown(!showDropdown)}
                                 >
                                     <div className='flex flex-col'>
-                                        <span className='text-xs leading-3 font-medium'>{userName}</span>
-                                        <span className="text-[10px] text-gray-500 text-right">{userRole}</span>
+                                        <span className='text-xs leading-3 font-medium'>{authUser.name || 'User'}</span>
+                                        <span className="text-[10px] text-gray-500 text-right">Manager</span>
                                     </div>
                                     <Image
                                         src="/icons/user.svg"
@@ -108,17 +78,17 @@ const NavBar = () => {
                                 {showDropdown && (
                                     <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50'>
                                         <Link href="/profile" className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                                            My Profile
+                                            Hồ sơ
                                         </Link>
                                         <Link href="/settings" className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                                            Settings
+                                            Cài đặt
                                         </Link>
                                         <hr className='my-1' />
                                         <button
                                             onClick={handleLogout}
                                             className='block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100'
                                         >
-                                            Logout
+                                            Đăng xuất
                                         </button>
                                     </div>
                                 )}
