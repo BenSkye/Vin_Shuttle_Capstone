@@ -37,9 +37,13 @@ const menuItems = [
                 href: "/rating",
                 visible: ["admin",],
             },
-
-
-
+            {
+                icon: "/icons/bus-schedule.svg",
+                label: "Lịch xe Bus",
+                // href: "/bus-schedules",
+                href: "/schedules",
+                visible: ["admin", "manager"],
+            }
         ]
     },
 ]

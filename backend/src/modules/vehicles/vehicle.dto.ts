@@ -20,6 +20,7 @@ export interface IUpdateVehicle {
   vehicleCondition?: VehicleCondition;
 }
 
+
 export class CreateVehicleDto {
   @ApiProperty({ example: 'Xe điện 4 chỗ A01' })
   name: string;

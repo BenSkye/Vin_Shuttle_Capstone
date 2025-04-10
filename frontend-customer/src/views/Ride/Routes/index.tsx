@@ -38,7 +38,7 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 const RoutesBooking = () => {
   // Define all possible steps in the booking flow
   const [currentStep, setCurrentStep] = useState<
-    'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'
+    'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
   >('datetime')
 
   // State for date and time selection
@@ -299,6 +299,9 @@ const RoutesBooking = () => {
       setCurrentStep('payment')
     } else if (currentStep === 'payment') {
       setError(null)
+      setCurrentStep('confirmation')
+    } else if (currentStep === 'confirmation') {
+      setError(null)
       handleConfirmBooking()
     }
   }, [
@@ -322,8 +325,10 @@ const RoutesBooking = () => {
       setCurrentStep('vehicle')
     } else if (currentStep === 'payment') {
       setCurrentStep('location')
-    } else if (currentStep === 'checkout') {
+    } else if (currentStep === 'confirmation') {
       setCurrentStep('payment')
+    } else if (currentStep === 'checkout') {
+      setCurrentStep('confirmation')
     }
   }, [currentStep])
 
@@ -467,10 +472,117 @@ const RoutesBooking = () => {
               <button
                 onClick={handleNextStep}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
-                aria-label="Xác nhận thanh toán"
+                aria-label="Xác nhận thông tin"
                 tabIndex={0}
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
+              </button>
+            </div>
+          </div>
+        )
+      case 'confirmation':
+        return (
+          <div className="space-y-6">
+            <Title level={4} className="text-center">
+              Xác nhận thông tin đặt xe
+            </Title>
+
+            <div className="rounded-lg border border-gray-200 p-6">
+              <div className="mb-6 space-y-4">
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Thời gian</h3>
+                    <p className="text-gray-600">
+                      {selectedDate?.format('DD/MM/YYYY')} - {startTime?.format('HH:mm')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Lộ trình</h3>
+                    <p className="text-gray-600">{selectedRoute?.name || 'Chưa chọn lộ trình'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h-3a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Loại xe</h3>
+                    <div className="text-gray-600">
+                      {selectedVehicles.map((vehicle, index) => (
+                        <p key={index}>
+                          {vehicle.name} - Số lượng: {vehicle.quantity}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Địa điểm đón</h3>
+                    <p className="text-gray-600">{startPoint.address}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Phương thức thanh toán</h3>
+                    <p className="text-gray-600">
+                      {paymentMethod === PaymentMethod.PAY_OS
+                        ? 'Thanh toán qua PayOS'
+                        : paymentMethod === PaymentMethod.MOMO
+                          ? 'Ví điện tử Momo'
+                          : 'Thanh toán tiền mặt'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-between">
+              <button
+                onClick={handleBackStep}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                aria-label="Quay lại chọn phương thức thanh toán"
+                tabIndex={0}
+              >
+                Quay lại
+              </button>
+              <button
+                onClick={handleNextStep}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
+                aria-label="Xác nhận đặt xe"
+                tabIndex={0}
+              >
+                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
               </button>
             </div>
           </div>
@@ -483,6 +595,8 @@ const RoutesBooking = () => {
               <button
                 onClick={handleBackStep}
                 className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                aria-label="Quay lại trang xác nhận"
+                tabIndex={0}
               >
                 Quay lại
               </button>
@@ -495,9 +609,9 @@ const RoutesBooking = () => {
   }
 
   const getStepProgress = (
-    step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'checkout'
+    step: 'datetime' | 'route' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
   ) => {
-    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'checkout']
+    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
     const currentIndex = steps.indexOf(currentStep)
     const stepIndex = steps.indexOf(step)
 
@@ -513,9 +627,9 @@ const RoutesBooking = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-7 gap-1">
           <div
-            className={`flex-1 text-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('datetime') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -523,11 +637,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('datetime')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn thời gian</span>
+            <span className="hidden text-center text-xs sm:block">Chọn thời gian</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('route') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -535,11 +649,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('route')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn lộ trình</span>
+            <span className="hidden text-center text-xs sm:block">Chọn lộ trình</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -547,11 +661,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('vehicle')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn xe</span>
+            <span className="hidden text-center text-xs sm:block">Chọn xe</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -559,11 +673,11 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('location')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
+            <span className="hidden text-center text-xs sm:block">Chọn địa điểm</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -571,11 +685,23 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('payment')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
+            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
           </div>
 
           <div
-            className={`flex-1 text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+            className={`flex flex-col items-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
+          >
+            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
+                style={{ width: `${getStepProgress('confirmation')}%` }}
+              />
+            </div>
+            <span className="hidden text-center text-xs sm:block">Xác nhận</span>
+          </div>
+
+          <div
+            className={`flex flex-col items-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
           >
             <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
               <div
@@ -583,7 +709,7 @@ const RoutesBooking = () => {
                 style={{ width: `${getStepProgress('checkout')}%` }}
               />
             </div>
-            <span className="hidden sm:inline">Thanh toán</span>
+            <span className="hidden text-center text-xs sm:block">Thanh toán</span>
           </div>
         </div>
       </div>

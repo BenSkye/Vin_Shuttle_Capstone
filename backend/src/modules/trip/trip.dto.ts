@@ -1,3 +1,5 @@
+import { TripDocument } from "src/modules/trip/trip.schema";
+import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 import { ServiceType } from "src/share/enums";
 import { TripCancelBy, TripStatus } from "src/share/enums/trip.enum";
 import { Position, QueryOptions, StartOrEndPoint } from "src/share/interface";
@@ -13,6 +15,7 @@ export interface ICreateTripDto {
   amount: number;
   isPrepaid?: boolean;
   isPayed?: boolean;
+  code?: string;
   servicePayload:
   | BookingHourPayloadDto
   | BookingScenicRoutePayloadDto
@@ -94,13 +97,13 @@ export class BookingBusRoutePayloadDto {
   };
 }
 
-
 export interface tripParams extends QueryOptions {
   customerPhone?: string;
   driverName?: string;
   vehicleName?: string;
   status?: TripStatus;
   serviceType?: ServiceType;
+  code?: string;
   isPrepaid?: boolean;
   isPayed?: boolean;
 }

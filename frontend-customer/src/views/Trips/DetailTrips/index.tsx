@@ -9,7 +9,7 @@ import { BsChatDots } from 'react-icons/bs'
 import { FaClock, FaMapMarkerAlt } from 'react-icons/fa'
 import { IoCarSport } from 'react-icons/io5'
 
-import { ServiceType } from '@/constants/service-type.enum'
+import { ServiceType, serviceTypeText } from '@/constants/service-type.enum'
 import { TripStatus } from '@/constants/trip.enum'
 
 import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap'
@@ -103,6 +103,7 @@ export default function DetailTripPage({ id }: { id: string }) {
     )
 
   const trip = data as Trip
+  console.log('driverId:', trip.driverId._id)
 
   const renderServiceDetails = (trip: Trip) => {
     const baseCardStyle =
@@ -479,11 +480,24 @@ export default function DetailTripPage({ id }: { id: string }) {
         <div className="mb-6 rounded-xl bg-white p-4 shadow-lg sm:mb-8 sm:rounded-2xl sm:p-8 sm:shadow-xl">
           <div className="mb-6 flex flex-col items-start gap-4 sm:mb-8 sm:flex-row sm:items-center">
             <IoCarSport className="text-3xl text-blue-500 sm:text-4xl" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">
+            <div className="space-y-2">
+              <div >
+                <span className="text-xs font-medium text-gray-500">Mã cuốc xe</span>
+                <div className="flex items-baseline space-x-2">
+                  <h4 className="text-2xl font-bold text-black sm:text-3xl">
+                    {trip.code}
+                  </h4>
+                  <p className="mt-1 text-sm font-medium text-blue-600">
+                    {serviceTypeText[trip.serviceType]}
+                  </p>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-semibold text-gray-800 sm:text-3xl">
                 {trip.vehicleId.name}
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 sm:text-base">
+              </h2>
+
+              <p className="text-lg font-medium text-gray-600 sm:text-xl">
                 Biển số: {trip.vehicleId.licensePlate}
               </p>
             </div>
@@ -491,9 +505,10 @@ export default function DetailTripPage({ id }: { id: string }) {
             {/* Chat with driver button */}
             {canChatWithDriver(trip.status) && (
               <Link
-                href={`/conversations`}
+                href={`/conversations?tripId=${trip._id}`}
                 className="ml-auto flex items-center gap-2 rounded bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
               >
+                <BsChatDots className="text-lg" />
                 <span>Chat với tài xế</span>
               </Link>
             )}

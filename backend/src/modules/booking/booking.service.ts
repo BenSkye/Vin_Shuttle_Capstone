@@ -33,7 +33,7 @@ import { PaymentMethod } from "src/share/enums/payment.enum";
 import { SharedItineraryStatus, SharedItineraryStopsType } from "src/share/enums/shared-itinerary.enum";
 import { QueryOptions } from "src/share/interface";
 
-import { DateUtils, generateBookingCode } from "src/share/utils";
+import { convertObjectId, DateUtils, generateBookingCode } from "src/share/utils";
 import { processQueryParams } from "src/share/utils/query-params.util";
 
 Injectable()
@@ -800,6 +800,7 @@ export class BookingService implements IBookingService {
                 order: 1,
                 pointType: SharedItineraryStopsType.START_POINT,
                 trip: newTrip._id.toString(),
+                tripCode: newTrip.code,
                 point: newTrip.servicePayload.bookingShare.startPoint,
                 isPass: false,
                 isCancel: false
@@ -807,6 +808,7 @@ export class BookingService implements IBookingService {
                 order: 2,
                 pointType: SharedItineraryStopsType.END_POINT,
                 trip: newTrip._id.toString(),
+                tripCode: newTrip.code,
                 point: newTrip.servicePayload.bookingShare.endPoint,
                 isPass: false,
                 isCancel: false
@@ -899,18 +901,19 @@ export class BookingService implements IBookingService {
             }
             const notificationForCustomer = {
                 received: tripUpdate.customerId.toString(),
-                title: `Cuốc xe ${tripUpdate._id.toString()} đã được xác nhận`,
+                title: `Cuốc xe ${tripUpdate.code} đã được xác nhận`,
                 body: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)} của bạn đã được xác nhận thành công`,
             }
             const notificationForDriver = {
                 received: tripUpdate.driverId.toString(),
-                title: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới ${tripUpdate._id.toString()}`,
+                title: `Cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới ${tripUpdate.code}`,
                 body: `Bạn có cuốc xe ${serviceTypeText[tripUpdate.serviceType]} mới lúc ${DateUtils.formatDateTime(tripUpdate.timeStartEstimate)}`,
             }
             await this.notificationService.createNotification(notificationForCustomer)
             await this.notificationService.createNotification(notificationForDriver)
             await this.conversationService.createConversation({
                 tripId: tripUpdate._id.toString(),
+                tripCode: tripUpdate.code,
                 customerId: tripUpdate.customerId.toString(),
                 driverId: tripUpdate.driverId.toString(),
                 timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start
@@ -952,6 +955,31 @@ export class BookingService implements IBookingService {
         await this.bookingRepository.deleteBooking(
             booking._id.toString()
         )
+    }
+
+    async cancelBooking(userId: string, bookingId: string): Promise<boolean> {
+        const booking = await this.bookingRepository.findOneBooking(
+            {
+                customerId: userId,
+                _id: convertObjectId(bookingId)
+            }, ["bookingCode", "status"]
+        )
+        if (!booking) {
+            throw new HttpException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: `Not found booking ${bookingId}`,
+                vnMessage: `Không tìm thấy đơn đăt ${bookingId}`,
+            }, HttpStatus.NOT_FOUND);
+        }
+        if (booking.status !== BookingStatus.PENDING) {
+            throw new HttpException({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: `Booking ${bookingId} is not cancellable`,
+                vnMessage: `Đơn đặt ${bookingId} không thể hủy`,
+            }, HttpStatus.BAD_REQUEST);
+        }
+        await this.payBookingFail(booking.bookingCode)
+        return true
     }
 
 

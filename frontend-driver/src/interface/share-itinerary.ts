@@ -10,12 +10,13 @@ export interface sharedItineraryStop {
     order: number;
     pointType: SharedItineraryStopsType;
     trip: string;
+    tripCode: string;
     point: StartOrEndPoint;
     isPass: boolean;
 }
 
 export interface SharedItinerary {
-    _id: string; 
+    _id: string;
     driverId: string;
     vehicleId: string;
     scheduleId: string;

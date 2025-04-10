@@ -29,6 +29,7 @@ import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itine
 import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
 import { DriverBusScheduleModule } from './modules/driver-bus-schedule/driver-bus-schedule.module';
 import { TicketModule } from './modules/ticket/ticket.module';
+import { BusTrackingModule } from './modules/bus-tracking/bus-tracking.module';
 
 @Module({
   imports: [
@@ -53,9 +54,9 @@ import { TicketModule } from './modules/ticket/ticket.module';
     PricingModule,
     ScenicRouteModule,
     DriverScheduleModule,
+    SearchModule,
     BookingModule,
     TripModule,
-    SearchModule,
     CheckoutModule,
     BusStopModule,
     BusRouteModule,
@@ -67,6 +68,7 @@ import { TicketModule } from './modules/ticket/ticket.module';
     SharedItineraryModule,
     DriverBusScheduleModule,
     TicketModule,
+    BusTrackingModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppGateway],

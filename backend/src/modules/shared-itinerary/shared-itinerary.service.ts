@@ -69,6 +69,7 @@ export class SharedItineraryService implements ISharedItineraryService {
       order: 0,
       pointType: SharedItineraryStopsType.START_POINT,
       trip: TempTripId,
+      tripCode: TempTripId,
       point: searchDto.startPoint,
       isPass: false,
       isCancel: false,
@@ -78,6 +79,7 @@ export class SharedItineraryService implements ISharedItineraryService {
       order: 0,
       pointType: SharedItineraryStopsType.END_POINT,
       trip: TempTripId,
+      tripCode: TempTripId,
       point: searchDto.endPoint,
       isPass: false,
       isCancel: false,
@@ -317,6 +319,7 @@ export class SharedItineraryService implements ISharedItineraryService {
     stops.forEach(stop => {
       if (stop.trip === TempTripId) {
         stop.trip = trip._id.toString();
+        stop.tripCode = trip.code
       }
       stop.order = baseOrder + stop.order;
       newStop.push(stop);

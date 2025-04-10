@@ -12,6 +12,11 @@ export class ICreateConversation {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  tripCode: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   customerId: string;
 
   @ApiProperty()

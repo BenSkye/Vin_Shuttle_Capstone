@@ -145,10 +145,19 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Debug log để kiểm tra khi deploy
   useEffect(() => {
-    console.log('Location:', location);
-    console.log('ErrorMsg:', errorMsg);
-    console.log('IsTracking:', isTracking);
-  }, [location, errorMsg, isTracking]);
+    // When trip status changes, restart tracking with appropriate settings
+    if (locationSubscription.current) {
+      // Restart tracking with new interval settings
+      startLocationTracking();
+    }
+
+    // Connect/disconnect socket based on schedule status
+    if (isInProgress) {
+      connect();
+    } else {
+      disconnect();
+    }
+  }, [isInProgress, connect, disconnect]);
 
   return (
     <LocationContext.Provider value={{ location, errorMsg, isTracking }}>

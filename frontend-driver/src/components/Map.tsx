@@ -592,7 +592,7 @@ const MapComponent = ({
                       longitude: stop.point.position.lng,
                     }}
                     onPress={() => onStopPress(stop)}
-                    title={`Điểm ${stop.pointType === SharedItineraryStopsType.START_POINT ? 'Đón' : "Trả"} cuốc xe ${stop.trip}`}
+                    title={`Điểm ${stop.pointType === SharedItineraryStopsType.START_POINT ? 'Đón' : "Trả"} cuốc xe ${stop.tripCode}`}
                   >
                     {stop.trip === tripStopSelected ? (
                       <CustomPin

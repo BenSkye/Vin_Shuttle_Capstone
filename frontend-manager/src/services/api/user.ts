@@ -1,5 +1,6 @@
 import axiosInstance from "./axios"
 import Cookies from 'js-cookie';
+import { AxiosError } from 'axios';
 
 export const getCustomer = async () => {
     try {
@@ -17,12 +18,31 @@ export const getCustomer = async () => {
 export const loginUser = async (email: string, password: string) => {
     try {
         const response = await axiosInstance.post("/auth/login-by-password", {
-            email, password
-        })
-        console.log("Login:", response.data)
+            email,
+            password
+        }, {
+            validateStatus: function (status) {
+                return status >= 200 && status < 500;
+            }
+        });
+
+        if (response.status === 404) {
+            if (response.data?.vnMessage) {
+                throw { isCustomError: true, message: response.data.vnMessage };
+            }
+            throw { isCustomError: true, message: 'Email không tồn tại' };
+        }
+
+        if (!response.data) {
+            throw { isCustomError: true, message: 'Đã xảy ra lỗi. Vui lòng thử lại.' };
+        }
+
         return response.data;
     } catch (error) {
-        console.error("Error:", error)
+        if (error instanceof AxiosError && error.response?.data?.isCustomError) {
+            throw error;
+        }
+        throw { isCustomError: true, message: 'Đã xảy ra lỗi. Vui lòng thử lại.' };
     }
 }
 
