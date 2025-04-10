@@ -35,6 +35,7 @@ export class SharedItinerary {
           ref: 'Trip',
           required: true,
         },
+        tripCode: { type: String, required: true },
         point: { type: StartOrEndPointSchema, required: true },
         isPass: { type: Boolean, default: false },
         isCancel: { type: Boolean, default: false },
@@ -47,6 +48,7 @@ export class SharedItinerary {
     order: number;
     pointType: SharedItineraryStopsType;
     trip: string;
+    tripCode: string;
     point: {
       position: Position;
       address: string;

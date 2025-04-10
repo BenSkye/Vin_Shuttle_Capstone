@@ -11,19 +11,15 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { EditBusSchedule } from './EditBusSchedule';
-
-interface BusSchedule {
-    id: string;
-    busRoute: string;
-    vehicles: string[];
-    drivers: string[];
-    tripsPerDay: number;
-    dailyStartTime: string;
-    dailyEndTime: string;
-    effectiveDate: string;
-    expiryDate: string;
-    status: string;
-}
+import {
+    BusSchedule,
+    getActiveScheduleByRoute,
+    createBusSchedule,
+    updateBusSchedule,
+    deleteBusSchedule,
+    generateTrips
+} from '@/services/api/busSchedules';
+import { toast } from 'sonner';
 
 export const BusScheduleList = () => {
     const [schedules, setSchedules] = useState<BusSchedule[]>([]);
@@ -31,69 +27,83 @@ export const BusScheduleList = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+        fetchSchedules();
+    }, []);
+
     const fetchSchedules = async () => {
         try {
-            const response = await fetch('/api/bus-schedules');
-            if (!response.ok) throw new Error('Failed to fetch schedules');
-            const data = await response.json();
-            setSchedules(data);
+            // TODO: Replace with actual route ID
+            const routeId = "507f1f77bcf86cd799439011";
+            const data = await getActiveScheduleByRoute(routeId);
+            setSchedules(data || []);
         } catch (error) {
-            console.error('Error fetching bus schedules:', error);
-            alert('Failed to load schedules');
+            console.error('Error fetching schedules:', error);
+            toast.error('Failed to fetch schedules');
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchSchedules();
-    }, []);
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteBusSchedule(id);
+            toast.success('Schedule deleted successfully');
+            fetchSchedules();
+        } catch (error) {
+            console.error('Error deleting schedule:', error);
+            toast.error('Failed to delete schedule');
+        }
+    };
+
+    const handleGenerateTrips = async (id: string) => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            await generateTrips(id, today);
+            toast.success('Trips generated successfully');
+        } catch (error) {
+            console.error('Error generating trips:', error);
+            toast.error('Failed to generate trips');
+        }
+    };
 
     const handleEdit = (schedule: BusSchedule) => {
         setSelectedSchedule(schedule);
         setIsEditModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this schedule?')) return;
-
+    const handleSave = async (updatedSchedule: BusSchedule) => {
         try {
-            const response = await fetch(`/api/bus-schedules/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) throw new Error('Failed to delete schedule');
-
-            await fetchSchedules();
+            if (updatedSchedule._id) {
+                await updateBusSchedule(updatedSchedule._id, updatedSchedule);
+                toast.success('Schedule updated successfully');
+            } else {
+                await createBusSchedule(updatedSchedule);
+                toast.success('Schedule created successfully');
+            }
+            setIsEditModalOpen(false);
+            fetchSchedules();
         } catch (error) {
-            console.error('Error deleting bus schedule:', error);
-            alert('Failed to delete schedule');
-        }
-    };
-
-    const handleGenerateTrips = async (id: string) => {
-        try {
-            const response = await fetch(`/api/bus-schedules/${id}/generate-trips`, {
-                method: 'POST',
-            });
-
-            if (!response.ok) throw new Error('Failed to generate trips');
-
-            alert('Trips generated successfully');
-        } catch (error) {
-            console.error('Error generating trips:', error);
-            alert('Failed to generate trips');
+            console.error('Error saving schedule:', error);
+            toast.error('Failed to save schedule');
         }
     };
 
     if (isLoading) {
-        return <div className="flex justify-center items-center h-64">Loading...</div>;
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+        );
     }
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Bus Schedules</h2>
+                <Button onClick={() => handleEdit({} as BusSchedule)}>
+                    Add New Schedule
+                </Button>
             </div>
 
             <Table>
@@ -111,21 +121,14 @@ export const BusScheduleList = () => {
                 </TableHeader>
                 <TableBody>
                     {schedules.map((schedule) => (
-                        <TableRow key={schedule.id}>
+                        <TableRow key={schedule._id}>
                             <TableCell>{schedule.busRoute}</TableCell>
                             <TableCell>{schedule.tripsPerDay}</TableCell>
                             <TableCell>{schedule.dailyStartTime}</TableCell>
                             <TableCell>{schedule.dailyEndTime}</TableCell>
-                            <TableCell>{new Date(schedule.effectiveDate).toLocaleDateString()}</TableCell>
-                            <TableCell>{new Date(schedule.expiryDate).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs ${schedule.status === 'active'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
-                                    }`}>
-                                    {schedule.status}
-                                </span>
-                            </TableCell>
+                            <TableCell>{schedule.effectiveDate}</TableCell>
+                            <TableCell>{schedule.expiryDate}</TableCell>
+                            <TableCell>{schedule.status}</TableCell>
                             <TableCell>
                                 <div className="flex space-x-2">
                                     <Button
@@ -138,15 +141,14 @@ export const BusScheduleList = () => {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleGenerateTrips(schedule.id)}
+                                        onClick={() => handleGenerateTrips(schedule._id!)}
                                     >
                                         Generate Trips
                                     </Button>
                                     <Button
-                                        variant="outline"
+                                        variant="destructive"
                                         size="sm"
-                                        onClick={() => handleDelete(schedule.id)}
-                                        className="text-red-500 hover:text-red-700"
+                                        onClick={() => handleDelete(schedule._id!)}
                                     >
                                         Delete
                                     </Button>
@@ -157,15 +159,11 @@ export const BusScheduleList = () => {
                 </TableBody>
             </Table>
 
-            {selectedSchedule && (
+            {isEditModalOpen && selectedSchedule && (
                 <EditBusSchedule
                     schedule={selectedSchedule}
-                    isOpen={isEditModalOpen}
-                    onClose={() => {
-                        setIsEditModalOpen(false);
-                        setSelectedSchedule(null);
-                    }}
-                    onUpdate={fetchSchedules}
+                    onSave={handleSave}
+                    onClose={() => setIsEditModalOpen(false)}
                 />
             )}
         </div>

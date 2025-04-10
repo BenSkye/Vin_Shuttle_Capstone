@@ -31,7 +31,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
         <View style={styles.customerHeaderInfo}>
           <Text style={styles.customerName}>{trip.customerId?.name || 'N/A'}</Text>
           <Text style={styles.customerPhone}>{trip.customerId?.phone || 'N/A'}</Text>
-          <Text style={styles.tripId}>{trip._id || 'N/A'}</Text>
+          <Text style={styles.tripId}>{trip.code || 'N/A'}</Text>
         </View>
       </View>
 
