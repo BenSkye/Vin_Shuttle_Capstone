@@ -10,6 +10,7 @@ import { PaymentMethod } from '@/constants/payment.enum'
 
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import SharedLocation from '@/views/Ride/components/sharedLocation'
+import Image from 'next/image';
 
 import {
   AvailableVehicle,
@@ -411,13 +412,13 @@ const DestinationBookingPage = () => {
               <Space direction="vertical" className="w-full">
                 <Radio value={PaymentMethod.PAY_OS} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="mr-3 h-8" />
+                    <img src="/images/logo-payos.png" alt="PayOS" className="mr-3 h-8" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
                 <Radio value={PaymentMethod.MOMO} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="mr-3 h-8" />
+                    <img src="/images/logo_momo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
@@ -549,6 +550,7 @@ const DestinationBookingPage = () => {
               </button>
               <button
                 onClick={handleNextStep}
+                disabled={loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
