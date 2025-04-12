@@ -687,35 +687,10 @@ const SharedLocation = ({
 
       {/* Seat Selection */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
-            3
-          </div>
-          <h3 className="text-lg font-semibold text-green-600">Số chỗ ngồi</h3>
-        </div>
+
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNumberOfSeatsChange(Math.max(BOOKING_SHARED_SEAT.MIN, numberOfSeats - 1))}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 sm:h-10 sm:w-10 sm:text-base"
-              disabled={numberOfSeats <= BOOKING_SHARED_SEAT.MIN || loading}
-              aria-label="Giảm số chỗ ngồi"
-              tabIndex={0}
-            >
-              -
-            </button>
-            <span className="min-w-[3rem] text-center text-lg font-semibold">{numberOfSeats}</span>
-            <button
-              onClick={() => onNumberOfSeatsChange(Math.min(BOOKING_SHARED_SEAT.MAX, numberOfSeats + 1))}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 sm:h-10 sm:w-10 sm:text-base"
-              disabled={numberOfSeats >= BOOKING_SHARED_SEAT.MAX || loading}
-              aria-label="Tăng số chỗ ngồi"
-              tabIndex={0}
-            >
-              +
-            </button>
-          </div>
-          <span className="text-sm text-gray-500">Tối đa {BOOKING_SHARED_SEAT.MAX} người cho mỗi cuốc xe chung</span>
+
+
         </div>
       </div>
 
@@ -756,18 +731,7 @@ const SharedLocation = ({
               </svg>
               <span className="font-medium text-gray-700">Khoảng {routeInfo.duration} phút</span>
             </div>
-            <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-blue-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-              </svg>
-              <span className="font-medium text-gray-700">{numberOfSeats} chỗ ngồi</span>
-            </div>
+
           </div>
         </div>
       )}

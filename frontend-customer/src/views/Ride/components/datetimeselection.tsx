@@ -1,10 +1,11 @@
 import { BOOKING_BUFFER_MINUTES, BookingHourDuration, SystemOperatingHours } from '@/constants/booking.constants'
-import { CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
-import { Card, DatePicker, Select, TimePicker } from 'antd'
+import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { Card, DatePicker, Select, TimePicker, Switch } from 'antd'
 import { InputNumber } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
+import { useState, useEffect } from 'react'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { Option } = Select
@@ -25,6 +26,18 @@ const DateTimeSelection = ({
   onStartTimeChange,
   onDurationChange,
 }: DateTimeSelectionProps) => {
+  const [pickupNow, setPickupNow] = useState(false)
+
+  // Set current date and time with buffer when "pickup now" is selected
+  useEffect(() => {
+    if (pickupNow) {
+      const now = dayjs()
+      const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
+      onDateChange(now)
+      onStartTimeChange(bufferedTime)
+    }
+  }, [pickupNow, onDateChange, onStartTimeChange])
+
   // Disallow past dates
   const disabledDate = (current: dayjs.Dayjs) => {
     return current && current < dayjs().startOf('day')
@@ -76,9 +89,42 @@ const DateTimeSelection = ({
     };
   };
 
+  const handlePickupNowToggle = (checked: boolean) => {
+    setPickupNow(checked)
+
+    // If toggling off, reset date and time selections
+    if (!checked) {
+      onDateChange(null)
+      onStartTimeChange(null)
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
       <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">Chọn ngày & giờ</h2>
+
+      {/* Pickup Now Option */}
+      <Card
+        className="mb-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+        title={
+          <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
+            <ThunderboltOutlined className="text-yellow-500" />
+            <span>Đón ngay bây giờ</span>
+          </div>
+        }
+        styles={{ body: { padding: '12px' } }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600 sm:text-base">Đặt xe ngay lập tức </span>
+          <Switch
+            checked={pickupNow}
+            onChange={handlePickupNowToggle}
+            className="bg-gray-300"
+            checkedChildren="Có"
+            unCheckedChildren="Không"
+          />
+        </div>
+      </Card>
 
       {/* Grid container with responsive columns */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
@@ -104,6 +150,7 @@ const DateTimeSelection = ({
             locale={locale}
             showToday={false}
             size="large"
+            disabled={pickupNow}
           />
         </Card>
 
@@ -129,6 +176,7 @@ const DateTimeSelection = ({
             minuteStep={1}
             size="large"
             showNow={false}
+            disabled={pickupNow}
           />
         </Card>
       </div>
