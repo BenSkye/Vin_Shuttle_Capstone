@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { DriverSchedulesStatus, DriverScheduleTaskType, Shift } from 'src/share/enums';
+import { DriverSchedulesStatus, DriverScheduleTaskType, Shift, ShiftHours } from 'src/share/enums';
 
 export type DriverScheduleDocument = HydratedDocument<DriverSchedule>;
 
@@ -14,6 +14,12 @@ export class DriverSchedule {
 
   @Prop({ type: String, enum: Shift, required: function () { return this.taskType === DriverScheduleTaskType.GENERAL; } })
   shift: string; // Ca làm việc (A, B, C, D)
+
+  @Prop({ type: Number, default: 8 })
+  totalWorkingHours: number; // Tổng số giờ làm việc trong ca (ví dụ: 8)
+
+  @Prop({ type: Number, default: 0 })
+  actualWorkingHours: number; // Số giờ làm việc thực tế của tài xế trong ca (ví dụ: 7.5)
 
   @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
   busRoute: Types.ObjectId;
@@ -47,3 +53,30 @@ export class DriverSchedule {
 }
 
 export const DriverScheduleSchema = SchemaFactory.createForClass(DriverSchedule);
+
+DriverScheduleSchema.pre('save', function (next) {
+
+  if (this.taskType === DriverScheduleTaskType.GENERAL && this.shift) {
+    const shiftInfo = ShiftHours[this.shift as Shift];
+    if (shiftInfo) {
+      this.totalWorkingHours = shiftInfo.end - shiftInfo.start;
+    }
+  }
+
+  if (this.checkinTime && this.checkoutTime && this.checkoutTime > this.checkinTime) {
+    // Calculate the difference in milliseconds
+    const diffInMs = this.checkoutTime.getTime() - this.checkinTime.getTime();
+
+    // Convert milliseconds to hours
+    this.actualWorkingHours = parseFloat((diffInMs / (1000 * 60 * 60)).toFixed(2));
+
+    // Check if the checkout is early compared to totalWorkingHours
+    // if (this.actualWorkingHours < this.totalWorkingHours) {
+    //   this.isEarlyCheckout = true;
+    // } else {
+    //   this.isEarlyCheckout = false;
+    // }
+  }
+
+  next();
+});

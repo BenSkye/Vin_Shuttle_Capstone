@@ -23,7 +23,10 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     const [internalCurrentWeek, setInternalCurrentWeek] = useState(
         externalCurrentWeek || startOfWeek(new Date(), { weekStartsOn: 1 })
     );
+
+
     const currentWeek = externalCurrentWeek || internalCurrentWeek;
+    console.log('Current Week:', currentWeek);
     const setCurrentWeek = (week: Date) => {
         setInternalCurrentWeek(week);
         onWeekChange?.(week);

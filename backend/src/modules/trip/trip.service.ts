@@ -929,7 +929,7 @@ export class TripService implements ITripService {
   // })
   // async handleTripStartTimeout() {
   //   const now = new Date();
-  //   const endTimeOut = new Date(now.getTime() - 15 * 60 * 1000);
+  //   const endTimeOut = new Date(now.getTime() - 5 * 60 * 1000);
   //   console.log('endTimeOut', endTimeOut);
   //   const trips = await this.tripRepository.find({
   //     status: TripStatus.CONFIRMED,
@@ -938,6 +938,12 @@ export class TripService implements ITripService {
   //   }, []);
   //   for (const trip of trips) {
   //     await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
+  //     if (trip.serviceType === ServiceType.BOOKING_SHARE) {
+  //       await this.shareItineraryService.cancelTripInItinerary(
+  //         trip._id.toString(),
+  //         trip.servicePayload.bookingShare.sharedItinerary.toString(),
+  //       )
+  //     }
   //     this.tripGateway.emitTripUpdate(
   //       trip.customerId.toString(),
   //       await this.getPersonalCustomerTrip(trip.customerId.toString())

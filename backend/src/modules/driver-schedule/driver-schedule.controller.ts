@@ -123,7 +123,7 @@ export class DriverScheduleController {
   @ApiParam({
     name: 'date',
     description: 'The date',
-    example: '2025-03-11',
+    example: '2025-04-12',
   })
   async getDriverNotScheduledInDate(@Param('date') date: Date) {
     return await this.driverScheduleService.getDriverNotScheduledInDate(date);
@@ -139,7 +139,7 @@ export class DriverScheduleController {
   @ApiParam({
     name: 'date',
     description: 'The date',
-    example: '2025-03-11',
+    example: '2025-04-12',
   })
   async getVehicleNotScheduledInDate(@Param('date') date: Date) {
     return await this.driverScheduleService.getVehicleNotScheduledInDate(date);
@@ -155,12 +155,12 @@ export class DriverScheduleController {
   @ApiParam({
     name: 'startDate',
     description: 'The start date of the week',
-    example: '2021-10-01',
+    example: '2025-04-12',
   })
   @ApiParam({
     name: 'endDate',
     description: 'The end date of the week',
-    example: '2021-10-07',
+    example: '2025-04-12',
   })
   async getDriverSchedulesInWeek(
     @Param('startDate') startDate: Date,
@@ -169,7 +169,7 @@ export class DriverScheduleController {
     return await this.driverScheduleService.getScheduleGeneralFromStartToEnd(startDate, endDate);
   }
 
-  @Get('get-driver-schedules-by-query')
+  @Get('  ')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)
@@ -219,11 +219,25 @@ export class DriverScheduleController {
     description: 'Filter by isEarlyCheckout',
   })
   @ApiQuery({
-    name: 'taskType',
+    name: 'startDate',
     required: false,
-    enum: DriverScheduleTaskType,
-    description: 'Filter by taskType',
+    description: 'The start date of the week',
+    type: String,
+    example: '2025-04-12',
   })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'The end date of the week',
+    type: String,
+    example: '2025-04-12',
+  })
+  // @ApiQuery({
+  //   name: 'taskType',
+  //   required: false,
+  //   enum: DriverScheduleTaskType,
+  //   description: 'Filter by taskType',
+  // })
 
   async getDriverSchedulesByQuery(
     @Query() query: driverScheduleParams
