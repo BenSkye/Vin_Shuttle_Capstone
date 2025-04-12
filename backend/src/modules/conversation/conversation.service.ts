@@ -12,6 +12,7 @@ import { ConversationStatus } from 'src/share/enums/conversation.enum';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TRIP_REPOSITORY } from 'src/modules/trip/trip.di-token';
 import { ITripRepository } from 'src/modules/trip/trip.port';
+import { TripStatus } from 'src/share/enums';
 
 @Injectable()
 export class ConversationService implements IConversationService {
@@ -146,10 +147,10 @@ export class ConversationService implements IConversationService {
   //     [],
   //   );
   //   conversationsClose.forEach(async conversation => {
-  // const trip= await this.tripRepository.findOne({ _id: conversation.tripId },['status']);
-  // if([TripStatus.CANCELLED,TripStatus.COMPLETED].includes(trip.status)){
-  //   await this.conversationRepository.closeConversation(conversation._id.toString());
-  // }
+  //     const trip = await this.tripRepository.findOne({ _id: conversation.tripId }, ['status']);
+  //     if ([TripStatus.CANCELLED, TripStatus.COMPLETED].includes(trip.status)) {
+  //       await this.conversationRepository.closeConversation(conversation._id.toString());
+  //     }
   //   });
   // }
 }

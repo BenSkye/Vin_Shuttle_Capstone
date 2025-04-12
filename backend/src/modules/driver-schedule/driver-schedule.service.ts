@@ -20,6 +20,7 @@ import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
 import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
 import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 import { DateUtils } from "src/share/utils";
+import { processQueryParams } from "src/share/utils/query-params.util";
 
 
 @Injectable()
@@ -438,9 +439,61 @@ export class DriverScheduleService implements IDriverScheduleService {
     return schedules;
   }
 
-  async getDriverSchedules(query: driverScheduleParams): Promise<DriverScheduleDocument[]> {
-    const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(query, []);
-    return driverSchedules;
+  async getDriverSchedules(query: driverScheduleParams): Promise<{
+    driverSchedules: DriverScheduleDocument[],
+    totalWorkingHours: number,
+    actualWorkingHours: number
+  }> {
+    const filterProcessed: any = query;
+
+    if (filterProcessed.startDate) {
+      const startDate = new Date(filterProcessed.startDate);
+      if (isNaN(startDate.getTime())) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Invalid date',
+            vnMessage: `Ngày không hợp lệ`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.date = {
+        $gte: startDate,
+      }
+      delete filterProcessed.startDate;
+    }
+    if (filterProcessed.endDate) {
+      const endDate = new Date(filterProcessed.endDate);
+      if (isNaN(endDate.getTime())) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Invalid date',
+            vnMessage: `Ngày không hợp lệ`,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      filterProcessed.date = {
+        ...filterProcessed.date,
+        $lte: endDate,
+      }
+      delete filterProcessed.endDate;
+    }
+    const { filter, options } = processQueryParams(filterProcessed, []);
+    const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(filter, [], options);
+    const totalWorkingHours = driverSchedules.reduce(
+      (sum, schedule) => sum + (schedule.totalWorkingHours || 0),
+      0
+    );
+    const actualWorkingHours = driverSchedules.reduce(
+      (sum, schedule) => sum + (schedule.actualWorkingHours || 0),
+      0
+    );
+    return {
+      driverSchedules, totalWorkingHours, actualWorkingHours
+    };
   }
 
   async driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {

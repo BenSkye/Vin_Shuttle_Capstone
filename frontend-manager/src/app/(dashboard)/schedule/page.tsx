@@ -8,8 +8,8 @@ import EventCalendar from '@/components/EventCalendar';
 
 
 import { Driver } from '@/interfaces/index';
-import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
-import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
+import { getAvailableDrivers } from '@/services/api/driver';
+import { DriverSchedule, getDriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
 import { format, isBefore, startOfDay } from 'date-fns';
 
 import { getAvailableVehicles } from '../../../services/api/vehicles';

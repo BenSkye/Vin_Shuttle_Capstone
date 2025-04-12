@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Types } from 'mongoose';
+import { QueryOptions, Types } from 'mongoose';
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { DriverSchedulesStatus, DriverScheduleTaskType, Shift } from 'src/share/enums';
 
@@ -74,7 +74,7 @@ export interface PopulatedDriverScheduleDocument
   };
 }
 
-export interface driverScheduleParams {
+export interface driverScheduleParams extends QueryOptions {
   driver?: string;
   date?: Date;
   shift?: Shift;
@@ -83,4 +83,6 @@ export interface driverScheduleParams {
   isLate?: boolean;
   isEarlyCheckout?: boolean;
   taskType?: DriverScheduleTaskType;
+  startDate?: Date;
+  endDate?: Date;
 }

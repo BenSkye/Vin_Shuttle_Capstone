@@ -8,13 +8,15 @@ import {
   DriverScheduleDocument,
 } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { DriverScheduleTaskType } from 'src/share/enums';
+import { QueryOptions } from 'src/share/interface';
 import { getSelectData } from 'src/share/utils';
+import { applyQueryOptions } from 'src/share/utils/query-params.util';
 
 @Injectable()
 export class DriverScheduleRepository implements IDriverScheduleRepository {
   constructor(
     @InjectModel(DriverSchedule.name) private readonly driverScheduleModel: Model<DriverSchedule>,
-  ) {}
+  ) { }
 
   async createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument> {
     const newDriverSchedule = new this.driverScheduleModel(driverSchedule);
@@ -37,12 +39,15 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
       .populate('vehicle', 'name');
   }
 
-  async getDriverSchedules(query: any, select: string[]): Promise<DriverScheduleDocument[]> {
-    return await this.driverScheduleModel
+  async getDriverSchedules(query: any, select: string[], options?: QueryOptions): Promise<DriverScheduleDocument[]> {
+    let queryBuilder = this.driverScheduleModel
       .find(query)
       .select(getSelectData(select))
       .populate('driver', 'name')
       .populate('vehicle', 'name');
+    queryBuilder = applyQueryOptions(queryBuilder, options);
+    const result = await queryBuilder.exec();
+    return result;
   }
 
   async findOneDriverSchedule(
