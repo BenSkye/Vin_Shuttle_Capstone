@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Radio, Space, Typography, message } from 'antd'
+import { Radio, Space, Typography, message, notification, Steps } from 'antd'
 
 import dynamic from 'next/dynamic'
 
@@ -17,7 +17,7 @@ import {
   BookingDestinationRequest,
   BookingResponse,
 } from '@/interface/booking.interface'
-import { bookingDestination } from '@/service/booking.service'
+import { bookingDestination, cancelBooking } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
 
 // Dynamic import components outside the component to prevent reloading
@@ -331,9 +331,32 @@ const DestinationBookingPage = () => {
     } else if (currentStep === 'confirmation') {
       setCurrentStep('payment')
     } else if (currentStep === 'checkout') {
-      setCurrentStep('confirmation')
+      if (bookingResponse && bookingResponse.newBooking._id) {
+        // Cancel the booking when returning from checkout
+        setLoading(true)
+        cancelBooking(bookingResponse.newBooking._id)
+          .then(() => {
+            notification.success({
+              message: 'Hủy đặt xe thành công',
+              description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+            })
+            setBookingResponse(null)
+            setCurrentStep('confirmation')
+          })
+          .catch((error) => {
+            notification.error({
+              message: 'Lỗi khi hủy đặt xe',
+              description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+            })
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      } else {
+        setCurrentStep('confirmation')
+      }
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -567,11 +590,12 @@ const DestinationBookingPage = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
-                aria-label="Quay lại chọn xe"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
+                aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>
@@ -581,15 +605,28 @@ const DestinationBookingPage = () => {
     }
   }
 
-  const getStepProgress = (step: 'location' | 'vehicle' | 'payment' | 'confirmation' | 'checkout') => {
+  const getCurrentStep = () => {
     const steps = ['location', 'vehicle', 'payment', 'confirmation', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
-
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
+    return steps.indexOf(currentStep)
   }
+
+  const items = [
+    {
+      title: 'Chọn địa điểm',
+    },
+    {
+      title: 'Chọn xe',
+    },
+    {
+      title: 'Thanh toán',
+    },
+    {
+      title: 'Xác nhận',
+    },
+    {
+      title: 'Hoàn tất',
+    },
+  ]
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
@@ -598,67 +635,13 @@ const DestinationBookingPage = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="grid grid-cols-5 gap-2">
-          <div
-            className={`text-center ${getStepProgress('location') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('location')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('vehicle') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn xe</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('payment') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('confirmation') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('confirmation')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-
-          <div
-            className={`text-center ${getStepProgress('checkout') > 0 ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+        <Steps
+          current={getCurrentStep()}
+          items={items}
+          responsive
+          direction="horizontal"
+          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+        />
       </div>
 
       {error && (

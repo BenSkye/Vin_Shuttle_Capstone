@@ -300,7 +300,7 @@ export default function ProfilePage() {
                     value={profile.email}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Enter your email"
+                    placeholder="Nhập email"
                   />
                 </div>
 

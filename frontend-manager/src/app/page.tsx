@@ -1,7 +1,5 @@
 import UserCard from '@/components/UserCard'
-import CountChart from '@/components/CountChart'
-import AttendanceChart from '@/components/AttendanceChart'
-import FinanceChart from '@/components/FinanceChart'
+
 import EventCalendar from '@/components/EventCalendar'
 
 import Menu from '@/components/Menu'
@@ -10,6 +8,8 @@ import Image from 'next/image'
 import NavBar from '@/components/NavBar'
 
 export default function Home() {
+
+    //yessir
     return (
         <div className="h-screen flex">
             <div className='w-[14%] md:w-[8%] lg:w[16%] xl:w-[14%]  p-4'>
@@ -37,16 +37,16 @@ export default function Home() {
                         <div className="flex gap-4 flex-col lg:flex-row">
                             {/* COUNT CHART */}
                             <div className="w-full lg:w-1/3 h-[450px]">
-                                <CountChart />
+
                             </div>
                             {/* ATENDANCE CHART */}
                             <div className="w-full lg:w-2/3 h-[450px]">
-                                <AttendanceChart />
+
                             </div>
                         </div>
                         {/* BOTTOM CHART */}
                         <div className="w-full h-[500px]">
-                            <FinanceChart />
+
                         </div>
 
                     </div>
