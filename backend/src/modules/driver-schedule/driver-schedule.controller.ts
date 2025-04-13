@@ -169,7 +169,7 @@ export class DriverScheduleController {
     return await this.driverScheduleService.getScheduleGeneralFromStartToEnd(startDate, endDate);
   }
 
-  @Get('  ')
+  @Get('get-driver-schedules-by-query')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.MANAGER)

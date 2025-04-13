@@ -9,6 +9,9 @@ export class Rating {
   tripId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  driverId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   customerId: Types.ObjectId;
 
   @Prop({ required: true, type: Number, min: 1, max: 5 })
