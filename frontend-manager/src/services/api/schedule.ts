@@ -39,8 +39,8 @@ export interface driverScheduleParams {
     status?: DriverSchedulesStatus;
     isLate?: boolean;
     isEarlyCheckout?: boolean;
-    startDate?: Date;
-    endDate?: Date;
+    startDate?: string;
+    endDate?: string;
 }
 
 

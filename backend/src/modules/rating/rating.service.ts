@@ -16,7 +16,7 @@ export class RatingService implements IRatingService {
   ) { }
 
   async createRating(customerId: string, data: ICreateRating): Promise<RatingDocument> {
-    const trip = await this.tripRepository.findById(data.tripId, ['customerId', 'status']);
+    const trip = await this.tripRepository.findById(data.tripId, ['customerId', 'driverId', 'status']);
     if (!trip || trip.customerId._id.toString() !== customerId) {
       throw new HttpException(
         {
@@ -39,6 +39,7 @@ export class RatingService implements IRatingService {
       );
     }
     data.customerId = customerId;
+    data.driverId = trip.driverId._id.toString();
     const rating = await this.ratingRepository.create(data);
     await this.tripRepository.updateTrip(data.tripId, { isRating: true });
     return rating;
@@ -93,14 +94,14 @@ export class RatingService implements IRatingService {
   async averageRating(query: IGetAverageRating): Promise<number> {
     const filter: any = query;
     const findQuery: any = {};
-    if (query.driverId) {
-      findQuery.driverId = query.driverId;
-      delete filter.driverId;
-    }
-    if (query.customerId) {
-      findQuery.customerId = query.customerId;
-      delete filter.customerId;
-    }
+    // if (query.driverId) {
+    //   findQuery.driverId = query.driverId;
+    //   delete filter.driverId;
+    // }
+    // if (query.customerId) {
+    //   findQuery.customerId = query.customerId;
+    //   delete filter.customerId;
+    // }
     if (query.serviceType) {
       findQuery.serviceType = query.serviceType
       delete filter.serviceType;
@@ -114,9 +115,15 @@ export class RatingService implements IRatingService {
       return 0;
     }
     const listTripId = trips.map(trip => trip._id.toString());
-    const ratingFilter = {
-      tripId: { $in: listTripId }
+    const ratingFilter: any = {
+      tripId: { $in: listTripId },
     };
+    if (query.driverId) {
+      ratingFilter.driverId = query.driverId;
+    }
+    if (query.customerId) {
+      ratingFilter.customerId = query.customerId;
+    }
     const ratings = await this.ratingRepository.getRatings(ratingFilter, ['rate']);
     if (ratings.length === 0) {
       return 0;
