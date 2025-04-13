@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, forwardRef } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek, isBefore, startOfDay } from 'date-fns';
-import { Button, message } from 'antd';
+import { Button } from 'antd';
 import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
 import { Activity } from '@/interfaces';
 
@@ -22,7 +22,6 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     currentWeek: externalCurrentWeek,
     onWeekChange,
     isLoading = false,
-    setIsLoading,
 }, ref) => {
     const [internalCurrentWeek, setInternalCurrentWeek] = useState(
         externalCurrentWeek || startOfWeek(new Date(), { weekStartsOn: 1 })

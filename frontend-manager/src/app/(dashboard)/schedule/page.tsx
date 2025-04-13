@@ -9,7 +9,7 @@ import EventCalendar from '@/components/EventCalendar';
 
 import { Driver } from '@/interfaces/index';
 import { getAvailableDrivers } from '@/services/api/driver';
-import { DriverSchedule, getDriverSchedule, getDriverScheduleByQuery, updateDriverSchedule } from '@/services/api/schedule';
+import { DriverSchedule, getDriverScheduleByQuery, updateDriverSchedule } from '@/services/api/schedule';
 import { endOfWeek, format, isBefore, startOfDay, startOfWeek } from 'date-fns';
 
 import { getAvailableVehicles } from '../../../services/api/vehicles';
@@ -686,7 +686,9 @@ const SchedulePage = () => {
             }
 
             message.success("Đã phân công lịch trình cho tuần thành công");
-            fetchDriverSchedules(); // Refresh the schedule display
+            if (startDate && endDate) {
+                fetchDriverSchedules(startDate, endDate); // Refresh the schedule display
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Không thể phân công lịch trình cho tuần";
             console.error("Lỗi khi phân công lịch trình tuần:", error);
