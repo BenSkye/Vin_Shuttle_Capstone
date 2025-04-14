@@ -23,8 +23,10 @@ export interface Trip {
     name: string
     licensePlate: string
   }
-  timeStartEstimate: number
-  timeEndEstimate: number
+  timeStartEstimate: Date
+  timeEndEstimate: Date
+  timeStart?: Date
+  timeEnd?: Date
   amount: number
   status: string
   statusHistory: object[]

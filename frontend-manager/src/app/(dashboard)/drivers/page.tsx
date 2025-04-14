@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Column } from '@/interfaces/index';
 import { Driver, DriverFilters } from "@/interfaces/index";
 import { createDriver, filterDriver } from "@/services/api/driver";
+import Link from "next/link";
 
 const columns: Column<Driver>[] = [
     {
@@ -266,20 +267,20 @@ const DriverPage = () => {
             </td>
 
             {/* Action Column */}
-            {/* <td className="px-4 py-2">
+            <td className="px-4 py-2">
                 <div className="flex items-center gap-2">
                     <Link href={`/drivers/${item._id}`}>
                         <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
                             <Image src="/icons/view.png" alt="View" width={16} height={16} />
                         </button>
                     </Link>
-                    {role === "admin" && (
-                        <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-                            <Image src="/icons/delete.png" alt="Delete" width={16} height={16} />
-                        </button>
-                    )}
+
+                    {/* <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
+                        <Image src="/icons/delete.png" alt="Delete" width={16} height={16} />
+                    </button> */}
+
                 </div>
-            </td> */}
+            </td>
         </tr>
     );
 

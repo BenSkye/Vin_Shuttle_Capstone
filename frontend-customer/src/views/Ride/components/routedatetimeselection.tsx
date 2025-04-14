@@ -25,9 +25,25 @@ const RouteDateTimeSelection = ({
   useEffect(() => {
     if (pickupNow) {
       const now = dayjs()
-      const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
-      onDateChange(now)
-      onStartTimeChange(bufferedTime)
+      const currentHour = now.hour()
+
+      // Check if current time is within system operating hours
+      if (currentHour < SystemOperatingHours.START) {
+        // If current time is before operating hours, set to system start time
+        const systemStartTime = now.hour(SystemOperatingHours.START).minute(0).second(0)
+        onDateChange(now)
+        onStartTimeChange(systemStartTime)
+      } else if (currentHour >= SystemOperatingHours.END) {
+        // If current time is after operating hours, set to next day's start time
+        const nextDay = now.add(1, 'day').hour(SystemOperatingHours.START).minute(0).second(0)
+        onDateChange(nextDay)
+        onStartTimeChange(nextDay)
+      } else {
+        // Normal case: add buffer to current time
+        const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
+        onDateChange(now)
+        onStartTimeChange(bufferedTime)
+      }
     }
   }, [pickupNow, onDateChange, onStartTimeChange])
 

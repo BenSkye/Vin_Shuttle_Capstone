@@ -13,6 +13,15 @@ export const getAvailableDrivers = async (date: string) => {
     }
 }
 
+export const getPersonalDriver = async (phone: string) => {
+    try {
+        const response = await axiosInstance.get("/users");
+        console.log(phone);
+        return response.data;
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
 
 export const getDriver = async (sortOrder: string = 'desc', role: string = 'driver') => {
     try {
@@ -117,3 +126,13 @@ export const filterDriver = async (filters: DriverFilters = {}) => {
         throw error;
     }
 };
+
+export const getDriverById = async (id: string) => {
+    try {
+        const response = await axiosInstance.get(`/users/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching driver by ID:", error);
+        throw error;
+    }
+}

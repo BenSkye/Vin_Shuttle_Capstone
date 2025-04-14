@@ -924,30 +924,46 @@ export class TripService implements ITripService {
   }
 
   // run every minute
-  // @Cron(CronExpression.EVERY_MINUTE, {
-  //   name: 'handleTripStartTimeout'
-  // })
-  // async handleTripStartTimeout() {
-  //   const now = new Date();
-  //   const endTimeOut = new Date(now.getTime() - 5 * 60 * 1000);
-  //   console.log('endTimeOut', endTimeOut);
-  //   const trips = await this.tripRepository.find({
-  //     status: TripStatus.CONFIRMED,
-  //     timeEndEstimate: { $lte: endTimeOut },
-  //     timeStart: null,
-  //   }, []);
-  //   for (const trip of trips) {
-  //     await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
-  //     if (trip.serviceType === ServiceType.BOOKING_SHARE) {
-  //       await this.shareItineraryService.cancelTripInItinerary(
-  //         trip._id.toString(),
-  //         trip.servicePayload.bookingShare.sharedItinerary.toString(),
-  //       )
-  //     }
-  //     this.tripGateway.emitTripUpdate(
-  //       trip.customerId.toString(),
-  //       await this.getPersonalCustomerTrip(trip.customerId.toString())
-  //     );
-  //   }
-  // }
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: 'handleTripStartTimeout'
+  })
+  async handleTripStartTimeout() {
+    const now = new Date();
+    const endTimeOut = new Date(now.getTime() - 5 * 60 * 1000);
+    console.log('endTimeOut', endTimeOut);
+    const trips = await this.tripRepository.find({
+      status: TripStatus.CONFIRMED,
+      timeEndEstimate: { $lte: endTimeOut },
+      timeStart: null,
+    }, []);
+    for (const trip of trips) {
+      await this.tripRepository.updateStatus(trip._id.toString(), TripStatus.DROPPED_OFF);
+      if (trip.serviceType === ServiceType.BOOKING_SHARE) {
+        await this.shareItineraryService.cancelTripInItinerary(
+          trip._id.toString(),
+          trip.servicePayload.bookingShare.sharedItinerary.toString(),
+        )
+      }
+      const notificationForCustomer = {
+        received: trip.customerId.toString(),
+        title: `Cuốc xe ${trip.code} đã bị ngưng thực hiện `,
+        body: `Cuốc xe ${serviceTypeText[trip.serviceType]} : ${trip.code} đã bị ngưng thực hiện do quá thời gian`,
+      }
+      const notificationForDriver = {
+        received: trip.driverId.toString(),
+        title: `Cuốc xe ${trip.code} đã bị thôi hoạt động`,
+        body: `Cuốc xe ${serviceTypeText[trip.serviceType]} : ${trip.code} đã bị ngưng thực hiện do quá thời gian`,
+      }
+      await this.notificationService.createNotification(notificationForCustomer)
+      await this.notificationService.createNotification(notificationForDriver)
+      this.tripGateway.emitTripUpdate(
+        trip.customerId.toString(),
+        await this.getPersonalCustomerTrip(trip.customerId.toString())
+      );
+      this.tripGateway.emitTripUpdate(
+        trip.driverId.toString(),
+        await this.getPersonalDriverTrip(trip.driverId.toString())
+      );
+    }
+  }
 }
