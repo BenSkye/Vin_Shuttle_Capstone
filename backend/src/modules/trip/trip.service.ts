@@ -944,9 +944,25 @@ export class TripService implements ITripService {
           trip.servicePayload.bookingShare.sharedItinerary.toString(),
         )
       }
+      const notificationForCustomer = {
+        received: trip.customerId.toString(),
+        title: `Cuốc xe ${trip.code} đã bị ngưng thực hiện `,
+        body: `Cuốc xe ${serviceTypeText[trip.serviceType]} : ${trip.code} đã bị ngưng thực hiện do quá thời gian`,
+      }
+      const notificationForDriver = {
+        received: trip.driverId.toString(),
+        title: `Cuốc xe ${trip.code} đã bị thôi hoạt động`,
+        body: `Cuốc xe ${serviceTypeText[trip.serviceType]} : ${trip.code} đã bị ngưng thực hiện do quá thời gian`,
+      }
+      await this.notificationService.createNotification(notificationForCustomer)
+      await this.notificationService.createNotification(notificationForDriver)
       this.tripGateway.emitTripUpdate(
         trip.customerId.toString(),
         await this.getPersonalCustomerTrip(trip.customerId.toString())
+      );
+      this.tripGateway.emitTripUpdate(
+        trip.driverId.toString(),
+        await this.getPersonalDriverTrip(trip.driverId.toString())
       );
     }
   }
