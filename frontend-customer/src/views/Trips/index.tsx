@@ -43,6 +43,8 @@ const TripListPage = () => {
         return { text: 'Đã hoàn thành', className: 'bg-green-100 text-green-800' }
       case TripStatus.CANCELLED:
         return { text: 'Đã hủy', className: 'bg-red-100 text-red-800' }
+      case TripStatus.DROPPED_OFF:
+        return { text: 'Không thực hiện', className: 'bg-gray-100 text-gray-800' }
       default:
         return { text: status, className: 'bg-gray-100 text-gray-800' }
     }
@@ -149,6 +151,106 @@ const TripListPage = () => {
                   </div>
                 )}
 
+                {trip?.timeStart ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                      <svg
+                        className="w-6 h-6 text-blue-600 dark:text-white"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-700">Bắt đầu: </h3>
+                      <p className="text-gray-900">
+                        {new Date(trip.timeStart).toLocaleString('vi-VN', {
+                          timeZone: 'Asia/Ho_Chi_Minh',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ) : trip?.timeStartEstimate ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                      <svg
+                        className="w-6 h-6 text-blue-600 dark:text-white"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-700">Bắt đầu dự kiến: </h3>
+                      <p className="text-gray-900">
+                        {new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
+                          timeZone: 'Asia/Ho_Chi_Minh',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                      <svg
+                        className="w-6 h-6 text-blue-600 dark:text-white"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-700">Thời gian bắt đầu: </h3>
+                      <p className="text-gray-900">Chưa xác định</p>
+                    </div>
+                  </div>
+                )}
+
+
+
                 {/* Vehicle info */}
                 {trip.vehicleId && (
                   <div className="flex items-center space-x-3">
@@ -217,7 +319,7 @@ const TripListPage = () => {
           )
         })}
       </div>
-    </div>
+    </div >
   )
 }
 

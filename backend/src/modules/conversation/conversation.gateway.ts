@@ -37,7 +37,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
     @Inject(CONVERSATION_SERVICE) private readonly conversationService: IConversationService,
-  ) {}
+  ) { }
 
   afterInit(server: Server) {
     server.use(async (socket: Socket, next) => {
@@ -81,8 +81,8 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
     }
   }
 
-  handleDisconnect(client: Socket) {
-    this.redisService.deleteUserSocket(SOCKET_NAMESPACE.CONVERSATIONS, client.id);
+  async handleDisconnect(client: Socket) {
+    await this.redisService.deleteUserSocket(SOCKET_NAMESPACE.CONVERSATIONS, client.id);
     console.log(`Client disconnected from conversations: ${client.id}`);
   }
 
@@ -108,6 +108,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   @SubscribeMessage('joinConversation')
   async handleJoinConversation(client: Socket, conversationId: string) {
     try {
+      console.log('client.id', client.id);
       const user = (client as any).user;
       const conversation = await this.conversationService.getConversationById(
         conversationId,
@@ -127,6 +128,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
           user._id.toString(),
         )
       ) {
+        console.log(`Client ${client.id} joined conversation: ${conversationId}`);
         client.join(conversation._id.toString());
         client.emit('conversationJoined', conversation);
       }
@@ -180,6 +182,8 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
         const conversationsList = await this.conversationService.getPersonalConversations(
           updatedConversation.driverId._id.toString(),
         );
+        console.log('driverSọcketIds', driverSọcketIds);
+        console.log('conversationsList', conversationsList);
         await SocketUtils.safeEmit(
           this.server,
           driverSọcketIds,

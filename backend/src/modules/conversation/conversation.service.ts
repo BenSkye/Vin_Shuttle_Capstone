@@ -61,9 +61,9 @@ export class ConversationService implements IConversationService {
         HttpStatus.NOT_FOUND,
       );
     }
-    console.log('userId', userId);
-    console.log('conversation.customerId', conversation.customerId);
-    console.log('conversation.driverId', conversation.driverId);
+    // console.log('userId', userId);
+    // console.log('conversation.customerId', conversation.customerId);
+    // console.log('conversation.driverId', conversation.driverId);
     if (
       conversation.customerId._id.toString() !== userId &&
       conversation.driverId._id.toString() !== userId
@@ -76,7 +76,7 @@ export class ConversationService implements IConversationService {
         HttpStatus.FORBIDDEN,
       );
     }
-    console.log('conversation', conversation);
+    // console.log('conversation', conversation);
     return conversation;
   }
 
@@ -123,34 +123,34 @@ export class ConversationService implements IConversationService {
   }
 
   //run every 1 minute function check timeToOpen and timeToClose
-  // @Cron(CronExpression.EVERY_MINUTE, {
-  //   name: 'checkTimeToOpenAndClose',
-  // })
-  // async checkTimeToOpenAndClose() {
-  //   const current = new Date();
-  //   const conversations = await this.conversationRepository.getListConversation(
-  //     {
-  //       status: ConversationStatus.PENDING,
-  //       timeToOpen: { $lte: current },
-  //     },
-  //     [],
-  //   );
-  //   conversations.forEach(async conversation => {
-  //     await this.conversationRepository.openConversation(conversation._id.toString());
-  //   });
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: 'checkTimeToOpenAndClose',
+  })
+  async checkTimeToOpenAndClose() {
+    const current = new Date();
+    const conversations = await this.conversationRepository.getListConversation(
+      {
+        status: ConversationStatus.PENDING,
+        timeToOpen: { $lte: current },
+      },
+      [],
+    );
+    conversations.forEach(async conversation => {
+      await this.conversationRepository.openConversation(conversation._id.toString());
+    });
 
-  //   const conversationsClose = await this.conversationRepository.getListConversation(
-  //     {
-  //       status: ConversationStatus.OPENED,
-  //       timeToClose: { $lte: current },
-  //     },
-  //     [],
-  //   );
-  //   conversationsClose.forEach(async conversation => {
-  //     const trip = await this.tripRepository.findOne({ _id: conversation.tripId }, ['status']);
-  //     if ([TripStatus.CANCELLED, TripStatus.COMPLETED].includes(trip.status)) {
-  //       await this.conversationRepository.closeConversation(conversation._id.toString());
-  //     }
-  //   });
-  // }
+    const conversationsClose = await this.conversationRepository.getListConversation(
+      {
+        status: ConversationStatus.OPENED,
+        timeToClose: { $lte: current },
+      },
+      [],
+    );
+    conversationsClose.forEach(async conversation => {
+      const trip = await this.tripRepository.findOne({ _id: conversation.tripId }, ['status']);
+      if ([TripStatus.CANCELLED, TripStatus.COMPLETED, TripStatus.DROPPED_OFF].includes(trip.status)) {
+        await this.conversationRepository.closeConversation(conversation._id.toString());
+      }
+    });
+  }
 }

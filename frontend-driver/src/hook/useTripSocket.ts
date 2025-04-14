@@ -74,6 +74,7 @@ const useTripSocket = (id?: string) => {
                     await fetchInitialData();
                 } else {
                     const onConnect = () => {
+                        console.log('Socket Trip connected:', socketInstance?.id);
                         fetchInitialData();
                         socketInstance?.off('connect', onConnect);
                     };
