@@ -5,15 +5,17 @@ export enum TripStatus {
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
+  DROPPED_OFF = 'dropped_off',
 }
 
 export const tripStatusColor: Record<TripStatus, string> = {
   [TripStatus.BOOKING]: 'gold',
-  [TripStatus.CONFIRMED]: 'blue',
+  [TripStatus.CONFIRMED]: 'purple',
   [TripStatus.PICKUP]: 'green',
-  [TripStatus.IN_PROGRESS]: 'red',
+  [TripStatus.IN_PROGRESS]: 'yellow',
   [TripStatus.COMPLETED]: 'red',
   [TripStatus.CANCELLED]: 'red',
+  [TripStatus.DROPPED_OFF]: 'grey',
 }
 
 export const tripStatusText: Record<TripStatus, string> = {
@@ -23,6 +25,7 @@ export const tripStatusText: Record<TripStatus, string> = {
   [TripStatus.IN_PROGRESS]: 'Đang trong cuốc xe',
   [TripStatus.COMPLETED]: 'Đã hoàn thành',
   [TripStatus.CANCELLED]: 'Đã hủy',
+  [TripStatus.DROPPED_OFF]: 'Không thực hiện',
 }
 
 export enum TripCancelBy {

@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { useAuth } from '~/context/AuthContext';
@@ -27,11 +27,21 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
     isLoading,
     error,
     sendMessage,
+    resetHook
   } = useConversationSocket(conversationId);
   const [message, setMessage] = useState('');
   const { user } = useAuth();
   const navigation = useNavigation();
   const flatListRef = useRef<FlatList>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Conversations Screeen focused');
+      resetHook();
+      return () => {
+      };
+    }, [])
+  );
 
   const handleSendMessage = () => {
     if (message.trim()) {
