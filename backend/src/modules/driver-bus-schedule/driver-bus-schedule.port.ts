@@ -10,6 +10,13 @@ export interface IDriverBusScheduleRepository {
   findActiveByDriverAndDate(driverId: string, date: Date): Promise<DriverBusScheduleDocument[]>;
   update(id: string, data: UpdateDriverBusScheduleDto): Promise<DriverBusScheduleDocument>;
   delete(id: string): Promise<void>;
+  find(filter: any): Promise<DriverBusScheduleDocument[]>;
+  findConflictingSchedules(
+    driverId: string,
+    startTime: Date,
+    endTime: Date,
+    effectiveDate: Date
+  ): Promise<DriverBusScheduleDocument[]>;
 }
 
 export interface IDriverBusScheduleService {
@@ -25,4 +32,10 @@ export interface IDriverBusScheduleService {
   checkOut(id: string): Promise<DriverBusScheduleDocument>;
   updateCurrentStop(id: string, stopId: string): Promise<DriverBusScheduleDocument>;
   updatePassengerCount(id: string, count: number): Promise<DriverBusScheduleDocument>;
+  checkDriverAvailability(
+    driverId: string,
+    startTime: Date,
+    endTime: Date,
+    effectiveDate: Date
+  ): Promise<boolean>;
 } 
