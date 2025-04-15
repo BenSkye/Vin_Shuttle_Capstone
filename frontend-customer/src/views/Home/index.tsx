@@ -36,7 +36,7 @@ const HomePage = () => {
     },
     {
       id: 'route',
-      title: 'Đặt xe theo tuyến cố định',
+      title: 'Đặt xe lộ trình tham quan',
       description: 'Di chuyển theo các tuyến đường quen thuộc',
       icon: <FaRoute className="h-8 w-8 text-green-500" />,
       href: Routes.RIDE.ROUTES,

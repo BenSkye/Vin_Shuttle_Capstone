@@ -19,7 +19,7 @@ const TripTypeInfo = ({ serviceType }: TripTypeInfoProps) => {
             : serviceType === ServiceType.BOOKING_DESTINATION
               ? 'Đặt xe theo điểm đến'
               : serviceType === ServiceType.BOOKING_SCENIC_ROUTE
-                ? 'Đặt xe theo tuyến cố định'
+                ? 'Đặt xe lộ trình tham quan'
                 : serviceType === ServiceType.BOOKING_SHARE
                   ? 'Đặt xe chia sẻ'
                   : 'Cuốc xe'}

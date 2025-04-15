@@ -176,7 +176,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       case ServiceType.BOOKING_SCENIC_ROUTE:
         return {
           icon: 'routes',
-          label: 'Đặt xe theo tuyến cố định',
+          label: 'Đặt xe lộ trình tham quan',
           details: trip.servicePayload.bookingScenicRoute?.distanceEstimate
             ? `${(trip.servicePayload.bookingScenicRoute.distanceEstimate).toFixed(1)} km`
             : undefined,
