@@ -5,6 +5,7 @@ import { ICreateDriverSchedule, IUpdateDriverSchedule } from './driver-bus-sched
 import { IDriverBusScheduleRepository } from './driver-bus-schedule.port';
 import { DriverBusSchedule, DriverBusScheduleDocument } from './driver-bus-schedule.schema';
 import { BusScheduleStatus } from 'src/share/enums/bus-schedule.enum';
+import moment from 'moment';
 
 @Injectable()
 export class DriverBusScheduleRepository implements IDriverBusScheduleRepository {
@@ -102,5 +103,41 @@ export class DriverBusScheduleRepository implements IDriverBusScheduleRepository
 
   async delete(id: string): Promise<void> {
     await this.driverBusScheduleModel.findByIdAndDelete(id);
+  }
+  
+   async find(filter: any): Promise<DriverBusScheduleDocument[]> {
+    return this.driverBusScheduleModel.find(filter).exec();
+  }
+
+  async findConflictingSchedules(
+    driverId: string,
+    startTime: Date,
+    endTime: Date,
+    effectiveDate: Date
+  ): Promise<DriverBusScheduleDocument[]> {
+    const startOfDay = moment(effectiveDate).startOf('day').toDate();
+    const endOfDay = moment(effectiveDate).endOf('day').toDate();
+
+    return this.find({
+      driver: driverId,
+      startTime: { 
+        $gte: startOfDay,
+        $lte: endOfDay 
+      },
+      $or: [
+        {
+          $and: [
+            { startTime: { $lt: endTime } },
+            { endTime: { $gt: startTime } }
+          ]
+        }
+      ],
+      status: { 
+        $in: [
+          BusScheduleStatus.ACTIVE,
+          BusScheduleStatus.IN_PROGRESS
+        ] 
+      }
+    });
   }
 } 
