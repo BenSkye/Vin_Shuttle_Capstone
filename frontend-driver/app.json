@@ -21,13 +21,18 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
+"android": {
       "package": "com.vin.shuttle",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/driver-logo-app.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCirOlc8z_CvJs2SqyxPnfYNPCiviO8au4"
+        }
+      }
     },
     "extra": {
       "slug": "vinshuttledriver",
