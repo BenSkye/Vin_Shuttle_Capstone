@@ -115,7 +115,8 @@ export default function Sidebar() {
     <App>
       <Sider
         breakpoint="lg"
-        collapsedWidth="0"
+        collapsedWidth="80" // Chiều rộng khi thu gọn
+        width={250} // Tăng chiều ngang của Sidebar
         className="h-screen fixed left-0"
         style={{
           overflow: "auto",
