@@ -9,8 +9,6 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [
-    ],
     "orientation": "portrait",
     "icon": "./src/assets/driver-logo-app.png",
     "userInterfaceStyle": "light",
@@ -19,9 +17,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -30,10 +26,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/driver-logo-app.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
     "extra": {
-      "slug":"vinshuttledriver",
+      "slug": "vinshuttledriver",
       "eas": {
         "projectId": "2d99b6ac-0d50-499e-b5d1-c88612712ce7"
       }
