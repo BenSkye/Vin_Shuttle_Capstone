@@ -21,12 +21,12 @@ const ConversationListPage = () => {
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const { data: conversations, isLoading: listLoading, error: listError } = useConversationSocket()
 
-  const {
-    data: conversation,
-    isLoading: conversationLoading,
-    error: conversationError,
-    sendMessage,
-  } = useConversationSocket(selectedConversationId || undefined)
+  // const {
+  //   data: conversation,
+  //   isLoading: conversationLoading,
+  //   error: conversationError,
+  //   sendMessage,
+  // } = useConversationSocket(selectedConversationId || undefined)
 
   // Find conversation by tripId and set it as selected
   useEffect(() => {
@@ -118,9 +118,9 @@ const ConversationListPage = () => {
     }
   }, [conversations]);
 
-  useEffect(() => {
-    console.log('Selected conversation:', conversation)
-  }, [conversation])
+  // useEffect(() => {
+  //   console.log('Selected conversation:', conversation)
+  // }, [conversation])
 
   const [message, setMessage] = useState('')
 
@@ -130,9 +130,9 @@ const ConversationListPage = () => {
     }
   }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [(conversation as IConversation)?.listMessage])
+  // useEffect(() => {
+  //   scrollToBottom()
+  // }, [(conversation as IConversation)?.listMessage])
 
   // Add useEffect to handle mobile view
   useEffect(() => {
@@ -140,7 +140,8 @@ const ConversationListPage = () => {
       const mobile = window.innerWidth < 768
       setIsMobile(mobile)
 
-      if (!mobile) {
+      // Only show conversation list on desktop if no conversation is selected
+      if (!mobile && !selectedConversationId) {
         setShowConversationList(true)
       } else if (selectedConversationId && mobile) {
         setShowConversationList(false)
@@ -177,12 +178,12 @@ const ConversationListPage = () => {
     )
   }
 
-  const handleSendMessage = () => {
-    if (message.trim() && selectedConversationId) {
-      sendMessage(selectedConversationId, message)
-      setMessage('')
-    }
-  }
+  // const handleSendMessage = () => {
+  //   if (message.trim() && selectedConversationId) {
+  //     sendMessage(selectedConversationId, message)
+  //     setMessage('')
+  //   }
+  // }
 
   const getTimeString = (dateString?: string) => {
     if (!dateString) return ''
@@ -251,26 +252,29 @@ const ConversationListPage = () => {
                 ></path>
               </svg>
             </button>
-            <button
-              className="rounded-full p-2 hover:bg-gray-200 md:hidden"
-              onClick={() => setShowSearchSidebar(false)}
-              aria-label="Close sidebar"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            {/* Close button for mobile */}
+            {isMobile && (
+              <button
+                className="rounded-full p-2 hover:bg-gray-200"
+                onClick={() => setShowSearchSidebar(false)}
+                aria-label="Close sidebar"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-            </button>
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -292,11 +296,16 @@ const ConversationListPage = () => {
               className={`flex cursor-pointer items-center border-b border-gray-200 p-4 hover:bg-gray-100 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''}`}
               onClick={() => {
                 setSelectedConversationId(conv._id)
-                if (isMobile) {
+                setShowConversationList(false)
+                setShowSearchSidebar(false)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setSelectedConversationId(conv._id)
                   setShowConversationList(false)
+                  setShowSearchSidebar(false)
                 }
               }}
-              onKeyDown={(e) => e.key === 'Enter' && setSelectedConversationId(conv._id)}
               tabIndex={0}
               aria-label={`Conversation with ${conv.driverId?.name}`}
             >
@@ -326,7 +335,7 @@ const ConversationListPage = () => {
         {selectedConversationId ? (
           <ConversationDetail
             id={selectedConversationId}
-            onBackClick={isMobile ? handleBackToList : undefined}
+            onBackClick={handleBackToList}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center">

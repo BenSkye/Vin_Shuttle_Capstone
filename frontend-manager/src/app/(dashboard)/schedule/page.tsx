@@ -8,12 +8,13 @@ import EventCalendar from '@/components/EventCalendar';
 
 
 import { Driver } from '@/interfaces/index';
-import { getDriverSchedule, getAvailableDrivers } from '@/services/api/driver';
-import { DriverSchedule, updateDriverSchedule } from '@/services/api/schedule';
-import { format, isBefore, startOfDay } from 'date-fns';
+import { getAvailableDrivers } from '@/services/api/driver';
+import { DriverSchedule, getDriverScheduleByQuery, updateDriverSchedule } from '@/services/api/schedule';
+import { endOfWeek, format, isBefore, startOfDay, startOfWeek } from 'date-fns';
 
 import { getAvailableVehicles } from '../../../services/api/vehicles';
 import { AxiosError } from 'axios';
+import { DriverBackupNumber } from '@/interfaces/driver-schedules.enum';
 
 // Định nghĩa các loại modal để rõ ràng
 type ModalType = 'view' | 'assign' | 'update' | 'none';
@@ -32,6 +33,12 @@ const SchedulePage = () => {
     const [modalType, setModalType] = useState<ModalType>('none');
     const [error, setError] = useState<string | null>(null);
     const [isAssigningWeekly, setIsAssigningWeekly] = useState(false);
+    const [currentWeek, setCurrentWeek] = useState<Date>(new Date()); // Tuần hiện tại
+    const [startDate, setStartDate] = useState<string>(); // Ngày bắt đầu tuần hiện tại
+    const [endDate, setEndDate] = useState<string>(); // Ngày kết thúc tuần hiện tại
+    const [totalWorkingHours, setTotalWorkingHours] = useState<number>(0); // Tổng số giờ làm việc
+    const [actualWorkingHours, setActualWorkingHours] = useState<number>(0); // Số giờ làm việc thực tế
+    const [isLoading, setIsLoading] = useState(false); // Trạng thái tải dữ liệu
 
 
     // Form riêng biệt cho thao tác gán và cập nhật
@@ -61,9 +68,22 @@ const SchedulePage = () => {
     };
 
     // Tải dữ liệu ban đầu
+    // useEffect(() => {
+    //     fetchDriverSchedules();
+    // }, []);
+
     useEffect(() => {
-        fetchDriverSchedules();
-    }, []);
+        setIsLoading(true);
+        const startWeek = startOfWeek(currentWeek, { weekStartsOn: 1 })
+        const endWeek = endOfWeek(currentWeek, { weekStartsOn: 1 });
+        const startDateOfWeek = format(startWeek, 'yyyy-MM-dd');
+        const endDateOfWeek = format(endWeek, 'yyyy-MM-dd');
+        setStartDate(startDateOfWeek);
+        setEndDate(endDateOfWeek);
+        console.log("Đầu Tuần :", format(startWeek, 'yyyy-MM-dd'));
+        console.log("Cuối tuần:", format(endWeek, 'yyyy-MM-dd'));
+        fetchDriverSchedules(startDateOfWeek, endDateOfWeek);
+    }, [currentWeek])
 
     const fetchVehicles = async (date: string) => {
         try {
@@ -102,10 +122,16 @@ const SchedulePage = () => {
         }
     };
 
-    const fetchDriverSchedules = async () => {
+    const fetchDriverSchedules = async (startDate: string, endDate: string) => {
         try {
             setError(null);
-            const response = await getDriverSchedule();
+            const result = await getDriverScheduleByQuery({
+                startDate: startDate,
+                endDate: endDate,
+            });
+            const response = result.driverSchedules
+            setTotalWorkingHours(result.totalWorkingHours);
+            setActualWorkingHours(result.actualWorkingHours);
 
             if (!Array.isArray(response)) {
                 const errorMessage = "Định dạng phản hồi không hợp lệ cho lịch trình";
@@ -144,6 +170,7 @@ const SchedulePage = () => {
             });
 
             setActivities(formattedActivities);
+            setIsLoading(false);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Không thể tải lịch trình tài xế";
             console.error("Lỗi khi tải lịch trình tài xế:", error);
@@ -278,7 +305,9 @@ const SchedulePage = () => {
             await DriverSchedule(scheduleData);
             message.success("Đã lên lịch tài xế thành công");
             setIsModalOpen(false);
-            fetchDriverSchedules();
+            if (startDate && endDate) {
+                fetchDriverSchedules(startDate, endDate); // Refresh the schedule display
+            }
         } catch (error: unknown) {
             let errorMessage = "Đã xảy ra lỗi không mong muốn";
 
@@ -326,7 +355,9 @@ const SchedulePage = () => {
 
             message.success("Cập nhật lịch trình thành công");
             setIsModalOpen(false);
-            fetchDriverSchedules();
+            if (startDate && endDate) {
+                fetchDriverSchedules(startDate, endDate); // Refresh the schedule display
+            }
         } catch (error) {
             let errorMessage = error instanceof Error ? error.message : "Không thể cập nhật lịch trình";
             if (error instanceof AxiosError) {
@@ -480,6 +511,17 @@ const SchedulePage = () => {
                     <p className="text-sm text-gray-500 mt-1">Ngày: {selectedDate}</p>
                 </div>
 
+                <div className='mb-4'>
+                    {
+                        drivers.length <= DriverBackupNumber ? (
+                            <p className="text-sm text-orange-500 mt-1 ">Còn {drivers.length} tài xế, đảm bảo lịch trình để có tài xế thay thế khi xảy ra sự cố.</p>
+                        ) : (
+                            <p className="text-sm mt-">Còn {drivers.length} tài xế</p>
+
+                        )
+                    }
+                </div>
+
                 <Form.Item
                     name="driverId"
                     label="Chọn Tài Xế"
@@ -511,7 +553,7 @@ const SchedulePage = () => {
                         }))}
                     />
                 </Form.Item>
-            </Form>
+            </Form >
         );
     };
 
@@ -644,7 +686,9 @@ const SchedulePage = () => {
             }
 
             message.success("Đã phân công lịch trình cho tuần thành công");
-            fetchDriverSchedules(); // Refresh the schedule display
+            if (startDate && endDate) {
+                fetchDriverSchedules(startDate, endDate); // Refresh the schedule display
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Không thể phân công lịch trình cho tuần";
             console.error("Lỗi khi phân công lịch trình tuần:", error);
@@ -697,11 +741,24 @@ const SchedulePage = () => {
                         </div>
                     </div>
                 </div>
+
+                <div className="p-4 border-t mt-4">
+                    <div className="flex gap-4" >
+                        <h4 className="font-medium mb-2">Tổng số giờ làm việc:</h4>
+                        <p>{totalWorkingHours} giờ</p>
+                        <h4 className="font-medium mb-2">Số giờ làm việc thực tế:</h4>
+                        <p>{actualWorkingHours} giờ</p>
+                    </div>
+                </div>
+
                 <ScheduleCalendar
                     ref={calendarRef}
                     activities={activities}
                     onActivityClick={handleActivityClick}
                     onSlotClick={handleSlotClick}
+                    onWeekChange={(week: Date) => setCurrentWeek(week)}
+                    isLoading={isLoading}
+                    setIsLoading={setIsLoading}
                 />
 
                 <Modal

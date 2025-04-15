@@ -3,6 +3,7 @@ import { QueryOptions } from 'src/share/interface';
 
 export interface ICreateRating {
   tripId: string;
+  driverId?: string;
   customerId?: string;
   rate: number;
   feedback?: string;
@@ -10,6 +11,7 @@ export interface ICreateRating {
 
 export interface IUpdateRating {
   tripId?: string;
+  driverId?: string;
   customerId?: string;
   rate?: number;
   feedback?: string;

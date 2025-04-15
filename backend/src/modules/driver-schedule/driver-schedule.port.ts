@@ -7,12 +7,13 @@ import {
 import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { UserDocument } from 'src/modules/users/users.schema';
 import { VehicleDocument } from 'src/modules/vehicles/vehicles.schema';
+import { QueryOptions } from 'src/share/interface';
 
 export interface IDriverScheduleRepository {
   createDriverSchedule(driverSchedule: ICreateDriverSchedule): Promise<DriverScheduleDocument>;
   getDriverScheduleById(id: string): Promise<DriverScheduleDocument>;
   getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]>;
-  getDriverSchedules(query: any, select: string[]): Promise<DriverScheduleDocument[]>;
+  getDriverSchedules(query: any, select: string[], options?: QueryOptions): Promise<DriverScheduleDocument[]>;
   findOneDriverSchedule(query: any, select: string[]): Promise<PopulatedDriverScheduleDocument>;
   updateDriverSchedule(
     id: string,
@@ -37,7 +38,11 @@ export interface IDriverScheduleService {
     end: Date,
   ): Promise<DriverScheduleDocument[]>;
   getAllDriverSchedulesGeneral(): Promise<DriverScheduleDocument[]>;
-  getDriverSchedules(query: driverScheduleParams): Promise<DriverScheduleDocument[]>;
+  getDriverSchedules(query: driverScheduleParams): Promise<{
+    driverSchedules: DriverScheduleDocument[],
+    totalWorkingHours: number,
+    actualWorkingHours: number
+  }>
   getScheduleGeneralFromStartToEnd(start: Date, end: Date): Promise<DriverScheduleDocument[]>;
   updateDriverSchedule(
     id: string,

@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import useConversationSocket from '~/hook/useConversationSocket';
 import { IConversation } from '~/interface/conversation';
@@ -19,7 +19,7 @@ import { vi } from 'date-fns/locale';
 import { styles } from '~/styles/ConversationStyle';
 export default function ConversationScreen() {
   const navigation = useNavigation();
-  const { data: conversations, isLoading, error, refreshData } = useConversationSocket();
+  const { data: conversations, isLoading, error, refreshData, resetHook } = useConversationSocket();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleConversationPress = (conversationId: string) => {
@@ -91,11 +91,20 @@ export default function ConversationScreen() {
     );
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Conversations Screeen focused');
+      resetHook();
+      return () => {
+      };
+    }, [])
+  );
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       // Fetch fresh data from API
-      await refreshData();
+      await resetHook();
     } catch (error) {
       console.error('Error refreshing conversations:', error);
     } finally {

@@ -246,4 +246,39 @@ export class DriverBusScheduleService implements IDriverBusScheduleService {
       totalPassengers
     });
   }
+  async checkDriverAvailability(
+  driverId: string,
+  startTime: Date,
+  endTime: Date,
+  effectiveDate: Date
+): Promise<boolean> {
+  const startOfDay = moment(effectiveDate).startOf('day').toDate();
+  const endOfDay = moment(effectiveDate).endOf('day').toDate();
+
+  // Lấy tất cả lịch trình active của tài xế trong ngày
+  const driverSchedules = await this.driverBusScheduleRepo.findActiveByDriverAndDate(
+    driverId,
+    effectiveDate
+  );
+
+  // Kiểm tra xem có lịch trình nào overlap không
+  const hasConflict = driverSchedules.some(schedule => {
+    const scheduleStart = moment(schedule.startTime);
+    const scheduleEnd = moment(schedule.endTime);
+    const newStart = moment(startTime);
+    const newEnd = moment(endTime);
+
+    return (
+      schedule.status !== BusScheduleStatus.CANCELLED &&
+      schedule.status !== BusScheduleStatus.COMPLETED &&
+      (
+        (newStart.isSameOrAfter(scheduleStart) && newStart.isBefore(scheduleEnd)) ||
+        (newEnd.isAfter(scheduleStart) && newEnd.isSameOrBefore(scheduleEnd)) ||
+        (newStart.isSameOrBefore(scheduleStart) && newEnd.isAfter(scheduleEnd))
+      )
+    );
+  });
+
+  return hasConflict;
+ }
 } 

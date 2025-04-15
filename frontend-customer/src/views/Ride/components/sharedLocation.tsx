@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { useMap } from 'react-leaflet'
 
 import '@/styles/locationselection.css'
+import { BOOKING_SHARED_SEAT } from '@/constants/booking.constants'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -576,7 +577,7 @@ const SharedLocation = ({
             >
               <path
                 fillRule="evenodd"
-                d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
+                d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 101.414-1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
                 clipRule="evenodd"
               />
             </svg>
@@ -601,8 +602,8 @@ const SharedLocation = ({
                 <input
                   type="text"
                   className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-300'
+                    ? 'border-blue-500 ring-2 ring-blue-200'
+                    : 'border-gray-300'
                     }`}
                   placeholder="Nhập địa điểm đón"
                   value={startSearchQuery}
@@ -614,13 +615,13 @@ const SharedLocation = ({
 
                 <button
                   type="button"
-                  className="whitespace-nowrap rounded-lg bg-blue-500 px-3 text-sm text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400"
+                  className="flex-shrink-0 whitespace-nowrap rounded-lg bg-blue-500 px-2 py-2.5 text-sm text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400 sm:px-4"
                   onClick={handleDetectLocation}
                   disabled={isFetching || loading}
                   aria-label="Sử dụng vị trí hiện tại làm điểm đón"
                   tabIndex={0}
                 >
-                  {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
+                  {isFetching ? 'Đang tìm...' : 'Vị trí'}
                 </button>
               </form>
             </div>
@@ -647,7 +648,7 @@ const SharedLocation = ({
                 />
                 <button
                   type="submit"
-                  className="whitespace-nowrap rounded-lg bg-red-500 px-3 text-sm text-white hover:bg-red-600 disabled:bg-gray-400"
+                  className="flex-shrink-0 whitespace-nowrap rounded-lg bg-red-500 px-2 py-2.5 text-sm text-white hover:bg-red-600 disabled:bg-gray-400 sm:px-4"
                   disabled={isFetching || loading}
                   aria-label="Tìm kiếm địa điểm đến"
                   tabIndex={0}
@@ -660,61 +661,36 @@ const SharedLocation = ({
         </div>
 
         {/* Map Control Buttons */}
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-4">
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-2 sm:gap-4">
           <button
-            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
+            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
               }`}
             onClick={() => setActivePoint('start')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đón trên bản đồ"
             tabIndex={0}
           >
-            Chọn điểm đón
+            Điểm đón
           </button>
           <button
-            className={`rounded-lg px-4 py-2 text-white shadow-md transition-all ${activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
+            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
               }`}
             onClick={() => setActivePoint('end')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đến trên bản đồ"
             tabIndex={0}
           >
-            Chọn điểm đến
+            Điểm đến
           </button>
         </div>
       </div>
 
       {/* Seat Selection */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
-            3
-          </div>
-          <h3 className="text-lg font-semibold text-green-600">Số chỗ ngồi</h3>
-        </div>
+
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNumberOfSeatsChange(Math.max(1, numberOfSeats - 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
-              disabled={numberOfSeats <= 1 || loading}
-              aria-label="Giảm số chỗ ngồi"
-              tabIndex={0}
-            >
-              -
-            </button>
-            <span className="min-w-[3rem] text-center text-lg font-semibold">{numberOfSeats}</span>
-            <button
-              onClick={() => onNumberOfSeatsChange(Math.min(4, numberOfSeats + 1))}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
-              disabled={numberOfSeats >= 4 || loading}
-              aria-label="Tăng số chỗ ngồi"
-              tabIndex={0}
-            >
-              +
-            </button>
-          </div>
-          <span className="text-sm text-gray-500">Tối đa 4 người cho mỗi cuốc xe chung</span>
+
+
         </div>
       </div>
 
@@ -755,18 +731,7 @@ const SharedLocation = ({
               </svg>
               <span className="font-medium text-gray-700">Khoảng {routeInfo.duration} phút</span>
             </div>
-            <div className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-blue-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-              </svg>
-              <span className="font-medium text-gray-700">{numberOfSeats} chỗ ngồi</span>
-            </div>
+
           </div>
         </div>
       )}

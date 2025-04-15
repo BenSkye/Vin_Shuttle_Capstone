@@ -242,14 +242,14 @@ export default function TripHistoryPage() {
         return serviceType === "booking_hour"
           ? "Đặt theo giờ"
           : serviceType === "booking_destination"
-          ? "Đặt xe theo điểm đến"
-          : serviceType === "booking_share"
-          ? "Đặt xe chia sẻ"
-          : serviceType === "booking_scenic_route"
-          ? "Đặt xe theo tuyến cố định"
-          : serviceType === "booking_bus_route"
-          ? "Đặt xe theo tuyến xe buýt"
-          : "N/A";
+            ? "Đặt xe theo điểm đến"
+            : serviceType === "booking_share"
+              ? "Đặt xe chia sẻ"
+              : serviceType === "booking_scenic_route"
+                ? "Đặt xe lộ trình tham quan"
+                : serviceType === "booking_bus_route"
+                  ? "Đặt xe theo tuyến xe buýt"
+                  : "N/A";
       },
     },
     {

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { Alert, Card, Radio, Space, Typography, notification } from 'antd'
+import { Alert, Card, Radio, Space, Typography, notification, Steps } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -20,6 +20,7 @@ import {
 } from '@/interface/booking.interface'
 import { bookingHour } from '@/service/booking.service'
 import { vehicleSearchHour } from '@/service/search.service'
+import { cancelBooking } from '@/service/booking.service'
 
 const LocationSelection = dynamic(() => import('@/views/Ride/components/locationselection'), {
   ssr: false,
@@ -34,6 +35,7 @@ type LocationPoint = {
 }
 
 const HourlyBookingPage = () => {
+  const steps = ['datetime', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
   // Define steps for the booking flow
   const [currentStep, setCurrentStep] = useState<
     'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout'
@@ -229,7 +231,9 @@ const HourlyBookingPage = () => {
     setError(null)
 
     try {
+      console.log('Booking data when confirming:', booking)
       const response = await bookingHour(booking)
+      console.log('Booking response data:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
       return response
@@ -306,12 +310,35 @@ const HourlyBookingPage = () => {
         setCurrentStep('payment')
         break
       case 'checkout':
-        setCurrentStep('confirmation')
+        if (bookingResponse && bookingResponse.newBooking._id) {
+          // Cancel the booking when returning from checkout
+          setLoading(true)
+          cancelBooking(bookingResponse.newBooking._id)
+            .then(() => {
+              notification.success({
+                message: 'Hủy đặt xe thành công',
+                description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+              })
+              setBookingResponse(null)
+              setCurrentStep('confirmation')
+            })
+            .catch((error) => {
+              notification.error({
+                message: 'Lỗi khi hủy đặt xe',
+                description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+              })
+            })
+            .finally(() => {
+              setLoading(false)
+            })
+        } else {
+          setCurrentStep('confirmation')
+        }
         break
       default:
         break
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   // Update booking state whenever dependencies change
   useEffect(() => {
@@ -435,13 +462,13 @@ const HourlyBookingPage = () => {
               <Space direction="vertical" className="w-full">
                 <Radio value={PaymentMethod.PAY_OS} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="mr-3 h-8" />
+                    <img src="/images/logo-payos.png" alt="PayOS" className="mr-3 h-8" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
                 <Radio value={PaymentMethod.MOMO} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="mr-3 h-8" />
+                    <img src="/images/logo_momo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
@@ -544,6 +571,7 @@ const HourlyBookingPage = () => {
             <div className="mt-6 flex justify-between">
               <button
                 onClick={handleBackStep}
+
                 className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại chọn phương thức thanh toán"
                 tabIndex={0}
@@ -552,6 +580,7 @@ const HourlyBookingPage = () => {
               </button>
               <button
                 onClick={handleNextStep}
+                disabled={loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
@@ -569,11 +598,12 @@ const HourlyBookingPage = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
                 aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>
@@ -584,17 +614,6 @@ const HourlyBookingPage = () => {
     }
   }
 
-  // Progress indicators for each step
-  const getStepProgress = (step: 'datetime' | 'vehicle' | 'location' | 'payment' | 'confirmation' | 'checkout') => {
-    const steps = ['datetime', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
-    const currentIndex = steps.indexOf(currentStep)
-    const stepIndex = steps.indexOf(step)
-
-    if (stepIndex < currentIndex) return 100
-    if (stepIndex === currentIndex) return 100
-    return 0
-  }
-
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
@@ -602,78 +621,20 @@ const HourlyBookingPage = () => {
       </Title>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div
-            className={`flex-1 text-center ${currentStep === 'datetime' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('datetime') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('datetime')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn ngày & giờ</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'vehicle' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('vehicle') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('vehicle')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn loại xe</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('location') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('location')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'payment' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('payment') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('payment')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Phương thức thanh toán</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'confirmation' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('confirmation') > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
-                style={{ width: `${getStepProgress('confirmation')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'}`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${getStepProgress('checkout') > 0 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: `${getStepProgress('checkout')}%` }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+        <Steps
+          current={steps.indexOf(currentStep)}
+          items={[
+            { title: 'Chọn thời gian' },
+            { title: 'Chọn xe' },
+            { title: 'Địa điểm' },
+            { title: 'Thanh toán' },
+            { title: 'Xác nhận' },
+            { title: 'Hoàn tất' },
+          ]}
+          responsive
+          direction="horizontal"
+          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+        />
       </div>
 
       {error && (

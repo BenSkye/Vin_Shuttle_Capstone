@@ -62,33 +62,13 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
     if (!name) return '?'
     return name.charAt(0).toUpperCase()
   }
+  //yessir
 
   return (
     <div className="flex h-full flex-col bg-gray-100">
       {/* Conversation Header */}
       <div className="flex items-center border-b border-gray-200 bg-white p-4">
-        {onBackClick && (
-          <button
-            className="mr-3 rounded-full p-2 hover:bg-gray-200 md:hidden"
-            onClick={onBackClick}
-            aria-label="Back to conversations"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              ></path>
-            </svg>
-          </button>
-        )}
+
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
           {getInitial((conversation as IConversation)?.driverId?.name)}
         </div>

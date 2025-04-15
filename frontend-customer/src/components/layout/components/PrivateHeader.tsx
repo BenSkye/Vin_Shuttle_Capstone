@@ -39,8 +39,8 @@ const privateNavItems = [
     label: 'Đặt xe',
     items: [
       { label: 'Đặt xe theo giờ', href: Routes.RIDE.HOURLY },
-      { label: 'Đặt xe theo tuyến', href: Routes.RIDE.ROUTES },
-      { label: 'Đặt xe chung', href: Routes.RIDE.SHARED },
+      { label: 'Đặt xe lộ trình tham quan', href: Routes.RIDE.ROUTES },
+      { label: 'Đặt xe đi chung', href: Routes.RIDE.SHARED },
       { label: 'Đặt xe điểm đến', href: Routes.RIDE.DESTINATION },
     ],
   },

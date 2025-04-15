@@ -30,3 +30,4 @@ export enum DriverScheduleTaskType {
   BUS = 'bus',
 }
 
+export const DriverBackupNumber = 2 

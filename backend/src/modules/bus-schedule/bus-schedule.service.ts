@@ -106,46 +106,159 @@ export class BusScheduleService implements IBusScheduleService {
   }
 
   async createSchedule(dto: CreateBusScheduleDto): Promise<BusScheduleDocument> {
+    // 1. Validate input cơ bản
     await this.validateScheduleInput(dto);
 
-    // Generate initial driver assignments with effectiveDate
-    const driverAssignments = this.generateInitialDriverAssignments(
-      dto.drivers,
-      dto.vehicles,
-      dto.dailyStartTime,
-      dto.dailyEndTime,
-      dto.effectiveDate
-    );
+    // 2. Validate và xử lý driverAssignments
+    let finalDriverAssignments: DriverAssignment[];
 
-    // Create the bus schedule
+    if (dto.driverAssignments && dto.driverAssignments.length > 0) {
+      // Validate driverAssignments từ request
+      await this.validateDriverAssignments(dto.driverAssignments, dto.drivers, dto.vehicles);
+      finalDriverAssignments = dto.driverAssignments;
+    } else {
+      // Tự động tạo driverAssignments
+      finalDriverAssignments = this.generateInitialDriverAssignments(
+        dto.drivers,
+        dto.vehicles,
+        dto.dailyStartTime,
+        dto.dailyEndTime,
+        dto.effectiveDate
+      );
+    }
+
+    // 3. Validate số lượng và khả năng phân công
+    if (finalDriverAssignments.length === 0) {
+      throw new BadRequestException({
+        message: 'No valid driver assignments could be created',
+        vnMessage: 'Không thể tạo phân công tài xế hợp lệ'
+      });
+    }
+
+    // 4. Kiểm tra trạng thái và khả dụng của tài xế và xe
+    await this.validateResourcesAvailability(finalDriverAssignments, dto.effectiveDate);
+
+    // 5. Create the bus schedule
     const schedule = await this.busScheduleRepository.create({
       ...dto,
-      driverAssignments
+      driverAssignments: finalDriverAssignments
     });
 
-    // Calculate trip duration based on route's estimated duration
-    const route = await this.busRouteService.getRouteById(dto.busRoute);
-    const tripDuration = route.estimatedDuration; // in minutes
+    try {
+      // 6. Cập nhật trạng thái xe và tạo lịch trình chi tiết
+      await this.createDetailedSchedules(schedule, finalDriverAssignments);
+      
+      return schedule;
+    } catch (error) {
+      // Nếu có lỗi, rollback lại các thay đổi
+      await this.busScheduleRepository.delete(schedule._id.toString());
+      throw error;
+    }
+  }
 
-    // Generate driver bus schedules for each trip
-    const startTime = moment(dto.dailyStartTime, 'HH:mm');
-    const endTime = moment(dto.dailyEndTime, 'HH:mm');
-    const totalMinutes = endTime.diff(startTime, 'minutes');
-    const tripsPerDriver = Math.floor(totalMinutes / tripDuration);
+  // Thêm các hàm validation mới
+  private async validateDriverAssignments(
+    assignments: DriverAssignment[],
+    allowedDrivers: string[],
+    allowedVehicles: string[]
+  ): Promise<void> {
+    // 1. Validate thời gian của mỗi assignment
+    for (const assignment of assignments) {
+      // Kiểm tra định dạng thời gian
+      if (!moment(assignment.startTime).isValid() || !moment(assignment.endTime).isValid()) {
+        throw new BadRequestException('Invalid time format in driver assignments');
+      }
 
-    // Create driver bus schedules for each assignment
+      // Kiểm tra thời gian kết thúc phải sau thời gian bắt đầu
+      if (moment(assignment.endTime).isSameOrBefore(moment(assignment.startTime))) {
+        throw new BadRequestException('End time must be after start time in driver assignments');
+      }
+
+      // Kiểm tra tài xế và xe có trong danh sách cho phép
+      if (!allowedDrivers.includes(assignment.driverId.toString())) {
+        throw new BadRequestException(`Driver ${assignment.driverId} is not in the allowed drivers list`);
+      }
+
+      if (!allowedVehicles.includes(assignment.vehicleId.toString())) {
+        throw new BadRequestException(`Vehicle ${assignment.vehicleId} is not in the allowed vehicles list`);
+      }
+    }
+
+    // 2. Kiểm tra xung đột thời gian giữa các assignments
+    for (let i = 0; i < assignments.length; i++) {
+      for (let j = i + 1; j < assignments.length; j++) {
+        if (this.hasTimeOverlap(assignments[i], assignments[j])) {
+          // Kiểm tra xung đột tài xế
+          if (assignments[i].driverId === assignments[j].driverId) {
+            throw new BadRequestException('Driver has overlapping assignments');
+          }
+          // Kiểm tra xung đột xe
+          if (assignments[i].vehicleId === assignments[j].vehicleId) {
+            throw new BadRequestException('Vehicle has overlapping assignments');
+          }
+        }
+      }
+    }
+  }
+
+  private async validateResourcesAvailability(
+    assignments: DriverAssignment[],
+    effectiveDate: Date
+  ): Promise<void> {
+    for (const assignment of assignments) {
+      // Kiểm tra tài xế có lịch trình khác trong cùng thời gian không
+      const driverConflicts = await this.driverBusScheduleService.checkDriverAvailability(
+        assignment.driverId,
+        assignment.startTime,
+        assignment.endTime,
+        effectiveDate
+      );
+
+      if (driverConflicts) {
+        throw new BadRequestException(`Driver ${assignment.driverId} has conflicting schedule`);
+      }
+
+      // Kiểm tra xe có đang được sử dụng không
+      const vehicle = await this.vehicleService.findById(assignment.vehicleId);
+      if (!vehicle || vehicle.operationStatus === VehicleOperationStatus.CHARGING) {
+        throw new BadRequestException(`Vehicle ${assignment.vehicleId} is not available`);
+      }
+    }
+  }
+
+  private hasTimeOverlap(assignment1: DriverAssignment, assignment2: DriverAssignment): boolean {
+    const start1 = moment(assignment1.startTime);
+    const end1 = moment(assignment1.endTime);
+    const start2 = moment(assignment2.startTime);
+    const end2 = moment(assignment2.endTime);
+
+    return start1.isBefore(end2) && start2.isBefore(end1);
+  }
+
+  private async createDetailedSchedules(
+    schedule: BusScheduleDocument,
+    driverAssignments: DriverAssignment[]
+  ): Promise<void> {
+    // Lấy thông tin tuyến xe
+    const route = await this.busRouteService.getRouteById(schedule.busRoute.toString());
+    const tripDuration = route.estimatedDuration;
+
+    // Tạo lịch trình chi tiết cho từng phân công
     for (const assignment of driverAssignments) {
-      for (let tripNumber = 1; tripNumber <= tripsPerDriver; tripNumber++) {
-        const tripStartTime = moment(startTime).add((tripNumber - 1) * tripDuration, 'minutes');
+      // Tính số chuyến có thể thực hiện trong thời gian phân công
+      const assignmentDuration = moment(assignment.endTime).diff(moment(assignment.startTime), 'minutes');
+      const possibleTrips = Math.floor(assignmentDuration / tripDuration);
+
+      // Tạo các chuyến xe
+      for (let tripNumber = 1; tripNumber <= possibleTrips; tripNumber++) {
+        const tripStartTime = moment(assignment.startTime).add((tripNumber - 1) * tripDuration, 'minutes');
         const tripEndTime = moment(tripStartTime).add(tripDuration, 'minutes');
 
-        if (tripEndTime.isAfter(endTime)) {
-          break;
-        }
+        if (tripEndTime.isAfter(moment(assignment.endTime))) break;
 
         await this.driverBusScheduleService.createSchedule({
           driver: assignment.driverId,
-          busRoute: dto.busRoute,
+          busRoute: schedule.busRoute.toString(),
           vehicle: assignment.vehicleId,
           startTime: tripStartTime.toDate(),
           endTime: tripEndTime.toDate(),
@@ -153,9 +266,12 @@ export class BusScheduleService implements IBusScheduleService {
           status: BusScheduleStatus.ACTIVE
         });
       }
-    }
 
-    return schedule;
+      // Cập nhật trạng thái xe
+      await this.vehicleService.update(assignment.vehicleId, {
+        operationStatus: VehicleOperationStatus.RUNNING
+      });
+    }
   }
 
   async generateDailyTrips(scheduleId: string, date: Date): Promise<GeneratedBusTrip[]> {

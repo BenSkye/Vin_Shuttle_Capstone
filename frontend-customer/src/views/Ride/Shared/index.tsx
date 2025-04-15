@@ -2,15 +2,16 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography } from 'antd'
-import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { Radio, Space, Typography, notification, Steps } from 'antd'
+
+
+import { FaMapMarkerAlt, FaCheckCircle, FaCreditCard } from 'react-icons/fa'
 
 import { PaymentMethod } from '@/constants/payment.enum'
-
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
 
-import { bookingShared } from '../../../service/booking.service'
+import { bookingShared, cancelBooking } from '../../../service/booking.service'
+
 import CheckoutPage from '../components/checkoutpage'
 import SharedLocation from '../components/sharedLocation'
 
@@ -22,7 +23,6 @@ type LocationPoint = {
 }
 
 const SharedBookingFlow = () => {
-  const router = useRouter()
   const [currentStep, setCurrentStep] = useState<'location' | 'confirmation' | 'checkout'>('location')
   const [startPoint, setStartPoint] = useState<LocationPoint>({
     position: { lat: 10.840405, lng: 106.843424 },
@@ -247,9 +247,32 @@ const SharedBookingFlow = () => {
     if (currentStep === 'confirmation') {
       setCurrentStep('location')
     } else if (currentStep === 'checkout') {
-      setCurrentStep('confirmation')
+      if (bookingResponse && bookingResponse.newBooking._id) {
+        // Cancel the booking when returning from checkout
+        setLoading(true)
+        cancelBooking(bookingResponse.newBooking._id)
+          .then(() => {
+            notification.success({
+              message: 'Hủy đặt xe thành công',
+              description: 'Đơn đặt xe của bạn đã được hủy thành công.',
+            })
+            setBookingResponse(null)
+            setCurrentStep('confirmation')
+          })
+          .catch((error) => {
+            notification.error({
+              message: 'Lỗi khi hủy đặt xe',
+              description: error.message || 'Không thể hủy đơn đặt xe. Vui lòng thử lại sau.',
+            })
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+      } else {
+        setCurrentStep('confirmation')
+      }
     }
-  }, [currentStep])
+  }, [currentStep, bookingResponse])
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -274,15 +297,15 @@ const SharedBookingFlow = () => {
               className="w-full"
             >
               <Space direction="vertical" className="w-full">
-                <Radio value="pay_os" className="w-full rounded-lg border p-4">
+                <Radio value={PaymentMethod.PAY_OS} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/payos-logo.png" alt="PayOS" className="mr-3 h-8" />
+                    <img src="/images/logo-payos.png" alt="PayOS" className="mr-3 h-8" />
                     <span>Thanh toán qua PayOS</span>
                   </div>
                 </Radio>
-                <Radio value="momo" className="w-full rounded-lg border p-4">
+                <Radio value={PaymentMethod.MOMO} className="w-full rounded-lg border p-4">
                   <div className="flex items-center">
-                    <img src="/images/momo-logo.png" alt="Momo" className="mr-3 h-8" />
+                    <img src="/images/logo_momo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
@@ -399,7 +422,8 @@ const SharedBookingFlow = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600"
+                disabled={loading}
+                className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
@@ -416,11 +440,12 @@ const SharedBookingFlow = () => {
             <div className="flex justify-start">
               <button
                 onClick={handleBackStep}
-                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
+                disabled={loading}
+                className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600 disabled:bg-gray-300"
                 aria-label="Quay lại trang xác nhận"
                 tabIndex={0}
               >
-                Quay lại
+                {loading ? 'Đang hủy đặt xe...' : 'Quay lại'}
               </button>
             </div>
           </div>
@@ -430,54 +455,50 @@ const SharedBookingFlow = () => {
         return null
     }
   }
-  //yessir
+
+  const getCurrentStepNumber = () => {
+    switch (currentStep) {
+      case 'location':
+        return 0
+      case 'confirmation':
+        return 1
+      case 'checkout':
+        return 2
+      default:
+        return 0
+    }
+  }
+
+  const steps = [
+    {
+      title: 'Chọn địa điểm',
+      icon: <FaMapMarkerAlt className="text-xl" />
+    },
+    {
+      title: 'Xác nhận',
+      icon: <FaCheckCircle className="text-xl" />
+    },
+    {
+      title: 'Thanh toán',
+      icon: <FaCreditCard className="text-xl" />
+    }
+  ]
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Title level={2} className="mb-6 text-center text-lg sm:mb-8 sm:text-xl md:text-2xl">
-        Đặt xe chung
+        Đặt xe đi chung
       </Title>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div
-            className={`flex-1 text-center ${currentStep === 'location' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'location' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: '100%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Chọn địa điểm</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'confirmation' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'confirmation' || currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: currentStep === 'confirmation' || currentStep === 'checkout' ? '100%' : '0%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Xác nhận</span>
-          </div>
-          <div
-            className={`flex-1 text-center ${currentStep === 'checkout' ? 'text-blue-500' : 'text-gray-500'
-              }`}
-          >
-            <div className="mb-2 h-2 w-full rounded-full bg-gray-200">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${currentStep === 'checkout' ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                style={{ width: currentStep === 'checkout' ? '100%' : '0%' }}
-              />
-            </div>
-            <span className="hidden sm:inline">Thanh toán</span>
-          </div>
-        </div>
+
+      <div>
+        <Steps
+          current={getCurrentStepNumber()}
+          items={steps}
+          className="custom-steps"
+          responsive={true}
+          size="small"
+          labelPlacement="vertical"
+        />
       </div>
 
       {error && (
@@ -491,6 +512,45 @@ const SharedBookingFlow = () => {
       )}
 
       <div className="rounded-lg bg-white p-6 shadow-lg">{renderStepContent()}</div>
+
+      <style jsx global>{`
+        .custom-steps {
+          margin: 0 auto;
+          max-width: 600px;
+        }
+        
+        .custom-steps .ant-steps-item-icon {
+          background-color: #fff;
+          border-color: #e5e7eb;
+        }
+        
+        .custom-steps .ant-steps-item-active .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+        
+        .custom-steps .ant-steps-item-finish .ant-steps-item-icon {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+        }
+        
+        .custom-steps .ant-steps-item-title {
+          font-size: 14px;
+        }
+        
+        @media (max-width: 640px) {
+          .custom-steps .ant-steps-item-title {
+            font-size: 12px;
+          }
+          
+          .custom-steps .ant-steps-item-icon {
+            font-size: 12px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+          }
+        }
+      `}</style>
     </div>
   )
 }
