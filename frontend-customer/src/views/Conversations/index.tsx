@@ -21,12 +21,12 @@ const ConversationListPage = () => {
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const { data: conversations, isLoading: listLoading, error: listError } = useConversationSocket()
 
-  const {
-    data: conversation,
-    isLoading: conversationLoading,
-    error: conversationError,
-    sendMessage,
-  } = useConversationSocket(selectedConversationId || undefined)
+  // const {
+  //   data: conversation,
+  //   isLoading: conversationLoading,
+  //   error: conversationError,
+  //   sendMessage,
+  // } = useConversationSocket(selectedConversationId || undefined)
 
   // Find conversation by tripId and set it as selected
   useEffect(() => {
@@ -118,9 +118,9 @@ const ConversationListPage = () => {
     }
   }, [conversations]);
 
-  useEffect(() => {
-    console.log('Selected conversation:', conversation)
-  }, [conversation])
+  // useEffect(() => {
+  //   console.log('Selected conversation:', conversation)
+  // }, [conversation])
 
   const [message, setMessage] = useState('')
 
@@ -130,9 +130,9 @@ const ConversationListPage = () => {
     }
   }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [(conversation as IConversation)?.listMessage])
+  // useEffect(() => {
+  //   scrollToBottom()
+  // }, [(conversation as IConversation)?.listMessage])
 
   // Add useEffect to handle mobile view
   useEffect(() => {
@@ -178,12 +178,12 @@ const ConversationListPage = () => {
     )
   }
 
-  const handleSendMessage = () => {
-    if (message.trim() && selectedConversationId) {
-      sendMessage(selectedConversationId, message)
-      setMessage('')
-    }
-  }
+  // const handleSendMessage = () => {
+  //   if (message.trim() && selectedConversationId) {
+  //     sendMessage(selectedConversationId, message)
+  //     setMessage('')
+  //   }
+  // }
 
   const getTimeString = (dateString?: string) => {
     if (!dateString) return ''

@@ -19,7 +19,7 @@ const serviceTypeMap: { [key: string]: string } = {
   booking_hour: "Đặt xe theo giờ",
   booking_destination: "Đặt xe theo điểm đến",
   booking_share: "Đặt xe đi chung",
-  booking_scenic_route: "Đặt xe theo tuyến cố định",
+  booking_scenic_route: "Đặt xe lộ trình tham quan",
   booking_bus_route: "Chuyến xe buýt",
 };
 
@@ -85,11 +85,11 @@ export default function Money() {
 
       await priceManagementServices.updateServiceConfig(
         editingConfig.service_type as
-          | "booking_hour"
-          | "booking_destination"
-          | "booking_share"
-          | "booking_scenic_route"
-          | "booking_bus_route",
+        | "booking_hour"
+        | "booking_destination"
+        | "booking_share"
+        | "booking_scenic_route"
+        | "booking_bus_route",
         {
           base_unit: Number(values.base_unit),
           base_unit_type: editingConfig.base_unit_type,
