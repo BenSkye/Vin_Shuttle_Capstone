@@ -67,14 +67,17 @@ const HourlyBookingPage = () => {
   // Handle date and time selection
   const handleDateChange = useCallback((date: dayjs.Dayjs | null) => {
     setSelectedDate(date)
+    console.log('Index: Date selected:', date ? date.format('YYYY-MM-DD') : 'null')
   }, [])
 
   const handleStartTimeChange = useCallback((time: dayjs.Dayjs | null) => {
     setStartTime(time)
+    console.log('Index: Time selected:', time ? time.format('HH:mm') : 'null')
   }, [])
 
   const handleDurationChange = useCallback((newDuration: number) => {
     setDuration(newDuration)
+    console.log('Index: Duration selected:', newDuration)
   }, [])
 
   // Vehicle selection handler
@@ -200,6 +203,13 @@ const HourlyBookingPage = () => {
 
       const date = selectedDate.format('YYYY-MM-DD')
       const startTimeString = dayjs(startTime).format('HH:mm')
+
+      console.log('Searching for vehicles with date/time:', {
+        date,
+        startTime: startTimeString,
+        duration
+      })
+
       const response = await vehicleSearchHour(date, startTimeString, duration)
 
       if (!response || (Array.isArray(response) && response.length === 0)) {
@@ -231,9 +241,9 @@ const HourlyBookingPage = () => {
     setError(null)
 
     try {
-      console.log('Booking data when confirming:', booking)
+      console.log('Booking data being submitted:', booking)
       const response = await bookingHour(booking)
-      console.log('Booking response data:', response)
+      console.log('Booking response received:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
       return response
@@ -342,15 +352,17 @@ const HourlyBookingPage = () => {
 
   // Update booking state whenever dependencies change
   useEffect(() => {
-    setBooking((prev) => ({
-      ...prev,
+    const updatedBooking = {
       startPoint: startPoint,
       date: selectedDate?.format('YYYY-MM-DD') || '',
       startTime: startTime?.format('HH:mm') || '',
       durationMinutes: duration,
       vehicleCategories: selectedVehicles,
       paymentMethod: paymentMethod,
-    }))
+    };
+
+    setBooking(updatedBooking);
+    console.log('Booking updated:', updatedBooking);
   }, [selectedDate, startTime, duration, selectedVehicles, startPoint, paymentMethod])
 
   // Render the content based on the current step
