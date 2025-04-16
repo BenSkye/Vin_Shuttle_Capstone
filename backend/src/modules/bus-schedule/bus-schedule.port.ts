@@ -11,7 +11,7 @@ export interface IBusScheduleRepository {
 
 export interface IBusScheduleService {
   createSchedule(dto: CreateBusScheduleDto): Promise<BusScheduleDocument>;
-  getActiveScheduleByRoute(routeId: string): Promise<BusScheduleDocument>;
+  getActiveScheduleByRoute(routeId: string): Promise<any>;
   updateSchedule(id: string, dto: CreateBusScheduleDto): Promise<BusScheduleDocument>;
   deleteSchedule(id: string): Promise<void>;
   generateDailyTrips(scheduleId: string, date: Date): Promise<any>;

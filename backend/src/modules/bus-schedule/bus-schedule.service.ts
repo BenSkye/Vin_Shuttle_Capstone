@@ -235,7 +235,7 @@ export class BusScheduleService implements IBusScheduleService {
     return start1.isBefore(end2) && start2.isBefore(end1);
   }
 
-  private async createDetailedSchedules(
+private async createDetailedSchedules(
   schedule: BusScheduleDocument,
   driverAssignments: DriverAssignment[]
 ): Promise<void> {
@@ -243,39 +243,34 @@ export class BusScheduleService implements IBusScheduleService {
   const route = await this.busRouteService.getRouteById(schedule.busRoute.toString());
   const tripDuration = route.estimatedDuration;
 
-  // Tính toán tổng thời gian hoạt động trong ngày
+  // Tính toán tổng thời gian hoạt động và thời gian giữa các chuyến
   const dailyStartTime = moment(schedule.dailyStartTime, 'HH:mm');
   const dailyEndTime = moment(schedule.dailyEndTime, 'HH:mm');
   const totalMinutesPerDay = dailyEndTime.diff(dailyStartTime, 'minutes');
-  
-  // Tính thời gian giữa các chuyến dựa trên số chuyến mỗi ngày
   const minutesBetweenTrips = Math.floor(totalMinutesPerDay / schedule.tripsPerDay);
 
-  // Tạo lịch trình chi tiết cho từng phân công
+  // Với mỗi phân công ca làm việc
   for (const assignment of driverAssignments) {
-    let currentTripStart = moment(assignment.startTime);
-    let tripNumber = 1;
-
+    const assignmentStart = moment(assignment.startTime);
+    const tripsForDriver = Math.floor(schedule.tripsPerDay / driverAssignments.length);
+    
     // Tạo các chuyến xe cho tài xế này
-    while (
-      tripNumber <= schedule.tripsPerDay && 
-      currentTripStart.clone().add(tripDuration, 'minutes').isSameOrBefore(moment(assignment.endTime))
-    ) {
-      const tripEndTime = currentTripStart.clone().add(tripDuration, 'minutes');
+    for (let tripNumber = 1; tripNumber <= tripsForDriver; tripNumber++) {
+      const tripStartTime = assignmentStart.clone().add((tripNumber - 1) * minutesBetweenTrips, 'minutes');
+      const tripEndTime = tripStartTime.clone().add(tripDuration, 'minutes');
 
-      await this.driverBusScheduleService.createSchedule({
-        driver: assignment.driverId,
-        busRoute: schedule.busRoute.toString(),
-        vehicle: assignment.vehicleId,
-        startTime: currentTripStart.toDate(),
-        endTime: tripEndTime.toDate(),
-        tripNumber,
-        status: BusScheduleStatus.ACTIVE
-      });
-
-      // Cập nhật thời gian bắt đầu cho chuyến tiếp theo
-      currentTripStart = currentTripStart.add(minutesBetweenTrips, 'minutes');
-      tripNumber++;
+      // Kiểm tra nếu chuyến này vẫn nằm trong ca làm việc
+      if (tripEndTime.isSameOrBefore(moment(assignment.endTime))) {
+        await this.driverBusScheduleService.createSchedule({
+          driver: assignment.driverId,
+          busRoute: schedule.busRoute.toString(),
+          vehicle: assignment.vehicleId,
+          startTime: tripStartTime.toDate(),
+          endTime: tripEndTime.toDate(),
+          tripNumber,
+          status: BusScheduleStatus.ACTIVE
+        });
+      }
     }
 
     // Cập nhật trạng thái xe
@@ -341,9 +336,37 @@ export class BusScheduleService implements IBusScheduleService {
   return trips;
 }
 
-  async getActiveScheduleByRoute(routeId: string): Promise<BusScheduleDocument> {
-    return await this.busScheduleRepository.findActiveByRoute(routeId);
+async getActiveScheduleByRoute(routeId: string): Promise<any> {
+  console.log('routeId', routeId);
+  const schedule = await this.busScheduleRepository.findActiveByRoute(routeId);
+  
+  if (!schedule) {
+    throw new HttpException(
+      {
+        message: 'No active schedule found for this route',
+        vnMessage: 'Không tìm thấy lịch trình hoạt động cho tuyến này'
+      },
+      HttpStatus.NOT_FOUND
+    );
   }
+
+  try {
+    // Thêm thông tin về các chuyến xe trong ngày
+    const currentDate = new Date();
+    const trips = await this.generateDailyTrips(schedule._id.toString(), currentDate);
+
+    // Convert schedule to plain object and add trips
+    const plainSchedule = schedule.toObject ? schedule.toObject() : schedule;
+    return {
+      ...plainSchedule,
+      dailyTrips: trips
+    };
+  } catch (error) {
+    console.error('Error generating daily trips:', error);
+    // Nếu có lỗi khi generate trips, vẫn trả về schedule nhưng không có trips
+    return schedule.toObject ? schedule.toObject() : schedule;
+  }
+}
 
   async updateSchedule(id: string, dto: CreateBusScheduleDto): Promise<BusScheduleDocument> {
     const existingSchedule = await this.busScheduleRepository.findById(id);

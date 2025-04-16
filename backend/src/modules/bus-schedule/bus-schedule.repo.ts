@@ -18,31 +18,38 @@ export class BusScheduleRepository implements IBusScheduleRepository {
     return await schedule.save();
   }
 
-  async findActiveByRoute(routeId: string): Promise<BusScheduleDocument> {
-    const currentDate = new Date();
+  async findActiveByRoute(routeId: string): Promise<any> {
+  const currentDate = new Date();
 
-    return await this.busScheduleModel.findOne({
+  const schedule = await this.busScheduleModel
+    .findOne({
       busRoute: routeId,
       status: BusScheduleStatus.ACTIVE,
-      effectiveDate: { $lte: new Date() },
+      effectiveDate: { $lte: currentDate },
       $or: [
+        { expiryDate: { $gt: currentDate } },
+        { expiryDate: null }
+      ]
+    })
+    .populate([
       {
-        effectiveDate: { $lte: currentDate },
-        $or: [
-          { expiryDate: { $gt: currentDate } },
-          { expiryDate: null }
-        ]
+        path: 'busRoute',
+        select: 'name description stops distance estimatedTime'
       },
       {
-        effectiveDate: { $gt: currentDate }, 
-        $or: [
-          { expiryDate: { $gt: currentDate } },
-          { expiryDate: null }
-        ]
+        path: 'vehicles',
+        select: 'name plateNumber type operationStatus'
+      },
+      {
+        path: 'drivers',
+        select: 'fullName phone email'
       }
-    ]
-    }).exec();
-  }
+    ])
+    .lean()
+    .exec();
+
+  return schedule;
+}
 
   async findById(id: string): Promise<BusScheduleDocument> {
     return await this.busScheduleModel.findById(id).exec();
