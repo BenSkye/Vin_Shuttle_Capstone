@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/role.guard';
@@ -27,11 +27,85 @@ export class BusScheduleController {
     return await this.busScheduleService.createSchedule(dto);
   }
 
-  @Get('route/:routeId')
-  @ApiOperation({ summary: 'Get active schedule by route' })
-  async getActiveSchedule(@Param('routeId') routeId: string) {
-    return await this.busScheduleService.getActiveScheduleByRoute(routeId);
+@Get('route/:routeId')
+@ApiOperation({ summary: 'Get active schedules by route' })
+@ApiParam({
+  name: 'routeId',
+  required: true,
+  description: 'ID of bus route',
+  example: '67ef9f40be7e3233b9200548'
+})
+@ApiQuery({
+  name: 'date',
+  required: false,
+  description: 'Date to filter schedules (YYYY-MM-DD)',
+  example: '2024-03-20'
+})
+@ApiResponse({
+  status: 200,
+  description: 'List of active schedules with daily trips',
+  schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        _id: {
+          type: 'string',
+          example: '67ff1fb2c2c89ffb77afa7f0'
+        },
+        busRoute: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' }
+          }
+        },
+        vehicles: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              name: { type: 'string' },
+              plateNumber: { type: 'string' }
+            }
+          }
+        },
+        drivers: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              _id: { type: 'string' },
+              fullName: { type: 'string' },
+              phone: { type: 'string' }
+            }
+          }
+        },
+        dailyTrips: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              startTime: { type: 'string', format: 'date-time' },
+              endTime: { type: 'string', format: 'date-time' },
+              driver: { type: 'string' },
+              vehicle: { type: 'string' },
+              status: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
   }
+})
+async getActiveSchedule(
+  @Param('routeId') routeId: string,
+  @Query('date') date?: string
+) {
+  return await this.busScheduleService.getActiveScheduleByRoute(routeId, date);
+}
 
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
