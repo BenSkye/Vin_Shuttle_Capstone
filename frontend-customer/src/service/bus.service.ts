@@ -1,18 +1,22 @@
 import axios from 'axios'
 import apiClient from './apiClient'
 
+export interface Position {
+  lat: number
+  lng: number
+}
+
 export interface BusStop {
-  stopId: {
-    _id: string
-    name: string
-    description: string
-    position: {
-      lat: number
-      lng: number
-    }
-    status: string
-    address: string
-  }
+  _id: string
+  name: string
+  address: string
+  position: Position
+  description?: string
+  status: string
+}
+
+export interface RouteStop {
+  stopId: BusStop
   orderIndex: number
   distanceFromStart: number
   estimatedTime: number
@@ -22,8 +26,8 @@ export interface BusRoute {
   _id: string
   name: string
   description: string
-  stops: BusStop[]
-  routeCoordinates: Array<{ lat: number; lng: number }>
+  stops: RouteStop[]
+  routeCoordinates: Position[]
   totalDistance: number
   estimatedDuration: number
   vehicleCategory: {
@@ -110,5 +114,19 @@ export const getBusScheduleByRoute = async (routeId: string, date?: string): Pro
     return {
       error: 'Lỗi không xác định khi tải lịch trình'
     } as unknown as BusSchedule[]
+  }
+}
+
+export const getAllBusStops = async (): Promise<BusStop[]> => {
+  try {
+    const response = await apiClient.get('/bus-stops')
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('API Error Response:', error.response.data)
+      const serverError = error.response.data
+      throw new Error(serverError.vnMessage || serverError.message || 'Lỗi khi tải danh sách trạm dừng')
+    }
+    throw error
   }
 }

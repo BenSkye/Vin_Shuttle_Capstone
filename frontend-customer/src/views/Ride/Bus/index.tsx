@@ -3,9 +3,11 @@
 import { FiChevronDown, FiChevronUp, FiClock, FiDollarSign, FiInfo, FiSearch } from 'react-icons/fi'
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { BusRoute, BusSchedule, getAllBusRoutes, getBusScheduleByRoute } from '@/service/bus.service'
+import { BusRoute, BusSchedule, BusStop, getAllBusRoutes, getAllBusStops, getBusScheduleByRoute } from '@/service/bus.service'
 import { format } from 'date-fns'
 import BusRouteMap from '@/components/map/BusRouteMap'
+import BusSchedulePanel from '../components/BusSchedulePanel'
+import BusStopPanel from '../components/BusStopPanel'
 
 interface RouteWithSchedule extends BusRoute {
     schedules?: BusSchedule[]
@@ -14,32 +16,42 @@ interface RouteWithSchedule extends BusRoute {
     isExpanded?: boolean
 }
 
+type DisplayMode = 'stops' | 'routes'
+
 const ViewBusPage = () => {
     const [busRoutes, setBusRoutes] = useState<RouteWithSchedule[]>([])
     const [selectedRoute, setSelectedRoute] = useState<BusRoute | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [allBusStops, setAllBusStops] = useState<BusStop[]>([])
+    const [displayMode, setDisplayMode] = useState<DisplayMode>('routes')
 
-    // Fetch bus routes
+    // Fetch bus routes and all bus stops
     useEffect(() => {
-        const fetchRoutes = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true)
-                const routes = await getAllBusRoutes()
+                const [routes, stops] = await Promise.all([
+                    getAllBusRoutes(),
+                    getAllBusStops()
+                ])
                 setBusRoutes(routes.map(route => ({ ...route, isExpanded: false })))
+                setAllBusStops(stops)
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Lỗi khi tải danh sách tuyến xe')
+                setError(err instanceof Error ? err.message : 'Lỗi khi tải dữ liệu')
             } finally {
                 setLoading(false)
             }
         }
 
-        fetchRoutes()
+        fetchData()
     }, [])
 
     // Fetch schedules when a route is expanded
     const handleRouteClick = async (route: RouteWithSchedule) => {
+        if (displayMode !== 'routes') return
+
         setSelectedRoute(route)
 
         // Toggle expansion state
@@ -65,20 +77,6 @@ const ViewBusPage = () => {
             const today = format(new Date(), 'yyyy-MM-dd')
             const response = await getBusScheduleByRoute(route._id, today)
 
-            // Check if response contains error
-            if ('error' in response) {
-                const errorResponse = response as { error: string }
-                setBusRoutes(prevRoutes =>
-                    prevRoutes.map(r => ({
-                        ...r,
-                        isLoading: false,
-                        error: r._id === route._id ? errorResponse.error : r.error
-                    }))
-                )
-                return
-            }
-
-            // Update schedules for this route
             setBusRoutes(prevRoutes =>
                 prevRoutes.map(r => ({
                     ...r,
@@ -99,10 +97,24 @@ const ViewBusPage = () => {
         }
     }
 
+    // Switch display mode
+    const handleDisplayModeChange = (mode: DisplayMode) => {
+        setDisplayMode(mode)
+        if (mode === 'stops') {
+            setSelectedRoute(null)
+        }
+    }
+
     // Filter routes based on search query
     const filteredRoutes = busRoutes.filter(route =>
         route.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         route.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    // Filter bus stops based on search query
+    const filteredBusStops = allBusStops.filter(stop =>
+        stop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stop.address.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     return (
@@ -112,11 +124,23 @@ const ViewBusPage = () => {
                 {/* Search Section */}
                 <div className="border-b border-divider p-4">
                     <div className="flex items-center gap-2">
-                        <button className="flex h-10 items-center gap-2 rounded-lg bg-primary-50 px-4 text-primary-600">
-                            <span>Buýt điện VinBus</span>
+                        <button
+                            onClick={() => handleDisplayModeChange('stops')}
+                            className={`flex h-10 items-center gap-2 rounded-lg px-4 ${displayMode === 'stops'
+                                ? 'bg-primary-50 text-primary-600'
+                                : 'text-content-secondary hover:bg-surface-secondary'
+                                }`}
+                        >
+                            <span>Hiển thị trạm dừng</span>
                         </button>
-                        <button className="flex h-10 items-center gap-2 rounded-lg px-4 text-content-secondary hover:bg-surface-secondary">
-                            <span>Buýt thành phố</span>
+                        <button
+                            onClick={() => handleDisplayModeChange('routes')}
+                            className={`flex h-10 items-center gap-2 rounded-lg px-4 ${displayMode === 'routes'
+                                ? 'bg-primary-50 text-primary-600'
+                                : 'text-content-secondary hover:bg-surface-secondary'
+                                }`}
+                        >
+                            <span>Hiển thị tuyến</span>
                         </button>
                     </div>
                     <div className="mt-4 relative">
@@ -124,7 +148,7 @@ const ViewBusPage = () => {
                         <Input
                             label=""
                             error=""
-                            placeholder="Tìm tuyến xe"
+                            placeholder={displayMode === 'routes' ? "Tìm tuyến xe" : "Tìm trạm dừng"}
                             className="h-11 pl-10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -132,7 +156,7 @@ const ViewBusPage = () => {
                     </div>
                 </div>
 
-                {/* Bus Routes List */}
+                {/* Content List */}
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center p-4">
@@ -142,7 +166,8 @@ const ViewBusPage = () => {
                         <div className="flex items-center justify-center p-4">
                             <span className="text-red-500">{error}</span>
                         </div>
-                    ) : (
+                    ) : displayMode === 'routes' ? (
+                        // Routes List
                         filteredRoutes.map((route) => (
                             <div key={route._id} className="border-b border-divider">
                                 <button
@@ -180,61 +205,17 @@ const ViewBusPage = () => {
 
                                 {/* Schedule Section */}
                                 {route.isExpanded && (
-                                    <div className="px-4 pb-4 space-y-3 bg-gray-50">
-                                        {route.isLoading ? (
-                                            <div className="py-4 text-center text-content-secondary">
-                                                Đang tải lịch trình...
-                                            </div>
-                                        ) : route.error ? (
-                                            <div className="py-4 text-center text-red-500">
-                                                {route.error}
-                                            </div>
-                                        ) : route.schedules && route.schedules.length > 0 ? (
-                                            route.schedules.map((schedule) => (
-                                                <div key={schedule._id} className="space-y-3">
-                                                    {schedule.dailyTrips?.map((trip, tripIndex) => (
-                                                        <div
-                                                            key={tripIndex}
-                                                            className="flex flex-col p-3 rounded-lg border border-divider bg-white"
-                                                        >
-                                                            <div className="flex items-center justify-between text-sm mb-2">
-                                                                <span className="font-medium">Chuyến {tripIndex + 1}</span>
-                                                                <span className={`px-2 py-0.5 rounded-full text-xs ${trip.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                                    trip.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                                                                        'bg-gray-100 text-gray-700'
-                                                                    }`}>
-                                                                    {trip.status === 'active' ? 'Hoạt động' :
-                                                                        trip.status === 'in_progress' ? 'Đang chạy' :
-                                                                            'Kết thúc'}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center justify-between text-sm text-content-secondary">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span>Khởi hành:</span>
-                                                                    <span className="font-medium text-content-primary">
-                                                                        {format(new Date(trip.startTime), 'HH:mm')}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <span>Kết thúc:</span>
-                                                                    <span className="font-medium text-content-primary">
-                                                                        {format(new Date(trip.endTime), 'HH:mm')}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="py-4 text-center text-content-secondary">
-                                                Không có lịch trình nào
-                                            </div>
-                                        )}
-                                    </div>
+                                    <BusSchedulePanel
+                                        schedules={route.schedules || []}
+                                        isLoading={route.isLoading || false}
+                                        error={route.error || null}
+                                    />
                                 )}
                             </div>
                         ))
+                    ) : (
+                        // Bus Stops List
+                        <BusStopPanel busStops={filteredBusStops} />
                     )}
                 </div>
             </div>
@@ -253,7 +234,11 @@ const ViewBusPage = () => {
                     </div>
                 </div>
                 <div className="h-full w-full">
-                    <BusRouteMap selectedRoute={selectedRoute} />
+                    <BusRouteMap
+                        selectedRoute={selectedRoute}
+                        allBusStops={allBusStops}
+                        showAllStops={displayMode === 'stops'}
+                    />
                 </div>
             </div>
         </div>
