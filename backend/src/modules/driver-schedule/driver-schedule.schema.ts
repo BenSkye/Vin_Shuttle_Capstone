@@ -62,11 +62,12 @@ DriverScheduleSchema.pre('save', function (next) {
       this.totalWorkingHours = shiftInfo.end - shiftInfo.start;
     }
   }
-
+  console.log('this.checkinTime', this.checkinTime);
+  console.log('this.checkoutTime', this.checkoutTime);
   if (this.checkinTime && this.checkoutTime && this.checkoutTime > this.checkinTime) {
     // Calculate the difference in milliseconds
     const diffInMs = this.checkoutTime.getTime() - this.checkinTime.getTime();
-
+    console.log('diffInMs', diffInMs);
     // Convert milliseconds to hours
     this.actualWorkingHours = parseFloat((diffInMs / (1000 * 60 * 60)).toFixed(2));
 

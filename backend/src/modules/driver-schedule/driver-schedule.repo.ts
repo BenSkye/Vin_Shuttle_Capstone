@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ICreateDriverSchedule, PopulatedDriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.dto';
+import { ICreateDriverSchedule, IUpdateDriverSchedule, PopulatedDriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.dto';
 import { IDriverScheduleRepository } from 'src/modules/driver-schedule/driver-schedule.port';
 import {
   DriverSchedule,
@@ -61,7 +61,19 @@ export class DriverScheduleRepository implements IDriverScheduleRepository {
       .populate('vehicle', 'name');
   }
 
-  async updateDriverSchedule(id: string, driverSchedule: any): Promise<DriverScheduleDocument> {
-    return await this.driverScheduleModel.findByIdAndUpdate(id, driverSchedule, { new: true });
+  async updateDriverSchedule(id: string, driverScheduleUpdateDto: IUpdateDriverSchedule): Promise<DriverScheduleDocument> {
+    const driverSchedule = await this.driverScheduleModel.findById(id);
+    if (!driverSchedule) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Driver schedule not found ${id}`,
+          vnMessage: `Không tìm thấy thấy lịch tài xế ${id}`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    driverSchedule.set(driverScheduleUpdateDto);
+    return await driverSchedule.save();
   }
 }
