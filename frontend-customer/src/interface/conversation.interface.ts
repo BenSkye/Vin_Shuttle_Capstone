@@ -17,4 +17,5 @@ export interface IMessage {
   senderId: string
   content: string
   createdAt: string
+  timestamp: string
 }

@@ -437,14 +437,14 @@ const MapComponent = ({
             }}
             ref={mapRef}
             provider={undefined}
-            rotateEnabled={true}
+            rotateEnabled={false}
             onPanDrag={() => setIsUserInteracting(true)}
             onRegionChangeComplete={() => setIsUserInteracting(false)}
           >
             <UrlTile
               urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               shouldReplaceMapContent={true}
-              maximumZ={25}
+              maximumZ={19}
               tileSize={512}
               flipY={false}
             />
@@ -452,10 +452,9 @@ const MapComponent = ({
             {/* Route to pickup point - blue */}
             {routeToPickupCoordinates.length > 0 && !showRouteToDestination && !showScenicRoute && (
               <Polyline
-                coordinates={routeToPickupCoordinates}
+                coordinates={routeToPickupCoordinates.slice(0, 100)} // Giới hạn 100 điểm
                 strokeWidth={4}
                 strokeColor="#1E88E5"
-                lineDashPattern={[0]}
               />
             )}
 

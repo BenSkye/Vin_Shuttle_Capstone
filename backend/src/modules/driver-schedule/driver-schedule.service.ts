@@ -677,9 +677,11 @@ export class DriverScheduleService implements IDriverScheduleService {
       const shift = schedule.shift as Shift;
       const shiftEndHour = ShiftHours[shift].end;
       const expectedCheckout = new Date(schedule.date);
-      expectedCheckout.setHours(shiftEndHour + ShiftDifference.OUT, 0, 0, 0); //add 15 minutes to shift end time
+      expectedCheckout.setHours(shiftEndHour, 0 + ShiftDifference.OUT, 0, 0); //add 15 minutes to shift end time
 
       // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, thực hiện checkout
+      console.log('expectedCheckout', expectedCheckout);
+      console.log('currentTime', currentTime);
       if (currentTime > expectedCheckout) {
         await this.vehicleRepository.updateOperationStatus(
           schedule.vehicle._id.toString(),
@@ -717,7 +719,7 @@ export class DriverScheduleService implements IDriverScheduleService {
       const shift = schedule.shift as Shift;
       const shiftEndHour = ShiftHours[shift].end;
       const expectedCheckout = new Date(schedule.date);
-      expectedCheckout.setHours(shiftEndHour + ShiftDifference.OUT, 0, 0, 0); //add 15 minutes to shift end time
+      expectedCheckout.setHours(shiftEndHour, 0 + ShiftDifference.OUT, 0, 0); //add 15 minutes to shift end time
 
       // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, chuyển trạng thái sang Dropped
       if (currentTime > expectedCheckout) {

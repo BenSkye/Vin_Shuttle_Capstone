@@ -172,6 +172,14 @@ export default function TripHistoryPage() {
         color = "green";
         text = "Hoàn thành";
         break;
+      case "cancelled":
+        color = "red";
+        text = "Đã hủy chuyến";
+        break;
+      case "dropped_off":
+        color = "red";
+        text = "Hủy bỏ";
+        break;
       default:
         color = "default";
     }
@@ -234,14 +242,14 @@ export default function TripHistoryPage() {
         return serviceType === "booking_hour"
           ? "Đặt theo giờ"
           : serviceType === "booking_destination"
-          ? "Đặt xe theo điểm đến"
-          : serviceType === "booking_share"
-          ? "Đặt xe chia sẻ"
-          : serviceType === "booking_scenic_route"
-          ? "Đặt xe theo tuyến cố định"
-          : serviceType === "booking_bus_route"
-          ? "Đặt xe theo tuyến xe buýt"
-          : "N/A";
+            ? "Đặt xe theo điểm đến"
+            : serviceType === "booking_share"
+              ? "Đặt xe chia sẻ"
+              : serviceType === "booking_scenic_route"
+                ? "Đặt xe lộ trình tham quan"
+                : serviceType === "booking_bus_route"
+                  ? "Đặt xe theo tuyến xe buýt"
+                  : "N/A";
       },
     },
     {
@@ -268,6 +276,8 @@ export default function TripHistoryPage() {
         { text: "Đón khách", value: "pickup" },
         { text: "Đang di chuyển", value: "in_progress" },
         { text: "Hoàn thành", value: "completed" },
+        { text: "Đã hủy", value: "cancelled" },
+        { text: "Hủy bỏ", value: "dropped_off" },
       ],
       onFilter: (value, record) => record.status === value,
     },
@@ -370,7 +380,7 @@ export default function TripHistoryPage() {
                   onChange={handleStatusChange}
                 >
                   <Option value="booking">Đặt xe</Option>
-                  <Option value="confirmed">Đã xác  nhận</Option>
+                  <Option value="confirmed">Đã xác nhận</Option>
                   <Option value="pickup">Đón khách</Option>
                   <Option value="in_progress">Đang di chuyển</Option>
                   <Option value="completed">Hoàn thành</Option>
