@@ -12,27 +12,46 @@ interface BusSchedulePanelProps {
 const BusSchedulePanel = ({ schedules, isLoading, error }: BusSchedulePanelProps) => {
     const [isExpanded, setIsExpanded] = useState(true)
 
+    const handleToggle = () => {
+        setIsExpanded(prev => !prev)
+    }
+
     if (isLoading) {
         return (
-            <div className="p-4 text-center text-content-secondary">
-                Đang tải lịch trình...
+            <div className="border-t border-divider">
+                <div className="p-4 text-center text-content-secondary">
+                    Đang tải lịch trình...
+                </div>
             </div>
         )
     }
 
     if (error) {
         return (
-            <div className="p-4 text-center text-red-500">
-                {error}
+            <div className="border-t border-divider">
+                <div className="p-4 text-center text-red-500">
+                    {error}
+                </div>
+            </div>
+        )
+    }
+
+    if (!schedules || schedules.length === 0) {
+        return (
+            <div className="border-t border-divider">
+                <div className="p-4 text-center text-content-secondary">
+                    Không có lịch trình nào
+                </div>
             </div>
         )
     }
 
     return (
         <div className="border-t border-divider">
-            <div
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-surface-hover"
-                onClick={() => setIsExpanded(!isExpanded)}
+            <button
+                className="flex w-full items-center justify-between p-4 cursor-pointer hover:bg-surface-hover"
+                onClick={handleToggle}
+                type="button"
             >
                 <h3 className="font-medium text-content-primary">Lịch trình xe buýt</h3>
                 {isExpanded ? (
@@ -40,13 +59,13 @@ const BusSchedulePanel = ({ schedules, isLoading, error }: BusSchedulePanelProps
                 ) : (
                     <FiChevronDown className="h-5 w-5 text-content-secondary" />
                 )}
-            </div>
+            </button>
 
             {isExpanded && (
-                <div className="px-4 pb-4">
-                    {schedules.map((schedule, index) => (
-                        <div key={schedule._id || index} className="space-y-3">
-                            {schedule.dailyTrips.map((trip, tripIndex) => (
+                <div className="px-4 pb-4 space-y-3">
+                    {schedules.map((schedule) => (
+                        <div key={schedule._id} className="space-y-3">
+                            {schedule.dailyTrips?.map((trip, tripIndex) => (
                                 <div
                                     key={tripIndex}
                                     className="flex flex-col p-3 rounded-lg border border-divider"

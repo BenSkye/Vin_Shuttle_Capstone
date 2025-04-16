@@ -62,16 +62,32 @@ export interface BusSchedule {
   }>
 }
 
+export interface Vehicle {
+  _id: string
+  name: string
+  plateNumber: string
+  type: string
+  operationStatus: string
+}
+
+export interface Driver {
+  _id: string
+  fullName: string
+  phone: string
+  email: string
+}
+
 export const getAllBusRoutes = async (): Promise<BusRoute[]> => {
   try {
     const response = await apiClient.get('/bus-routes')
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
+      console.error('API Error Response:', error.response.data)
       const serverError = error.response.data
       throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định')
     }
-    throw new Error('Lỗi kết nối máy chủ')
+    throw error
   }
 }
 
@@ -81,20 +97,18 @@ export const getBusScheduleByRoute = async (routeId: string, date?: string): Pro
       ? `/bus-schedules/route/${routeId}?date=${date}`
       : `/bus-schedules/route/${routeId}`
     
-    console.log('Calling API with URL:', url);
-    console.log('Route ID:', routeId);
-    console.log('Date:', date);
-
     const response = await apiClient.get(url)
-    console.log('API Response:', response.data);
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      console.error('API Error Response:', error.response.data);
+      console.error('API Error Response:', error.response.data)
       const serverError = error.response.data
-      throw new Error(serverError.vnMessage || serverError.message || 'Lỗi không xác định')
+      return {
+        error: serverError.vnMessage || serverError.message || 'Không tìm thấy lịch trình cho tuyến này'
+      } as unknown as BusSchedule[]
     }
-    console.error('Non-Axios Error:', error);
-    throw new Error('Lỗi kết nối máy chủ')
+    return {
+      error: 'Lỗi không xác định khi tải lịch trình'
+    } as unknown as BusSchedule[]
   }
 }
