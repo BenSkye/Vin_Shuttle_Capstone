@@ -18,19 +18,29 @@ export class BusScheduleRepository implements IBusScheduleRepository {
     return await schedule.save();
   }
 
-  async findActiveByRoute(routeId: string): Promise<any> {
-  const currentDate = new Date();
+ async findActiveByRoute(routeId: string, date?: string): Promise<BusScheduleDocument[]> {
+  console.log('Finding schedules for route:', routeId, 'date:', date);
 
-  const schedule = await this.busScheduleModel
-    .findOne({
-      busRoute: routeId,
-      status: BusScheduleStatus.ACTIVE,
-      effectiveDate: { $lte: currentDate },
+  let query: any = {
+    busRoute: routeId,
+    status: BusScheduleStatus.ACTIVE
+  };
+
+  // Thêm điều kiện ngày nếu có
+  if (date) {
+    const filterDate = new Date(date);
+    query = {
+      ...query,
+      effectiveDate: { $lte: filterDate },
       $or: [
-        { expiryDate: { $gt: currentDate } },
+        { expiryDate: { $gt: filterDate } },
         { expiryDate: null }
       ]
-    })
+    };
+  }
+
+  const schedules = await this.busScheduleModel
+    .find(query)
     .populate([
       {
         path: 'busRoute',
@@ -45,10 +55,10 @@ export class BusScheduleRepository implements IBusScheduleRepository {
         select: 'fullName phone email'
       }
     ])
-    .lean()
     .exec();
 
-  return schedule;
+  console.log('Found schedules:', schedules.length);
+  return schedules;
 }
 
   async findById(id: string): Promise<BusScheduleDocument> {

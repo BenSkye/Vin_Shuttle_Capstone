@@ -336,11 +336,12 @@ private async createDetailedSchedules(
   return trips;
 }
 
-async getActiveScheduleByRoute(routeId: string): Promise<any> {
-  console.log('routeId', routeId);
-  const schedule = await this.busScheduleRepository.findActiveByRoute(routeId);
+async getActiveScheduleByRoute(routeId: string, date?: string): Promise<any> {
+  console.log('Getting schedules for route:', routeId, 'date:', date);
   
-  if (!schedule) {
+  const schedules = await this.busScheduleRepository.findActiveByRoute(routeId, date);
+  
+  if (!schedules || schedules.length === 0) {
     throw new HttpException(
       {
         message: 'No active schedule found for this route',
@@ -351,20 +352,24 @@ async getActiveScheduleByRoute(routeId: string): Promise<any> {
   }
 
   try {
-    // Thêm thông tin về các chuyến xe trong ngày
-    const currentDate = new Date();
-    const trips = await this.generateDailyTrips(schedule._id.toString(), currentDate);
+    const schedulesWithTrips = await Promise.all(
+      schedules.map(async (schedule) => {
+        const currentDate = date ? new Date(date) : new Date();
+        const trips = await this.generateDailyTrips(schedule._id.toString(), currentDate);
+        const plainSchedule = schedule.toObject ? schedule.toObject() : schedule;
+        return {
+          ...plainSchedule,
+          dailyTrips: trips
+        };
+      })
+    );
 
-    // Convert schedule to plain object and add trips
-    const plainSchedule = schedule.toObject ? schedule.toObject() : schedule;
-    return {
-      ...plainSchedule,
-      dailyTrips: trips
-    };
+    return schedulesWithTrips;
   } catch (error) {
     console.error('Error generating daily trips:', error);
-    // Nếu có lỗi khi generate trips, vẫn trả về schedule nhưng không có trips
-    return schedule.toObject ? schedule.toObject() : schedule;
+    return schedules.map(schedule => 
+      schedule.toObject ? schedule.toObject() : schedule
+    );
   }
 }
 
