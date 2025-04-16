@@ -93,7 +93,7 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
                 className={`max-w-xs rounded-lg p-3 md:max-w-md ${isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
                   }`}
               >
-                <p>{msg.content}</p>
+                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 <p
                   className={`mt-1 text-xs ${isOutgoing ? 'text-blue-100' : 'text-gray-500'}`}
                 >

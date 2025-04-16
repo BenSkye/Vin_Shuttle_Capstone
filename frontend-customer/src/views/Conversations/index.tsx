@@ -290,43 +290,58 @@ const ConversationListPage = () => {
 
         {/* Conversation List */}
         <div className="flex-1 overflow-y-auto">
-          {(conversations as IConversation[]).map((conv) => (
-            <div
-              key={conv._id}
-              className={`flex cursor-pointer items-center border-b border-gray-200 p-4 hover:bg-gray-100 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''}`}
-              onClick={() => {
-                setSelectedConversationId(conv._id)
-                setShowConversationList(false)
-                setShowSearchSidebar(false)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+          {(conversations as IConversation[])?.length > 0 ? (
+            (conversations as IConversation[]).map((conv) => (
+              <div
+                key={conv._id}
+                className={`flex cursor-pointer items-center border-b border-gray-200 p-4 hover:bg-gray-100 ${selectedConversationId === conv._id ? 'bg-blue-50' : ''}`}
+                onClick={() => {
                   setSelectedConversationId(conv._id)
                   setShowConversationList(false)
                   setShowSearchSidebar(false)
-                }
-              }}
-              tabIndex={0}
-              aria-label={`Conversation with ${conv.driverId?.name}`}
-            >
-              {/* Avatar */}
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
-                {getInitial(conv.driverId?.name)}
-              </div>
-              {/* Conversation Info */}
-              <div className="ml-4 flex-1">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-medium">{conv.driverId?.name}</h2>
-                  <span className="text-sm text-gray-500">
-                    {getTimeString(conv.lastMessage?.createdAt)}
-                  </span>
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setSelectedConversationId(conv._id)
+                    setShowConversationList(false)
+                    setShowSearchSidebar(false)
+                  }
+                }}
+                tabIndex={0}
+                aria-label={`Conversation with ${conv.driverId?.name}`}
+              >
+                {/* Avatar */}
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
+                  {getInitial(conv.driverId?.name)}
                 </div>
-                <p className="truncate text-sm text-gray-600">
-                  {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
-                </p>
+
+                {/* Conversation Info */}
+                <div className="ml-4 flex-1 overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-medium truncate">{conv.driverId?.name}</h2>
+                  </div>
+                  <p className="text-sm text-gray-500">Cuốc xe {conv.tripCode}</p>
+                  <div className="flex items-center text-sm text-gray-600 space-x-2">
+                    <p className="truncate flex-1">
+                      {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
+                    </p>
+                    {conv.lastMessage?.timestamp && (
+                      <>
+                        <span className="text-gray-400">|</span>
+                        <span className="text-gray-500 whitespace-nowrap">
+                          {getTimeString(conv.lastMessage?.timestamp)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="flex h-full items-center justify-center p-6 text-center">
+              <p className="text-gray-500">Đang không có cuộc trò chuyện nào</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
