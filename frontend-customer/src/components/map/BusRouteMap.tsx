@@ -72,7 +72,6 @@ function RouteDisplay({ route }: { route: BusRoute }) {
 export default function BusRouteMap({ selectedRoute, allBusStops, showAllStops }: BusRouteMapProps) {
     const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424])
 
-    // Determine which stops to show
     const stopsToShow = selectedRoute
         ? selectedRoute.stops
         : (showAllStops ? allBusStops : [])
@@ -83,7 +82,7 @@ export default function BusRouteMap({ selectedRoute, allBusStops, showAllStops }
         <div className="h-screen w-full">
             <MapContainer
                 center={mapCenter}
-                zoom={14}
+                zoom={16}
                 style={{ height: '100%', width: '100%' }}
                 maxBoundsViscosity={1.0}
                 minZoom={13}

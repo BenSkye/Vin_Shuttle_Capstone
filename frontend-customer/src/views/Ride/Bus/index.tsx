@@ -25,9 +25,8 @@ const ViewBusPage = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [allBusStops, setAllBusStops] = useState<BusStop[]>([])
-    const [displayMode, setDisplayMode] = useState<DisplayMode>('routes')
+    const [displayMode, setDisplayMode] = useState<DisplayMode>('stops')
 
-    // Fetch bus routes and all bus stops
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -48,13 +47,11 @@ const ViewBusPage = () => {
         fetchData()
     }, [])
 
-    // Fetch schedules when a route is expanded
     const handleRouteClick = async (route: RouteWithSchedule) => {
         if (displayMode !== 'routes') return
 
         setSelectedRoute(route)
 
-        // Toggle expansion state
         setBusRoutes(prevRoutes =>
             prevRoutes.map(r => ({
                 ...r,
@@ -62,10 +59,8 @@ const ViewBusPage = () => {
             }))
         )
 
-        // If already has schedules or is collapsing, don't fetch
         if (route.schedules || !route.isExpanded) return
 
-        // Update loading state for this route
         setBusRoutes(prevRoutes =>
             prevRoutes.map(r => ({
                 ...r,
@@ -97,7 +92,6 @@ const ViewBusPage = () => {
         }
     }
 
-    // Switch display mode
     const handleDisplayModeChange = (mode: DisplayMode) => {
         setDisplayMode(mode)
         if (mode === 'stops') {
@@ -105,13 +99,11 @@ const ViewBusPage = () => {
         }
     }
 
-    // Filter routes based on search query
     const filteredRoutes = busRoutes.filter(route =>
         route.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         route.description?.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    // Filter bus stops based on search query
     const filteredBusStops = allBusStops.filter(stop =>
         stop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         stop.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -131,7 +123,7 @@ const ViewBusPage = () => {
                                 : 'text-content-secondary hover:bg-surface-secondary'
                                 }`}
                         >
-                            <span>Hiển thị trạm dừng</span>
+                            <span>Trạm Bus</span>
                         </button>
                         <button
                             onClick={() => handleDisplayModeChange('routes')}
@@ -140,7 +132,7 @@ const ViewBusPage = () => {
                                 : 'text-content-secondary hover:bg-surface-secondary'
                                 }`}
                         >
-                            <span>Hiển thị tuyến</span>
+                            <span>Tuyến Bus</span>
                         </button>
                     </div>
                     <div className="mt-4 relative">
