@@ -1,8 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { BusScheduleStatus } from '../../share/enums/bus-schedule.enum';
+import { GeneratedBusTrip } from './bus-schedule.dto';
 
 export type BusScheduleDocument = HydratedDocument<BusSchedule>;
+
+export interface IBusScheduleWithTrips extends BusSchedule {
+  dailyTrips?: GeneratedBusTrip[];
+}
+
+export type BusScheduleResponse = IBusScheduleWithTrips & Document;
 
 @Schema({ collection: 'BusSchedules', timestamps: true })
 export class BusSchedule {
@@ -45,5 +52,6 @@ export class BusSchedule {
     endTime: Date;
   }[];
 }
+
 
 export const BusScheduleSchema = SchemaFactory.createForClass(BusSchedule);
