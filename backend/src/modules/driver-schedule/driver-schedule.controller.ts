@@ -305,4 +305,62 @@ export class DriverScheduleController {
   async driverCheckout(@Request() req, @Param('driverScheduleId') driverScheduleId: string) {
     return await this.driverScheduleService.driverCheckOut(driverScheduleId, req.user._id);
   }
+
+
+  @Post('driver-pause-schedule/:driverScheduleId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'For driver to pause schedule (take a break)' })
+  @ApiParam({
+    name: 'driverScheduleId',
+    description: 'Driver Schedule Id',
+    example: '',
+  })
+  @ApiBody({
+    type: "PauseScheduleDto",
+    description: 'Reason for break',
+    examples: {
+      'Pause Schedule': {
+        value: {
+          reason: 'Ăn trưa',
+        },
+      },
+    },
+  })
+  async driverPauseSchedule(
+    @Request() req,
+    @Param('driverScheduleId') driverScheduleId: string,
+    @Body() pauseData: { reason: string },
+  ) {
+    return await this.driverScheduleService.driverPauseSchedule(
+      driverScheduleId,
+      req.user._id,
+      pauseData.reason
+    );
+  }
+
+  @Post('driver-continue-schedule/:driverScheduleId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.DRIVER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'For driver to continue schedule (end break)' })
+  @ApiParam({
+    name: 'driverScheduleId',
+    description: 'Driver Schedule Id',
+    example: '',
+  })
+  async driverContinueSchedule(
+    @Request() req,
+    @Param('driverScheduleId') driverScheduleId: string
+  ) {
+    return await this.driverScheduleService.driverContinueSchedule(
+      driverScheduleId,
+      req.user._id
+    );
+  }
 }

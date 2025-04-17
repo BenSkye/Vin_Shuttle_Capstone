@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { QueryOptions, Types } from 'mongoose';
-import { DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
+import { BreakTime, DriverScheduleDocument } from 'src/modules/driver-schedule/driver-schedule.schema';
 import { DriverSchedulesStatus, DriverScheduleTaskType, Shift } from 'src/share/enums';
 
 export interface ICreateDriverSchedule {
@@ -11,6 +11,7 @@ export interface ICreateDriverSchedule {
   endTime?: Date;
   vehicle: string;
   taskType?: DriverScheduleTaskType;
+  breakTimes?: BreakTime[];
   busRoute?: string;
 }
 
@@ -26,6 +27,7 @@ export interface IUpdateDriverSchedule {
   checkoutTime?: Date;
   isLate?: boolean;
   isEarlyCheckout?: boolean;
+  breakTimes?: BreakTime[];
   taskType?: DriverScheduleTaskType;
 }
 

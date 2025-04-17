@@ -50,5 +50,8 @@ export interface IDriverScheduleService {
   ): Promise<DriverScheduleDocument>;
   driverCheckIn(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument>;
   driverCheckOut(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument>;
+  driverPauseSchedule(driverScheduleId: string, driverId: string, reason: string): Promise<DriverScheduleDocument>;
+  driverContinueSchedule(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument>;
+
   autoCheckoutPendingSchedules(): Promise<void>;
 }
