@@ -119,6 +119,11 @@ export default {
         'slide-in': 'slideIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
+        // Animations for the marker
+        'marker-bounce': 'markerBounce 1s ease-in-out infinite',
+        'marker-pulse': 'markerPulse 2s ease-in-out infinite',
+        'marker-drop-in': 'markerDrop 0.5s ease-out',
+        'marker-hover': 'markerHover 1.5s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -136,6 +141,25 @@ export default {
         scaleIn: {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        // Keyframes for marker animations
+        markerBounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-15px)' },
+        },
+        markerPulse: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.08)', opacity: '0.8' },
+        },
+        markerDrop: {
+          '0%': { transform: 'translateY(-50px)', opacity: '0' },
+          '60%': { transform: 'translateY(5px)' },
+          '80%': { transform: 'translateY(-3px)' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        markerHover: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
         },
       },
     },
