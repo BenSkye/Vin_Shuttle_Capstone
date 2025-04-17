@@ -17,7 +17,7 @@ import { IVehicleCategoryRepository } from "src/modules/vehicle-categories/vehic
 import { VEHICLE_REPOSITORY } from "src/modules/vehicles/vehicles.di-token";
 import { IVehiclesRepository } from "src/modules/vehicles/vehicles.port";
 import { VehicleDocument } from "src/modules/vehicles/vehicles.schema";
-import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, UserRole, UserStatus } from "src/share/enums";
+import { DriverSchedulesStatus, Shift, ShiftDifference, ShiftHours, TimeBreakMinToNextTrip, TripStatus, UserRole, UserStatus } from "src/share/enums";
 import { VehicleCondition, VehicleOperationStatus } from "src/share/enums/vehicle.enum";
 import { DateUtils } from "src/share/utils";
 import { processQueryParams } from "src/share/utils/query-params.util";
@@ -655,6 +655,163 @@ export class DriverScheduleService implements IDriverScheduleService {
     await this.driverScheduleGateway.handleDriverCheckout(driverId);
     await this.trackingService.deleteLastVehicleLocation(driverSchedule.vehicle.toString());
 
+    return scheduleUpdate;
+  }
+
+  async driverPauseSchedule(driverScheduleId: string, driverId: string, reason: string): Promise<DriverScheduleDocument> {
+    // get current time,
+    const currentTime = new Date();
+    console.log('driverScheduleId', driverScheduleId);
+    const driverSchedule = await this.driverScheduleRepository.findOneDriverSchedule(
+      {
+        _id: driverScheduleId,
+        driver: driverId,
+      },
+      [],
+    );
+    if (!driverSchedule) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Driver Schedule not found',
+          vnMessage: `Không tìm thấy lịch`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (driverSchedule.status !== DriverSchedulesStatus.IN_PROGRESS) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver schedule has not in progress',
+          vnMessage: 'Lịch đang không trong ca làm',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    //check if there are any trip have start time near 5 minutes from now
+    const trip = await this.tripRepository.find({
+      driverScheduleId: driverScheduleId,
+      startTime: {
+        $gte: currentTime,
+        $lt: new Date(currentTime.getTime() + TimeBreakMinToNextTrip * 60 * 1000), // 5 minutes from now
+      },
+      status: {
+        $in: [TripStatus.CONFIRMED],
+      }
+    }, ['_id'])
+    if (trip.length > 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver schedule has trip near 5 minutes',
+          vnMessage: 'Lịch còn cuốc xe trong gần 5 phút tiếp theo',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    driverSchedule.status = DriverSchedulesStatus.IS_PAUSED;
+    const breakTimes = {
+      startTime: currentTime,
+      endTime: null,
+      reason: reason,
+    }
+    driverSchedule.breakTimes.push(breakTimes);
+
+    const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(
+      driverScheduleId,
+      {
+        status: driverSchedule.status,
+        breakTimes: driverSchedule.breakTimes,
+      },
+    );
+
+    if (!scheduleUpdate) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Update driver schedule failed',
+          vnMessage: 'Cập nhật lịch không thành công',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // await this.driverScheduleGateway.handleDriverCheckin(
+    //   driverId,
+    //   scheduleUpdate.vehicle.toString(),
+    // );
+    return scheduleUpdate;
+  }
+
+  async driverContinueSchedule(driverScheduleId: string, driverId: string): Promise<DriverScheduleDocument> {
+    // get current time,
+    const currentTime = new Date();
+    console.log('driverScheduleId', driverScheduleId);
+    const driverSchedule = await this.driverScheduleRepository.findOneDriverSchedule(
+      {
+        _id: driverScheduleId,
+        driver: driverId,
+      },
+      [],
+    );
+    if (!driverSchedule) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Driver Schedule not found',
+          vnMessage: `Không tìm thấy lịch`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (driverSchedule.status !== DriverSchedulesStatus.IS_PAUSED) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Driver schedule has not is paused',
+          vnMessage: 'Lịch đang không tạm dừng',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    driverSchedule.status = DriverSchedulesStatus.IN_PROGRESS;
+    //filter breakTimes to get the active break time and set endTime to currentTime
+    const activeBreak = driverSchedule.breakTimes.find(breakTime => breakTime.endTime === null);
+    const updatedBreakTimes = [...driverSchedule.breakTimes];
+    if (activeBreak) {
+      const breakIndex = updatedBreakTimes.indexOf(activeBreak);
+      updatedBreakTimes[breakIndex] = {
+        ...activeBreak,
+        endTime: currentTime
+      };
+    }
+    const scheduleUpdate = await this.driverScheduleRepository.updateDriverSchedule(
+      driverScheduleId,
+      {
+        status: driverSchedule.status,
+        breakTimes: updatedBreakTimes,
+      },
+    );
+
+    if (!scheduleUpdate) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Update driver schedule failed',
+          vnMessage: 'Cập nhật lịch không thành công',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // await this.driverScheduleGateway.handleDriverCheckin(
+    //   driverId,
+    //   scheduleUpdate.vehicle.toString(),
+    // );
     return scheduleUpdate;
   }
 
