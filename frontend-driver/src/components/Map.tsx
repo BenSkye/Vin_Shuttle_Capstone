@@ -165,15 +165,15 @@ const MapComponent = ({
     }
 
     // Chỉ center vào xe, không quan tâm pickup/destination
-    mapRef.current.animateToRegion(
-      {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.01, // Zoom level cố định
-        longitudeDelta: 0.01,
-      },
-      1000
-    );
+    // mapRef.current.animateToRegion(
+    //   {
+    //     latitude: location.latitude,
+    //     longitude: location.longitude,
+    //     latitudeDelta: 0.01, // Zoom level cố định
+    //     longitudeDelta: 0.01,
+    //   },
+    //   1000
+    // );
   }, [location, isShareItinerary, isUserInteracting]);
   useEffect(() => {
     console.log('shareStops143:', shareStops);
@@ -421,6 +421,21 @@ const MapComponent = ({
     return locationTimestamp.toLocaleTimeString();
   };
 
+  // Thêm hàm để center map vào vị trí xe
+  const centerToCurrentLocation = () => {
+    if (mapRef.current && location) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        1000
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       {errorMsg ? (
@@ -648,6 +663,16 @@ const MapComponent = ({
               <Text style={styles.errorBannerText}>{routeError}</Text>
             </View>
           )}
+
+          {/* Thêm nút center vào xe */}
+          <TouchableOpacity 
+            style={styles.centerButton}
+            onPress={centerToCurrentLocation}
+          >
+            <View style={styles.centerButtonInner}>
+              <Ionicons name="locate" size={24} color="#007AFF" />
+            </View>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
