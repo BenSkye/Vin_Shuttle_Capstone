@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Image,
   RefreshControl,
@@ -49,7 +48,7 @@ export default function ConversationScreen() {
   const renderItem = ({ item }: { item: IConversation }) => {
     const sender = item.customerId;
     const unread = false; // Add logic for unread messages if available
-    const time = item.lastMessage?.createdAt ? formatTime(item.lastMessage.createdAt) : '';
+    const time = item.lastMessage?.timestamp ? formatTime(item.lastMessage.timestamp) : '';
 
     return (
       <TouchableOpacity
@@ -77,7 +76,6 @@ export default function ConversationScreen() {
             <Text numberOfLines={1} style={[styles.tripIdText, unread && styles.unreadText]}>
               Cuốc xe {item.tripCode ? String(item.tripCode) : ''}
             </Text>
-            <Text style={styles.timeText}>{time}</Text>
           </View>
 
           <View style={styles.messageRow}>

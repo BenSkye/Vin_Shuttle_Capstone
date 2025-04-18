@@ -62,8 +62,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       locationSubscription.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 5000, // Cập nhật mỗi 5 giây
-          distanceInterval: 10, // Cập nhật khi di chuyển 10m
+          timeInterval: 1, // Cập nhật mỗi 5 giây
+          distanceInterval: 5, // Cập nhật khi di chuyển 10m
         },
         (locationData) => {
           if (!locationData?.coords) {
