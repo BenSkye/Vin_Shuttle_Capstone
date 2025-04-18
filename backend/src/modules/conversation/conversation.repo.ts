@@ -16,7 +16,15 @@ export class ConversationRepository implements IConversationRepository {
   constructor(
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<Conversation>,
-  ) {}
+  ) { }
+
+  private getPopulateOptions() {
+    return [
+      { path: 'customerId', select: '-password' },
+      { path: 'driverId', select: '-password' },
+      { path: 'tripId' }
+    ];
+  }
 
   async create(data: ICreateConversation): Promise<ConversationDocument> {
     const newConversation = new this.conversationModel(data);
@@ -27,31 +35,31 @@ export class ConversationRepository implements IConversationRepository {
     return await this.conversationModel
       .findOne(query)
       .select(getSelectData(select))
-      .populate('customerId driverId tripId');
+      .populate(this.getPopulateOptions());
   }
 
   async getListConversation(query: any, select: string[]): Promise<ConversationDocument[]> {
     return await this.conversationModel
       .find(query)
       .select(getSelectData(select))
-      .populate('customerId driverId tripId');
+      .populate(this.getPopulateOptions());
   }
 
   async getConversationById(id: string): Promise<ConversationDocument> {
-    return await this.conversationModel.findById(id).populate('customerId driverId tripId');
+    return await this.conversationModel.findById(id).populate(this.getPopulateOptions());
   }
 
   async getUserConversations(userId: string): Promise<ConversationDocument[]> {
     return await this.conversationModel
       .find({ $or: [{ customerId: userId }, { driverId: userId }] })
-      .populate('customerId driverId tripId')
+      .populate(this.getPopulateOptions())
       .sort({ updatedAt: -1 });
   }
 
   async updateConversation(id: string, data: IUpdateConversation): Promise<ConversationDocument> {
     return await this.conversationModel
       .findByIdAndUpdate(id, data, { new: true })
-      .populate('customerId driverId tripId');
+      .populate(this.getPopulateOptions());
   }
 
   async closeConversation(id: string): Promise<boolean> {
@@ -94,6 +102,6 @@ export class ConversationRepository implements IConversationRepository {
           new: true,
         },
       )
-      .populate('customerId driverId tripId');
+      .populate(this.getPopulateOptions());
   }
 }

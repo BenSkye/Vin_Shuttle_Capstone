@@ -12,9 +12,10 @@ import {
   isSameDay,
   parseISO
 } from 'date-fns';
-import { vi } from 'date-fns/locale';
-import { getPersonalSchedules, driverCheckin, driverCheckout } from '../services/schedulesServices';
+import { fi, se, vi } from 'date-fns/locale';
+import { getPersonalSchedules, driverCheckin, driverCheckout, driverPauseSchedule, driverContinueSchedule } from '../services/schedulesServices';
 import { useSchedule } from '~/context/ScheduleContext';
+import ConfirmPauseModal from '~/components/DriverSchedule/ConfirmPause';
 
 interface Schedule {
   _id: string;
@@ -67,8 +68,10 @@ export default function ScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
-  const { updateIsInProgress } = useSchedule();
-
+  const { updateScheduleStatus } = useSchedule();
+  const [isPauseModalVisible, setIsPauseModalVisible] = useState(false);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
+  const [pauseError, setPauseError] = useState<string | null>(null);
   const fetchSchedules = async (date: Date) => {
     try {
       setLoading(true);
@@ -89,6 +92,8 @@ export default function ScheduleScreen() {
         return '#2563eb'; // blue
       case 'in_progress':
         return '#f59e0b'; // amber
+      case 'is_paused':
+        return '#f97316'; // orange
       case 'completed':
         return '#22c55e'; // green
       default:
@@ -102,6 +107,8 @@ export default function ScheduleScreen() {
         return 'Chưa bắt đầu';
       case 'in_progress':
         return 'Đang thực hiện';
+      case 'is_paused':
+        return 'Đang tạm dừng';
       case 'completed':
         return 'Đã hoàn thành';
       default:
@@ -146,11 +153,11 @@ export default function ScheduleScreen() {
     try {
       setIsLoading(true);
       const updatedSchedule = await driverCheckin(scheduleId);
-      updateIsInProgress(true);
-      
+      updateScheduleStatus({ inProgress: true, paused: false });
+
       // Find the original schedule to get vehicle data
       const originalSchedule = schedules.find(schedule => schedule._id === updatedSchedule._id);
-      
+
       // Cập nhật danh sách lịch
       setSchedules(
         schedules.map((schedule) => {
@@ -182,12 +189,12 @@ export default function ScheduleScreen() {
     try {
       setIsLoading(true);
       const updatedSchedule = await driverCheckout(scheduleId);
-      
+
       // Find the original schedule to get vehicle data
       const originalSchedule = schedules.find(schedule => schedule._id === updatedSchedule._id);
-      
+
       // Cập nhật danh sách lịch
-      updateIsInProgress(false);
+      updateScheduleStatus({ inProgress: false, paused: false });
       setSchedules(
         schedules.map((schedule) => {
           if (schedule._id === updatedSchedule._id) {
@@ -211,6 +218,58 @@ export default function ScheduleScreen() {
     }
   };
 
+  const handleConfirmPause = async (reason: string) => {
+    if (!selectedScheduleId) return;
+    try {
+      setIsLoading(true);
+      const updatedSchedule = await driverPauseSchedule(selectedScheduleId, reason);
+      updateScheduleStatus({ inProgress: false, paused: true });
+      setSchedules(
+        schedules.map((schedule) => {
+          if (schedule._id === updatedSchedule._id) {
+            updatedSchedule.vehicle = schedule.vehicle;
+            return updatedSchedule;
+          }
+          return schedule;
+        })
+      );
+
+      setIsPauseModalVisible(false);
+    } catch (error) {
+      // console.error('Pause error:', error.response?.data.vnMessage);
+      setPauseError(error.response?.data.vnMessage || 'Không thể tạm dừng ca làm. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleContinue = async (scheduleId: string) => {
+    try {
+      setIsLoading(true);
+      const updatedSchedule = await driverContinueSchedule(scheduleId);
+      updateScheduleStatus({ inProgress: true, paused: false });
+      setSchedules(
+        schedules.map((schedule) => {
+          if (schedule._id === updatedSchedule._id) {
+            updatedSchedule.vehicle = schedule.vehicle; // Preserve the original vehicle data
+            return updatedSchedule;
+          }
+          return schedule;
+        })
+      );
+    } catch (error) {
+      console.error('Continue error:', error);
+      Alert.alert('Lỗi', 'Không thể tiếp tục ca làm. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleOpenPauseModal = (scheduleId: string) => {
+    setSelectedScheduleId(scheduleId);
+    setIsPauseModalVisible(true);
+  }
+
   const renderActionButtons = (schedule: Schedule) => {
     if (isLoading) {
       return <ActivityIndicator size="small" color="#2563eb" />;
@@ -227,12 +286,28 @@ export default function ScheduleScreen() {
         );
       case 'in_progress':
         return (
+          <View className=" ">
+            <TouchableOpacity
+              className="rounded-lg bg-orange-500 px-4 py-2 flex-1 mb-2 "
+              onPress={() => handleOpenPauseModal(schedule._id)}>
+              <Text className="font-semibold text-white text-center">Tạm dừng</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="rounded-lg bg-amber-500 px-4 py-2 flex-1 mt-2"
+              onPress={() => handleCheckout(schedule._id)}>
+              <Text className="font-semibold text-white text-center">Check-out</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      case 'is_paused':
+        return (
           <TouchableOpacity
-            className="rounded-lg bg-amber-500 px-4 py-2"
-            onPress={() => handleCheckout(schedule._id)}>
-            <Text className="font-semibold text-white">Check-out</Text>
+            className="rounded-lg bg-green-500 px-4 py-2"
+            onPress={() => handleContinue(schedule._id)}>
+            <Text className="font-semibold text-white">Tiếp tục ca làm</Text>
           </TouchableOpacity>
         );
+
       case 'completed':
         return (
           <View className="rounded-lg bg-green-100 px-4 py-2">
@@ -369,6 +444,13 @@ export default function ScheduleScreen() {
           ) : null}
         </View>
       </ScrollView>
+      <ConfirmPauseModal
+        visible={isPauseModalVisible}
+        onClose={() => { setIsPauseModalVisible(false), setPauseError(null) }}
+        onConfirm={handleConfirmPause}
+        isLoading={isLoading}
+        error={pauseError}
+      />
     </SafeAreaView>
   );
 }
