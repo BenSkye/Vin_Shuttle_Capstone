@@ -70,7 +70,7 @@ export const EditBusSchedule = ({ schedule, onSave, onClose }: EditBusSchedulePr
                                 Tuyến xe bus
                             </Label>
                             <Select
-                                value={formData.busRoute}
+                                value={formData.busRoute._id}
                                 onValueChange={(value) => handleChange('busRoute', value)}
                             >
                                 <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
