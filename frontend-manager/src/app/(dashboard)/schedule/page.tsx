@@ -165,7 +165,10 @@ const SchedulePage = () => {
                     // Lưu trữ đối tượng ngày gốc để giúp tính toán tuần
                     originalDate: scheduleDate,
                     vehicleId: schedule.vehicle?._id,
-                    vehicleName: schedule.vehicle?.name || "Xe Không Xác Định"
+                    vehicleName: schedule.vehicle?.name || "Xe Không Xác Định",
+                    status: schedule.status,
+                    checkinTime: schedule.checkinTime || null,
+                    checkoutTime: schedule.checkoutTime || null
                 };
             });
 
@@ -415,6 +418,25 @@ const SchedulePage = () => {
                     <strong>Ca:</strong> {selectedActivity.endTime}
                     ({shiftTimeRanges[selectedActivity.endTime as keyof typeof shiftTimeRanges] || ''})
                 </p>
+                {selectedActivity.status === 'completed' && selectedActivity.checkinTime && selectedActivity.checkoutTime && (
+                    <div className="mt-2 p-3 bg-green-50 rounded border border-green-200">
+                        <p className="text-green-800 font-medium mb-1">Ca đã kết thúc</p>
+                        <p><strong>Thời gian check-in:</strong> {new Date(selectedActivity.checkinTime).toLocaleString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        })}</p>
+                        <p><strong>Thời gian check-out:</strong> {new Date(selectedActivity.checkoutTime).toLocaleString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        })}</p>
+                    </div>
+                )}
                 {selectedActivity.date && !isDateInPast(selectedActivity.date) && (
                     <Button
                         type="primary"

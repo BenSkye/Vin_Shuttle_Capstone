@@ -10,6 +10,7 @@ import { FiPhone } from 'react-icons/fi'
 import { Routes } from '@/constants/routers'
 import { useAuth as useAuthContext } from '@/context/AuthContext'
 import { useAuth as useAuthHook } from '@/hooks/useAuth'
+import { ApiError } from '@/interface/auth.interface'
 
 export default function LoginPage() {
   const [messageApi, contextHolder] = message.useMessage()
@@ -30,10 +31,14 @@ export default function LoginPage() {
     setError('')
     try {
       if (!showOtp) {
-        // First step: Send OTP
+        console.log('Sending OTP request for phone:', formData.phone)
+
         const response = await doLogin({ phone: formData.phone })
+        console.log('OTP response:', response)
+
         if (response.isValid && response.data) {
           setShowOtp(true)
+          console.log('OTP code received:', response.data)
           messageApi.success({
             content: `Mã OTP của bạn là: ${response.data}`,
             duration: 10,
@@ -41,10 +46,19 @@ export default function LoginPage() {
         }
       } else {
         // Second step: Verify OTP
+        console.log('Verifying OTP:', formData.otp, 'for phone:', formData.phone)
         await doLogin({ phone: formData.phone, code: formData.otp })
       }
     } catch (err) {
       console.log(err)
+      const error = err as ApiError
+      // Check for 404 error specifically
+      if (error.status === 404) {
+        setError('Không tìm thấy số điện thoại. Vui lòng kiểm tra lại hoặc đăng ký tài khoản mới.')
+        console.error('Phone number not found error:', error)
+      } else {
+        setError(error?.response?.data?.vnMessage || error?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.')
+      }
     }
   }
 

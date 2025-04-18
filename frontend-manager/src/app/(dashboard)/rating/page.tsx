@@ -1,75 +1,94 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getAllRating, RatingQuery } from "@/services/api/rating";
 
-const reviews = [
-    {
-        rating: 5,
-        text: "Dịch vụ rất tốt, tài xế thân thiện",
-        date: "15/04/2023",
-        helpful: 4,
-        status: "Chưa trả lời",
-    },
-    {
-        rating: 4,
-        text: "Cuốc xe khá thoải mái, chỉ tiếc là đến trễ 5 phút",
-        date: "10/04/2023",
-        helpful: 2,
-        status: "Chưa trả lời",
-    },
-    {
-        rating: 5,
-        text: "Tuyệt vời, chắc chắn sẽ sử dụng lại",
-        date: "05/04/2023",
-        helpful: 7,
-        status: "Đã trả lời",
-    },
-    {
-        rating: 3,
-        text: "Xe sạch sẽ nhưng tài xế không nhiệt tình",
-        date: "01/04/2023",
-        helpful: 1,
-        status: "Đã trả lời",
-    },
-    {
-        rating: 5,
-        text: "Tài xế rất chuyên nghiệp và thân thiện",
-        date: "28/03/2023",
-        helpful: 5,
-        status: "Chưa trả lời",
-    },
-];
+interface Rating {
+    _id: string;
+    tripId: string;
+    driverId: string;
+    customerId: string;
+    rate: number;
+    feedback: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    serviceType?: string;
+}
 
 const RatingPage: React.FC = () => {
+    const [ratings, setRatings] = useState<Rating[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const [sortOrder, setSortOrder] = useState<string>("newest");
-    const [filterStatus, setFilterStatus] = useState<string>("all");
+    const [serviceType, setServiceType] = useState<string>("all");
+    const [filterFeedback, setFilterFeedback] = useState<string>("all");
 
-    // Filter reviews based on status
-    const filteredReviews = filterStatus === "all"
-        ? reviews
-        : reviews.filter(review =>
-            filterStatus === "replied"
-                ? review.status === "Đã trả lời"
-                : review.status === "Chưa trả lời"
+    useEffect(() => {
+        fetchRatings();
+    }, [serviceType]);
+
+    const fetchRatings = async () => {
+        try {
+            setLoading(true);
+            const query: RatingQuery = {};
+
+            if (serviceType !== "all") {
+                query.serviceType = serviceType as 'booking_hour' | 'booking_scenic_route' | 'booking_share' | 'booking_destination';
+            }
+
+            const data = await getAllRating(query);
+            setRatings(data);
+        } catch (error) {
+            console.error("Error fetching ratings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Filter reviews based on feedback
+    const filteredReviews = filterFeedback === "all"
+        ? ratings
+        : ratings.filter(review =>
+            filterFeedback === "replied"
+                ? review.feedback.trim() !== ""
+                : review.feedback.trim() === ""
         );
 
     // Sort reviews based on date or rating
     const sortedReviews = [...filteredReviews].sort((a, b) => {
         if (sortOrder === "newest") {
-            return new Date(b.date.split('/').reverse().join('-')) > new Date(a.date.split('/').reverse().join('-')) ? 1 : -1;
+            return new Date(b.createdAt) > new Date(a.createdAt) ? 1 : -1;
         } else if (sortOrder === "oldest") {
-            return new Date(a.date.split('/').reverse().join('-')) > new Date(b.date.split('/').reverse().join('-')) ? 1 : -1;
+            return new Date(a.createdAt) > new Date(b.createdAt) ? 1 : -1;
         } else if (sortOrder === "highest") {
-            return b.rating - a.rating;
+            return b.rate - a.rate;
         } else {
-            return a.rating - b.rating;
+            return a.rate - b.rate;
         }
     });
 
     // Calculate statistics
-    const totalReviews = reviews.length;
-    const pendingReviews = reviews.filter(r => r.status === "Chưa trả lời").length;
-    const averageRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(2);
+    const totalReviews = ratings.length;
+    const pendingReviews = ratings.filter(r => r.feedback.trim() === "").length;
+    const averageRating = totalReviews > 0
+        ? (ratings.reduce((sum, r) => sum + r.rate, 0) / totalReviews).toFixed(2)
+        : "0.00";
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    };
+
+    // Map serviceType to display text
+    const getServiceTypeDisplay = (type?: string) => {
+        switch (type) {
+            case 'booking_hour': return 'Đặt xe theo giờ';
+            case 'booking_scenic_route': return 'Đặt xe tham quan';
+            case 'booking_share': return 'Đặt xe đi chung';
+            case 'booking_destination': return 'Đặt xe điểm đến';
+            default: return 'Không xác định';
+        }
+    };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen font-sans">
@@ -119,12 +138,24 @@ const RatingPage: React.FC = () => {
 
                             <select
                                 className="border rounded px-2 py-1 text-sm"
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
+                                value={serviceType}
+                                onChange={(e) => setServiceType(e.target.value)}
                             >
                                 <option value="all">Tất cả</option>
-                                <option value="pending">Chưa trả lời</option>
+                                <option value="booking_hour">Đặt xe theo giờ</option>
+                                <option value="booking_scenic_route">Đặt xe tham quan</option>
+                                <option value="booking_share">Đặt xe đi chung</option>
+                                <option value="booking_destination">Đặt xe điểm đến</option>
+                            </select>
+
+                            <select
+                                className="border rounded px-2 py-1 text-sm"
+                                value={filterFeedback}
+                                onChange={(e) => setFilterFeedback(e.target.value)}
+                            >
+                                <option value="all">Tất cả phản hồi</option>
                                 <option value="replied">Đã trả lời</option>
+                                <option value="pending">Chưa trả lời</option>
                             </select>
                         </div>
                         <button className="text-sm text-blue-600 hover:underline">
@@ -134,43 +165,44 @@ const RatingPage: React.FC = () => {
                 </div>
 
                 <div>
-                    <div className="grid grid-cols-1 sm:grid-cols-5 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600">
+                    <div className="grid grid-cols-1 sm:grid-cols-6 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600">
                         <div className="col-span-2">Đánh giá</div>
                         <div>Ngày</div>
-                        <div>Hữu ích</div>
+                        <div>ID Khách hàng</div>
+                        <div>Loại dịch vụ</div>
                         <div>Trạng thái</div>
                     </div>
 
-                    {sortedReviews.length > 0 ? (
-                        sortedReviews.map((review, idx) => (
+                    {loading ? (
+                        <div className="px-4 py-6 text-center text-gray-500">
+                            Đang tải dữ liệu...
+                        </div>
+                    ) : sortedReviews.length > 0 ? (
+                        sortedReviews.map((review) => (
                             <div
-                                key={idx}
-                                className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center px-4 py-3 border-t text-sm gap-2 sm:gap-0"
+                                key={review._id}
+                                className="grid grid-cols-1 sm:grid-cols-6 items-start sm:items-center px-4 py-3 border-t text-sm gap-2 sm:gap-0"
                             >
                                 <div className="col-span-2">
                                     <div className="flex items-center space-x-1 text-yellow-500">
-                                        {"★".repeat(review.rating)}
-                                        {"☆".repeat(5 - review.rating)}
+                                        {"★".repeat(review.rate)}
+                                        {"☆".repeat(5 - review.rate)}
                                     </div>
-                                    <div className="text-gray-800 mt-1">{review.text}</div>
+                                    <div className="text-gray-800 mt-1">
+                                        {review.feedback ? review.feedback : "Không có phản hồi"}
+                                    </div>
                                 </div>
-                                <div className="text-gray-600">{review.date}</div>
-                                <div className="flex items-center">
-                                    <span className="text-gray-600">{review.helpful}</span>
-                                    <button className="ml-2 text-blue-500 hover:text-blue-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                <div className="text-gray-600">{formatDate(review.createdAt)}</div>
+                                <div className="text-gray-600 truncate">{review.customerId}</div>
+                                <div className="text-gray-600">{getServiceTypeDisplay(review.serviceType)}</div>
                                 <div>
-                                    <span className={`text-xs px-2 py-1 rounded ${review.status === "Chưa trả lời"
+                                    <span className={`text-xs px-2 py-1 rounded ${review.feedback.trim() === ""
                                         ? "bg-red-100 text-red-600"
                                         : "bg-green-100 text-green-600"
                                         } font-semibold`}>
-                                        {review.status}
+                                        {review.feedback.trim() === "" ? "Chưa trả lời" : "Đã trả lời"}
                                     </span>
-                                    {review.status === "Chưa trả lời" && (
+                                    {review.feedback.trim() === "" && (
                                         <button className="ml-2 text-blue-600 hover:underline text-xs">
                                             Trả lời
                                         </button>

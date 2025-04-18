@@ -141,5 +141,29 @@ export const styles = StyleSheet.create({
 
     // Elevation (Android)
     elevation: 5,
-  }
+  },
+  centerButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 16,
+    backgroundColor: 'white',
+    borderRadius: 30,
+    width: 50,
+    height: 50,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  centerButtonInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

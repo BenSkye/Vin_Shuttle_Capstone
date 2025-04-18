@@ -181,6 +181,16 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                                             >
                                                 <div className="font-medium truncate">{activity.title}</div>
                                                 <div className="text-xs truncate text-gray-600">{activity.description}</div>
+                                                {activity.status === 'completed' && activity.checkinTime && activity.checkoutTime && (
+                                                    <div className="mt-1 text-xs text-gray-700">
+                                                        <div>
+                                                            <span className="font-medium">Check-in:</span> {new Date(activity.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">Check-out:</span> {new Date(activity.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))
                                     )}
