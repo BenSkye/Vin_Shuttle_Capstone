@@ -11,20 +11,29 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { EditBusSchedule } from './EditBusSchedule';
+import { CreateBusSchedule } from './CreateBusSchedule';
 import {
     BusSchedule,
     getActiveScheduleByRoute,
-    createBusSchedule,
-    updateBusSchedule,
     deleteBusSchedule,
     generateTrips
 } from '@/services/api/busSchedules';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { Bus, Calendar, Clock, User, Car } from 'lucide-react';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 export const BusScheduleList = () => {
     const [schedules, setSchedules] = useState<BusSchedule[]>([]);
     const [selectedSchedule, setSelectedSchedule] = useState<BusSchedule | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -33,13 +42,13 @@ export const BusScheduleList = () => {
 
     const fetchSchedules = async () => {
         try {
-            // TODO: Replace with actual route ID
-            const routeId = "507f1f77bcf86cd799439011";
-            const data = await getActiveScheduleByRoute(routeId);
+            const routeId = "67ef9f40be7e3233b9200548";
+            const today = format(new Date(), 'yyyy-MM-dd');
+            const data = await getActiveScheduleByRoute(routeId, today);
             setSchedules(data || []);
         } catch (error) {
             console.error('Error fetching schedules:', error);
-            toast.error('Failed to fetch schedules');
+            toast.error('Không thể tải danh sách lịch trình');
         } finally {
             setIsLoading(false);
         }
@@ -48,45 +57,28 @@ export const BusScheduleList = () => {
     const handleDelete = async (id: string) => {
         try {
             await deleteBusSchedule(id);
-            toast.success('Schedule deleted successfully');
+            toast.success('Xóa lịch trình thành công');
             fetchSchedules();
         } catch (error) {
             console.error('Error deleting schedule:', error);
-            toast.error('Failed to delete schedule');
+            toast.error('Không thể xóa lịch trình');
         }
     };
 
     const handleGenerateTrips = async (id: string) => {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = format(new Date(), 'yyyy-MM-dd');
             await generateTrips(id, today);
-            toast.success('Trips generated successfully');
-        } catch (error) {
-            console.error('Error generating trips:', error);
-            toast.error('Failed to generate trips');
-        }
-    };
-
-    const handleEdit = (schedule: BusSchedule) => {
-        setSelectedSchedule(schedule);
-        setIsEditModalOpen(true);
-    };
-
-    const handleSave = async (updatedSchedule: BusSchedule) => {
-        try {
-            if (updatedSchedule._id) {
-                await updateBusSchedule(updatedSchedule._id, updatedSchedule);
-                toast.success('Schedule updated successfully');
-            } else {
-                await createBusSchedule(updatedSchedule);
-                toast.success('Schedule created successfully');
-            }
-            setIsEditModalOpen(false);
+            toast.success('Tạo chuyến xe thành công');
             fetchSchedules();
         } catch (error) {
-            console.error('Error saving schedule:', error);
-            toast.error('Failed to save schedule');
+            console.error('Error generating trips:', error);
+            toast.error('Không thể tạo chuyến xe');
         }
+    };
+
+    const formatTime = (dateString: string) => {
+        return format(new Date(dateString), 'HH:mm');
     };
 
     if (isLoading) {
@@ -99,67 +91,167 @@ export const BusScheduleList = () => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Bus Schedules</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Quản lý lịch trình xe bus</h2>
+                <Button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-primary text-black hover:bg-primary/90"
+                >
+                    <Bus className="w-4 h-4 mr-2" />
+                    Thêm lịch trình mới
+                </Button>
             </div>
 
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Route</TableHead>
-                        <TableHead>Trips/Day</TableHead>
-                        <TableHead>Start Time</TableHead>
-                        <TableHead>End Time</TableHead>
-                        <TableHead>Effective Date</TableHead>
-                        <TableHead>Expiry Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+                <Accordion type="single" collapsible>
                     {schedules.map((schedule) => (
-                        <TableRow key={schedule._id}>
-                            <TableCell>{schedule.busRoute}</TableCell>
-                            <TableCell>{schedule.tripsPerDay}</TableCell>
-                            <TableCell>{schedule.dailyStartTime}</TableCell>
-                            <TableCell>{schedule.dailyEndTime}</TableCell>
-                            <TableCell>{schedule.effectiveDate}</TableCell>
-                            <TableCell>{schedule.expiryDate}</TableCell>
-                            <TableCell>{schedule.status}</TableCell>
-                            <TableCell>
-                                <div className="flex space-x-2">
+                        <AccordionItem key={schedule._id} value={schedule._id}>
+                            <div className="flex items-center">
+                                <AccordionTrigger className="flex-1 px-4 hover:bg-gray-50">
+                                    <div className="grid grid-cols-6 w-full gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Bus className="w-4 h-4 text-primary" />
+                                            <span className="font-medium">{schedule.busRoute.name}</span>
+                                        </div>
+                                        <div className="text-center">{schedule.tripsPerDay} chuyến</div>
+                                        <div className="flex items-center space-x-2">
+                                            <Clock className="w-4 h-4 text-gray-500" />
+                                            <span>{schedule.dailyStartTime} - {schedule.dailyEndTime}</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Calendar className="w-4 h-4 text-gray-500" />
+                                            <span>
+                                                {format(new Date(schedule.effectiveDate), 'dd/MM/yyyy')}
+                                                {schedule.expiryDate && ` - ${format(new Date(schedule.expiryDate), 'dd/MM/yyyy')}`}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center space-x-2">
+                                                <User className="w-4 h-4 text-gray-500" />
+                                                <span>{schedule.drivers.length} tài xế</span>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Car className="w-4 h-4 text-gray-500" />
+                                                <span>{schedule.vehicles.length} xe</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Badge variant={schedule.status === 'active' ? 'success' : 'secondary'}>
+                                                {schedule.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </AccordionTrigger>
+                                <div className="flex items-center space-x-2 px-4">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleEdit(schedule)}
+                                        onClick={() => {
+                                            setSelectedSchedule(schedule);
+                                            setIsEditModalOpen(true);
+                                        }}
                                     >
-                                        Edit
+                                        Sửa
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleGenerateTrips(schedule._id!)}
+                                        onClick={() => handleGenerateTrips(schedule._id)}
                                     >
-                                        Generate Trips
+                                        Tạo chuyến
                                     </Button>
                                     <Button
                                         variant="destructive"
                                         size="sm"
-                                        onClick={() => handleDelete(schedule._id!)}
+                                        onClick={() => handleDelete(schedule._id)}
                                     >
-                                        Delete
+                                        Xóa
                                     </Button>
                                 </div>
-                            </TableCell>
-                        </TableRow>
+                            </div>
+                            <AccordionContent>
+                                <div className="px-4 py-3 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-gray-900">Thông tin tuyến xe</h4>
+                                            <p className="text-sm text-gray-600">{schedule.busRoute.description}</p>
+                                            <div className="space-y-1">
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-medium">Điểm dừng:</span>{' '}
+                                                    {schedule.busRoute.stops.length} trạm
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-gray-900">Phân công tài xế</h4>
+                                            {schedule.driverAssignments.map((assignment, index) => (
+                                                <div key={index} className="text-sm text-gray-600 space-y-1">
+                                                    <p>
+                                                        <span className="font-medium">Ca làm việc {index + 1}:</span>{' '}
+                                                        {format(new Date(assignment.startTime), 'HH:mm')} -{' '}
+                                                        {format(new Date(assignment.endTime), 'HH:mm')}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <h4 className="font-semibold text-gray-900 mb-2">Danh sách chuyến xe trong ngày</h4>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>STT</TableHead>
+                                                        <TableHead>Giờ xuất phát</TableHead>
+                                                        <TableHead>Giờ kết thúc</TableHead>
+                                                        <TableHead>Thời gian di chuyển</TableHead>
+                                                        <TableHead>Trạng thái</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {schedule.dailyTrips?.map((trip, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{index + 1}</TableCell>
+                                                            <TableCell>{formatTime(trip.startTime)}</TableCell>
+                                                            <TableCell>{formatTime(trip.endTime)}</TableCell>
+                                                            <TableCell>{trip.estimatedDuration} phút</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={trip.status === 'active' ? 'success' : 'secondary'}>
+                                                                    {trip.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                                                                </Badge>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
                     ))}
-                </TableBody>
-            </Table>
+                </Accordion>
+            </div>
+
+            {isCreateModalOpen && (
+                <CreateBusSchedule
+                    isOpen={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onSuccess={() => {
+                        setIsCreateModalOpen(false);
+                        fetchSchedules();
+                    }}
+                />
+            )}
 
             {isEditModalOpen && selectedSchedule && (
                 <EditBusSchedule
                     schedule={selectedSchedule}
-                    onSave={handleSave}
+                    onSave={async () => {
+                        setIsEditModalOpen(false);
+                        await fetchSchedules();
+                    }}
                     onClose={() => setIsEditModalOpen(false)}
                 />
             )}
