@@ -35,6 +35,7 @@ export interface ApiError {
   }
   vnMessage?: string
   message?: string
+  status?: number
 }
 
 export interface UseAuthProps {

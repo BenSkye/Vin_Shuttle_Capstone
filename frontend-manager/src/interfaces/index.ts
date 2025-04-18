@@ -21,6 +21,9 @@ export interface Activity {
     color?: string;
     date?: string;
     originalDate?: Date;
+    checkinTime?: string;
+    checkoutTime?: string;
+    status?: string;
 };
 
 export interface Column<T> {

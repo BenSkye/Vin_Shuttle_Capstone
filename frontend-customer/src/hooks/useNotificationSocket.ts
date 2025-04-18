@@ -54,7 +54,7 @@ const useNotificationSocket = () => {
     }
 
     const handleConnectError = (err: Error) => {
-      console.error('Notification connection error:', err.message)
+      console.log('Notification connection error:', err.message)
       if (err.message.includes('Invalid token')) {
         logout()
         return
@@ -62,7 +62,7 @@ const useNotificationSocket = () => {
 
       reconnectAttempts++
       if (reconnectAttempts >= maxReconnectAttempts) {
-        console.error('Max reconnection attempts reached')
+        console.log('Max reconnection attempts reached')
         socket.disconnect()
       }
     }

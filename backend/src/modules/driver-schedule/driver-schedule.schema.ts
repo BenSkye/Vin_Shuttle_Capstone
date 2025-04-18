@@ -4,6 +4,17 @@ import { DriverSchedulesStatus, DriverScheduleTaskType, Shift, ShiftHours } from
 
 export type DriverScheduleDocument = HydratedDocument<DriverSchedule>;
 
+export class BreakTime {
+  @Prop({ type: Date, required: true })
+  startTime: Date;
+
+  @Prop({ type: Date })
+  endTime: Date;
+
+  @Prop({ type: String, required: true })
+  reason: string;
+}
+
 @Schema({ collection: 'DriverSchedules', timestamps: true })
 export class DriverSchedule {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -21,14 +32,14 @@ export class DriverSchedule {
   @Prop({ type: Number, default: 0 })
   actualWorkingHours: number; // Số giờ làm việc thực tế của tài xế trong ca (ví dụ: 7.5)
 
-  @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
-  busRoute: Types.ObjectId;
+  // @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  // busRoute: Types.ObjectId;
 
-  @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
-  startTime: Date; // Thời gian bắt đầu ca làm việc (ví dụ: 2023-10-01T08:00:00Z)
+  // @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  // startTime: Date; // Thời gian bắt đầu ca làm việc (ví dụ: 2023-10-01T08:00:00Z)
 
-  @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
-  endTime: Date; // Thời gian kết thúc ca làm việc (ví dụ: 2023-10-01T17:00:00Z)
+  // @Prop({ type: String, required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })
+  // endTime: Date; // Thời gian kết thúc ca làm việc (ví dụ: 2023-10-01T17:00:00Z)
 
   @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
   vehicle: Types.ObjectId;
@@ -50,6 +61,9 @@ export class DriverSchedule {
 
   @Prop({ type: String, enum: DriverScheduleTaskType, required: true, default: DriverScheduleTaskType.GENERAL })
   taskType: string;
+
+  @Prop({ type: [BreakTime], default: [] })
+  breakTimes: BreakTime[];
 }
 
 export const DriverScheduleSchema = SchemaFactory.createForClass(DriverSchedule);
@@ -65,11 +79,19 @@ DriverScheduleSchema.pre('save', function (next) {
   console.log('this.checkinTime', this.checkinTime);
   console.log('this.checkoutTime', this.checkoutTime);
   if (this.checkinTime && this.checkoutTime && this.checkoutTime > this.checkinTime) {
+    let totalBreakTimeMs = 0;
+
+    this.breakTimes?.forEach(breakTime => {
+      if (breakTime.startTime && breakTime.endTime && breakTime.endTime > breakTime.startTime) {
+        totalBreakTimeMs += breakTime.endTime.getTime() - breakTime.startTime.getTime();
+      }
+    });
     // Calculate the difference in milliseconds
-    const diffInMs = this.checkoutTime.getTime() - this.checkinTime.getTime();
-    console.log('diffInMs', diffInMs);
+    const totalTimeMs = this.checkoutTime.getTime() - this.checkinTime.getTime();
+    const actualWorkingTimeMs = totalTimeMs - totalBreakTimeMs;
+    console.log('actualWorkingTimeMs', actualWorkingTimeMs);
     // Convert milliseconds to hours
-    this.actualWorkingHours = parseFloat((diffInMs / (1000 * 60 * 60)).toFixed(2));
+    this.actualWorkingHours = parseFloat((actualWorkingTimeMs / (1000 * 60 * 60)).toFixed(2));
 
     // Check if the checkout is early compared to totalWorkingHours
     // if (this.actualWorkingHours < this.totalWorkingHours) {
