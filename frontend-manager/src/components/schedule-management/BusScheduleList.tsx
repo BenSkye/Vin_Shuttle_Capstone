@@ -101,9 +101,6 @@ export const BusScheduleList = () => {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Bus Schedules</h2>
-                <Button onClick={() => handleEdit({} as BusSchedule)}>
-                    Add New Schedule
-                </Button>
             </div>
 
             <Table>

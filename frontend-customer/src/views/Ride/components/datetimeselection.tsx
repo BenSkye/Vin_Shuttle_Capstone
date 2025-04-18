@@ -40,19 +40,34 @@ const DateTimeSelection = ({
         const systemStartTime = now.hour(SystemOperatingHours.START).minute(0).second(0)
         onDateChange(now)
         onStartTimeChange(systemStartTime)
+        console.log('Pickup Now - Before Operating Hours:', {
+          date: now.format('YYYY-MM-DD'),
+          time: systemStartTime.format('HH:mm'),
+          duration
+        })
       } else if (currentHour >= SystemOperatingHours.END) {
         // If current time is after operating hours, set to next day's start time
         const nextDay = now.add(1, 'day').hour(SystemOperatingHours.START).minute(0).second(0)
         onDateChange(nextDay)
         onStartTimeChange(nextDay)
+        console.log('Pickup Now - After Operating Hours:', {
+          date: nextDay.format('YYYY-MM-DD'),
+          time: nextDay.format('HH:mm'),
+          duration
+        })
       } else {
         // Normal case: add buffer to current time
         const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
         onDateChange(now)
         onStartTimeChange(bufferedTime)
+        console.log('Pickup Now - Normal Hours:', {
+          date: now.format('YYYY-MM-DD'),
+          time: bufferedTime.format('HH:mm'),
+          duration
+        })
       }
     }
-  }, [pickupNow, onDateChange, onStartTimeChange])
+  }, [pickupNow, onDateChange, onStartTimeChange, duration])
 
   // Disallow past dates
   const disabledDate = (current: dayjs.Dayjs) => {
@@ -107,12 +122,29 @@ const DateTimeSelection = ({
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
+    console.log('Pickup Now Toggle:', checked)
 
     // If toggling off, reset date and time selections
     if (!checked) {
       onDateChange(null)
       onStartTimeChange(null)
     }
+  }
+
+  const handleDateChange = (date: dayjs.Dayjs | null) => {
+    console.log('Date changed:', date ? date.format('YYYY-MM-DD') : 'null')
+    onDateChange(date)
+  }
+
+  const handleTimeChange = (time: dayjs.Dayjs | null) => {
+    console.log('Time changed:', time ? time.format('HH:mm') : 'null')
+    onStartTimeChange(time)
+  }
+
+  const handleDurationChange = (value: number | null) => {
+    const newDuration = value || 0
+    console.log('Duration changed:', newDuration)
+    onDurationChange(newDuration)
   }
 
   return (
@@ -161,7 +193,7 @@ const DateTimeSelection = ({
             format="DD/MM/YYYY"
             disabledDate={disabledDate}
             value={selectedDate}
-            onChange={onDateChange}
+            onChange={handleDateChange}
             placeholder="Chọn ngày đặt xe"
             locale={locale}
             showToday={false}
@@ -185,7 +217,7 @@ const DateTimeSelection = ({
             className="w-full"
             format="HH:mm"
             value={startTime}
-            onChange={onStartTimeChange}
+            onChange={handleTimeChange}
             placeholder="Chọn giờ đặt xe"
             locale={locale}
             disabledTime={disabledTime}
@@ -212,7 +244,7 @@ const DateTimeSelection = ({
           <InputNumber
             className="w-full"
             value={duration}
-            onChange={(value) => onDurationChange(value || 0)}
+            onChange={handleDurationChange}
             size="large"
             min={BookingHourDuration.MIN} // Giá trị tối thiểu là 15 phút
             max={BookingHourDuration.MAX} // Giá trị tối đa là 300 phút

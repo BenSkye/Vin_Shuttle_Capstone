@@ -8,9 +8,9 @@ import { useDebouncedCallback } from '@/hooks/shared/useDebouncedCallback'
 import { loginCustomer, registerCustomer, verifyOTP } from '@/service/user.service'
 import { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse, ApiError } from '@/interface/auth.interface'
 
-export const useAuth = ({ 
+export const useAuth = ({
   onLoginSuccess,
-}: { 
+}: {
   onLoginSuccess?: (data: LoginResponse) => void
 } = {}) => {
   const router = useRouter()

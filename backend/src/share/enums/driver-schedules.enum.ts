@@ -1,6 +1,7 @@
 export enum DriverSchedulesStatus {
   NOT_STARTED = 'not_started',
   IN_PROGRESS = 'in_progress',
+  IS_PAUSED = 'is_paused',
   COMPLETED = 'completed',
   DROPPED_OFF = 'dropped_off',
 }
@@ -30,3 +31,5 @@ export enum DriverScheduleTaskType {
   BUS = 'bus',
 }
 
+
+export const TimeBreakMinToNextTrip = 5; //5 phút

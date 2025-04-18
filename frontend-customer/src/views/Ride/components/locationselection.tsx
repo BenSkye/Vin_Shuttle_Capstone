@@ -1,9 +1,10 @@
-import React, { memo, useCallback, useEffect, useState } from 'react'
+import React, { memo, useCallback, useEffect, useState, useRef } from 'react'
 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
 import { useMap } from 'react-leaflet'
+import Image from 'next/image'
 
 import '@/styles/locationselection.css'
 
@@ -102,7 +103,6 @@ const useGeolocation = () => {
 
   return { position, error, loading, getCurrentPosition }
 }
-//yessir
 
 // Add custom component for current location marker
 const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
@@ -121,6 +121,98 @@ const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
   }, [position, map])
 
   return <Marker position={position} icon={icon} />
+}
+
+// Add custom hook for debouncing
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// Centered marker component that remains fixed in the center while map moves
+const CenteredMarker = ({
+  onMapMoveEnd
+}: {
+  onMapMoveEnd: (center: L.LatLng) => void
+}) => {
+  const map = useMap()
+  const [centerPosition, setCenterPosition] = useState<L.LatLng>(map.getCenter())
+  const [isDragging, setIsDragging] = useState(false)
+  const lastMoveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (!map) return
+
+    // Position the marker in the center of the map
+    const updateCenterPosition = () => {
+      setCenterPosition(map.getCenter())
+    }
+
+    // Setup event listener for when map movement ends
+    const handleMoveEnd = () => {
+      const center = map.getCenter()
+
+      // Clear any existing timeout
+      if (lastMoveTimerRef.current) {
+        clearTimeout(lastMoveTimerRef.current)
+      }
+
+      // Set a new timeout - only trigger geocoding after 1.5 seconds of no movement
+      lastMoveTimerRef.current = setTimeout(() => {
+        onMapMoveEnd(center)
+
+        // Add a small delay to trigger drag end animation
+        setTimeout(() => {
+          setIsDragging(false)
+        }, 50)
+      }, 500)
+    }
+
+    const handleMoveStart = () => {
+      setIsDragging(true)
+
+      // Clear any pending timeout when map starts moving again
+      if (lastMoveTimerRef.current) {
+        clearTimeout(lastMoveTimerRef.current)
+        lastMoveTimerRef.current = null
+      }
+    }
+
+    // Set initial center position
+    updateCenterPosition()
+
+    // Add event listeners
+    map.on('move', updateCenterPosition)
+    map.on('movestart', handleMoveStart)
+    map.on('moveend', handleMoveEnd)
+    map.on('zoomend', updateCenterPosition)
+
+    // Clean up
+    return () => {
+      map.off('move', updateCenterPosition)
+      map.off('movestart', handleMoveStart)
+      map.off('moveend', handleMoveEnd)
+      map.off('zoomend', updateCenterPosition)
+
+      // Clear any pending timeout on unmount
+      if (lastMoveTimerRef.current) {
+        clearTimeout(lastMoveTimerRef.current)
+      }
+    }
+  }, [map, onMapMoveEnd])
+
+  return null // We're using the CSS-based marker in the parent component
 }
 
 // Hàm geocode để tìm kiếm địa chỉ
@@ -143,14 +235,61 @@ const geocode = async (query: string): Promise<[number, number]> => {
 // Hàm reverse geocode
 const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
-    )
+    console.log('Reverse geocoding request for - Lat:', lat, 'Lon:', lon)
+
+    // Validate input coordinates
+    if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+      console.error('Invalid coordinates provided:', { lat, lon })
+      return 'Không xác định được địa chỉ - Invalid coordinates'
+    }
+
+    const url = `https://nominatim.openstreetmap.org/reverse.php?lat=${lat}&lon=${lon}&zoom=18&format=json`
+    console.log('Request URL:', url)
+
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      console.error('HTTP error:', response.status, response.statusText)
+      throw new Error(`HTTP error! Status: ${response.status}`)
+    }
+
     const data = await response.json()
+    console.log('Geocoding response data:', data)
+
+    if (!data) {
+      console.error('Empty response data')
+      return 'Không xác định được địa chỉ - Empty response'
+    }
+
+    if (data.error) {
+      console.error('API returned error:', data.error)
+      return 'Không xác định được địa chỉ - API error'
+    }
+
+    if (!data.display_name) {
+      console.warn('No display_name in response:', data)
+    }
+
     return data.display_name || 'Không xác định được địa chỉ'
   } catch (error) {
-    console.error('Reverse geocoding error:', error)
-    throw new Error('Không thể lấy địa chỉ từ tọa độ')
+    console.error('Reverse geocoding error details:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+
+    // Try alternative endpoint format as fallback
+    try {
+      console.log('Trying alternative endpoint...')
+      const altUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      console.log('Alternative URL:', altUrl)
+
+      const altResponse = await fetch(altUrl)
+      const altData = await altResponse.json()
+      console.log('Alternative endpoint response:', altData)
+
+      return altData.display_name || 'Không xác định được địa chỉ'
+    } catch (altError) {
+      console.error('Alternative endpoint also failed:', altError)
+      return 'Không xác định được địa chỉ - All attempts failed'
+    }
   }
 }
 
@@ -159,6 +298,9 @@ const LocationSelection = memo(
     const [isFetching, setIsFetching] = useState(false)
     const [isClient, setIsClient] = useState(false)
     const [searchQuery, setSearchQuery] = useState(startPoint.address)
+    const [isDragging, setIsDragging] = useState(false)
+    const [markerAnimation, setMarkerAnimation] = useState<string>('animate-marker-hover')
+
     const {
       position: currentPosition,
       error: locationError,
@@ -181,8 +323,32 @@ const LocationSelection = memo(
     useEffect(() => {
       if (startPoint.address && startPoint.address !== searchQuery) {
         setSearchQuery(startPoint.address)
+
+        // Apply drop-in animation when address changes
+        setMarkerAnimation('animate-marker-drop-in')
+        const timer = setTimeout(() => {
+          setMarkerAnimation('animate-marker-hover')
+        }, 600)
+
+        return () => clearTimeout(timer)
       }
     }, [startPoint.address])
+
+    // Handle map interaction states
+    const handleMapInteractionStart = useCallback(() => {
+      setIsDragging(true)
+      setMarkerAnimation('')
+    }, [])
+
+    const handleMapInteractionEnd = useCallback(() => {
+      setIsDragging(false)
+      setMarkerAnimation('animate-marker-drop-in')
+
+      // Switch back to hover animation after drop completes
+      setTimeout(() => {
+        setMarkerAnimation('animate-marker-hover')
+      }, 600)
+    }, [])
 
     const handleSearch = useCallback(
       async (e?: React.FormEvent) => {
@@ -192,7 +358,15 @@ const LocationSelection = memo(
         try {
           setIsFetching(true)
           const [newLat, newLng] = await geocode(searchQuery)
+
+          // Set animation state before updating location
+          setMarkerAnimation('animate-marker-drop-in')
           onLocationChange({ lat: newLat, lng: newLng }, searchQuery)
+
+          // Switch back to hover animation after drop completes
+          setTimeout(() => {
+            setMarkerAnimation('animate-marker-hover')
+          }, 600)
         } catch (error) {
           console.error('Search error:', error)
         } finally {
@@ -202,20 +376,24 @@ const LocationSelection = memo(
       [searchQuery, onLocationChange]
     )
 
-    const handleMapClick = useCallback(
-      async (latlng: L.LatLng) => {
+    const handleMapMoveEnd = useCallback(
+      async (center: L.LatLng) => {
         try {
           setIsFetching(true)
-          const address = await reverseGeocodeOSM(latlng.lat, latlng.lng)
-          onLocationChange({ lat: latlng.lat, lng: latlng.lng }, address)
+          handleMapInteractionEnd()
+          console.log('Map moved - Latitude:', center.lat, 'Longitude:', center.lng)
+          console.log('center', center)
+          const address = await reverseGeocodeOSM(center.lat, center.lng)
+          console.log('address', address)
+          onLocationChange({ lat: center.lat, lng: center.lng }, address)
           setSearchQuery(address)
         } catch (error) {
-          console.error('Map click error:', error)
+          console.error('Map move end error:', error)
         } finally {
           setIsFetching(false)
         }
       },
-      [onLocationChange]
+      [onLocationChange, handleMapInteractionEnd]
     )
 
     const handleDetectLocation = useCallback(async () => {
@@ -229,11 +407,21 @@ const LocationSelection = memo(
         })
 
         const { latitude, longitude } = position.coords
+        console.log('Detected location - Latitude:', latitude, 'Longitude:', longitude)
         const address = await reverseGeocodeOSM(latitude, longitude)
+        console.log('Detected address:', address)
+
+        // Update animation before location change
+        setMarkerAnimation('animate-marker-drop-in')
 
         // Update the location and address immediately
         onLocationChange({ lat: latitude, lng: longitude }, address)
         setSearchQuery(address)
+
+        // Switch back to hover animation after drop completes
+        setTimeout(() => {
+          setMarkerAnimation('animate-marker-hover')
+        }, 600)
       } catch (error) {
         console.error('Error getting location:', error)
       } finally {
@@ -266,12 +454,18 @@ const LocationSelection = memo(
             className="rounded-lg bg-blue-500 p-3 text-white shadow-md transition-all hover:bg-green-600 disabled:bg-gray-400"
             onClick={handleDetectLocation}
             disabled={isFetching || loading}
+            aria-label="Xác định vị trí hiện tại"
+            tabIndex={0}
           >
             {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
           </button>
         </div>
 
-        <div className="map-container">
+        <div
+          className="map-container relative"
+          onMouseDown={handleMapInteractionStart}
+          onTouchStart={handleMapInteractionStart}
+        >
           <MapContainer
             id="map"
             center={[startPoint.position.lat || 10.840405, startPoint.position.lng || 106.843424]}
@@ -285,14 +479,31 @@ const LocationSelection = memo(
 
             {currentPosition && <CurrentLocationMarker position={currentPosition} />}
 
-            {startPoint.position.lat && startPoint.position.lng && (
-              <Marker position={[startPoint.position.lat, startPoint.position.lng]}>
-                <Popup className="font-semibold">📍 Điểm đón của bạn</Popup>
-              </Marker>
-            )}
-
-            <MapClickHandler onMapClick={handleMapClick} />
+            <CenteredMarker onMapMoveEnd={handleMapMoveEnd} />
           </MapContainer>
+
+          {/* Fixed center marker */}
+          <div className="absolute left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-full pointer-events-none marker-wrapper">
+            <Image
+              src="/images/location.png"
+              alt="Location marker"
+              width={40}
+              height={40}
+              className={`drop-shadow-lg ${markerAnimation}`}
+              priority
+            />
+          </div>
+
+          {/* Loading indicator */}
+          {isFetching && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white bg-opacity-90 px-4 py-2 rounded-full shadow-md text-sm font-medium flex items-center space-x-2 animate-fade-in">
+              <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Đang tìm địa chỉ...</span>
+            </div>
+          )}
         </div>
 
         {locationError && (

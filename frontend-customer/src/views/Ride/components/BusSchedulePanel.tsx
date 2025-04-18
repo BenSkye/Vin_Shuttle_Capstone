@@ -87,13 +87,13 @@ const BusSchedulePanel = ({ schedules, isLoading, error }: BusSchedulePanelProps
                                         <div className="flex items-center gap-2">
                                             <span>Khởi hành:</span>
                                             <span className="font-medium text-content-primary">
-                                                {format(new Date(trip.startTime), 'HH:mm')}
+                                                {format(new Date(trip.startTime), 'HH:mm:ss')}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span>Kết thúc:</span>
                                             <span className="font-medium text-content-primary">
-                                                {format(new Date(trip.endTime), 'HH:mm')}
+                                                {format(new Date(trip.endTime), 'HH:mm:ss')}
                                             </span>
                                         </div>
                                     </div>
