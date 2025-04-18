@@ -33,7 +33,7 @@ const RatingPage: React.FC = () => {
             const query: RatingQuery = {};
 
             if (serviceType !== "all") {
-                query.serviceType = serviceType as any;
+                query.serviceType = serviceType as 'booking_hour' | 'booking_scenic_route' | 'booking_share' | 'booking_destination';
             }
 
             const data = await getAllRating(query);
