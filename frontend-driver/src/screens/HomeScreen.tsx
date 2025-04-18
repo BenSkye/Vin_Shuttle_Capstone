@@ -26,7 +26,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [activeTrips, setActiveTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { isInProgress } = useSchedule(); // Lấy trạng thái ca làm việc
+  const { isInProgress, isPaused } = useSchedule(); // Lấy trạng thái ca làm việc
   const [showCheckInWarning, setShowCheckInWarning] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   );
   // Kiểm tra check-in trước khi thực hiện các hành động
   const handleActionWithCheckInValidation = (action: () => void) => {
-    if (!isInProgress) {
+    if (!isInProgress || isPaused) {
       setShowCheckInWarning(true);
       return;
     }
@@ -293,12 +293,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   // Hiển thị thông báo check-in nếu chưa check-in
   const renderCheckInWarning = () => {
-    if (!isInProgress) {
+    if (!isInProgress || isPaused) {
       return (
         <View className="mb-4 flex-row items-center rounded-lg border border-amber-200 bg-amber-50 p-4">
           <Icon name="alert-circle-outline" size={20} color="#F59E0B" />
           <Text className="ml-2 flex-1 text-amber-800">
-            Bạn cần phải Check-in ca làm việc trong mục "Lịch làm việc" để thực hiện các tác vụ
+            {isPaused
+              ? "Ca làm việc của bạn đang tạm dừng. Vui lòng tiếp tục ca làm để thực hiện các tác vụ"
+              : "Bạn cần phải Check-in ca làm việc trong mục 'Lịch làm việc' để thực hiện các tác vụ"}
           </Text>
         </View>
       );
@@ -514,13 +516,15 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             </View>
 
             <Text className="mb-2 text-gray-700">
-              Bạn cần phải check-in vào ca làm việc trước khi có thể thực hiện các tác vụ với chuyến
-              đi.
+              {isPaused
+                ? "Bạn cần phải tiếp tục ca làm việc trước khi có thể thực hiện các tác vụ với chuyến đi."
+                : "Bạn cần phải check-in vào ca làm việc trước khi có thể thực hiện các tác vụ với chuyến đi."}
             </Text>
 
             <Text className="mb-4 italic text-gray-600">
-              Vui lòng vào mục "Lịch làm việc" và check-in ca làm việc hiện tại, sau đó quay lại màn
-              hình này.
+              {isPaused
+                ? "Vui lòng vào mục 'Lịch làm việc' và tiếp tục ca làm việc hiện tại, sau đó quay lại màn hình này."
+                : "Vui lòng vào mục 'Lịch làm việc' và check-in ca làm việc hiện tại, sau đó quay lại màn hình này."}
             </Text>
 
             <View className="flex-row justify-between">

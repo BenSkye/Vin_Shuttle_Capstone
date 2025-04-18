@@ -57,6 +57,31 @@ export const driverCheckout = async (driverScheduleId: string): Promise<Schedule
   }
 };
 
+export const driverPauseSchedule = async (driverScheduleId: string, reason: string): Promise<Schedule> => {
+  try {
+    const response = await apiClient.post(
+      `/driver-schedules/driver-pause-schedule/${driverScheduleId}`,
+      { reason }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error pausing schedule:', error.response?.data || error);
+    throw error;
+  }
+}
+
+export const driverContinueSchedule = async (driverScheduleId: string): Promise<Schedule> => {
+  try {
+    const response = await apiClient.post(
+      `/driver-schedules/driver-continue-schedule/${driverScheduleId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error continuing schedule:', error);
+    throw error;
+  }
+}
+
 export const getPersonalScheduleToday = async (): Promise<Schedule[] | null> => {
   try {
     const userId = await AsyncStorage.getItem('userId');
