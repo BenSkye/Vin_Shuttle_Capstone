@@ -66,6 +66,7 @@ const RoutesBooking = () => {
   const [error, setError] = useState<string | null>(null)
   const [bookingResponse, setBookingResponse] = useState<BookingResponse | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
+  const [locationHasError, setLocationHasError] = useState(false)
   const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
     setPaymentMethod(method)
   }, [])
@@ -83,11 +84,14 @@ const RoutesBooking = () => {
 
   // Handler for location selection
   const handleLocationChange = useCallback(
-    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+    (newPosition: { lat: number; lng: number }, newAddress: string, hasError?: boolean) => {
       setStartPoint({
         position: newPosition,
         address: newAddress,
       })
+
+      // Track if there's a location error
+      setLocationHasError(hasError || false);
     },
     []
   )
@@ -442,7 +446,7 @@ const RoutesBooking = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                disabled={selectedVehicles.length === 0 || loading}
+                disabled={selectedVehicles.length === 0 || loading || locationHasError || !startPoint.address}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}

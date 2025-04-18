@@ -65,6 +65,10 @@ const DestinationBookingPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
   const [bookingPayload, setBookingPayload] = useState<BookingDestinationRequest | null>(null)
 
+  // Add states to track location errors
+  const [startLocationHasError, setStartLocationHasError] = useState(false)
+  const [endLocationHasError, setEndLocationHasError] = useState(false)
+
   // Check if code is running in browser
   useEffect(() => {
     setIsBrowser(true)
@@ -75,21 +79,25 @@ const DestinationBookingPage = () => {
   }, [])
 
   const handleStartLocationChange = useCallback(
-    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+    (newPosition: { lat: number; lng: number }, newAddress: string, hasError?: boolean) => {
       setStartPoint({
         position: newPosition,
         address: newAddress,
       })
+      // Track if there's a location error
+      setStartLocationHasError(hasError || false);
     },
     []
   )
 
   const handleEndLocationChange = useCallback(
-    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+    (newPosition: { lat: number; lng: number }, newAddress: string, hasError?: boolean) => {
       setEndPoint({
         position: newPosition,
         address: newAddress,
       })
+      // Track if there's a location error
+      setEndLocationHasError(hasError || false);
     },
     []
   )
@@ -299,7 +307,7 @@ const DestinationBookingPage = () => {
   }, [prepareBookingPayload])
 
   const handleNextStep = useCallback(() => {
-    if (currentStep === 'location' && startPoint.address && endPoint.address) {
+    if (currentStep === 'location' && startPoint.address && endPoint.address && !startLocationHasError && !endLocationHasError) {
       fetchAvailableVehicles()
     } else if (currentStep === 'vehicle' && selectedVehicles.length > 0) {
       setCurrentStep('payment')
@@ -317,6 +325,8 @@ const DestinationBookingPage = () => {
     currentStep,
     startPoint.address,
     endPoint.address,
+    startLocationHasError,
+    endLocationHasError,
     selectedVehicles.length,
     fetchAvailableVehicles,
     prepareBookingPayload,

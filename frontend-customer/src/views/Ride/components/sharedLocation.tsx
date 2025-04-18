@@ -7,6 +7,7 @@ import { useMap } from 'react-leaflet'
 
 import '@/styles/locationselection.css'
 import { BOOKING_SHARED_SEAT } from '@/constants/booking.constants'
+import { AVAILABLE_ADDRESS, ERROR_LOG } from '@/constants/map'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -39,8 +40,8 @@ interface SharedLocationProps {
     position: { lat: number; lng: number }
     address: string
   }
-  onStartLocationChange: (position: { lat: number; lng: number }, address: string) => void
-  onEndLocationChange: (position: { lat: number; lng: number }, address: string) => void
+  onStartLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
+  onEndLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
   detectUserLocation: () => void
   loading: boolean
   numberOfSeats: number
@@ -297,6 +298,11 @@ const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
   return <Marker position={position} icon={icon} />
 }
 
+// Function to validate if address is in Vinhomes Grand Park
+const isInVinhomesGrandPark = (address: string): boolean => {
+  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase());
+}
+
 const SharedLocation = ({
   startPoint,
   endPoint,
@@ -356,50 +362,98 @@ const SharedLocation = ({
     if (endPoint.address) setEndSearchQuery(endPoint.address)
   }, [endPoint.address])
 
-  const handleSearch = async (e?: React.FormEvent, point: 'start' | 'end' = 'start') => {
-    e?.preventDefault()
-    const query = point === 'start' ? startSearchQuery : endSearchQuery
-    if (!query) return
+  // Function to validate location and update error state
+  const validateAndUpdateLocation = useCallback((position: { lat: number; lng: number }, address: string, isStartPoint: boolean) => {
+    const isValid = isInVinhomesGrandPark(address);
+    const errorMessage = isValid ? null : ERROR_LOG.ERROR;
 
-    try {
-      setIsFetching(true)
-      setLocationError(null)
-      const [newLat, newLng] = await geocode(query)
-      if (point === 'start') {
-        onStartLocationChange({ lat: newLat, lng: newLng }, query)
-      } else {
-        onEndLocationChange({ lat: newLat, lng: newLng }, query)
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-      setLocationError(error instanceof Error ? error.message : 'Lỗi tìm kiếm địa chỉ')
-    } finally {
-      setIsFetching(false)
+    setLocationError(errorMessage);
+
+    if (isStartPoint) {
+      onStartLocationChange(position, address, !isValid);
+    } else {
+      onEndLocationChange(position, address, !isValid);
     }
-  }
 
-  const handleMapClick = useCallback(
-    async (latlng: L.LatLng) => {
+    return isValid;
+  }, [onStartLocationChange, onEndLocationChange]);
+
+  // Update the handleStartSearch function
+  const handleStartSearch = useCallback(
+    async (e?: React.FormEvent) => {
+      e?.preventDefault()
+      if (!startSearchQuery) return
+
       try {
         setIsFetching(true)
-        setLocationError(null)
-        const address = await reverseGeocodeOSM(latlng.lat, latlng.lng)
+        const [newLat, newLng] = await geocode(startSearchQuery)
 
-        if (activePoint === 'start') {
-          onStartLocationChange({ lat: latlng.lat, lng: latlng.lng }, address)
-          setStartSearchQuery(address)
-        } else {
-          onEndLocationChange({ lat: latlng.lat, lng: latlng.lng }, address)
-          setEndSearchQuery(address)
-        }
+        // Get the full address to validate
+        const address = await reverseGeocodeOSM(newLat, newLng);
+
+        // Validate and update
+        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, true);
+        setStartSearchQuery(address);
       } catch (error) {
-        console.error('Map click error:', error)
-        setLocationError(error instanceof Error ? error.message : 'Lỗi chọn vị trí trên bản đồ')
+        console.error('Start search error:', error)
+        setLocationError('Không thể tìm địa chỉ')
       } finally {
         setIsFetching(false)
       }
     },
-    [activePoint, onStartLocationChange, onEndLocationChange]
+    [startSearchQuery, validateAndUpdateLocation]
+  )
+
+  // Update the handleEndSearch function
+  const handleEndSearch = useCallback(
+    async (e?: React.FormEvent) => {
+      e?.preventDefault()
+      if (!endSearchQuery) return
+
+      try {
+        setIsFetching(true)
+        const [newLat, newLng] = await geocode(endSearchQuery)
+
+        // Get the full address to validate
+        const address = await reverseGeocodeOSM(newLat, newLng);
+
+        // Validate and update
+        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, false);
+        setEndSearchQuery(address);
+      } catch (error) {
+        console.error('End search error:', error)
+        setLocationError('Không thể tìm địa chỉ')
+      } finally {
+        setIsFetching(false)
+      }
+    },
+    [endSearchQuery, validateAndUpdateLocation]
+  )
+
+  // Update the handleMapClick function
+  const handleMapClick = useCallback(
+    async (latlng: L.LatLng) => {
+      try {
+        setIsFetching(true)
+        const address = await reverseGeocodeOSM(latlng.lat, latlng.lng)
+
+        if (activePoint === 'start') {
+          // Validate and update start location
+          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, true);
+          setStartSearchQuery(address);
+        } else {
+          // Validate and update end location
+          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, false);
+          setEndSearchQuery(address);
+        }
+      } catch (error) {
+        console.error('Map click error:', error)
+        setLocationError('Không thể xác định địa chỉ')
+      } finally {
+        setIsFetching(false)
+      }
+    },
+    [activePoint, validateAndUpdateLocation]
   )
 
   const handleDetectLocation = async () => {
@@ -598,7 +652,7 @@ const SharedLocation = ({
                 </div>
                 <h3 className="text-sm font-semibold text-blue-600">Điểm đón</h3>
               </div>
-              <form onSubmit={(e) => handleSearch(e, 'start')} className="flex gap-2">
+              <form onSubmit={handleStartSearch} className="flex gap-2">
                 <input
                   type="text"
                   className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
@@ -634,7 +688,7 @@ const SharedLocation = ({
                 </div>
                 <h3 className="text-sm font-semibold text-red-600">Điểm đến</h3>
               </div>
-              <form onSubmit={(e) => handleSearch(e, 'end')} className="flex gap-2">
+              <form onSubmit={handleEndSearch} className="flex gap-2">
                 <input
                   type="text"
                   className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'end' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'

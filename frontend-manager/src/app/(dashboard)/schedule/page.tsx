@@ -200,9 +200,9 @@ const SchedulePage = () => {
     const handleActivityClick = (activity: Activity) => {
         setError(null);
 
-        // Check if the activity date is in the past
-        if (activity.date && isDateInPast(activity.date)) {
-            message.warning("Không thể chỉnh sửa lịch trình trong quá khứ");
+        // Check if the activity date is in the past or status is completed
+        if ((activity.date && isDateInPast(activity.date)) || activity.status === 'completed') {
+            message.warning(activity.status === 'completed' ? "Không thể chỉnh sửa ca đã kết thúc" : "Không thể chỉnh sửa lịch trình trong quá khứ");
             setModalType('view');
             setSelectedActivity(activity);
             setIsModalOpen(true);
@@ -437,7 +437,7 @@ const SchedulePage = () => {
                         })}</p>
                     </div>
                 )}
-                {selectedActivity.date && !isDateInPast(selectedActivity.date) && (
+                {selectedActivity.date && !isDateInPast(selectedActivity.date) && selectedActivity.status !== 'completed' && (
                     <Button
                         type="primary"
                         onClick={switchToUpdateMode}
@@ -446,10 +446,19 @@ const SchedulePage = () => {
                         Chỉnh Sửa Lịch Trình
                     </Button>
                 )}
-                {selectedActivity.date && isDateInPast(selectedActivity.date) && (
+                {(selectedActivity.date && isDateInPast(selectedActivity.date)) && (
                     <Alert
                         message="Không thể chỉnh sửa"
                         description="Lịch trình trong quá khứ không thể được chỉnh sửa"
+                        type="warning"
+                        showIcon
+                        className="mt-4"
+                    />
+                )}
+                {selectedActivity.status === 'completed' && (
+                    <Alert
+                        message="Không thể chỉnh sửa"
+                        description="Ca đã kết thúc không thể được chỉnh sửa"
                         type="warning"
                         showIcon
                         className="mt-4"
