@@ -193,6 +193,7 @@ const DriverSinglePage = () => {
                 minute: '2-digit'
             });
         } catch (error) {
+            console.error("Error formatting time:", error);
             return 'N/A';
         }
     };
