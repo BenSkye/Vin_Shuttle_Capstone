@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { createBusSchedule } from '@/services/api/busSchedules';
 import { getAvailableDrivers } from '@/services/api/driver';
 import { getAvailableVehicles } from '@/services/api/vehicles';
+import { BusRoute, getActiveBusRoutes } from '@/services/api/busRoutes';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Clock, Calendar, Bus, User, MapPin, Car } from 'lucide-react';
@@ -63,16 +64,19 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
 
     const [availableDrivers, setAvailableDrivers] = useState<Driver[]>([]);
     const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
+    const [busRoutes, setBusRoutes] = useState<BusRoute[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const date = format(new Date(formData.effectiveDate), 'yyyy-MM-dd');
-                const [driversData, vehiclesData] = await Promise.all([
+                const [routesData, driversData, vehiclesData] = await Promise.all([
+                    getActiveBusRoutes(),
                     getAvailableDrivers(date),
                     getAvailableVehicles(date)
                 ]);
+                setBusRoutes(routesData || []);
                 setAvailableDrivers(driversData || []);
                 setAvailableVehicles(vehiclesData || []);
             } catch (error) {
@@ -173,24 +177,18 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                                             </SelectTrigger>
                                             <SelectContent className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
                                                 <ScrollArea className="h-[200px] rounded-md">
-                                                    <SelectItem
-                                                        value="67ef9f40be7e3233b9200548"
-                                                        className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <MapPin className="w-4 h-4 text-primary" />
-                                                            <span>Tuyến 1</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                    <SelectItem
-                                                        value="67ef9f40be7e3233b9200549"
-                                                        className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <MapPin className="w-4 h-4 text-primary" />
-                                                            <span>Tuyến 2</span>
-                                                        </div>
-                                                    </SelectItem>
+                                                    {busRoutes.map((route) => (
+                                                        <SelectItem
+                                                            key={route._id}
+                                                            value={route._id}
+                                                            className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <MapPin className="w-4 h-4 text-primary" />
+                                                                <span>{route.name}</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
                                                 </ScrollArea>
                                             </SelectContent>
                                         </Select>

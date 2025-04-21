@@ -1,4 +1,5 @@
 import axiosInstance from "./axios";
+import { AxiosError } from "axios";
 
 export interface Driver {
     _id: string;
@@ -79,7 +80,7 @@ export const createBusSchedule = async (schedule: CreateBusScheduleDto) => {
     }
 };
 
-export const getActiveScheduleByRoute = async (routeId: string, date?: string) => {
+export const getActiveScheduleByRoute = async (routeId: string, date?: string): Promise<BusSchedule[]> => {
     try {
         const url = date 
             ? `/bus-schedules/route/${routeId}?date=${date}`
@@ -87,6 +88,11 @@ export const getActiveScheduleByRoute = async (routeId: string, date?: string) =
         const response = await axiosInstance.get<BusSchedule[]>(url);
         return response.data;
     } catch (error) {
+        if (error instanceof AxiosError) {
+            if (error.response?.status === 404) {
+                return [];
+            }
+        }
         throw error;
     }
 };
