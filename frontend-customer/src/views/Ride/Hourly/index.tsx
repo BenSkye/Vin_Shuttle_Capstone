@@ -64,6 +64,9 @@ const HourlyBookingPage = () => {
     paymentMethod: paymentMethod,
   })
 
+  // Add state to track location errors
+  const [locationHasError, setLocationHasError] = useState(false)
+
   // Handle date and time selection
   const handleDateChange = useCallback((date: dayjs.Dayjs | null) => {
     setSelectedDate(date)
@@ -116,11 +119,14 @@ const HourlyBookingPage = () => {
 
   // Location handlers
   const handleLocationChange = useCallback(
-    (newPosition: { lat: number; lng: number }, newAddress: string) => {
+    (newPosition: { lat: number; lng: number }, newAddress: string, hasError?: boolean) => {
       setStartPoint({
         position: newPosition,
         address: newAddress,
       })
+
+      // Track if there's a location error
+      setLocationHasError(hasError || false);
     },
     []
   )
@@ -449,7 +455,7 @@ const HourlyBookingPage = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                disabled={!startPoint.address.trim() || loading}
+                disabled={!startPoint.address.trim() || loading || locationHasError}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
                 aria-label="Chọn phương thức thanh toán"
                 tabIndex={0}

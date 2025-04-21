@@ -7,6 +7,7 @@ import { useMap } from 'react-leaflet'
 import Image from 'next/image'
 
 import '@/styles/locationselection.css'
+import { AVAILABLE_ADDRESS, ERROR_LOG } from '@/constants/map'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -34,7 +35,7 @@ interface LocationSelectionProps {
     position: { lat: number; lng: number }
     address: string
   }
-  onLocationChange: (position: { lat: number; lng: number }, address: string) => void
+  onLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
   detectUserLocation: () => void
   loading: boolean
 }
@@ -293,6 +294,11 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
   }
 }
 
+// Function to validate if address is in Vinhomes Grand Park
+const isInVinhomesGrandPark = (address: string): boolean => {
+  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase());
+}
+
 const LocationSelection = memo(
   ({ startPoint, onLocationChange, detectUserLocation, loading }: LocationSelectionProps) => {
     const [isFetching, setIsFetching] = useState(false)
@@ -300,10 +306,11 @@ const LocationSelection = memo(
     const [searchQuery, setSearchQuery] = useState(startPoint.address)
     const [isDragging, setIsDragging] = useState(false)
     const [markerAnimation, setMarkerAnimation] = useState<string>('animate-marker-hover')
+    const [locationError, setLocationError] = useState<string | null>(null)
 
     const {
       position: currentPosition,
-      error: locationError,
+      error: geolocationError,
       loading: locationLoading,
       getCurrentPosition,
     } = useGeolocation()
@@ -350,6 +357,18 @@ const LocationSelection = memo(
       }, 600)
     }, [])
 
+    const validateAndUpdateLocation = useCallback((position: { lat: number; lng: number }, address: string) => {
+      if (isInVinhomesGrandPark(address)) {
+        setLocationError(null)
+        onLocationChange(position, address, false)
+        return true;
+      } else {
+        setLocationError(ERROR_LOG.ERROR)
+        onLocationChange(position, address, true)
+        return false;
+      }
+    }, [onLocationChange])
+
     const handleSearch = useCallback(
       async (e?: React.FormEvent) => {
         e?.preventDefault()
@@ -359,21 +378,30 @@ const LocationSelection = memo(
           setIsFetching(true)
           const [newLat, newLng] = await geocode(searchQuery)
 
-          // Set animation state before updating location
-          setMarkerAnimation('animate-marker-drop-in')
-          onLocationChange({ lat: newLat, lng: newLng }, searchQuery)
+          // Get full address from coordinates to validate
+          const address = await reverseGeocodeOSM(newLat, newLng)
 
-          // Switch back to hover animation after drop completes
-          setTimeout(() => {
-            setMarkerAnimation('animate-marker-hover')
-          }, 600)
+          // Validate if the location is in Vinhomes Grand Park
+          const isValid = validateAndUpdateLocation({ lat: newLat, lng: newLng }, address)
+
+          if (isValid) {
+            // Set animation state before updating location
+            setMarkerAnimation('animate-marker-drop-in')
+            setSearchQuery(address)
+
+            // Switch back to hover animation after drop completes
+            setTimeout(() => {
+              setMarkerAnimation('animate-marker-hover')
+            }, 600)
+          }
         } catch (error) {
           console.error('Search error:', error)
+          setLocationError('Không thể tìm địa chỉ này')
         } finally {
           setIsFetching(false)
         }
       },
-      [searchQuery, onLocationChange]
+      [searchQuery, validateAndUpdateLocation]
     )
 
     const handleMapMoveEnd = useCallback(
@@ -385,15 +413,21 @@ const LocationSelection = memo(
           console.log('center', center)
           const address = await reverseGeocodeOSM(center.lat, center.lng)
           console.log('address', address)
-          onLocationChange({ lat: center.lat, lng: center.lng }, address)
-          setSearchQuery(address)
+
+          // Validate if the location is in Vinhomes Grand Park
+          const isValid = validateAndUpdateLocation({ lat: center.lat, lng: center.lng }, address)
+
+          if (isValid) {
+            setSearchQuery(address)
+          }
         } catch (error) {
           console.error('Map move end error:', error)
+          setLocationError('Không thể xác định địa chỉ')
         } finally {
           setIsFetching(false)
         }
       },
-      [onLocationChange, handleMapInteractionEnd]
+      [validateAndUpdateLocation, handleMapInteractionEnd]
     )
 
     const handleDetectLocation = useCallback(async () => {
@@ -411,23 +445,26 @@ const LocationSelection = memo(
         const address = await reverseGeocodeOSM(latitude, longitude)
         console.log('Detected address:', address)
 
-        // Update animation before location change
-        setMarkerAnimation('animate-marker-drop-in')
+        // Validate if the location is in Vinhomes Grand Park
+        const isValid = validateAndUpdateLocation({ lat: latitude, lng: longitude }, address)
 
-        // Update the location and address immediately
-        onLocationChange({ lat: latitude, lng: longitude }, address)
-        setSearchQuery(address)
+        if (isValid) {
+          // Update animation before location change
+          setMarkerAnimation('animate-marker-drop-in')
+          setSearchQuery(address)
 
-        // Switch back to hover animation after drop completes
-        setTimeout(() => {
-          setMarkerAnimation('animate-marker-hover')
-        }, 600)
+          // Switch back to hover animation after drop completes
+          setTimeout(() => {
+            setMarkerAnimation('animate-marker-hover')
+          }, 600)
+        }
       } catch (error) {
         console.error('Error getting location:', error)
+        setLocationError('Không thể xác định vị trí hiện tại')
       } finally {
         setIsFetching(false)
       }
-    }, [getCurrentPosition, onLocationChange])
+    }, [getCurrentPosition, validateAndUpdateLocation])
 
     if (!isClient) return null
 
@@ -460,6 +497,10 @@ const LocationSelection = memo(
             {isFetching ? 'Đang tìm...' : 'Vị trí hiện tại'}
           </button>
         </div>
+
+        {locationError && (
+          <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">{locationError}</div>
+        )}
 
         <div
           className="map-container relative"
@@ -506,8 +547,8 @@ const LocationSelection = memo(
           )}
         </div>
 
-        {locationError && (
-          <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">{locationError}</div>
+        {geolocationError && (
+          <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">{geolocationError}</div>
         )}
       </div>
     )
