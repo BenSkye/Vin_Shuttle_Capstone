@@ -1,5 +1,4 @@
 import axiosInstance from "./axios";
-import axios from "axios";
 import { AxiosError } from "axios";
 
 export interface Driver {
