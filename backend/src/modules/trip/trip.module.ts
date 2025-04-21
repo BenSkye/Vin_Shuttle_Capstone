@@ -16,6 +16,7 @@ import { SharedItineraryModule } from 'src/modules/shared-itinerary/shared-itine
 import { NotificationModule } from 'src/modules/notification/notification.module';
 import { BookingModule } from 'src/modules/booking/booking.module';
 import { TrackingModule } from 'src/modules/tracking/tracking.module';
+import { ConversationModule } from 'src/modules/conversation/conversation.module';
 
 const dependencies = [
   {
@@ -46,6 +47,7 @@ const dependencies = [
     ShareModule,
     KeytokenModule,
     BusRouteModule,
+    forwardRef(() => ConversationModule),
     forwardRef(() => BookingModule),
     forwardRef(() => SharedItineraryModule),
     NotificationModule,

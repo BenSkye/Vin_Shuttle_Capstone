@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import base62 from 'base62';
-import { HydratedDocument, Model, Types } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { ServiceType } from 'src/share/enums';
 import { paymentTime } from 'src/share/enums/payment.enum';
 import { TripCancelBy, TripStatus } from 'src/share/enums/trip.enum';
