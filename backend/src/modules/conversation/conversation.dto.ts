@@ -28,7 +28,7 @@ export class ICreateConversation {
   timeToOpen: Date;
 
   @IsNotEmpty()
-  timeToClose: Date;
+  timeToClose?: Date;
 
   @IsOptional()
   status?: ConversationStatus;
@@ -44,4 +44,9 @@ export class IUpdateConversation {
   @IsOptional()
   @IsString()
   content?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  timeToClose?: Date;
+
 }

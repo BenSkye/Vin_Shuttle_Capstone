@@ -41,6 +41,8 @@ import { IBookingRepository } from 'src/modules/booking/booking.port';
 import { PaymentMethod } from 'src/share/enums/payment.enum';
 import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
 import { ITrackingService } from 'src/modules/tracking/tracking.port';
+import { CONVERSATION_REPOSITORY } from 'src/modules/conversation/conversation.di-token';
+import { IConversationRepository } from 'src/modules/conversation/conversation.port';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -65,6 +67,8 @@ export class TripService implements ITripService {
     private readonly notificationService: INotificationService,
     @Inject(BOOKING_REPOSITORY)
     private readonly bookingRepository: IBookingRepository,
+    @Inject(CONVERSATION_REPOSITORY)
+    private readonly conversationRepository: IConversationRepository,
     @Inject(MOMO_PROVIDER)
     private readonly momoService: IMomoService, // Replace with actual type if available
   ) { }
@@ -642,6 +646,17 @@ export class TripService implements ITripService {
       updatedTrip.customerId.toString(),
       updatedTrip.vehicleId.toString(),
     );
+    const conversation = await this.conversationRepository.getConversation({
+      tripId: updatedTrip._id.toString(),
+    }, ['timeToClose'])
+    //update timeToClose to current time + 30 minutes
+    if (conversation) {
+      const timeToClose = new Date(updatedTrip.timeEnd);
+      timeToClose.setMinutes(timeToClose.getMinutes() + 30);
+      await this.conversationRepository.updateConversation(conversation._id.toString(), {
+        timeToClose: timeToClose,
+      })
+    }
     return updatedTrip;
   }
 

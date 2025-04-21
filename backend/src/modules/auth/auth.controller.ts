@@ -26,7 +26,7 @@ export class AuthController {
   constructor(
     @Inject(AUTH_SERVICE) private readonly authService: IAuthService,
     @Inject(KEYTOKEN_SERVICE) private readonly keyTokenService: IKeyTokenService,
-  ) {}
+  ) { }
 
   @Post('register/customer')
   @HttpCode(201)
@@ -45,7 +45,7 @@ export class AuthController {
     },
   })
   async registerCustomer(@Body() data: ICreateUserDto) {
-    return this.authService.registerCustomer({...data, role: UserRole.CUSTOMER});
+    return this.authService.register({ ...data, role: UserRole.CUSTOMER });
   }
 
   @Post('register/admin')
@@ -67,7 +67,7 @@ export class AuthController {
     },
   })
   async registerAdmin(@Body() data: ICreateUserDto) {
-    return this.authService.registerCustomer({...data, role: UserRole.ADMIN});
+    return this.authService.register({ ...data, role: UserRole.ADMIN });
   }
 
   @Post('register/manager')
@@ -89,7 +89,7 @@ export class AuthController {
     },
   })
   async registerManager(@Body() data: ICreateUserDto) {
-    return this.authService.registerCustomer({...data, role: UserRole.MANAGER});
+    return this.authService.register({ ...data, role: UserRole.MANAGER });
   }
 
   @Post('register/driver')
@@ -111,7 +111,29 @@ export class AuthController {
     },
   })
   async registerDriver(@Body() data: ICreateUserDto) {
-    return this.authService.registerCustomer({...data, role: UserRole.DRIVER});
+    return this.authService.register({ ...data, role: UserRole.DRIVER });
+  }
+
+  @Post('register')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Register account' })
+  @ApiBody({
+    type: CreateUserDto,
+    description: 'Register account',
+    examples: {
+      'Register': {
+        value: {
+          name: 'User',
+          phone: '0838683868',
+          email: 'userEmail@gmail.com',
+          password: 'userPassword',
+          role: 'customer'
+        },
+      },
+    },
+  })
+  async register(@Body() data: ICreateUserDto) {
+    return this.authService.register(data);
   }
 
   @Post('login-customer')

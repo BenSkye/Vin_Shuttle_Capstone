@@ -26,10 +26,10 @@ export class DriverSchedule {
   @Prop({ type: String, enum: Shift, required: function () { return this.taskType === DriverScheduleTaskType.GENERAL; } })
   shift: string; // Ca làm việc (A, B, C, D)
 
-  @Prop({ type: Number, default: 8 })
+  @Prop({ type: Number, required: true, default: 8 })
   totalWorkingHours: number; // Tổng số giờ làm việc trong ca (ví dụ: 8)
 
-  @Prop({ type: Number, default: 0 })
+  @Prop({ type: Number, required: true, default: 0 })
   actualWorkingHours: number; // Số giờ làm việc thực tế của tài xế trong ca (ví dụ: 7.5)
 
   // @Prop({ type: Types.ObjectId, ref: 'BusRoutes', required: function () { return this.taskType === DriverScheduleTaskType.BUS; } })

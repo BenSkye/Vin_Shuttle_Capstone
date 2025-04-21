@@ -23,7 +23,7 @@ export class AuthService implements IAuthService {
     @Inject(SMS_PROVIDER) private readonly smsService: ISMSProvider,
   ) { }
 
-  async registerCustomer(data: ICreateUserDto): Promise<object> {
+  async register(data: ICreateUserDto): Promise<object> {
     //check if phone already exist
     const userExist = await this.userRepository.findUser({ phone: data.phone });
     if (userExist) {
