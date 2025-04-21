@@ -5,44 +5,53 @@ import { getPersonalScheduleToday } from '~/services/schedulesServices';
 
 interface ScheduleContextType {
   isInProgress: boolean;
-  updateIsInProgress: (status: boolean) => void;
+  isPaused: boolean;
+  updateScheduleStatus: (status: { inProgress?: boolean; paused?: boolean }) => void;
 }
 
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
 
 export const ScheduleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isInProgress, setIsInProgress] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const { isLogin } = useAuth();
   // Khi mở app, kiểm tra xem có ca làm nào trong ngày và đang in_progress không
   useEffect(() => {
-    console.log('isLogin', isLogin);
     const fetchTodaySchedule = async () => {
       try {
         const data = await getPersonalScheduleToday();
-        console.log('Today schedule:', data);
         if (!data) return;
-        // Kiểm tra nếu có ca làm trong ngày và trạng thái là "in_progress"
+
         const inProgress = data.some(
           (schedule: any) => schedule.status === DriverSchedulesStatus.IN_PROGRESS
         );
+        const paused = data.some(
+          (schedule: any) => schedule.status === DriverSchedulesStatus.IS_PAUSED
+        );
+
         setIsInProgress(inProgress);
+        setIsPaused(paused);
       } catch (error) {
         console.error('Error fetching today schedule:', error);
       }
     };
+
     if (isLogin) {
       fetchTodaySchedule();
     } else {
       setIsInProgress(false);
+      setIsPaused(false);
     }
   }, [isLogin]);
 
-  const updateIsInProgress = (status: boolean) => {
-    setIsInProgress(status);
+
+  const updateScheduleStatus = (status: { inProgress?: boolean; paused?: boolean }) => {
+    if (status.inProgress !== undefined) setIsInProgress(status.inProgress);
+    if (status.paused !== undefined) setIsPaused(status.paused);
   };
 
   return (
-    <ScheduleContext.Provider value={{ isInProgress, updateIsInProgress }}>
+    <ScheduleContext.Provider value={{ isInProgress, isPaused, updateScheduleStatus }}>
       {children}
     </ScheduleContext.Provider>
   );

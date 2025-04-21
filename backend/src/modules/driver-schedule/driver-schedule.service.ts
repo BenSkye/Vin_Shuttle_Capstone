@@ -691,16 +691,22 @@ export class DriverScheduleService implements IDriverScheduleService {
     }
 
     //check if there are any trip have start time near 5 minutes from now
+    const timeToNextTrip = new Date(currentTime.getTime() + TimeBreakMinToNextTrip * 60 * 1000);
+
+    const currentTimeISO = currentTime.toISOString();
+    const timeToNextTripISO = timeToNextTrip.toISOString();
+    console.log('timeToNextTrip', timeToNextTripISO);
+    console.log('currentTime', currentTimeISO);
+    console.log('driverScheduleId', driverScheduleId);
     const trip = await this.tripRepository.find({
-      driverScheduleId: driverScheduleId,
-      startTime: {
-        $gte: currentTime,
-        $lt: new Date(currentTime.getTime() + TimeBreakMinToNextTrip * 60 * 1000), // 5 minutes from now
+      scheduleId: driverScheduleId,
+      timeStartEstimate: {
+        $gte: new Date(currentTimeISO),
+        $lte: new Date(timeToNextTripISO),
       },
-      status: {
-        $in: [TripStatus.CONFIRMED],
-      }
+      status: TripStatus.CONFIRMED,
     }, ['_id'])
+    console.log('trip', trip);
     if (trip.length > 0) {
       throw new HttpException(
         {
@@ -888,6 +894,54 @@ export class DriverScheduleService implements IDriverScheduleService {
 
         await this.driverScheduleRepository.updateDriverSchedule(schedule._id.toString(), {
           status: schedule.status,
+        });
+
+        // await this.driverScheduleGateway.handleDriverCheckout(schedule.driver._id.toString());
+
+        console.log(`Auto checkout for schedule ${schedule._id} completed.`);
+      }
+    }
+
+    //Lấy tất cả các ca đang ở trạng thái IS_PAUSED trong và trước ngày hôm nay
+    const pausedSchedules = await this.driverScheduleRepository.getDriverSchedules(
+      {
+        status: DriverSchedulesStatus.IS_PAUSED,
+        date: {
+          $lte: currentTime,
+        },
+      },
+      [],
+    );
+
+    for (const schedule of pausedSchedules) {
+      const shift = schedule.shift as Shift;
+      const shiftEndHour = ShiftHours[shift].end;
+      const expectedCheckout = new Date(schedule.date);
+      expectedCheckout.setHours(shiftEndHour, 0 + ShiftDifference.OUT, 0, 0); //add 15 minutes to shift end time
+
+      // Nếu thời gian hiện tại đã qua thời gian expectedCheckout, chuyển trạng thái sang Dropped
+      if (currentTime > expectedCheckout) {
+        await this.vehicleRepository.updateOperationStatus(
+          schedule.vehicle._id.toString(),
+          VehicleOperationStatus.PENDING,
+        );
+        schedule.status = DriverSchedulesStatus.COMPLETED;
+        const activeBreak = schedule.breakTimes.find(breakTime => breakTime.endTime === null);
+        const updatedBreakTimes = [...schedule.breakTimes];
+        if (activeBreak) {
+          const breakIndex = updatedBreakTimes.indexOf(activeBreak);
+          updatedBreakTimes[breakIndex] = {
+            ...activeBreak,
+            endTime: currentTime
+          };
+        }
+        schedule.checkoutTime = currentTime;
+        schedule.isEarlyCheckout = false;
+        await this.driverScheduleRepository.updateDriverSchedule(schedule._id.toString(), {
+          status: schedule.status,
+          breakTimes: updatedBreakTimes,
+          checkoutTime: schedule.checkoutTime,
+          isEarlyCheckout: schedule.isEarlyCheckout,
         });
 
         // await this.driverScheduleGateway.handleDriverCheckout(schedule.driver._id.toString());
