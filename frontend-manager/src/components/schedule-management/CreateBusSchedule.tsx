@@ -3,9 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select as AntSelect } from 'antd';
 import { createBusSchedule } from '@/services/api/busSchedules';
 import { getAvailableDrivers } from '@/services/api/driver';
 import { getAvailableVehicles } from '@/services/api/vehicles';
@@ -47,6 +46,9 @@ interface FormData {
         endTime: string;
     }[];
 }
+
+
+const { Option } = AntSelect;
 
 export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusScheduleProps) => {
     const [formData, setFormData] = useState<FormData>({
@@ -90,6 +92,35 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
         }
     }, [isOpen, formData.effectiveDate]);
 
+    const handleInputChange = (field: keyof FormData, value: FormData[keyof FormData]) => {
+        console.log(`Updating ${field}:`, value);
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleRouteChange = (value: string) => {
+        console.log('Route selection changed:', value);
+        setFormData(prev => ({
+            ...prev,
+            busRoute: value
+        }));
+    };
+
+    const handleVehicleChange = (value: string[]) => {
+        console.log('Vehicle selection changed:', value);
+        setFormData(prev => ({
+            ...prev,
+            vehicles: value
+        }));
+    };
+
+    const handleDriverChange = (value: string[]) => {
+        console.log('Driver selection changed:', value);
+        setFormData(prev => ({
+            ...prev,
+            drivers: value
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -97,7 +128,7 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
         try {
             const driverAssignments = formData.drivers.map((driverId, index) => ({
                 driverId,
-                vehicleId: formData.vehicles[index],
+                vehicleId: formData.vehicles[index % formData.vehicles.length],
                 startTime: new Date(formData.effectiveDate + 'T' + formData.dailyStartTime).toISOString(),
                 endTime: new Date(formData.effectiveDate + 'T' + formData.dailyEndTime).toISOString()
             }));
@@ -107,40 +138,35 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                 driverAssignments
             });
 
-            toast.success('Tạo lịch trình xe bus thành công', {
-                duration: 3000,
-                position: 'top-center',
-            });
-
-            setFormData({
-                busRoute: '',
-                vehicles: [],
-                drivers: [],
-                tripsPerDay: 12,
-                dailyStartTime: '06:00',
-                dailyEndTime: '22:00',
-                effectiveDate: format(new Date(), 'yyyy-MM-dd'),
-                expiryDate: format(new Date(new Date().setMonth(new Date().getMonth() + 1)), 'yyyy-MM-dd'),
-                status: 'active',
-                driverAssignments: []
-            });
-
+            toast.success('Tạo lịch trình xe bus thành công');
             onClose();
-
             onSuccess();
         } catch (error) {
             console.error('Error creating bus schedule:', error);
-            toast.error('Lỗi khi tạo lịch trình xe bus', {
-                duration: 3000,
-                position: 'top-center',
-            });
+            toast.error('Lỗi khi tạo lịch trình xe bus');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (field: keyof FormData, value: FormData[keyof FormData]) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    const multiSelectProps = {
+        mode: "multiple" as const,
+        style: { width: '100%' },
+        showSearch: true,
+        optionFilterProp: "children",
+        notFoundContent: null,
+        maxTagCount: 3,
+        dropdownStyle: { maxHeight: 400, overflow: 'auto' },
+        getPopupContainer: (trigger: HTMLElement) => trigger.parentNode as HTMLElement
+    };
+
+    const singleSelectProps = {
+        style: { width: '100%' },
+        showSearch: true,
+        optionFilterProp: "children",
+        notFoundContent: null,
+        dropdownStyle: { maxHeight: 400, overflow: 'auto' },
+        getPopupContainer: (trigger: HTMLElement) => trigger.parentNode as HTMLElement
     };
 
     return (
@@ -154,64 +180,46 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {/* Route Selection */}
                     <Card>
                         <CardContent className="p-4">
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="busRoute" className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                                            <MapPin className="w-4 h-4" />
-                                            Tuyến xe
-                                        </Label>
-                                        <Select
-                                            value={formData.busRoute}
-                                            onValueChange={(value) => handleInputChange('busRoute', value)}
-                                        >
-                                            <SelectTrigger
-                                                className="w-full bg-white dark:bg-gray-700 border-gray-200 h-10 px-3 rounded-md
-                                                          hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors
-                                                          focus:ring-2 focus:ring-primary focus:ring-offset-2
-                                                          dark:focus:ring-offset-gray-800"
-                                            >
-                                                <SelectValue placeholder="Chọn tuyến xe" className="text-gray-900 dark:text-gray-100" />
-                                            </SelectTrigger>
-                                            <SelectContent className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                                                <ScrollArea className="h-[200px] rounded-md">
-                                                    {busRoutes.map((route) => (
-                                                        <SelectItem
-                                                            key={route._id}
-                                                            value={route._id}
-                                                            className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <MapPin className="w-4 h-4 text-primary" />
-                                                                <span>{route.name}</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
-                                                </ScrollArea>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium flex items-center gap-2">
+                                        <MapPin className="w-4 h-4" />
+                                        Tuyến xe
+                                    </Label>
+                                    <AntSelect
+                                        {...singleSelectProps}
+                                        placeholder="Chọn tuyến xe"
+                                        value={formData.busRoute}
+                                        onChange={handleRouteChange}
+                                    >
+                                        {busRoutes.map((route) => (
+                                            <Option key={route._id} value={route._id}>
+                                                {route.name}
+                                            </Option>
+                                        ))}
+                                    </AntSelect>
+                                </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="tripsPerDay" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Số chuyến mỗi ngày
-                                        </Label>
-                                        <Input
-                                            id="tripsPerDay"
-                                            type="number"
-                                            value={formData.tripsPerDay}
-                                            onChange={(e) => handleInputChange('tripsPerDay', parseInt(e.target.value))}
-                                            min={1}
-                                            className="bg-white dark:bg-gray-700 border-gray-200 h-10"
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">
+                                        Số chuyến mỗi ngày
+                                    </Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.tripsPerDay}
+                                        onChange={(e) => handleInputChange('tripsPerDay', parseInt(e.target.value))}
+                                        min={1}
+                                        className="bg-white dark:bg-gray-700 border-gray-200 h-10"
+                                    />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
+                    {/* Operating Time */}
                     <Card>
                         <CardContent className="p-4">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
@@ -220,11 +228,10 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="dailyStartTime" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium">
                                         Giờ bắt đầu
                                     </Label>
                                     <Input
-                                        id="dailyStartTime"
                                         type="time"
                                         value={formData.dailyStartTime}
                                         onChange={(e) => handleInputChange('dailyStartTime', e.target.value)}
@@ -233,11 +240,10 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="dailyEndTime" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium">
                                         Giờ kết thúc
                                     </Label>
                                     <Input
-                                        id="dailyEndTime"
                                         type="time"
                                         value={formData.dailyEndTime}
                                         onChange={(e) => handleInputChange('dailyEndTime', e.target.value)}
@@ -248,6 +254,7 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                         </CardContent>
                     </Card>
 
+                    {/* Schedule Period */}
                     <Card>
                         <CardContent className="p-4">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
@@ -256,11 +263,10 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="effectiveDate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium">
                                         Ngày bắt đầu
                                     </Label>
                                     <Input
-                                        id="effectiveDate"
                                         type="date"
                                         value={formData.effectiveDate}
                                         onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
@@ -269,11 +275,10 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="expiryDate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium">
                                         Ngày kết thúc
                                     </Label>
                                     <Input
-                                        id="expiryDate"
                                         type="date"
                                         value={formData.expiryDate}
                                         onChange={(e) => handleInputChange('expiryDate', e.target.value)}
@@ -284,6 +289,7 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                         </CardContent>
                     </Card>
 
+                    {/* Assignments */}
                     <Card>
                         <CardContent className="p-4">
                             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
@@ -292,75 +298,41 @@ export const CreateBusSchedule = ({ isOpen, onClose, onSuccess }: CreateBusSched
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="vehicles" className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium flex items-center gap-2">
                                         <Car className="w-4 h-4" />
                                         Xe
                                     </Label>
-                                    <Select
-                                        value={formData.vehicles[0]}
-                                        onValueChange={(value) => handleInputChange('vehicles', [value])}
+                                    <AntSelect
+                                        {...multiSelectProps}
+                                        placeholder="Chọn xe"
+                                        value={formData.vehicles}
+                                        onChange={handleVehicleChange}
                                     >
-                                        <SelectTrigger
-                                            className="w-full bg-white dark:bg-gray-700 border-gray-200 h-10 px-3 rounded-md
-                                                      hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors
-                                                      focus:ring-2 focus:ring-primary focus:ring-offset-2
-                                                      dark:focus:ring-offset-gray-800"
-                                        >
-                                            <SelectValue placeholder="Chọn xe" className="text-gray-900 dark:text-gray-100" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                                            <ScrollArea className="h-[200px] rounded-md">
-                                                {availableVehicles.map((vehicle) => (
-                                                    <SelectItem
-                                                        key={vehicle._id}
-                                                        value={vehicle._id}
-                                                        className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <Car className="w-4 h-4 text-primary" />
-                                                            <span>{vehicle.name}</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </ScrollArea>
-                                        </SelectContent>
-                                    </Select>
+                                        {availableVehicles.map((vehicle) => (
+                                            <Option key={vehicle._id} value={vehicle._id}>
+                                                {vehicle.name}
+                                            </Option>
+                                        ))}
+                                    </AntSelect>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="drivers" className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                                    <Label className="text-sm font-medium flex items-center gap-2">
                                         <User className="w-4 h-4" />
                                         Tài xế
                                     </Label>
-                                    <Select
-                                        value={formData.drivers[0]}
-                                        onValueChange={(value) => handleInputChange('drivers', [value])}
+                                    <AntSelect
+                                        {...multiSelectProps}
+                                        placeholder="Chọn tài xế"
+                                        value={formData.drivers}
+                                        onChange={handleDriverChange}
                                     >
-                                        <SelectTrigger
-                                            className="w-full bg-white dark:bg-gray-700 border-gray-200 h-10 px-3 rounded-md
-                                                      hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors
-                                                      focus:ring-2 focus:ring-primary focus:ring-offset-2
-                                                      dark:focus:ring-offset-gray-800"
-                                        >
-                                            <SelectValue placeholder="Chọn tài xế" className="text-gray-900 dark:text-gray-100" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                                            <ScrollArea className="h-[200px] rounded-md">
-                                                {availableDrivers.map((driver) => (
-                                                    <SelectItem
-                                                        key={driver._id}
-                                                        value={driver._id}
-                                                        className="hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer py-2 px-4 text-gray-900 dark:text-gray-100"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <User className="w-4 h-4 text-primary" />
-                                                            <span>{driver.name}</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </ScrollArea>
-                                        </SelectContent>
-                                    </Select>
+                                        {availableDrivers.map((driver) => (
+                                            <Option key={driver._id} value={driver._id}>
+                                                {driver.name}
+                                            </Option>
+                                        ))}
+                                    </AntSelect>
                                 </div>
                             </div>
                         </CardContent>
