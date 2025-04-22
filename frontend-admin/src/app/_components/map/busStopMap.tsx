@@ -81,12 +81,25 @@ export const STATUS_OPTIONS = [
 
 export const createBusStopIcon = ({ color }: { color: string }) =>
   L.divIcon({
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-6">
-      <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z" clip-rule="evenodd" />
-    </svg>`,
-    className: "",
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
+    html: `
+        <div class="relative inline-block">
+            <div class="relative">
+                <div class="absolute -inset-2 animate-ping rounded-full bg-primary-400 opacity-20"></div>
+                <div class="relative rounded-full bg-white p-2 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-7">
+                        <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                        <circle cx="12" cy="12" r="8" fill="white" />
+                        <path d="M8 8h8v6H8z" fill="#22c55e"/>
+                        <path d="M9 14h1.5v1.5H9zM13.5 14H15v1.5h-1.5z" fill="#22c55e"/>
+                        <path d="M9 9h6v3H9z" fill="white"/>
+                    </svg>
+                </div>
+            </div>
+        </div>`,
+        className: 'bus-stop-icon',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
   });
 
 export const getAddressFromCoordinates = async (
