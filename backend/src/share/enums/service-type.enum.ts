@@ -8,7 +8,7 @@ export enum ServiceType {
 
 export const serviceTypeText: Record<ServiceType, string> = {
   [ServiceType.BOOKING_HOUR]: 'Đặt theo giờ',
-  [ServiceType.BOOKING_SCENIC_ROUTE]: 'Đặt theo tuyến',
+  [ServiceType.BOOKING_SCENIC_ROUTE]: 'Đặt lộ trình ngắm cảnh',
   [ServiceType.BOOKING_SHARE]: 'Đặt chia sẻ',
   [ServiceType.BOOKING_DESTINATION]: 'Đặt điểm đến',
   [ServiceType.BOOKING_BUS_ROUTE]: 'Đặt xe buýt',
