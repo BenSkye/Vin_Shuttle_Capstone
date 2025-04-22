@@ -36,6 +36,30 @@ import { addDays } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { getDriverById } from '@/services/api/driver';
+import { getVehicleById } from '@/services/api/vehicles';
+
+interface Driver {
+    _id: string;
+    fullName: string;
+    phone: string;
+    email: string;
+}
+
+interface Vehicle {
+    _id: string;
+    name: string;
+    plateNumber: string;
+}
+
+interface DailyTrip {
+    driver: string;
+    vehicle: string;
+    startTime: string;
+    endTime: string;
+    estimatedDuration: number;
+    status: string;
+}
 
 export const BusScheduleList = () => {
     const [schedules, setSchedules] = useState<BusSchedule[]>([]);
@@ -49,6 +73,8 @@ export const BusScheduleList = () => {
         from: new Date(),
         to: addDays(new Date(), 7),
     });
+    const [driverDetails, setDriverDetails] = useState<{ [key: string]: Driver }>({});
+    const [vehicleDetails, setVehicleDetails] = useState<{ [key: string]: Vehicle }>({});
 
     useEffect(() => {
         fetchRoutes();
@@ -73,12 +99,46 @@ export const BusScheduleList = () => {
         }
     };
 
+    const fetchDriverAndVehicleDetails = async (trips: DailyTrip[]) => {
+        const uniqueDriverIds = [...new Set(trips.map(trip => trip.driver))];
+        const uniqueVehicleIds = [...new Set(trips.map(trip => trip.vehicle))];
+
+        // Fetch driver details
+        for (const driverId of uniqueDriverIds) {
+            if (!driverDetails[driverId]) {
+                try {
+                    const driverData = await getDriverById(driverId);
+                    setDriverDetails(prev => ({
+                        ...prev,
+                        [driverId]: driverData
+                    }));
+                } catch (error) {
+                    console.error(`Error fetching driver ${driverId}:`, error);
+                }
+            }
+        }
+
+        // Fetch vehicle details
+        for (const vehicleId of uniqueVehicleIds) {
+            if (!vehicleDetails[vehicleId]) {
+                try {
+                    const vehicleData = await getVehicleById(vehicleId);
+                    setVehicleDetails(prev => ({
+                        ...prev,
+                        [vehicleId]: vehicleData
+                    }));
+                } catch (error) {
+                    console.error(`Error fetching vehicle ${vehicleId}:`, error);
+                }
+            }
+        }
+    };
+
     const fetchSchedules = async () => {
         if (!selectedRoute || !date?.from) return;
 
         setIsLoading(true);
         try {
-            // Fetch schedules for each day in the range
             const dateRange = [];
             const startDate = new Date(date.from);
             const lastDate = date.to || date.from;
@@ -87,7 +147,6 @@ export const BusScheduleList = () => {
                 dateRange.push(format(currentDate, 'yyyy-MM-dd'));
             }
 
-            // Fetch schedules for each date and combine results
             const schedulesPromises = dateRange.map(date =>
                 getActiveScheduleByRoute(selectedRoute, date)
             );
@@ -95,12 +154,18 @@ export const BusScheduleList = () => {
             const results = await Promise.all(schedulesPromises);
             const allSchedules = results.flat();
 
-            // Remove duplicates based on _id
             const uniqueSchedules = Array.from(
                 new Map(allSchedules.map(schedule => [schedule._id, schedule])).values()
             );
 
             setSchedules(uniqueSchedules);
+
+            // Fetch details for all trips in all schedules
+            for (const schedule of uniqueSchedules) {
+                if (schedule.dailyTrips && schedule.dailyTrips.length > 0) {
+                    await fetchDriverAndVehicleDetails(schedule.dailyTrips);
+                }
+            }
         } catch (error) {
             console.error('Error fetching schedules:', error);
             if (error instanceof AxiosError && error.response?.status === 404) {
@@ -147,6 +212,37 @@ export const BusScheduleList = () => {
             </div>
         );
     }
+
+    const renderTableRow = (trip: DailyTrip, index: number) => {
+        const driverInfo = driverDetails[trip.driver];
+        const vehicleInfo = vehicleDetails[trip.vehicle];
+
+        return (
+            <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{formatTime(trip.startTime)}</TableCell>
+                <TableCell>{formatTime(trip.endTime)}</TableCell>
+                <TableCell>
+                    <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span>{driverInfo?.fullName || 'N/A'}</span>
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <div className="flex items-center space-x-2">
+                        <Car className="w-4 h-4 text-gray-500" />
+                        <span>{vehicleInfo ? `${vehicleInfo.name} - ${vehicleInfo.plateNumber}` : 'N/A'}</span>
+                    </div>
+                </TableCell>
+                <TableCell>{trip.estimatedDuration} phút</TableCell>
+                <TableCell>
+                    <Badge variant={trip.status === 'active' ? 'success' : 'secondary'}>
+                        {trip.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                    </Badge>
+                </TableCell>
+            </TableRow>
+        );
+    };
 
     return (
         <div className="space-y-4">
@@ -350,37 +446,7 @@ export const BusScheduleList = () => {
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {schedule.dailyTrips?.map((trip, index) => {
-                                                            // Find driver and vehicle info
-                                                            const driverInfo = schedule.drivers.find(d => d._id === trip.driver);
-                                                            const vehicleInfo = schedule.vehicles.find(v => v._id === trip.vehicle);
-
-                                                            return (
-                                                                <TableRow key={index}>
-                                                                    <TableCell>{index + 1}</TableCell>
-                                                                    <TableCell>{formatTime(trip.startTime)}</TableCell>
-                                                                    <TableCell>{formatTime(trip.endTime)}</TableCell>
-                                                                    <TableCell>
-                                                                        <div className="flex items-center space-x-2">
-                                                                            <User className="w-4 h-4 text-gray-500" />
-                                                                            <span>{driverInfo?.fullName || 'N/A'}</span>
-                                                                        </div>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <div className="flex items-center space-x-2">
-                                                                            <Car className="w-4 h-4 text-gray-500" />
-                                                                            <span>{vehicleInfo?.name || 'N/A'}</span>
-                                                                        </div>
-                                                                    </TableCell>
-                                                                    <TableCell>{trip.estimatedDuration} phút</TableCell>
-                                                                    <TableCell>
-                                                                        <Badge variant={trip.status === 'active' ? 'success' : 'secondary'}>
-                                                                            {trip.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
-                                                                        </Badge>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            );
-                                                        })}
+                                                        {schedule.dailyTrips?.map((trip, index) => renderTableRow(trip, index))}
                                                     </TableBody>
                                                 </Table>
                                             </div>
