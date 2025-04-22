@@ -343,24 +343,44 @@ export const BusScheduleList = () => {
                                                             <TableHead>STT</TableHead>
                                                             <TableHead>Giờ xuất phát</TableHead>
                                                             <TableHead>Giờ kết thúc</TableHead>
+                                                            <TableHead>Tài xế</TableHead>
+                                                            <TableHead>Xe</TableHead>
                                                             <TableHead>Thời gian di chuyển</TableHead>
                                                             <TableHead>Trạng thái</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {schedule.dailyTrips?.map((trip, index) => (
-                                                            <TableRow key={index}>
-                                                                <TableCell>{index + 1}</TableCell>
-                                                                <TableCell>{formatTime(trip.startTime)}</TableCell>
-                                                                <TableCell>{formatTime(trip.endTime)}</TableCell>
-                                                                <TableCell>{trip.estimatedDuration} phút</TableCell>
-                                                                <TableCell>
-                                                                    <Badge variant={trip.status === 'active' ? 'success' : 'secondary'}>
-                                                                        {trip.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
-                                                                    </Badge>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
+                                                        {schedule.dailyTrips?.map((trip, index) => {
+                                                            // Find driver and vehicle info
+                                                            const driverInfo = schedule.drivers.find(d => d._id === trip.driver);
+                                                            const vehicleInfo = schedule.vehicles.find(v => v._id === trip.vehicle);
+
+                                                            return (
+                                                                <TableRow key={index}>
+                                                                    <TableCell>{index + 1}</TableCell>
+                                                                    <TableCell>{formatTime(trip.startTime)}</TableCell>
+                                                                    <TableCell>{formatTime(trip.endTime)}</TableCell>
+                                                                    <TableCell>
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <User className="w-4 h-4 text-gray-500" />
+                                                                            <span>{driverInfo?.fullName || 'N/A'}</span>
+                                                                        </div>
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <Car className="w-4 h-4 text-gray-500" />
+                                                                            <span>{vehicleInfo?.name || 'N/A'}</span>
+                                                                        </div>
+                                                                    </TableCell>
+                                                                    <TableCell>{trip.estimatedDuration} phút</TableCell>
+                                                                    <TableCell>
+                                                                        <Badge variant={trip.status === 'active' ? 'success' : 'secondary'}>
+                                                                            {trip.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                                                                        </Badge>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        })}
                                                     </TableBody>
                                                 </Table>
                                             </div>
