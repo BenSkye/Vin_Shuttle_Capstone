@@ -551,12 +551,12 @@ const TripTrackingScreen = () => {
                   style={styles.scenicRouteHeader}
                   onPress={toggleScenicRouteCollapse}>
                   <Text style={styles.scenicRouteTitle}>
-                    Tuyến đường cố định: {scenicRouteData.name}
+                    Lộ trình ngắm cảnh: {scenicRouteData.name}
                   </Text>
                   <Ionicons
                     name={isScenicRouteCollapsed ? 'chevron-down' : 'chevron-up'}
                     size={24}
-                    color="#9C27B0"
+                    color="#747fc4"
                   />
                 </TouchableOpacity>
 

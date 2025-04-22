@@ -1,3 +1,4 @@
+import { TripStatus } from '~/constants/trip.enum';
 import { StartOrEndPoint } from './share-itinerary'; // Thêm import cho interface StartOrEndPoint
 
 export interface LocationData {
@@ -30,7 +31,7 @@ export interface Trip {
   isPrepaid?: boolean;
   isPayed?: boolean;
   amount: number;
-  status: string;
+  status: TripStatus;
   statusHistory: object[];
   serviceType: string;
   code: string;

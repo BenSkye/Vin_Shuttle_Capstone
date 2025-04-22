@@ -76,6 +76,16 @@ export default function ConversationScreen() {
             <Text numberOfLines={1} style={[styles.tripIdText, unread && styles.unreadText]}>
               Cuốc xe {item.tripCode ? String(item.tripCode) : ''}
             </Text>
+            {
+              item.timeToClose && (
+                <Text style={styles.timeText}>
+                  Đóng trong: {formatDistanceToNow(new Date(item.timeToClose), {
+                    addSuffix: true,
+                    locale: vi,
+                  })}
+                </Text>
+              )
+            }
           </View>
 
           <View style={styles.messageRow}>

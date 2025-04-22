@@ -9,7 +9,7 @@ const LocationTabs = () => {
       </button>
       <button className="flex items-center justify-center gap-2 rounded bg-gray-700 p-4 text-white transition-colors hover:bg-gray-600">
         <FaMap className="h-5 w-5" />
-        <span>Đặt theo tuyến cố định</span>
+        <span>Đặt theo lộ trình ngắm cảnh</span>
       </button>
       <button className="flex items-center justify-center gap-2 rounded bg-gray-700 p-4 text-white transition-colors hover:bg-gray-600">
         <FaLocationArrow className="h-5 w-5" />

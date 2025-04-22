@@ -355,7 +355,15 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       {getStatusIndicator(trip.status)}
                     </View>
 
+
                     {/* Trip info rows */}
+                    <View className="mb-2 flex-row items-center">
+                      <Icon name="pound" size={20} color="#4b5563" />
+                      <Text className="ml-2">
+                        Cuốc xe:  {trip.code}
+                      </Text>
+                    </View>
+
                     <View className="mb-2 flex-row items-center">
                       <Icon name="clock" size={20} color="#4b5563" />
                       <Text className="ml-2">

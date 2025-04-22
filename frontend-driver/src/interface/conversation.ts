@@ -8,6 +8,7 @@ export interface IConversation {
   driverId: User;
   listMessage: IMessage[];
   lastMessage: IMessage;
+  timeToClose: Date;
   createdAt: string;
 }
 

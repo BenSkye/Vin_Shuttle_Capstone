@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     top: 60,
     alignSelf: 'center',
-    backgroundColor: 'rgba(156, 39, 176, 0.9)',
+    backgroundColor: '#747fc4',
     padding: 8,
     borderRadius: 20,
   },
