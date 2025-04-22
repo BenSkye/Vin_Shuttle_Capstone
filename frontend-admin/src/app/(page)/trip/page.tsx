@@ -308,21 +308,26 @@ export default function TripHistoryPage() {
       key: "updatedAt",
       render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
-    // {
-    //   title: "Hành động",
-    //   key: "action",
-    //   width: 120,
-    //   render: (_, record) => (
-    //     <Space size="middle">
-    //       <Button
-    //         type="link"
-    //         onClick={() => console.log("View details", record._id)}
-    //       >
-    //         Chi tiết
-    //       </Button>
-    //     </Space>
-    //   ),
-    // },
+    {
+      title: "Hoàn tiền",
+      key: "refundAmount",
+      render: (_, record) => {
+        const refundAmount = record.refundAmount || 0;
+        return (
+          <span className="font-medium">
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(refundAmount)}
+          </span>
+        );
+      },
+      sorter: (a, b) => {
+        const refundA = a.refundAmount || 0;
+        const refundB = b.refundAmount || 0;
+        return refundA - refundB;
+      }
+    },
   ];
 
   return (
