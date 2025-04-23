@@ -177,4 +177,15 @@ export class UsersController {
   async deletePushToken(@Request() req) {
     return await this.service.deletePushToken(req.user._id);
   }
+
+  @Get('driver/:id')
+  @ApiOperation({ summary: 'Get driver by ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the driver',
+    example: '507f1f77bcf86cd799439011'
+  })
+  async getDriverById(@Param('id') id: string) {
+    return await this.service.getDriverById(id);
+  }
 }
