@@ -129,7 +129,7 @@ export const filterDriver = async (filters: DriverFilters = {}) => {
 
 export const getDriverById = async (driverId: string) => {
     try {
-        const response = await axiosInstance.get(`/users/${driverId}`);
+        const response = await axiosInstance.get(`/users/driver/${driverId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching driver by ID:", error);

@@ -41,7 +41,7 @@ import { getVehicleById } from '@/services/api/vehicles';
 
 interface Driver {
     _id: string;
-    fullName: string;
+    name: string;
     phone: string;
     email: string;
 }
@@ -49,7 +49,7 @@ interface Driver {
 interface Vehicle {
     _id: string;
     name: string;
-    plateNumber: string;
+    licensePlate: string;
 }
 
 interface DailyTrip {
@@ -225,13 +225,13 @@ export const BusScheduleList = () => {
                 <TableCell>
                     <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-500" />
-                        <span>{driverInfo?.fullName || 'N/A'}</span>
+                        <span>{driverInfo?.name || 'N/A'}</span>
                     </div>
                 </TableCell>
                 <TableCell>
                     <div className="flex items-center space-x-2">
                         <Car className="w-4 h-4 text-gray-500" />
-                        <span>{vehicleInfo ? `${vehicleInfo.name} - ${vehicleInfo.plateNumber}` : 'N/A'}</span>
+                        <span>{vehicleInfo ? `${vehicleInfo.name} - ${vehicleInfo.licensePlate}` : 'N/A'}</span>
                     </div>
                 </TableCell>
                 <TableCell>{trip.estimatedDuration} phút</TableCell>
