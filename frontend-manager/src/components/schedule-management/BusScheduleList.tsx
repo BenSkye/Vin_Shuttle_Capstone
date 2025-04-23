@@ -41,7 +41,7 @@ import { getVehicleById } from '@/services/api/vehicles';
 
 interface Driver {
     _id: string;
-    fullName: string;
+    name: string;
     phone: string;
     email: string;
 }
@@ -225,7 +225,7 @@ export const BusScheduleList = () => {
                 <TableCell>
                     <div className="flex items-center space-x-2">
                         <User className="w-4 h-4 text-gray-500" />
-                        <span>{driverInfo?.fullName || 'N/A'}</span>
+                        <span>{driverInfo?.name || 'N/A'}</span>
                     </div>
                 </TableCell>
                 <TableCell>
