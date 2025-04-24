@@ -15,6 +15,7 @@ import {
   Trip,
 } from '@/interface/trip.interface'
 import { getPersonalTripById } from '@/service/trip.service'
+import { routeService } from '@/service/mapScenic'
 
 // Dynamic import for ScenicRouteMiniMap
 const ScenicRouteMiniMap = dynamic(() => import('@/views/Trips/components/ScenicRouteMiniMap'), {
@@ -31,6 +32,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
   const [iframeLoading, setIframeLoading] = useState(true)
   const [shouldRedirect, setShouldRedirect] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [routeNames, setRouteNames] = useState<Record<string, string>>({})
 
   useEffect(() => {
     // Check if mobile device on component mount
@@ -74,11 +76,21 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
 
   const fetchTrip = useCallback(async () => {
     const trips = []
+    const routeIds: string[] = []
+
     if (booking) {
       for (const tripId of booking.trips) {
         try {
           const trip = await getPersonalTripById(tripId)
           trips.push(trip)
+
+          // Collect route IDs for scenic routes
+          if (trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE) {
+            const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+            if (routeId) {
+              routeIds.push(routeId)
+            }
+          }
         } catch (error: unknown) {
           if (error instanceof Error) {
             setError(error.message || 'Lỗi không xác định')
@@ -89,7 +101,26 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
       }
     }
     setTrips(trips)
+
+    // Fetch route names for all collected route IDs
+    fetchRouteNames(routeIds)
   }, [booking])
+
+  const fetchRouteNames = async (routeIds: string[]) => {
+    const routeNamesMap: Record<string, string> = {}
+
+    for (const routeId of routeIds) {
+      try {
+        const routeData = await routeService.getRouteById(routeId)
+        routeNamesMap[routeId] = routeData.name
+      } catch (error) {
+        console.error(`Error fetching route name for ID ${routeId}:`, error)
+        routeNamesMap[routeId] = 'Không tìm thấy tên tuyến'
+      }
+    }
+
+    setRouteNames(routeNamesMap)
+  }
 
   useEffect(() => {
     fetchTrip()
@@ -125,12 +156,15 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
           </div>
         )
       case ServiceType.BOOKING_SCENIC_ROUTE:
+        const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+        const routeName = routeNames[routeId] || 'Đang tải tên tuyến...'
+
         return (
           <div className="mb-4 rounded-lg border p-4">
             <h3 className="mb-2 text-lg font-semibold">Tour tham quan</h3>
             <p className="text-sm md:text-base">
               <span className="font-semibold">Tuyến đường:</span>{' '}
-              {(trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId}
+              {routeName}
             </p>
             <p className="text-sm md:text-base">
               <span className="font-semibold">Khoảng cách:</span>{' '}
@@ -150,9 +184,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                   (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
                     .startPoint.position.lng,
                 ]}
-                routeId={
-                  (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
-                }
+                routeId={routeId}
                 height="h-48"
               />
             </div>
@@ -225,7 +257,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
                 : 'Chưa có'}
             </p>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Trạng thái:</span> {booking.status || 'Chưa có'}
+              <span className="font-semibold">Trạng thái:</span> {'Đang chờ'}
             </p>
           </div>
         </div>
