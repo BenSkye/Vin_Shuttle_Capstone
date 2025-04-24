@@ -249,7 +249,7 @@ function RouteListControl({
                   </p>
 
                   <div className="mb-2 sm:mb-4">
-                    <h4 className="mb-1 sm:mb-2 font-medium text-gray-700">Các điểm dừng:</h4>
+                    <h4 className="mb-1 sm:mb-2 font-medium text-gray-700">Lộ trình đi qua:</h4>
                     <div className="space-y-1 sm:space-y-2">
                       {selectedRoute.waypoints.map((waypoint, index) => (
                         <div

@@ -1,6 +1,6 @@
 import axiosInstance from "./axios"
 import Cookies from 'js-cookie';
-import { AxiosError } from 'axios';
+// import { AxiosError } from 'axios';
 
 export const getCustomer = async () => {
     try {
@@ -27,6 +27,7 @@ export const loginUser = async (email: string, password: string) => {
         });
 
         if (response.status === 404) {
+            console.log('response.data:', response.data);
             if (response.data?.vnMessage) {
                 throw { isCustomError: true, message: response.data.vnMessage };
             }
@@ -39,10 +40,7 @@ export const loginUser = async (email: string, password: string) => {
 
         return response.data;
     } catch (error) {
-        if (error instanceof AxiosError && error.response?.data?.isCustomError) {
-            throw error;
-        }
-        throw { isCustomError: true, message: 'Đã xảy ra lỗi. Vui lòng thử lại.' };
+        throw error;
     }
 }
 

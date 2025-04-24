@@ -1,6 +1,6 @@
 'use client';
 
-import { Form, Input, Button, Card, Layout, notification  } from 'antd';
+import { Form, Input, Button, Card, Layout, notification } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,9 +32,9 @@ export default function Login() {
     try {
       setLoading(true);
       const response = await authService.login(values);
-      
+
       const accessToken = response.token.accessToken;
-      
+
       // Kiểm tra role từ token
       if (!authService.isAdmin(accessToken)) {
         notification.error({
@@ -44,16 +44,16 @@ export default function Login() {
         });
         return;
       }
-      
+
       // Người dùng là admin, lưu token
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', response.token.refreshToken);
       localStorage.setItem('userId', response.userId);
-      
+
       // Có thể lưu thêm role nếu cần
       const decodedToken = authService.decodeAccessToken(accessToken);
       localStorage.setItem('userRole', decodedToken.role);
-      
+
       notification.success({
         message: 'Đăng nhập thành công',
         description: 'Chào mừng bạn quay trở lại!',
@@ -101,9 +101,9 @@ export default function Login() {
               { type: 'email', message: 'Email không hợp lệ!' }
             ]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="Email" 
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="Email"
             />
           </Form.Item>
 
@@ -118,9 +118,9 @@ export default function Login() {
           </Form.Item>
 
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
+            <Button
+              type="primary"
+              htmlType="submit"
               className="w-full"
               loading={loading}
             >

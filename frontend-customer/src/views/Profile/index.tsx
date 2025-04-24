@@ -72,7 +72,7 @@ const EditProfilePage = () => {
       if (digitsOnly && !validatePhoneNumber(digitsOnly)) {
         setErrors(prev => ({
           ...prev,
-          phone: 'Số điện thoại phải có đúng 10 chữ số'
+          phone: 'Số điện thoại không hợp lệ'
         }))
       }
     } else {
@@ -109,7 +109,7 @@ const EditProfilePage = () => {
       newErrors.phone = 'Vui lòng nhập số điện thoại'
       hasErrors = true
     } else if (!validatePhoneNumber(formData.phone)) {
-      newErrors.phone = 'Số điện thoại phải có đúng 10 chữ số'
+      newErrors.phone = 'Số điện thoại không hợp lệ'
       hasErrors = true
     }
 

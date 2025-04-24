@@ -1,78 +1,77 @@
 import { useState } from 'react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { Form, Input, Button, Card, message, Layout } from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
 
 interface LoginFormProps {
     onSubmit: (email: string, password: string) => Promise<void>;
 }
 
 export const LoginForm = ({ onSubmit }: LoginFormProps) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
-
+    const handleSubmit = async (values: { email: string; password: string }) => {
+        setLoading(true);
         try {
-            await onSubmit(email, password);
+            await onSubmit(values.email, values.password);
         } catch (err) {
-            console.log(err);
-            setError('Invalid email or password');
+            console.error(err);
+            message.error('Email hoặc mật khẩu không đúng');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
     return (
-        <Card className="w-full max-w-lg p-8 shadow-lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-3">
-                    <label htmlFor="email" className="block text-lg font-medium">
-                        Email
-                    </label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Nhập email"
-                        required
-                        className="w-full text-lg"
-                    />
+        <Layout className="min-h-screen flex items-center justify-center bg-gray-100">
+            <Card className="w-[400px] shadow-lg">
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-bold">Đăng nhập Manager</h1>
                 </div>
 
-                <div className="space-y-3">
-                    <label htmlFor="password" className="block text-lg font-medium">
-                        Mật khẩu
-                    </label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Nhập mật khẩu"
-                        required
-                        className="w-full text-lg"
-                    />
-                </div>
-
-                {error && (
-                    <div className="text-red-500 text-lg text-center">{error}</div>
-                )}
-
-                <Button
-                    type="submit"
-                    className="w-full py-3 text-lg"
-                    disabled={isLoading}
+                <Form
+                    form={form}
+                    name="login"
+                    initialValues={{ remember: true }}
+                    onFinish={handleSubmit}
+                    layout="vertical"
+                    size="middle"
                 >
-                    {isLoading ? 'Signing in...' : 'Đăng nhập'}
-                </Button>
-            </form>
-        </Card>
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input
+                            prefix={<UserOutlined className="text-gray-400" />}
+                            placeholder="Email"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined className="text-gray-400" />}
+                            placeholder="Mật khẩu"
+                        />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full"
+                            loading={loading}
+                        >
+                            Đăng nhập
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+        </Layout>
     );
 };
