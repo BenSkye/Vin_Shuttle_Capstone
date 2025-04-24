@@ -46,10 +46,8 @@ export default function AddPrice({
       form.resetFields();
       onSuccess();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Có lỗi xảy ra khi thêm giá mới';
-      message.error(errorMessage);
+      console.log('Error adding price:', error);
+      message.error("Có lỗi xảy ra khi thêm giá mới");
     } finally {
       setLoading(false);
     }
