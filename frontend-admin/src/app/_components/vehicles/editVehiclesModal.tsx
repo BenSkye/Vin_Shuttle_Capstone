@@ -121,10 +121,8 @@ export default function EditVehicleModal({ visible, onCancel, onSuccess, vehicle
       message.success('Cập nhật xe thành công');
       onSuccess();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Có lỗi xảy ra khi cập nhật xe';
-      message.error(errorMessage);
+      console.log('Error updating vehicle:', error);
+      message.error("Có lỗi xảy ra khi cập nhật xe");
     } finally {
       setLoading(false);
     }

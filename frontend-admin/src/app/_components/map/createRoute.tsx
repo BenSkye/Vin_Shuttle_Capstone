@@ -22,38 +22,29 @@ interface BusStop {
 
 const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#1abc9c', '#34495e'];
 
-const createCustomIcon = (color: string) =>
-//   L.divIcon({
-//     html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-6">
-//       <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z" clip-rule="evenodd" />
-//     </svg>`,
-//     className: 'custome-icon',
-//     iconSize: [40, 40],
-//     iconAnchor: [20, 40],
-//   });    
-  {
-    return L.divIcon({
-        html: `
-        <div class="relative inline-block">
-            <div class="relative">
-                <div class="absolute -inset-2 animate-ping rounded-full bg-primary-400 opacity-20"></div>
-                <div class="relative rounded-full bg-white p-2 shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-7">
-                        <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                        <circle cx="12" cy="12" r="8" fill="white" />
-                        <path d="M8 8h8v6H8z" fill="#22c55e"/>
-                        <path d="M9 14h1.5v1.5H9zM13.5 14H15v1.5h-1.5z" fill="#22c55e"/>
-                        <path d="M9 9h6v3H9z" fill="white"/>
-                    </svg>
-                </div>
-            </div>
-        </div>`,
-        className: 'bus-stop-icon',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
-    })
-}
+const createCustomIcon = (color: string) => {
+  return L.divIcon({
+    html: `
+      <div class="relative inline-block">
+        <div class="relative">
+          <div class="absolute -inset-2 animate-ping rounded-full bg-primary-400 opacity-20"></div>
+          <div class="relative rounded-full bg-white p-2 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-7">
+              <circle cx="12" cy="12" r="10" fill="#22c55e" />
+              <circle cx="12" cy="12" r="8" fill="white" />
+              <path d="M8 8h8v6H8z" fill="#22c55e"/>
+              <path d="M9 14h1.5v1.5H9zM13.5 14H15v1.5h-1.5z" fill="#22c55e"/>
+              <path d="M9 9h6v3H9z" fill="white"/>
+            </svg>
+          </div>
+        </div>
+      </div>`,
+    className: 'bus-stop-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+  });
+};
 
 L.Marker.prototype.options.icon = L.icon({
   iconUrl: icon.src,
@@ -73,60 +64,65 @@ const STATUS_OPTIONS = [
 ];
 
 function RoutingMachine({
-    stops,
-    onRouteFound,
-    savedRoute,
-  }: {
-    stops: BusStop[];
-    onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
-    savedRoute?: { coordinates: L.LatLng[]; estimatedDuration: number; totalDistance: number };
-  }) {
-    const map = useMap();
-    const routingControlRef = useRef<L.Routing.Control | null>(null);
-    
-  
-    useEffect(() => {
-      if (!map || stops.length < 2) return;
-  
+  stops,
+  onRouteFound,
+}: {
+  stops: BusStop[];
+  onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
+  isEditing: boolean;
+}) {
+  const map = useMap();
+  const routingControlRef = useRef<L.Routing.Control | null>(null);
+
+  useEffect(() => {
+    if (!map || stops.length < 2) return;
+
+    // Xóa routing control cũ nếu tồn tại
+    if (routingControlRef.current) {
+      map.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+    }
+
+    // Tạo mới routing control với danh sách waypoints
+    const waypoints = stops.map((stop) => stop.position);
+    routingControlRef.current = L.Routing.control({
+      waypoints,
+      router: L.routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+      routeWhileDragging: true,
+      addWaypoints: true,
+      fitSelectedRoutes: true,
+      showAlternatives: false,
+      show: false,
+      lineOptions: {
+        styles: [{ color: '#3498db', weight: 2, opacity: 0.9 }],
+        extendToWaypoints: true,
+        missingRouteTolerance: 5,
+      },
+      plan: L.Routing.plan(waypoints, {
+        createMarker: () => false,
+      }),
+    }).addTo(map);
+
+    // Lắng nghe sự kiện routesfound
+    routingControlRef.current.on('routesfound', (e) => {
+      const route = e.routes[0];
+      onRouteFound(
+        route.coordinates,
+        Number((route.summary.totalTime / 60).toFixed(1)),
+        Number((route.summary.totalDistance / 1000).toFixed(1))
+      );
+    });
+
+    // Cleanup khi component unmount hoặc stops thay đổi
+    return () => {
       if (routingControlRef.current) {
         map.removeControl(routingControlRef.current);
-        routingControlRef.current = null;
       }
-  
-      if (savedRoute) {
-        const polyline = L.polyline(savedRoute.coordinates, { color: '#3498db', weight: 6, opacity: 0.9 }).addTo(map);
-        map.fitBounds(polyline.getBounds());
-        onRouteFound(savedRoute.coordinates, savedRoute.estimatedDuration, savedRoute.totalDistance);
-        return () => polyline.remove();
-      }
-  
-      const waypoints = stops.map((stop) => stop.position);
-      routingControlRef.current = L.Routing.control({
-        waypoints,
-        router: L.routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-        routeWhileDragging: true,
-        addWaypoints: true,
-        fitSelectedRoutes: false,
-        showAlternatives: false,
-        show: false,
-        lineOptions: { styles: [{ color: '#3498db', weight: 2, opacity: 0.9 }], extendToWaypoints: true, missingRouteTolerance: 5 },
-        plan: L.Routing.plan(waypoints, {
-          createMarker: function() { return false; },
-        })
-      }).addTo(map);
-  
-      routingControlRef.current.on('routesfound', (e) => {
-        const route = e.routes[0];
-        onRouteFound(route.coordinates, Number((route.summary.totalTime / 60).toFixed(1)), Number((route.summary.totalDistance / 1000).toFixed(1)));
-      });
-  
-      return () => {
-        if (routingControlRef.current) map.removeControl(routingControlRef.current);
-      };
-    }, [map, stops, onRouteFound, savedRoute]);
-  
-    return null;
-  }
+    };
+  }, [map, stops, onRouteFound]);
+
+  return null;
+}
 
 function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
   const map = useMap();
@@ -135,7 +131,7 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
     if (!map) return;
     const polyline = L.polyline(coordinates, { color: '#3498db', weight: 6, opacity: 0.9 }).addTo(map);
     map.fitBounds(polyline.getBounds());
-     return () => {
+    return () => {
       void map.removeLayer(polyline);
     };
   }, [map, coordinates]);
@@ -144,7 +140,9 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
 }
 
 const getStreetName = async (latlng: L.LatLng) => {
-  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`);
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`
+  );
   const data = await response.json();
   return data.display_name?.split(',').slice(0, 2).join(', ') || 'Tên đường không tìm thấy';
 };
@@ -172,11 +170,14 @@ export default function CreateRoute() {
     }
   }, [selectedRoute]);
 
-  const handleRouteFound = useCallback((coordinates: L.LatLng[], duration: number, distance: number) => {
-    setRouteCoordinates(coordinates);
-    setEstimatedDuration(duration);
-    setTotalDistance(distance);
-  }, []);
+  const handleRouteFound = useCallback(
+    (coordinates: L.LatLng[], duration: number, distance: number) => {
+      setRouteCoordinates(coordinates);
+      setEstimatedDuration(duration);
+      setTotalDistance(distance);
+    },
+    []
+  );
 
   const handleMapClick = useCallback(async (latlng: L.LatLng) => {
     const name = await getStreetName(latlng);
@@ -203,13 +204,18 @@ export default function CreateRoute() {
         color: COLORS[i % COLORS.length],
       }))
     );
+    // Khởi tạo routeCoordinates từ scenicRouteCoordinates, nhưng sẽ được cập nhật bởi RoutingMachine
     setRouteCoordinates(route.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng)));
   }, []);
 
   const prepareRouteData = useCallback((): RouteRequest => ({
     name: routeName,
     description: routeDescription,
-    waypoints: stops.map((stop) => ({ id: stop.id, name: stop.name, position: { lat: stop.position.lat, lng: stop.position.lng } })),
+    waypoints: stops.map((stop) => ({
+      id: stop.id,
+      name: stop.name,
+      position: { lat: stop.position.lat, lng: stop.position.lng },
+    })),
     scenicRouteCoordinates: routeCoordinates.map((coord) => ({ lat: coord.lat, lng: coord.lng })),
     estimatedDuration,
     totalDistance,
@@ -217,14 +223,23 @@ export default function CreateRoute() {
   }), [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance, routeStatus]);
 
   const saveRoute = useCallback(async () => {
-    if (routeCoordinates.length === 0 || stops.length < 2) return;
+    if (!routeName.trim()) {
+      alert('Tên lộ trình không được để trống!');
+      return;
+    }
+    if (routeCoordinates.length === 0 || stops.length < 2) {
+      alert('Cần ít nhất 2 điểm dừng và lộ trình hợp lệ!');
+      return;
+    }
     setIsLoading(true);
     try {
       const routeData = prepareRouteData();
       const route = isEditing && selectedRoute?._id
         ? await routeService.editRoute(selectedRoute._id, routeData)
         : await routeService.createRoute(routeData);
-      setSavedRoutes((prev) => isEditing ? prev.map((r) => r._id === route._id ? route : r) : [...prev, route]);
+      setSavedRoutes((prev) =>
+        isEditing ? prev.map((r) => (r._id === route._id ? route : r)) : [...prev, route]
+      );
       setSelectedRoute(route);
       setIsCreatingRoute(false);
       setIsEditing(false);
@@ -235,7 +250,7 @@ export default function CreateRoute() {
     } finally {
       setIsLoading(false);
     }
-  }, [isEditing, selectedRoute, routeCoordinates, stops, prepareRouteData]);
+  }, [isEditing, selectedRoute, routeCoordinates, stops, prepareRouteData, routeName]);
 
   const selectRoute = useCallback((route: RouteResponse) => {
     setSelectedRoute(route);
@@ -248,7 +263,11 @@ export default function CreateRoute() {
       active: 'bg-green-200 text-green-800',
       inactive: 'bg-red-200 text-red-800',
     }[status];
-    return <span className={`px-2 py-1 rounded-full text-sm ${config}`}>{STATUS_OPTIONS.find((o) => o.value === status)?.label}</span>;
+    return (
+      <span className={`px-2 py-1 rounded-full text-sm ${config}`}>
+        {STATUS_OPTIONS.find((o) => o.value === status)?.label}
+      </span>
+    );
   };
 
   return (
@@ -285,8 +304,16 @@ export default function CreateRoute() {
                       <div className="font-medium text-black">{route.name}</div>
                       <div className="text-sm text-gray-600">{new Date(route.createdAt).toLocaleDateString()}</div>
                     </div>
-                    <button onClick={() => handleEditRoute(route)} className="p-2 text-blue-500 hover:text-blue-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <button
+                      onClick={() => handleEditRoute(route)}
+                      className="p-2 text-blue-500 hover:text-blue-700"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
                     </button>
@@ -295,9 +322,21 @@ export default function CreateRoute() {
               ))
             ) : (
               <div className="space-y-4">
-                <button onClick={() => setSelectedRoute(null)} className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                <button
+                  onClick={() => setSelectedRoute(null)}
+                  className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Quay lại
                 </button>
@@ -321,20 +360,47 @@ export default function CreateRoute() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       <span>{selectedRoute.waypoints.length} điểm dừng</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       <span>Thời gian: {selectedRoute.estimatedDuration} phút</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       <span>Khoảng cách: {selectedRoute.totalDistance} km</span>
                     </div>
@@ -352,17 +418,22 @@ export default function CreateRoute() {
           <div className="space-y-4">
             <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
               <div>
-                <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">Tên lộ trình</label>
+                <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
+                  Tên lộ trình <span className="text-red-500">*</span>
+                </label>
                 <input
                   id="routeName"
                   type="text"
                   value={routeName}
                   onChange={(e) => setRouteName(e.target.value)}
+                  required
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-black"
                 />
               </div>
               <div>
-                <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700">Mô tả</label>
+                <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700">
+                  Mô tả
+                </label>
                 <textarea
                   id="routeDescription"
                   value={routeDescription}
@@ -371,7 +442,9 @@ export default function CreateRoute() {
                 />
               </div>
               <div>
-                <label htmlFor="routeStatus" className="block text-sm font-medium text-gray-700">Trạng thái</label>
+                <label htmlFor="routeStatus" className="block text-sm font-medium text-gray-700">
+                  Trạng thái
+                </label>
                 <select
                   id="routeStatus"
                   value={routeStatus}
@@ -379,7 +452,9 @@ export default function CreateRoute() {
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -394,23 +469,48 @@ export default function CreateRoute() {
                   <div className="font-semibold" style={{ color: stop.color }}>
                     Điểm dừng {index + 1}: {stop.name}
                   </div>
-                  <button onClick={() => removeStop(stop.id)} className="text-red-500 hover:text-red-700">×</button>
+                  <button
+                    onClick={() => removeStop(stop.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
-              {!stops.length && <p className="text-gray-500 text-center">Nhấp vào bản đồ để thêm điểm dừng</p>}
+              {!stops.length && (
+                <p className="text-gray-500 text-center">Nhấp vào bản đồ để thêm điểm dừng</p>
+              )}
             </div>
             {stops.length >= 2 && routeCoordinates.length > 0 && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <span>Thời gian: {estimatedDuration} phút</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <span>Khoảng cách: {totalDistance} km</span>
                   </div>
@@ -418,7 +518,9 @@ export default function CreateRoute() {
                 <button
                   onClick={saveRoute}
                   disabled={isLoading}
-                  className={`w-full mt-4 py-2 px-4 rounded text-white ${isLoading ? 'bg-green-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
+                  className={`w-full mt-4 py-2 px-4 rounded text-white ${
+                    isLoading ? 'bg-green-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+                  }`}
                 >
                   {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
                 </button>
@@ -432,9 +534,12 @@ export default function CreateRoute() {
           center={[10.840405, 106.843424]}
           zoom={15.5}
           style={{ height: '100%', width: '100%' }}
-          maxBounds={[[10.830000, 106.830000], [10.850000, 106.860000]]}
+          maxBounds={[
+            [10.830000, 106.830000],
+            [10.850000, 106.860000],
+          ]}
           maxBoundsViscosity={1.0}
-          minZoom={16}
+          minZoom={15}
           maxZoom={18}
         >
           <TileLayer
@@ -444,10 +549,7 @@ export default function CreateRoute() {
           {isCreatingRoute ? (
             <>
               {stops.map((stop) => (
-                <Marker 
-                key={stop.id} 
-                position={stop.position} 
-                icon={createCustomIcon(stop.color)}>
+                <Marker key={stop.id} position={stop.position} icon={createCustomIcon(stop.color)}>
                   <Popup>{stop.name}</Popup>
                 </Marker>
               ))}
@@ -455,11 +557,7 @@ export default function CreateRoute() {
                 <RoutingMachine
                   stops={stops}
                   onRouteFound={handleRouteFound}
-                  savedRoute={isEditing && selectedRoute ? {
-                    coordinates: routeCoordinates,
-                    estimatedDuration,
-                    totalDistance,
-                  } : undefined}
+                  isEditing={isEditing}
                 />
               )}
               <MapClickHandler onMapClick={handleMapClick} />
@@ -467,7 +565,9 @@ export default function CreateRoute() {
           ) : (
             selectedRoute && (
               <>
-                <SavedRouteDisplay coordinates={selectedRoute.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng))} />
+                <SavedRouteDisplay
+                  coordinates={selectedRoute.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng))}
+                />
                 {selectedRoute.waypoints.map((waypoint, index) => (
                   <Marker
                     key={waypoint.id}
