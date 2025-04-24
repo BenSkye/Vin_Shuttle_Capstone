@@ -106,4 +106,5 @@ export interface tripParams extends QueryOptions {
   code?: string;
   isPrepaid?: boolean;
   isPayed?: boolean;
+  date?: Date
 }

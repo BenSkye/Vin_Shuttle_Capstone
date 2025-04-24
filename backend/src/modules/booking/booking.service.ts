@@ -249,7 +249,7 @@ export class BookingService implements IBookingService {
             throw new HttpException({
                 statusCode: HttpStatus.NOT_FOUND,
                 message: `Scenic Route not found`,
-                vnMessage: `Không tìm thấy tuyến đường`
+                vnMessage: `Không tìm thấy lộ trình ngắm cảnh`
             }, HttpStatus.NOT_FOUND);
         }
 
@@ -917,12 +917,12 @@ export class BookingService implements IBookingService {
                 customerId: tripUpdate.customerId.toString(),
                 driverId: tripUpdate.driverId.toString(),
                 timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start
-                timeToClose: new Date(tripUpdate.timeEndEstimate.getTime() + timeToCloseConversation) //30 minutes after trip end
+                // timeToClose: null //30 minutes after trip end
             })
-            const listDriverTrip = await this.tripService.getPersonalDriverTrip(tripUpdate.driverId.toString())
-            this.tripGateway.emitTripUpdate(
+            const tripEmit = await this.tripRepository.findById(tripUpdate._id.toString(), [])
+            this.tripGateway.emitNewTrip(
                 tripUpdate.driverId.toString(),
-                listDriverTrip
+                tripEmit
             );
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(

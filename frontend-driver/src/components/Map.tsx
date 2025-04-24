@@ -26,30 +26,43 @@ const PinIcon = ({ color = '#34dbd8', size = 50 }: { color: string; size?: numbe
 const CustomPin = (
   { color, size, order }: { color: string; size: number; order?: number }
 ) => (
-  <View style={{ alignItems: 'center' }}>
-    <PinIcon color={color} size={size} />
-    {order && (
-      <View style={{
-        position: 'absolute',
-        top: size * 0.16,
-        backgroundColor: 'white',
-        borderRadius: size * 0.1,
-        width: size * 0.33,
-        height: size * 0.33,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: color
-      }}>
-        <Text style={{
-          fontSize: size * 0.2,
-          fontWeight: 'bold',
-          color
+  <View style={{
+    width: size + 5,
+    height: size + 5,
+  }}>
+    <View style={{
+      alignItems: 'center',
+      justifyContent: 'center',
+      // borderColor: color,
+      // borderWidth: 5,
+      width: size,
+      height: size,
+      overflow: 'visible'
+    }}>
+      <PinIcon color={color} size={size * 0.9} />
+      {order && (
+        <View style={{
+          position: 'absolute',
+          top: size * 0.2,
+          backgroundColor: 'white',
+          borderRadius: size * 0.5,
+          width: size * 0.33,
+          height: size * 0.33,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: color
         }}>
-          {order}
-        </Text>
-      </View>
-    )}
+          <Text style={{
+            fontSize: size * 0.2,
+            fontWeight: 'bold',
+            color
+          }}>
+            {order}
+          </Text>
+        </View>
+      )}
+    </View>
   </View>
 );
 const MapComponent = ({
@@ -490,7 +503,7 @@ const MapComponent = ({
               <Polyline
                 coordinates={scenicRouteFormattedCoordinates}
                 strokeWidth={5}
-                strokeColor="#9C27B0"
+                strokeColor="#747fc4"
                 lineDashPattern={[0]}
               />
             )}
@@ -553,22 +566,16 @@ const MapComponent = ({
                     latitude: waypoint.position.lat,
                     longitude: waypoint.position.lng,
                   }}
+                  anchor={{ x: 0.5, y: 0.5 }}
                   title={`Điểm ${index + 1}: ${waypoint.name}`}
                 >
-                  {/* <View style={styles.waypointMarker}>
-                    <MaterialIcons name="place" size={30} color="#9C27B0" />
-                    <Text style={styles.waypointNumber}>{index + 1}</Text>
+                  <View style={{ alignItems: 'center', justifyContent: 'center', width: 56, height: 56 }}>
+                    <CustomPin
+                      color={"#747fc4"}
+                      size={50}
+                      order={index + 1}
+                    />
                   </View>
-                  <Callout>
-                    <View style={styles.callout}>
-                      <Text style={styles.calloutTitle}>{waypoint.name}</Text>
-                    </View>
-                  </Callout> */}
-                  <CustomPin
-                    color={"#9C27B0"}
-                    size={50}
-                    order={index + 1}
-                  />
                 </Marker>
               ))
             }
@@ -609,20 +616,21 @@ const MapComponent = ({
                     onPress={() => onStopPress(stop)}
                     title={`Điểm ${stop.pointType === SharedItineraryStopsType.START_POINT ? 'Đón' : "Trả"} cuốc xe ${stop.tripCode}`}
                   >
-                    {stop.trip === tripStopSelected ? (
-                      <CustomPin
-                        color={iconColor}
-                        size={55}
-                        order={stop.order}
-                      />
-                    ) : (
-                      <CustomPin
-                        color={iconColor}
-                        size={40}
-                        order={stop.order}
-                      />
-                    )}
-
+                    <View style={{ alignItems: 'center', justifyContent: 'center', width: 56, height: 56 }}>
+                      {stop.trip === tripStopSelected ? (
+                        <CustomPin
+                          color={iconColor}
+                          size={55}
+                          order={stop.order}
+                        />
+                      ) : (
+                        <CustomPin
+                          color={iconColor}
+                          size={40}
+                          order={stop.order}
+                        />
+                      )}
+                    </View>
 
                   </Marker>
                 );
@@ -634,7 +642,7 @@ const MapComponent = ({
           {/* Scenic Route Indicator */}
           {showScenicRoute && (
             <View style={styles.routeIndicator}>
-              <Text style={styles.routeIndicatorText}>Đang hiển thị: Tuyến đường cố định</Text>
+              <Text style={styles.routeIndicatorText}>Đang hiển thị: Tuyến lộ trình ngắm cảnh</Text>
             </View>
           )}
 
@@ -665,7 +673,7 @@ const MapComponent = ({
           )}
 
           {/* Thêm nút center vào xe */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.centerButton}
             onPress={centerToCurrentLocation}
           >

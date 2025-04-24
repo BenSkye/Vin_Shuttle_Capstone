@@ -51,7 +51,7 @@ const AttendanceChart = () => {
                     <Tooltip contentStyle={{ borderRadius: "10px", borderColor: "lightgray" }} />
                     <Legend align='left' verticalAlign='top' wrapperStyle={{ paddingTop: "20px", paddingBottom: '40px' }} />
                     <Bar dataKey="hourly" fill="#FAE27C" legendType='circle' radius={[10, 10, 0, 0]} name='Đặt theo giờ' />
-                    <Bar dataKey="route" fill="#C3EBFA" legendType='circle' radius={[10, 10, 0, 0]} name='Đặt theo tuyến' />
+                    <Bar dataKey="route" fill="#C3EBFA" legendType='circle' radius={[10, 10, 0, 0]} name='Đặt theo lộ trình ngắm cảnh' />
                 </BarChart>
             </ResponsiveContainer>
         </div>

@@ -1,3 +1,4 @@
+import { ConversationStatus } from '~/constants/conversation.enum';
 import { User } from '~/interface/user';
 
 export interface IConversation {
@@ -8,6 +9,9 @@ export interface IConversation {
   driverId: User;
   listMessage: IMessage[];
   lastMessage: IMessage;
+  status: ConversationStatus
+  timeToClose: Date;
+  timeToOpen: Date;
   createdAt: string;
 }
 

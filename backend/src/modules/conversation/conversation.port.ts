@@ -14,6 +14,7 @@ export interface IConversationRepository {
   updateConversation(id: string, data: IUpdateConversation): Promise<ConversationDocument>;
   openConversation(id: string): Promise<boolean>;
   closeConversation(id: string): Promise<boolean>;
+  cancelConversation(id: string): Promise<boolean>;
   addMessage(id: string, senderId: string, content: string): Promise<ConversationDocument>;
 }
 

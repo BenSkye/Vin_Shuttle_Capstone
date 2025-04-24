@@ -41,6 +41,9 @@ import { IBookingRepository } from 'src/modules/booking/booking.port';
 import { PaymentMethod } from 'src/share/enums/payment.enum';
 import { TRACKING_SERVICE } from 'src/modules/tracking/tracking.di-token';
 import { ITrackingService } from 'src/modules/tracking/tracking.port';
+import { CONVERSATION_REPOSITORY } from 'src/modules/conversation/conversation.di-token';
+import { IConversationRepository } from 'src/modules/conversation/conversation.port';
+import { ConversationStatus } from 'src/share/enums/conversation.enum';
 
 @Injectable()
 export class TripService implements ITripService {
@@ -65,6 +68,8 @@ export class TripService implements ITripService {
     private readonly notificationService: INotificationService,
     @Inject(BOOKING_REPOSITORY)
     private readonly bookingRepository: IBookingRepository,
+    @Inject(CONVERSATION_REPOSITORY)
+    private readonly conversationRepository: IConversationRepository,
     @Inject(MOMO_PROVIDER)
     private readonly momoService: IMomoService, // Replace with actual type if available
   ) { }
@@ -292,6 +297,17 @@ export class TripService implements ITripService {
       filterProcessed.vehicleId = vehicle._id.toString();
       delete filterProcessed.vehicleName;
     }
+    if (query?.date) {
+      const date = new Date(query.date);
+      const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+
+      filterProcessed.timeStartEstimate = {
+        $gte: startOfDay,
+        $lte: endOfDay
+      };
+      delete filterProcessed.date
+    }
     console.log('customerId', customerId);
     filterProcessed.customerId = customerId;
     console.log('filterProcessed', filterProcessed);
@@ -347,6 +363,17 @@ export class TripService implements ITripService {
       }
       filterProcessed.vehicleId = vehicle._id.toString();
       delete filterProcessed.vehicleName;
+    }
+    if (query?.date) {
+      const date = new Date(query.date);
+      const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+
+      filterProcessed.timeStartEstimate = {
+        $gte: startOfDay,
+        $lte: endOfDay
+      };
+      delete filterProcessed.date
     }
     console.log('driverId', driverId);
     filterProcessed.driverId = driverId;
@@ -426,6 +453,22 @@ export class TripService implements ITripService {
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Trip is not ready to pickup or had been picked up',
           vnMessage: 'Cuốc xe chưa sẵn sàng để bắt đầu hoặc đã được bắt đầu',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const current = new Date();
+    //check if current time is greater than pickup time 15 minutes
+    const pickupTime = new Date(trip.timeStartEstimate);
+    pickupTime.setMinutes(pickupTime.getMinutes() - 15);
+    console.log('pickupTime', pickupTime);
+    console.log('current', current);
+    if (current < pickupTime) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'It is too early to pick up the customer',
+          vnMessage: 'Quá sớm để đón khách',
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -642,6 +685,17 @@ export class TripService implements ITripService {
       updatedTrip.customerId.toString(),
       updatedTrip.vehicleId.toString(),
     );
+    const conversation = await this.conversationRepository.getConversation({
+      tripId: updatedTrip._id.toString(),
+    }, ['timeToClose'])
+    //update timeToClose to current time + 30 minutes
+    if (conversation) {
+      const timeToClose = new Date(updatedTrip.timeEnd);
+      timeToClose.setMinutes(timeToClose.getMinutes() + 30);
+      await this.conversationRepository.updateConversation(conversation._id.toString(), {
+        timeToClose: timeToClose,
+      })
+    }
     return updatedTrip;
   }
 
@@ -835,7 +889,12 @@ export class TripService implements ITripService {
 
     await this.handleRefundForTrip(tripUpdate._id.toString(), refundAmount); //excute refund money
     //excute refund money
-
+    const conversation = await this.conversationRepository.getConversation({
+      tripId: tripUpdate._id.toString(),
+    }, ['timeToClose'])
+    await this.conversationRepository.updateConversation(conversation._id.toString(), {
+      status: ConversationStatus.CANCELLED
+    })
     return tripUpdate;
   }
 
@@ -930,7 +989,7 @@ export class TripService implements ITripService {
   async handleTripStartTimeout() {
     const now = new Date();
     const endTimeOut = new Date(now.getTime() - 5 * 60 * 1000);
-    console.log('endTimeOut', endTimeOut);
+    // console.log('endTimeOut', endTimeOut);
     const trips = await this.tripRepository.find({
       status: TripStatus.CONFIRMED,
       timeEndEstimate: { $lte: endTimeOut },
@@ -956,6 +1015,10 @@ export class TripService implements ITripService {
       }
       await this.notificationService.createNotification(notificationForCustomer)
       await this.notificationService.createNotification(notificationForDriver)
+      const conversation = await this.conversationRepository.getConversation({
+        tripId: trip._id.toString()
+      }, ['_id'])
+      await this.conversationRepository.cancelConversation(conversation._id.toString())
       this.tripGateway.emitTripUpdate(
         trip.customerId.toString(),
         await this.getPersonalCustomerTrip(trip.customerId.toString())

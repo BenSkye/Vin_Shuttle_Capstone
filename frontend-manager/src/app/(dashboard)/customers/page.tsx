@@ -13,8 +13,6 @@ import { getCustomer } from "@/services/api/user";
 const columns: Column<Customer>[] = [
     { header: "Tên", accessor: "id", className: "hidden md:table-cell" },
     { header: "Số điện thoại", accessor: "name" },
-
-
 ];
 
 const CustomerPage = () => {

@@ -49,7 +49,7 @@ export const getDriverScheduleByQuery = async (query: driverScheduleParams) => {
         const response = await axiosInstance.get(`/driver-schedules/get-driver-schedules-by-query`, {
             params: query
         });
-        console.log("Driver Schedule:", response.data);
+        console.log("Driver single Schedule:", response.data);
         return response.data;
     } catch (error) {
         console.error("Error:", error);

@@ -19,6 +19,7 @@ import { useAuth } from '~/context/AuthContext';
 import useConversationSocket from '~/hook/useConversationSocket';
 import { IConversation, IMessage } from '~/interface/conversation';
 import { styles } from '~/styles/ConversationDetailStyle';
+import { ConversationStatus } from '~/constants/conversation.enum';
 
 export default function ConversationDetailScreen({ route }: { route: any }) {
   const { conversationId } = route.params;
@@ -154,6 +155,13 @@ export default function ConversationDetailScreen({ route }: { route: any }) {
       </View>
 
       {/* Chat area */}
+      {(conversation as IConversation).status !== ConversationStatus.OPENED && (
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>
+            Cuộc trò chuyện sẽ mở trước 30 phút khi cuốc xe bắt đầu (${((conversation as IConversation).timeToOpen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`
+          </Text>
+        </View>
+      )}
       <KeyboardAvoidingView
         style={styles.keyboardAvoid}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

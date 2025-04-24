@@ -380,11 +380,11 @@ export const styles = StyleSheet.create({
     },
     // Add these new styles for scenic route
     scenicRouteInfo: {
-        backgroundColor: '#F3E5F5',
+        backgroundColor: '#d9deff',
         borderRadius: 8,
         marginTop: 12,
         borderLeftWidth: 3,
-        borderLeftColor: '#9C27B0',
+        borderLeftColor: '#747fc4',
         marginBottom: 10,
     },
     scenicRouteHeader: {
@@ -400,7 +400,7 @@ export const styles = StyleSheet.create({
     scenicRouteTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#9C27B0',
+        color: '#747fc4',
         flex: 1,
     },
     scenicRouteDescription: {
@@ -436,13 +436,13 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 8,
-      },
-      chatButton: {
+    },
+    chatButton: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 8,
         backgroundColor: '#E3F2FD',
-      },
+    },
 });

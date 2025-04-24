@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { styles } from '~/styles/TripTrackingStyle';
 import { Trip, BookingDestinationPayloadDto, BookingHourPayloadDto } from '~/interface/trip';
 import { ServiceType } from '~/constants/service-type.enum';
+import { tripStatusText } from '~/constants/trip.enum';
 
 interface CustomerInfoModalProps {
   visible: boolean;
@@ -56,7 +57,7 @@ const CustomerInfoModal: React.FC<CustomerInfoModalProps> = ({ visible, onClose,
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Trạng thái:</Text>
-              <Text style={styles.infoValue}>{trip.status}</Text>
+              <Text style={styles.infoValue}>{tripStatusText[trip.status]}</Text>
             </View>
 
             {trip.serviceType === ServiceType.BOOKING_DESTINATION && (

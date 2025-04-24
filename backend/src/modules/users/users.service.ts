@@ -88,4 +88,22 @@ export class UsersService implements IUserService {
   async deletePushToken(userId: string): Promise<void> {
     await this.userRepository.deletePushToken(userId);
   }
+
+  async getDriverById(id: string): Promise<object> {
+    const select = ['name', 'phone', 'email', 'role', 'status', 'avatar'];
+    const driver = await this.userRepository.getUserById(id, select);
+    
+    if (!driver || driver.role !== UserRole.DRIVER) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Driver Not Found',
+          vnMessage: 'Không tìm thấy tài xế',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    return driver;
+  }
 }

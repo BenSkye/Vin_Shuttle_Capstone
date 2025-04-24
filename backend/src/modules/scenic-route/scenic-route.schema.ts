@@ -1,15 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { ScenicRouteStatus } from 'src/share/enums/scenic-routes.enum';
+import { Position } from 'src/share/share.schema';
 
-@Schema({ _id: false })
-class Position {
-  @Prop({ required: true, type: Number })
-  lat: number;
+// @Schema({ _id: false })
+// class Position {
+//   @Prop({ required: true, type: Number })
+//   lat: number;
 
-  @Prop({ required: true, type: Number })
-  lng: number;
-}
+//   @Prop({ required: true, type: Number })
+//   lng: number;
+// }
 
 @Schema({ _id: false })
 class Waypoint {
@@ -50,12 +51,6 @@ export class ScenicRoute {
 
   @Prop({ required: true, type: Number })
   totalDistance: number;
-
-  // @Prop({ required: true, type: [String] })
-  // vehicleCategories: string[];
-
-  // @Prop({ required: true, type: [String] })
-  // tags: string[];
 }
 
 export const ScenicRouteSchema = SchemaFactory.createForClass(ScenicRoute);

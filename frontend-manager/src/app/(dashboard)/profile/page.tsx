@@ -120,11 +120,11 @@ export default function ProfilePage() {
         }));
       }
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+      setMessage({ type: 'error', text: 'Cập nhật hồ sơ thất bại. Vui lòng thử lại.' });
     } finally {
       setIsLoading(false);
 
@@ -159,10 +159,10 @@ export default function ProfilePage() {
         avatar: uploadResult.url,
       }));
 
-      setMessage({ type: 'success', text: 'Profile photo updated successfully!' });
+      setMessage({ type: 'success', text: 'Cập nhật ảnh đại diện thành công!' });
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile photo. Please try again.' });
+      setMessage({ type: 'error', text: 'Cập nhật ảnh đại diện thất bại. Vui lòng thử lại.' });
     } finally {
       setIsLoading(false);
 
@@ -224,7 +224,7 @@ export default function ProfilePage() {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>
-              <span>{profile.phone || 'No phone added'}</span>
+              <span>{profile.phone || 'Chưa thêm số điện thoại'}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
-              <span>{profile.address || 'No address added'}</span>
+              <span>{profile.address || 'Chưa thêm địa chỉ'}</span>
             </div>
           </CardContent>
         </Card>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
         <Card className="h-full">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>Thông tin hồ sơ</CardTitle>
               {!isEditing && (
                 <Button
                   onClick={() => setIsEditing(true)}
@@ -259,11 +259,11 @@ export default function ProfilePage() {
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
-                  Edit Profile
+                  Chỉnh sửa hồ sơ
                 </Button>
               )}
             </div>
-            <CardDescription>Manage your account information</CardDescription>
+            <CardDescription>Quản lý thông tin tài khoản của bạn</CardDescription>
           </CardHeader>
           <CardContent>
             {message.text && (
@@ -276,7 +276,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="name" className="block text-sm font-medium">
-                    Full Name
+                    Họ và tên
                   </label>
                   <Input
                     id="name"
@@ -285,13 +285,13 @@ export default function ProfilePage() {
                     value={profile.name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Enter your full name"
+                    placeholder="Nhập họ và tên của bạn"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium">
-                    Email Address
+                    Địa chỉ email
                   </label>
                   <Input
                     id="email"
@@ -306,7 +306,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-2">
                   <label htmlFor="phone" className="block text-sm font-medium">
-                    Phone Number
+                    Số điện thoại
                   </label>
                   <Input
                     id="phone"
@@ -315,13 +315,13 @@ export default function ProfilePage() {
                     value={profile.phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Enter your phone number"
+                    placeholder="Nhập số điện thoại của bạn"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="role" className="block text-sm font-medium">
-                    Role
+                    Vai trò
                   </label>
                   <Input
                     id="role"
@@ -335,7 +335,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-2 md:col-span-2">
                   <label htmlFor="address" className="block text-sm font-medium">
-                    Address
+                    Địa chỉ
                   </label>
                   <Input
                     id="address"
@@ -344,7 +344,7 @@ export default function ProfilePage() {
                     value={profile.address || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Enter your address"
+                    placeholder="Nhập địa chỉ của bạn"
                   />
                 </div>
 
@@ -356,14 +356,14 @@ export default function ProfilePage() {
                       onClick={() => setIsEditing(false)}
                       disabled={isLoading}
                     >
-                      Cancel
+                      Hủy
                     </Button>
                     <Button
                       type="submit"
                       disabled={isLoading}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {isLoading ? 'Saving...' : 'Save Changes'}
+                      {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
                     </Button>
                   </div>
                 )}

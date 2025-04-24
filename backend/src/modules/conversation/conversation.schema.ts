@@ -56,7 +56,7 @@ export class Conversation {
   @Prop({ type: Date, required: true })
   timeToOpen: Date;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, default: null })
   timeToClose: Date;
 
   @Prop({
