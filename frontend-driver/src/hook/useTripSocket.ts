@@ -41,10 +41,17 @@ const useTripSocket = (id?: string) => {
                         if (isMounted) setTripDetail(updatedTrip);
                     })
                 } else {
-                    const eventKey = 'trip_updated'
-                    socketInstance.on(eventKey, (updatedTrips: Trip[]) => {
+                    const eventKey1 = 'trip_updated'
+                    const eventkey2 = 'new_trip'
+                    socketInstance.on(eventKey1, (updatedTrips: Trip[]) => {
                         console.log('updatedTrips60', updatedTrips);
                         if (isMounted) setTrips(updatedTrips);
+                    })
+                    socketInstance.on(eventkey2, (newTrip: Trip) => {
+                        console.log('newTrip51', newTrip);
+                        //if trips have newTrip, do not add it to trips
+                        if (trips.some(trip => trip._id === newTrip._id)) return;
+                        if (isMounted) setTrips(prevTrips => [newTrip, ...prevTrips]);
                     })
                 }
 

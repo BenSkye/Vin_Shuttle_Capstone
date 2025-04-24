@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { tripStatusText, TripStatus } from '~/constants/trip.enum';
+import { Trip } from '~/interface/trip';
 
 
 interface TripCardProps {
@@ -45,9 +46,29 @@ export const TripCard = ({ trip, onPress }: TripCardProps) => {
             className="mb-4 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <View className="p-4">
                 <View className="mb-3 flex-row items-center justify-between">
-                    <Text className="font-bold text-gray-800">{trip.customerId?.name || 'Khách hàng'}</Text>
+                    <Text className="font-bold text-gray-800">{trip.code || 'Mã cuốc xe'}</Text>
                     {getStatusBadge(trip.status)}
                 </View>
+
+                <View className="mb-3 flex-row items-center justify-between">
+                    <Text className="font-bold text-gray-800">{trip.customerId?.name || 'Khách hàng'}</Text>
+                    {/* {getStatusBadge(trip.status)} */}
+                </View>
+                {trip.status === TripStatus.COMPLETED && (
+                    <View className="mb-2 flex-row items-center">
+                        <Icon name="clock-time-eight-outline" size={16} color="#4b5563" />
+                        <Text className="ml-2 text-sm text-gray-600">
+                            {trip.timeStart ? new Date(trip.timeStart).toLocaleString('vi-VN', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : 'N/A'}
+                        </Text>
+                    </View>
+                )}
+
 
                 <View className="mb-2 flex-row items-center">
                     <Icon name="car" size={16} color="#4b5563" />

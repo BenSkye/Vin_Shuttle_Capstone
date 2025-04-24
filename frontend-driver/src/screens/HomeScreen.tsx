@@ -35,26 +35,27 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   const processTrips = (tripData: Trip[]) => {
     try {
-      // Filter only active trips - booking, confirmed, pickup, in_progress
+      // Filter only active trips -  confirmed, pickup, in_progress
       const filteredTrips = tripData.filter((trip) =>
-        ['booking', 'confirmed', 'pickup', 'in_progress'].includes(trip.status.toLowerCase())
+        [TripStatus.CONFIRMED, TripStatus.PICKUP, TripStatus.IN_PROGRESS].includes(trip.status)
       );
 
-      // Sort by status priority (in_progress first, then pickup, then confirmed, then booking)
+      // Sort by status priority (in_progress first, then pickup, then confirmed)
       filteredTrips.sort((a, b) => {
         const statusPriority = {
           in_progress: 1,
           pickup: 2,
           confirmed: 3,
-          booking: 4,
+          // booking: 4,
         };
         const statusA = statusPriority[a.status.toLowerCase()];
         const statusB = statusPriority[b.status.toLowerCase()];
         if (statusA !== statusB) {
           return statusA - statusB;
         }
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
+        //sort by timeStartEstimate
+        const dateA = new Date(a.timeStartEstimate).getTime();
+        const dateB = new Date(b.timeStartEstimate).getTime();
         return dateB - dateA;
       });
 

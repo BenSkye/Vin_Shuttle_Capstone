@@ -32,6 +32,9 @@ export interface Trip {
   isPayed?: boolean;
   amount: number;
   status: TripStatus;
+  timeStart: Date;
+  timeEnd: Date;
+  timeStartEstimate: Date;
   statusHistory: object[];
   serviceType: string;
   code: string;
@@ -40,6 +43,8 @@ export interface Trip {
   | BookingScenicRoutePayloadDto
   | BookingDestinationPayloadDto
   | BookingSharePayloadDto;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface BookingHourPayloadDto {
