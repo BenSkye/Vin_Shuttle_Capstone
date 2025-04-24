@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 
-import { CameraOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons'
+import { MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-hot-toast'
 
 import { User } from '@/interface/user.interface'
 import { editProfile, profileUser } from '@/service/user.service'
@@ -12,7 +13,6 @@ import { editProfile, profileUser } from '@/service/user.service'
 const EditProfilePage = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [avatar, setAvatar] = useState('/default-avatar.png')
   const [user, setUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -83,17 +83,6 @@ const EditProfilePage = () => {
     }
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setAvatar(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -135,9 +124,11 @@ const EditProfilePage = () => {
     try {
       const updatedData = { ...formData } // Include avatar if needed
       await editProfile(updatedData)
+      toast.success('Cập nhật thông tin thành công')
       router.push('/profile')
     } catch (error) {
       console.error('Error updating profile:', error)
+      toast.error('Cập nhật thông tin thất bại')
     } finally {
       setLoading(false)
     }
@@ -151,29 +142,14 @@ const EditProfilePage = () => {
             {/* Left Sidebar */}
             <div className="w-full p-8 md:w-1/4 md:border-r">
               <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="h-40 w-40 overflow-hidden rounded-full border-4 border-blue-100 shadow-md md:h-56 md:w-56">
-                    <Image
-                      src={avatar}
-                      alt="Profile"
-                      width={224}
-                      height={224}
-                      className="object-cover"
-                    />
-                  </div>
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute bottom-3 right-3 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-blue-500 shadow-lg transition-colors hover:bg-blue-600"
-                  >
-                    <CameraOutlined className="text-xl text-white" />
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      className="hidden"
-                    />
-                  </label>
+                <div className="h-40 w-40 overflow-hidden rounded-full border-4 border-blue-100 shadow-md md:h-56 md:w-56">
+                  <Image
+                    src="/images/default-images.jpg"
+                    alt="Profile"
+                    width={224}
+                    height={224}
+                    className="object-cover"
+                  />
                 </div>
               </div>
             </div>
