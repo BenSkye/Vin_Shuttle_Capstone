@@ -38,6 +38,13 @@ export class TripController {
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get customer personal trip' })
   @ApiQuery({
+    name: 'date',
+    required: false,
+    description: 'The start date of the week',
+    type: String,
+    example: '2025-04-12',
+  })
+  @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
@@ -73,6 +80,13 @@ export class TripController {
     required: false,
     type: Boolean,
     description: 'Filter by trip isPayed',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description: 'The start date of the week',
+    type: String,
+    example: '2025-04-12',
   })
   @ApiQuery({
     name: 'limit',
