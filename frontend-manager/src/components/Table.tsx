@@ -20,7 +20,13 @@ const Table = <T,>({ columns, renderRow, data }: TableProps<T>) => {
                     ))}
                 </tr>
             </thead>
-            <tbody>{data.map((item) => renderRow(item))}</tbody>
+            <tbody>
+                {data.map((item, index) => (
+                    <React.Fragment key={`row-${index}`}>
+                        {renderRow(item)}
+                    </React.Fragment>
+                ))}
+            </tbody>
         </table>
     );
 };

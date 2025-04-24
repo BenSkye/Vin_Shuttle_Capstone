@@ -38,6 +38,28 @@ export class VehiclesService implements IVehiclesService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      const isExistVehicleName = await this.vehicleRepository.getVehicle({ name: data.name }, ["_id"]);
+      if (isExistVehicleName) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle name already exists',
+            vnMessage: 'Tên xe đã tồn tại',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const isExistVehicleLicensePlate = await this.vehicleRepository.getVehicle({ licensePlate: data.licensePlate }, ["_id"]);
+      if (isExistVehicleLicensePlate) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Vehicle license plate already exists',
+            vnMessage: 'Biển số xe đã tồn tại',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       console.log('data', data);
       const newVehicle = await this.vehicleRepository.insert(data);
       return newVehicle;

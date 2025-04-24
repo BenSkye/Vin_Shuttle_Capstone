@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
@@ -10,6 +10,9 @@ import { Column } from '@/interfaces/index';
 import { Driver, DriverFilters } from "@/interfaces/index";
 import { createDriver, filterDriver } from "@/services/api/driver";
 import Link from "next/link";
+import { Button, Form, Input, message, Modal, Upload } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { RcFile, UploadChangeParam, UploadFile } from "antd/es/upload";
 
 const columns: Column<Driver>[] = [
     {
@@ -30,16 +33,17 @@ const columns: Column<Driver>[] = [
 ];
 
 const DriverPage = () => {
+    const [form] = Form.useForm();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const [newDriver, setNewDriver] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        password: ''
-    });
+    // const [newDriver, setNewDriver] = useState({
+    //     name: '',
+    //     phone: '',
+    //     email: '',
+    //     password: ''
+    // });
     const [filterParams, setFilterParams] = useState<DriverFilters>({
         sortOrder: 'desc',
         orderBy: 'createdAt',
@@ -48,9 +52,10 @@ const DriverPage = () => {
         phone: '',
         email: '',
     });
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    // const [imageFile, setImageFile] = useState<File | null>(null);
+    // const [imagePreview, setImagePreview] = useState<string | null>(null);
+    // const fileInputRef = useRef<HTMLInputElement>(null);
     const itemsPerPage = 5;
 
     const totalPages = Math.ceil(drivers.length / itemsPerPage);
@@ -97,17 +102,17 @@ const DriverPage = () => {
         setIsModalOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setNewDriver({
-            name: '',
-            phone: '',
-            email: '',
-            password: ''
-        });
-        setImageFile(null);
-        setImagePreview(null);
-    };
+    // const handleCloseModal = () => {
+    //     setIsModalOpen(false);
+    //     setNewDriver({
+    //         name: '',
+    //         phone: '',
+    //         email: '',
+    //         password: ''
+    //     });
+    //     setImageFile(null);
+    //     setImagePreview(null);
+    // };
 
     const handleOpenFilterModal = () => {
         setIsFilterModalOpen(true);
@@ -177,63 +182,99 @@ const DriverPage = () => {
         fetchDrivers(updatedFilters);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setNewDriver(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const { name, value } = e.target;
+    //     setNewDriver(prev => ({
+    //         ...prev,
+    //         [name]: value
+    //     }));
+    // };
+
+    // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const file = e.target.files?.[0];
+    //     if (file) {
+    //         setImageFile(file);
+    //         const reader = new FileReader();
+    //         reader.onloadend = () => {
+    //             setImagePreview(reader.result as string);
+    //         };
+    //         reader.readAsDataURL(file);
+    //     }
+    // };
+
+    // const handleImageClick = () => {
+    //     fileInputRef.current?.click();
+    // };
+
+    // const handleRemoveImage = (e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setImageFile(null);
+    //     setImagePreview(null);
+    //     if (fileInputRef.current) {
+    //         fileInputRef.current.value = '';
+    //     }
+    // };
+
+    const handleChange = (info: UploadChangeParam<UploadFile>) => {
+        let fileList = [...info.fileList];
+        fileList = fileList.slice(-1); // Chỉ cho phép 1 file
+        setFileList(fileList);
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+
+    const handleRemove = () => {
+        setFileList([]);
+        return true;
+    };
+    const beforeUpload = (file: RcFile) => {
+        console.log("File before upload:", file);
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            message.error('Chỉ được tải lên file ảnh!');
+            return Upload.LIST_IGNORE;
         }
+        return false;
     };
 
-    const handleImageClick = () => {
-        fileInputRef.current?.click();
-    };
+    interface DriverFormValues {
+        name: string;
+        phone: string;
+        email: string;
+        password: string;
+    }
 
-    const handleRemoveImage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setImageFile(null);
-        setImagePreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
-
-    const handleAddDriver = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAddDriver = async (values: DriverFormValues) => {
         try {
+            const formData = new FormData();
+            formData.append('name', values.name);
+            formData.append('phone', values.phone);
+            formData.append('email', values.email);
+            formData.append('password', values.password);
+            formData.append('role', 'driver');
+
+            if (fileList.length > 0 && fileList[0].originFileObj) {
+                formData.append('avatar', fileList[0].originFileObj as RcFile);
+            }
+
             const response = await createDriver(
-                newDriver.name,
-                newDriver.phone,
-                newDriver.email,
-                newDriver.password,
-                imageFile || "",
+                values.name,
+                values.phone,
+                values.email,
+                values.password,
+                fileList.length > 0 ? fileList[0].originFileObj : "",
                 "driver"
             );
 
-            console.log("Driver created successfully:", response);
-
-            // Make sure the response has the correct shape before adding to drivers state
             if (response && response._id) {
-                // Refresh the drivers list to get the latest data
+                message.success('Thêm tài xế thành công');
                 fetchDrivers(filterParams);
+                setIsModalOpen(false);
+                form.resetFields();
+                setFileList([]);
             }
-
-            handleCloseModal();
         } catch (error) {
             console.error("Error adding driver:", error);
-            // Here you could add error handling, like showing an error message to the user
+            message.error('Thêm tài xế thất bại');
         }
     };
 
@@ -360,152 +401,100 @@ const DriverPage = () => {
             />
 
             {/* Add Driver Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-                    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">Thêm Tài Xế Mới</h2>
-                            <button
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                onClick={handleCloseModal}
-                                aria-label="Close modal"
-                                tabIndex={0}
-                                onKeyDown={(e) => e.key === 'Enter' && handleCloseModal()}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleAddDriver} className="space-y-6">
-                            {/* Profile Image Upload */}
-                            <div className="flex flex-col items-center">
-                                <div
-                                    onClick={handleImageClick}
-                                    className="relative w-24 h-24 mb-2 cursor-pointer"
-                                >
-                                    {imagePreview ? (
-                                        <>
-                                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200">
-                                                <img
-                                                    src={imagePreview}
-                                                    alt="Preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={handleRemoveImage}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600"
-                                                aria-label="Remove image"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:bg-gray-50">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        </div>
-                                    )}
+            <Modal
+                title="Thêm Tài Xế Mới"
+                open={isModalOpen}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    form.resetFields();
+                    setFileList([]);
+                }}
+                footer={null}
+                width={600}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleAddDriver}
+                >
+                    <Form.Item
+                        label="Ảnh đại diện"
+                    >
+                        <Upload
+                            listType="picture-card"
+                            fileList={fileList}
+                            beforeUpload={beforeUpload}
+                            onChange={handleChange}
+                            onRemove={handleRemove}
+                            maxCount={1}
+                            accept="image/*"
+                        >
+                            {fileList.length >= 1 ? null : (
+                                <div>
+                                    <UploadOutlined />
+                                    <div style={{ marginTop: 8 }}>Tải lên</div>
                                 </div>
-                                <span className="text-sm text-gray-500 mb-4">Chọn ảnh đại diện</span>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleImageChange}
-                                    accept="image/*"
-                                    className="hidden"
-                                />
-                            </div>
+                            )}
+                        </Upload>
+                    </Form.Item>
 
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Họ và tên
-                                </label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    value={newDriver.name}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    required
-                                    placeholder="Nhập họ và tên"
-                                />
-                            </div>
+                    <Form.Item
+                        label="Họ và tên"
+                        name="name"
+                        rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                    >
+                        <Input placeholder="Nhập họ và tên" />
+                    </Form.Item>
 
-                            <div>
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Số điện thoại
-                                </label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value={newDriver.phone}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    required
-                                    placeholder="Nhập số điện thoại"
-                                />
-                            </div>
+                    <Form.Item
+                        label="Số điện thoại"
+                        name="phone"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                            { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ!' }
+                        ]}
+                    >
+                        <Input placeholder="Nhập số điện thoại"
+                            onKeyPress={(event) => {
+                                if (!/[0-9]/.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                            }} />
+                    </Form.Item>
 
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={newDriver.email}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    required
-                                    placeholder="Nhập địa chỉ email"
-                                />
-                            </div>
+                    <Form.Item
+                        label="Email"
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input placeholder="Nhập email" />
+                    </Form.Item>
 
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Mật khẩu
-                                </label>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    value={newDriver.password}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    required
-                                    placeholder="Nhập mật khẩu"
-                                />
-                            </div>
+                    <Form.Item
+                        label="Mật khẩu"
+                        name="password"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    >
+                        <Input.Password placeholder="Nhập mật khẩu" />
+                    </Form.Item>
 
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="px-6 py-3 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all font-medium"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium"
-                                >
-                                    Thêm tài xế
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                    <Form.Item className="flex justify-end gap-4 mt-8">
+                        <Button onClick={() => {
+                            setIsModalOpen(false);
+                            form.resetFields();
+                            setFileList([]);
+                        }}>
+                            Hủy
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            Thêm tài xế
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
 
             {/* Filter Modal */}
             {isFilterModalOpen && (

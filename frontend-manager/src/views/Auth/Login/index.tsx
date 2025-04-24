@@ -1,6 +1,6 @@
 'use client';
 import { Form, Input, Button, Checkbox, Typography } from 'antd';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { ValidateErrorEntity } from 'rc-field-form/lib/interface';
 
 const { Title } = Typography;
@@ -59,7 +59,7 @@ export default function Login() {
                         </Button>
                     </Form.Item>
 
-                    <Form.Item>
+                    {/* <Form.Item>
                         <Button type="default" style={{ width: '100%' }}>
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <Image 
@@ -72,7 +72,7 @@ export default function Login() {
                                 Sign in with Google
                             </span>
                         </Button>
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
             </div>
         </div>
