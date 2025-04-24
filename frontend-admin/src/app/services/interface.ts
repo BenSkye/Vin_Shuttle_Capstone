@@ -53,6 +53,7 @@ export interface Trip {
   updatedAt: string;
   __v: number;
   isRating: boolean;
+  refundAmount: number;
 }
 
 export interface Customer {

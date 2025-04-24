@@ -96,8 +96,8 @@ export class DriverBusScheduleService implements IDriverBusScheduleService {
 
       throw new HttpException( {
           statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Vehicle is not available',
-          vnMessage: 'driver-schedule: phương tiện không có sẵn',
+          message: `Vehicle ${vehicle.name} (ID: ${vehicle._id}) is not available - Current status: ${vehicle.operationStatus}`,
+          vnMessage: `Phương tiện ${vehicle.name} (ID: ${vehicle._id}) không có sẵn - Trạng thái hiện tại: ${vehicle.operationStatus}`,
         },
         HttpStatus.BAD_REQUEST,
       );

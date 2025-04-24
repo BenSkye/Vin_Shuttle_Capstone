@@ -24,4 +24,5 @@ export interface IUserService {
   saveUserPushToken(userId: string, pushToken: string): Promise<void>;
   getUserPushToken(userId: string): Promise<string | null>;
   deletePushToken(userId: string): Promise<void>;
+  getDriverById(id: string): Promise<object>;
 }
