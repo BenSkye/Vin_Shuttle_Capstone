@@ -75,7 +75,7 @@ const CustomerInfoCard: React.FC<CustomerInfoCardProps> = ({
       if (matchingConversation?._id) {
         navigation.navigate('ConversationDetail', { conversationId: matchingConversation._id });
       } else {
-        Alert.alert('Thông báo', 'Chưa có cuộc trò chuyện cho chuyến đi này.');
+        Alert.alert('Thông báo', 'Chưa có cuộc trò chuyện cho cuốc xe này. Cuộc trò chuyện sẽ được mở 30 phút trước khi cuốc xe bắt đầu.');
       }
     } catch (error) {
       console.error('Error fetching conversation:', error);

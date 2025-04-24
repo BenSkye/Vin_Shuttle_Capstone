@@ -78,6 +78,14 @@ export class ConversationRepository implements IConversationRepository {
     return true;
   }
 
+  async cancelConversation(id: string): Promise<boolean> {
+    const conversation = await this.conversationModel.findById(id);
+    if (!conversation) return false;
+    conversation.status = ConversationStatus.CANCELLED;
+    await conversation.save();
+    return true;
+  }
+
   async addMessage(id: string, senderId: string, content: string): Promise<ConversationDocument> {
     return this.conversationModel
       .findByIdAndUpdate(

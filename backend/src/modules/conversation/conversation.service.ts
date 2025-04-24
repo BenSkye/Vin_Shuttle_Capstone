@@ -118,6 +118,20 @@ export class ConversationService implements IConversationService {
     return result;
   }
 
+  async cancelConversation(id: string): Promise<boolean> {
+    const result = await this.conversationRepository.cancelConversation(id);
+    if (!result) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Conversation not found ${id}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return result;
+  }
+
   async addMessage(id: string, senderId: string, content: string): Promise<ConversationDocument> {
     return await this.conversationRepository.addMessage(id, senderId, content);
   }
