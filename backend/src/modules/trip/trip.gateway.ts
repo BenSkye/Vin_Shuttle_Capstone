@@ -91,9 +91,19 @@ export class TripGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     });
   }
 
+  async emitNewTrip(userId: string, tripData: any) {
+    const socketIds = await SocketUtils.getSocketIds(
+      this.redisService,
+      SOCKET_NAMESPACE.TRIPS,
+      userId,
+    );
+    console.log('socketIds', socketIds);
+    await SocketUtils.safeEmit(this.server, socketIds, 'new_trip', tripData, {
+      debug: true,
+    });
+  }
+
   async emitTripUpdateDetail(userId: string, tripId: string, tripData: any) {
-
-
     const socketIds = await SocketUtils.getSocketIds(
       this.redisService,
       SOCKET_NAMESPACE.TRIPS,

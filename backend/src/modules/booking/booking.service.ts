@@ -919,10 +919,10 @@ export class BookingService implements IBookingService {
                 timeToOpen: new Date(tripUpdate.timeStartEstimate.getTime() + timeToOpenConversation), // 30 minutes before trip start
                 // timeToClose: null //30 minutes after trip end
             })
-            const listDriverTrip = await this.tripService.getPersonalDriverTrip(tripUpdate.driverId.toString())
-            this.tripGateway.emitTripUpdate(
+            const tripEmit = await this.tripRepository.findById(tripUpdate._id.toString(), [])
+            this.tripGateway.emitNewTrip(
                 tripUpdate.driverId.toString(),
-                listDriverTrip
+                tripEmit
             );
         }
         const updateBooking = await this.bookingRepository.updateStatusBooking(

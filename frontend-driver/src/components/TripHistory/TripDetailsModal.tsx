@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 import { ServiceType } from '~/constants/service-type.enum';
-import { BookingDestinationPayloadDto, BookingHourPayloadDto, Rating } from '~/interface/trip';
+import { BookingDestinationPayloadDto, BookingHourPayloadDto, Rating, Trip } from '~/interface/trip';
 
 interface TripDetailsModalProps {
     visible: boolean;
@@ -104,7 +104,7 @@ export const TripDetailsModal = ({
                                 Thông tin cuốc xe
                             </Text>
 
-                            <DetailRow label="Mã chuyến:" value={trip._id} />
+                            <DetailRow label="Mã chuyến:" value={trip.code} />
                             <DetailRow
                                 label="Trạng thái:"
                                 value={getStatusText(trip.status)}

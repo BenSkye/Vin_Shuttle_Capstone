@@ -34,14 +34,14 @@ export default function TripHistoryScreen({ navigation }: { navigation: any }) {
       let allTrips: Trip[] = [];
 
       if (activeTab === 'paid') {
-        allTrips = await getPersonalTrips({ isPayed: true });
+        allTrips = await getPersonalTrips({ isPayed: true, orderBy: 'updatedAt', sortOrder: 'desc' });
       } else {
-        allTrips = await getPersonalTrips({ isPrepaid: false, isPayed: false, status: TripStatus.COMPLETED });
+        allTrips = await getPersonalTrips({ isPrepaid: false, isPayed: false, status: TripStatus.COMPLETED, orderBy: 'updatedAt', sortOrder: 'desc' });
       }
 
       // Filter only completed and cancelled trips
       const historyTrips = allTrips.filter((trip) =>
-        ['completed', 'cancelled'].includes(trip.status.toLowerCase())
+        [TripStatus.COMPLETED, TripStatus.CANCELLED].includes(trip.status)
       );
 
       setTrips(historyTrips);
