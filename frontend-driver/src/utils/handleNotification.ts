@@ -31,6 +31,7 @@ export const handleNotification = async () => {
         try {
             const projectId =
                 Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+            console.log('projectId:', projectId);
             if (!projectId) {
                 throw new Error('Project ID not found');
             }

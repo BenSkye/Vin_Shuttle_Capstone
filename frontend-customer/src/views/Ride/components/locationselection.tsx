@@ -8,6 +8,8 @@ import Image from 'next/image'
 
 import '@/styles/locationselection.css'
 import { AVAILABLE_ADDRESS, ERROR_LOG } from '@/constants/map'
+import { LocationPoint } from '@/interface/map.interface'
+import { isEqual } from '@/utils/index.utils'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -143,14 +145,23 @@ const useDebounce = <T,>(value: T, delay: number): T => {
 
 // Centered marker component that remains fixed in the center while map moves
 const CenteredMarker = ({
-  onMapMoveEnd
+  onMapMoveEnd,
+  position
 }: {
-  onMapMoveEnd: (center: L.LatLng) => void
+  onMapMoveEnd: (center: L.LatLng) => void;
+  position?: { lat: number; lng: number } | null;
 }) => {
   const map = useMap()
   const [centerPosition, setCenterPosition] = useState<L.LatLng>(map.getCenter())
   const [isDragging, setIsDragging] = useState(false)
   const lastMoveTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (position && map.getCenter().distanceTo(L.latLng(position)) > 10) {
+      const latLng = L.latLng(position.lat, position.lng);
+      map.flyTo(latLng, map.getZoom(), { duration: 1 });
+    }
+  }, [position]);
 
   useEffect(() => {
     if (!map) return
@@ -307,6 +318,8 @@ const LocationSelection = memo(
     const [isDragging, setIsDragging] = useState(false)
     const [markerAnimation, setMarkerAnimation] = useState<string>('animate-marker-hover')
     const [locationError, setLocationError] = useState<string | null>(null)
+    const [internalPosition, setInternalPosition] = useState(startPoint.position);
+    const isProgrammaticUpdate = useRef(false);
 
     const {
       position: currentPosition,
@@ -326,11 +339,9 @@ const LocationSelection = memo(
         })
       }
     }, [])
-
     useEffect(() => {
       if (startPoint.address && startPoint.address !== searchQuery) {
         setSearchQuery(startPoint.address)
-
         // Apply drop-in animation when address changes
         setMarkerAnimation('animate-marker-drop-in')
         const timer = setTimeout(() => {
@@ -340,6 +351,15 @@ const LocationSelection = memo(
         return () => clearTimeout(timer)
       }
     }, [startPoint.address])
+
+    useEffect(() => {
+      if (!isEqual(startPoint.position, internalPosition)) {
+        isProgrammaticUpdate.current = true;
+        setInternalPosition(startPoint.position);
+      }
+    }, [startPoint.position])
+
+
 
     // Handle map interaction states
     const handleMapInteractionStart = useCallback(() => {
@@ -406,29 +426,29 @@ const LocationSelection = memo(
 
     const handleMapMoveEnd = useCallback(
       async (center: L.LatLng) => {
-        try {
-          setIsFetching(true)
-          handleMapInteractionEnd()
-          console.log('Map moved - Latitude:', center.lat, 'Longitude:', center.lng)
-          console.log('center', center)
-          const address = await reverseGeocodeOSM(center.lat, center.lng)
-          console.log('address', address)
+        if (!isEqual({ lat: center.lat, lng: center.lng }, internalPosition)) {
+          try {
+            setIsFetching(true)
+            handleMapInteractionEnd()
+            console.log('Map moved - Latitude:', center.lat, 'Longitude:', center.lng)
+            console.log('center', center)
+            const address = await reverseGeocodeOSM(center.lat, center.lng)
+            console.log('address', address)
 
-          // Validate if the location is in Vinhomes Grand Park
-          const isValid = validateAndUpdateLocation({ lat: center.lat, lng: center.lng }, address)
+            // Validate if the location is in Vinhomes Grand Park
+            const isValid = validateAndUpdateLocation({ lat: center.lat, lng: center.lng }, address)
 
-          if (isValid) {
-            setSearchQuery(address)
+            if (isValid) {
+              setSearchQuery(address)
+            }
+          } catch (error) {
+            console.error('Map move end error:', error)
+            setLocationError('Không thể xác định địa chỉ')
+          } finally {
+            setIsFetching(false)
           }
-        } catch (error) {
-          console.error('Map move end error:', error)
-          setLocationError('Không thể xác định địa chỉ')
-        } finally {
-          setIsFetching(false)
         }
-      },
-      [validateAndUpdateLocation, handleMapInteractionEnd]
-    )
+      }, [validateAndUpdateLocation, handleMapInteractionEnd])
 
     const handleDetectLocation = useCallback(async () => {
       try {
@@ -509,7 +529,7 @@ const LocationSelection = memo(
         >
           <MapContainer
             id="map"
-            center={[startPoint.position.lat || 10.840405, startPoint.position.lng || 106.843424]}
+            center={[startPoint.position.lat, startPoint.position.lng]}
             zoom={startPoint.position.lat && startPoint.position.lng ? 15 : 13}
             scrollWheelZoom={true}
           >
@@ -520,7 +540,10 @@ const LocationSelection = memo(
 
             {currentPosition && <CurrentLocationMarker position={currentPosition} />}
 
-            <CenteredMarker onMapMoveEnd={handleMapMoveEnd} />
+            <CenteredMarker
+              onMapMoveEnd={handleMapMoveEnd}
+              position={internalPosition}
+            />
           </MapContainer>
 
           {/* Fixed center marker */}

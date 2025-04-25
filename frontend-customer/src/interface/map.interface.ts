@@ -10,6 +10,12 @@ export interface MapLocation {
   address: string
 }
 
+export interface LocationPoint {
+  position: { lat: number; lng: number }
+  address: string
+}
+
+
 export interface MapState {
   pickupLocation: L.LatLng | null
 
