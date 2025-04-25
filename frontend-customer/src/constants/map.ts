@@ -4,5 +4,5 @@ export const AVAILABLE_ADDRESS = {
 
 
 export const ERROR_LOG = {
-    ERROR: 'Chỉ được chọn địa điểm trong khu vực Vinhomes Grand Park'
+    ERROR: 'Vui lòng chọn địa điểm trong khu vực Vinhomes Grand Park'
 }
