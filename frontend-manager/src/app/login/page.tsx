@@ -57,12 +57,12 @@ export default function LoginPage() {
                 <Layout className="min-h-screen flex items-center justify-center bg-gray-100">
 
                     <Card
-                        className="w-[360px] shadow-lg"
-                        bodyStyle={{ padding: '20px' }}
+                        className="w-[420px] shadow-lg"
+                        bodyStyle={{ padding: '30px' }}
                         style={{ margin: 'auto' }}
                     >
-                        <div className="text-center mb-2">
-                            <h1 className="text-2xl font-bold">Đăng nhập Manager</h1>
+                        <div className="text-center mb-4">
+                            <h1 className="text-3xl font-bold">Đăng nhập Manager</h1>
                             {error && (
                                 <p className="mt-2 text-center text-sm text-red-600">
                                     {error}
@@ -85,10 +85,10 @@ export default function LoginPage() {
                                 ]}
                             >
                                 <Input
-                                    prefix={<UserOutlined className="text-gray-400 text-xs" />}
+                                    prefix={<UserOutlined className="text-gray-400" />}
                                     placeholder="Email"
-                                    size="small"
-                                    className="text-xs"
+                                    size="large"
+                                    className="text-sm"
                                 />
                             </Form.Item>
 
@@ -97,10 +97,10 @@ export default function LoginPage() {
                                 rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
                             >
                                 <Input.Password
-                                    prefix={<LockOutlined className="text-gray-400 text-xs" />}
+                                    prefix={<LockOutlined className="text-gray-400" />}
                                     placeholder="Mật khẩu"
-                                    size="small"
-                                    className="text-xs"
+                                    size="large"
+                                    className="text-sm"
                                 />
                             </Form.Item>
 
@@ -108,8 +108,9 @@ export default function LoginPage() {
                                 <Button
                                     type="primary"
                                     htmlType="submit"
-                                    className="w-full text-xs h-8"
+                                    className="w-full text-sm h-10"
                                     loading={loading}
+                                    style={{ backgroundColor: '#000000', borderColor: '#000000' }}
                                 >
                                     Đăng nhập
                                 </Button>
