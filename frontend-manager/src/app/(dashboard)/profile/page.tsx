@@ -320,7 +320,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="role" className="block text-sm font-medium">
+                  {/* <label htmlFor="role" className="block text-sm font-medium">
                     Vai trò
                   </label>
                   <Input
@@ -330,11 +330,11 @@ export default function ProfilePage() {
                     value={profile.role}
                     disabled={true}
                     readOnly
-                  />
+                  /> */}
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label htmlFor="address" className="block text-sm font-medium">
+                  {/* <label htmlFor="address" className="block text-sm font-medium">
                     Địa chỉ
                   </label>
                   <Input
@@ -345,7 +345,7 @@ export default function ProfilePage() {
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     placeholder="Nhập địa chỉ của bạn"
-                  />
+                  /> */}
                 </div>
 
                 {isEditing && (

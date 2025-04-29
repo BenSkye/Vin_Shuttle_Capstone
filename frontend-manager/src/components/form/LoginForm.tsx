@@ -66,6 +66,7 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
                             htmlType="submit"
                             className="w-full"
                             loading={loading}
+                            style={{ backgroundColor: '#007bff', borderColor: '#000000' }}
                         >
                             Đăng nhập
                         </Button>

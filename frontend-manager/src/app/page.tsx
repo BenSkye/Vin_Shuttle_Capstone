@@ -6,6 +6,9 @@ import Menu from '@/components/Menu'
 import Link from 'next/link'
 import Image from 'next/image'
 import NavBar from '@/components/NavBar'
+// import CountChart from '@/components/CountChart'
+import AttendanceChart from '@/components/AttendanceChart'
+// import FinanceChart from '@/components/FinanceChart'
 
 export default function Home() {
 
@@ -34,19 +37,20 @@ export default function Home() {
                         </div>
 
                         {/* MIDDLE CHART */}
-                        <div className="flex gap-4 flex-col lg:flex-row">
-                            {/* COUNT CHART */}
-                            <div className="w-full lg:w-1/3 h-[450px]">
+                        <div className="">
 
-                            </div>
+                            {/* <div className="w-full lg:w-1/3 h-[450px]">
+                                <CountChart />
+
+                            </div> */}
                             {/* ATENDANCE CHART */}
-                            <div className="w-full lg:w-2/3 h-[450px]">
-
+                            <div className="">
+                                <AttendanceChart />
                             </div>
                         </div>
                         {/* BOTTOM CHART */}
                         <div className="w-full h-[500px]">
-
+                            {/* <FinanceChart /> */}
                         </div>
 
                     </div>
