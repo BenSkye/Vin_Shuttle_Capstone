@@ -41,15 +41,9 @@ const NavBar = () => {
                 <div className='flex items-center gap-6 justify-end w-full'>
                     {isLoggedIn && authUser ? (
                         <>
-                            <div className='bg-white rounded-fully w-7 h-7 flex items-center justify-center'>
-                                <Image src='/icons/message.svg' alt="" width={20} height={20} />
-                            </div>
-                            <div className='bg-white rounded-fully w-7 h-7 flex items-center justify-center relative'>
-                                <Image src='/icons/bell.svg' alt="" width={20} height={20} />
-                                <div
-                                    className='absolute -top-3 -right-3 w-5 h-5 flex items-center justify-center bg-purple-500 text-white rounded-full text-xs'>
-                                    1
-                                </div>
+
+                            <div className=' rounded-fully w-7 h-7 flex items-center justify-center relative'>
+
                             </div>
 
                             {/* User profile section */}
@@ -77,9 +71,7 @@ const NavBar = () => {
                                         <Link href="/profile" className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
                                             Hồ sơ
                                         </Link>
-                                        <Link href="/settings" className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                                            Cài đặt
-                                        </Link>
+
                                         <hr className='my-1' />
                                         <button
                                             onClick={handleLogout}

@@ -1,31 +1,47 @@
 "use client";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
     RadialBarChart,
     RadialBar,
-
     ResponsiveContainer,
 } from "recharts";
-
-const data = [
-    {
-        name: "Total",
-        count: 106,
-        fill: "white",
-    },
-    {
-        name: "Girls",
-        count: 53,
-        fill: "#FAE27C",
-    },
-    {
-        name: "Boys",
-        count: 53,
-        fill: "#C3EBFA",
-    },
-];
+import { getCustomer } from "@/services/api/user";
 
 const CountChart = () => {
+    const [customerCount, setCustomerCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCustomerData = async () => {
+            try {
+                setLoading(true);
+                const data = await getCustomer();
+                setCustomerCount(data?.length || 0);
+            } catch (error) {
+                console.error("Error fetching customer data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCustomerData();
+    }, []);
+
+    // Create data for the chart
+    const data = [
+        {
+            name: "Total",
+            count: 100,
+            fill: "white",
+        },
+        {
+            name: "Customers",
+            count: customerCount,
+            fill: "#FAE27C",
+        }
+    ];
+
     return (
         <div className="bg-white rounded-xl w-full h-full p-4">
             {/* TITLE */}
@@ -48,24 +64,19 @@ const CountChart = () => {
                     </RadialBarChart>
                 </ResponsiveContainer>
                 <Image
-                    src="/icons/maleFemale.png"
-                    alt=""
+                    src="/icons/user.png"
+                    alt="Customer icon"
                     width={50}
                     height={50}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                 />
             </div>
             {/* BOTTOM */}
-            <div className="flex justify-center gap-16">
-                <div className="flex flex-col gap-1">
-                    <div className="w-5 h-5 bg-lamaSky rounded-full" />
-                    <h1 className="font-bold">1,234</h1>
-                    <h2 className="text-xs text-gray-300">Nam (55%)</h2>
-                </div>
-                <div className="flex flex-col gap-1">
+            <div className="flex justify-center">
+                <div className="flex flex-col items-center gap-1">
                     <div className="w-5 h-5 bg-lamaYellow rounded-full" />
-                    <h1 className="font-bold">1,234</h1>
-                    <h2 className="text-xs text-gray-300">Nữ (45%)</h2>
+                    <h1 className="font-bold">{loading ? "Loading..." : customerCount.toLocaleString()}</h1>
+                    <h2 className="text-xs text-gray-300">Tổng số khách hàng</h2>
                 </div>
             </div>
         </div>

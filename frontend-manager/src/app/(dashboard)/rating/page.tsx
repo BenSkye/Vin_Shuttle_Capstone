@@ -158,9 +158,9 @@ const RatingPage: React.FC = () => {
                                 <option value="pending">Chưa trả lời</option>
                             </select>
                         </div>
-                        <button className="text-sm text-blue-600 hover:underline">
+                        {/* <button className="text-sm text-blue-600 hover:underline">
                             Tải xuống CSV
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
@@ -200,13 +200,13 @@ const RatingPage: React.FC = () => {
                                         ? "bg-red-100 text-red-600"
                                         : "bg-green-100 text-green-600"
                                         } font-semibold`}>
-                                        {review.feedback.trim() === "" ? "Chưa trả lời" : "Đã trả lời"}
+                                        {review.feedback.trim() === "" ? "Chưa phản hồi" : "Đã phản hồi"}
                                     </span>
-                                    {review.feedback.trim() === "" && (
+                                    {/* {review.feedback.trim() === "" && (
                                         <button className="ml-2 text-blue-600 hover:underline text-xs">
                                             Trả lời
                                         </button>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
                         ))
