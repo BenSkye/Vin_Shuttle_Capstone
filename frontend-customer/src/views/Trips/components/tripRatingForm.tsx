@@ -8,6 +8,8 @@ import { FaStar } from 'react-icons/fa'
 import Swal from 'sweetalert2'
 
 import { useCreateRatingMutation } from '@/hooks/queries/rating.query'
+import toast from 'react-hot-toast'
+import { getErrorMessage } from '@/utils/index.utils'
 
 const { TextArea } = Input
 const { Text } = Typography
@@ -34,21 +36,15 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
       { tripId, rate: rating, feedback: comment },
       {
         onSuccess: () => {
-          Swal.fire({
-            title: 'Cảm ơn!',
-            text: 'Cảm ơn bạn đã đánh giá!',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false,
-          })
+          toast.success('Cảm ơn bạn đã đánh giá!', { position: 'top-center' })
           onSuccess?.()
         },
         onError: (error) => {
-          Swal.fire({
-            title: 'Lỗi',
-            text: error instanceof Error ? error.message : 'Gửi đánh giá thất bại',
-            icon: 'error',
-          })
+          const message = getErrorMessage(error)
+          toast.error(
+            message,
+            { position: 'top-center' }
+          )
         },
       }
     )

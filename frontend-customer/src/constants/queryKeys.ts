@@ -6,4 +6,8 @@ export const QUERY_KEYS = {
   RATING: {
     BY_TRIP: (tripId: string) => ['rating', 'byTrip', tripId] as const,
   },
+  SCENIC_ROUTE: {
+    LIST: () => ['scenicRoute'] as const,
+    DETAIL: (id: string) => ['scenicRoute', id] as const,
+  }
 }

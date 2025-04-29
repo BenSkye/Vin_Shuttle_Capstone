@@ -6,7 +6,7 @@ import { Button, Input, Modal, Rate, Spin, notification } from 'antd'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { BsChatDots } from 'react-icons/bs'
-import { FaClock, FaMapMarkerAlt } from 'react-icons/fa'
+import { FaChevronDown, FaChevronUp, FaClock, FaMap, FaMapMarkerAlt } from 'react-icons/fa'
 import { IoCarSport } from 'react-icons/io5'
 
 import { ServiceType, serviceTypeText } from '@/constants/service-type.enum'
@@ -29,42 +29,69 @@ import {
 
 import useTripSocket from '../../../hooks/useTripSocket'
 import { cancelTrip } from '../../../service/trip.service'
+import { useCancelTripMutation } from '@/hooks/queries/trip.query'
+import toast from 'react-hot-toast'
+import { getErrorMessage } from '@/utils/index.utils'
+import { useScenicRouteDetailQuery } from '@/hooks/queries/scenicRoute.query'
 
 export default function DetailTripPage({ id }: { id: string }) {
   const { data, isLoading, error, refetch } = useTripSocket(id as string)
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
-  const [isCanceling, setIsCanceling] = useState(false)
+  // const [isCanceling, setIsCanceling] = useState(false)
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
-
+  const { mutate: cancelTrip, isPending: isCanceling } = useCancelTripMutation()
+  const [scenicRouteDetail, setScenicRouteDetail] = useState(false);
+  const { data: scenicRouteData } = useScenicRouteDetailQuery(
+    (data as Trip)?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE
+      ? ((data as Trip).servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+      : ''
+  );
   const handleCancelTrip = async () => {
     if (!cancelReason.trim()) {
-      notification.warning({
-        message: 'Lý do hủy chuyến',
-        description: 'Vui lòng nhập lý do hủy chuyến.',
-      })
+      toast.error(
+        'Vui lòng nhập lý do hủy cuốc xe',
+        { position: 'top-center' }
+      )
       return
     }
 
-    setIsCanceling(true)
-    try {
-      await cancelTrip(id, cancelReason)
-      notification.success({
-        message: 'Thành công',
-        description: 'Cuốc xe đã được hủy thành công!',
-      })
-      setIsCancelModalVisible(false)
+    cancelTrip(
+      { tripId: id, reason: cancelReason },
+      {
+        onSuccess: async () => {
+          toast.success('Hủy cuốc xe thành công!', { position: 'top-center' })
+          setIsCancelModalVisible(false)
+          await refetch()
+        },
+        onError: (error) => {
+          const message = getErrorMessage(error)
+          toast.error(
+            message,
+            { position: 'top-center' }
+          )
+        },
+      }
+    )
+    // setIsCanceling(true)
+    // try {
+    //   await cancelTrip(id, cancelReason)
+    //   notification.success({
+    //     message: 'Thành công',
+    //     description: 'Cuốc xe đã được hủy thành công!',
+    //   })
+    //   setIsCancelModalVisible(false)
 
-      // Refresh trip data to update status
-      await refetch()
-    } catch (error: any) {
-      notification.error({
-        message: 'Lỗi',
-        description: error.message || 'Không thể hủy cuốc xe. Vui lòng thử lại sau.',
-      })
-    } finally {
-      setIsCanceling(false)
-    }
+    //   // Refresh trip data to update status
+    //   await refetch()
+    // } catch (error: any) {
+    //   notification.error({
+    //     message: 'Lỗi',
+    //     description: error.message || 'Không thể hủy cuốc xe. Vui lòng thử lại sau.',
+    //   })
+    // } finally {
+    //   setIsCanceling(false)
+    // }
   }
 
   const showCancelModal = () => {
@@ -189,7 +216,7 @@ export default function DetailTripPage({ id }: { id: string }) {
 
       case ServiceType.BOOKING_SCENIC_ROUTE:
         const scenicPayload = trip.servicePayload as BookingScenicRoutePayloadDto
-        console.log(scenicPayload)
+        console.log('scenicRouteData', scenicRouteData)
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -216,6 +243,76 @@ export default function DetailTripPage({ id }: { id: string }) {
                     {scenicPayload.bookingScenicRoute.distanceEstimate} km
                   </p>
                 </div>
+                {scenicRouteData && (
+                  <>
+                    <button
+                      onClick={() => setScenicRouteDetail(!scenicRouteDetail)}
+                      className="flex items-center gap-1.5 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600 transition-colors duration-200"
+                      aria-label={scenicRouteDetail ? 'Ẩn thông tin lộ trình' : 'Thông tin lộ trình ngắm cảnh'}
+                    >
+                      <FaMap className="h-3 w-3" />
+                      {scenicRouteDetail ? 'Ẩn thông tin lộ trình' : 'Thông tin lộ trình ngắm cảnh'}
+                      {scenicRouteDetail ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
+                    </button>
+                    {scenicRouteDetail && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          <div className="flex items-center gap-2">
+
+                            <p className={labelStyle}>Tên lộ trình</p>
+                          </div>
+                          <p className={`${valueStyle} sm:ml-auto`}>{scenicRouteData.name}</p>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          <div className="flex items-center gap-2">
+                            <p className={labelStyle}>Thời gian dự kiến</p>
+                          </div>
+                          <p className={`${valueStyle} sm:ml-auto`}>
+                            {scenicRouteData.estimatedDuration} phút
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          <div className="flex items-center gap-2">
+                            <p className={labelStyle}>Tổng khoảng cách</p>
+                          </div>
+                          <p className={`${valueStyle} sm:ml-auto`}>
+                            {scenicRouteData.totalDistance} km
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <p className={labelStyle}>Mô tả</p>
+                          </div>
+                          <p className={`${valueStyle} break-words`}>
+                            {scenicRouteData.description || 'Không có mô tả'}
+                          </p>
+                        </div>
+                        {scenicRouteData.waypoints && scenicRouteData.waypoints.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-gray-700">Lộ trình đi qua:</h4>
+                            <div className="space-y-1">
+                              {scenicRouteData.waypoints.map((waypoint, index) => (
+                                <div
+                                  key={waypoint.id}
+                                  className="flex items-center gap-2 rounded-md bg-gray-50 p-2 border border-gray-200"
+                                >
+                                  <span className="font-medium text-xs text-gray-700">{index + 1}.</span>
+                                  <span className="text-xs text-gray-600">{waypoint.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
@@ -577,8 +674,9 @@ export default function DetailTripPage({ id }: { id: string }) {
           >
             <p>Vui lòng nhập lý do hủy chuyến:</p>
             <Input.TextArea
-              rows={4}
+              rows={3}
               value={cancelReason}
+              required
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="Nhập lý do hủy chuyến..."
             />
