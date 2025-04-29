@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, getDay, startOfWeek, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isSameDay, isSameMonth, startOfWeek, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
@@ -20,10 +20,10 @@ export const MonthlyScheduleCalendar: React.FC<MonthlyScheduleCalendarProps> = (
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // Get all days in current month
-    const daysInMonth = eachDayOfInterval({
-        start: startOfMonth(currentDate),
-        end: endOfMonth(currentDate),
-    });
+    // const daysInMonth = eachDayOfInterval({
+    //     start: startOfMonth(currentDate),
+    //     end: endOfMonth(currentDate),
+    // });
 
     // Get the days of the week for the calendar header (start from Monday)
     const weekDays = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];

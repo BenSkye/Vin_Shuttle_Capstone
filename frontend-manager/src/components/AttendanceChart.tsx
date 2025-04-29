@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { getAllRating, RatingQuery } from '@/services/api/rating';
+import { getAllRating } from '@/services/api/rating';
 
 interface BookingData {
     name: string;
@@ -11,6 +11,13 @@ interface BookingData {
     booking_scenic_route: number;
     booking_share: number;
     booking_destination: number;
+}
+
+interface Rating {
+    createdAt: string;
+    id: string;
+    serviceType: 'booking_hour' | 'booking_scenic_route' | 'booking_share' | 'booking_destination';
+    // Add other fields as needed
 }
 
 const initialData = [
@@ -87,7 +94,7 @@ const AttendanceChart = () => {
             const newData = [...initialData];
 
             // Helper function to process each rating by day
-            const processRatingsByDay = (ratings: any[], serviceType: keyof Omit<BookingData, 'name'>) => {
+            const processRatingsByDay = (ratings: Rating[], serviceType: keyof Omit<BookingData, 'name'>) => {
                 ratings.forEach(rating => {
                     const date = new Date(rating.createdAt);
                     const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
