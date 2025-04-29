@@ -1,4 +1,5 @@
 import Image from 'next/image'
+const currentYear = new Date().getFullYear();
 
 const AboutUsPage = () => {
   return (
@@ -119,7 +120,7 @@ const AboutUsPage = () => {
 
       {/* Footer */}
       <footer className="mt-12 text-center text-gray-600">
-        <p>&copy; {new Date().getFullYear()} VinShuttle. Bản quyền thuộc về VinHomes.</p>
+        <p>&copy; {currentYear} VinShuttle. Bản quyền thuộc về VinHomes.</p>
       </footer>
     </div>
   )

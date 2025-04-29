@@ -27,15 +27,19 @@ import {
   Trip,
 } from '@/interface/trip.interface'
 
-import useTripSocket from '../../../hooks/useTripSocket'
+// import useTripSocket from '../../../hooks/useTripSocket'
 import { cancelTrip } from '../../../service/trip.service'
-import { useCancelTripMutation } from '@/hooks/queries/trip.query'
+import { useCancelTripMutation, useTripDetailQuery } from '@/hooks/queries/trip.query'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '@/utils/index.utils'
 import { useScenicRouteDetailQuery } from '@/hooks/queries/scenicRoute.query'
+import useTripSocket from '@/hooks/sockets/useTripSocket'
 
 export default function DetailTripPage({ id }: { id: string }) {
-  const { data, isLoading, error, refetch } = useTripSocket(id as string)
+  const { data, isLoading, error } = useTripDetailQuery(id)
+  const { refetch } = useTripSocket(id)
+
+  // const { data, isLoading, error, refetch } = useTripSocket(id as string)
   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
   // const [isCanceling, setIsCanceling] = useState(false)
