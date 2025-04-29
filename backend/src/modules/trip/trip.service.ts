@@ -892,9 +892,7 @@ export class TripService implements ITripService {
     const conversation = await this.conversationRepository.getConversation({
       tripId: tripUpdate._id.toString(),
     }, ['_id'])
-    await this.conversationRepository.updateConversation(conversation._id.toString(), {
-      status: ConversationStatus.CANCELLED
-    })
+    await this.conversationRepository.cancelConversation(conversation._id.toString())
     return tripUpdate;
   }
 
