@@ -891,7 +891,7 @@ export class TripService implements ITripService {
     //excute refund money
     const conversation = await this.conversationRepository.getConversation({
       tripId: tripUpdate._id.toString(),
-    }, ['timeToClose'])
+    }, ['_id'])
     await this.conversationRepository.updateConversation(conversation._id.toString(), {
       status: ConversationStatus.CANCELLED
     })
