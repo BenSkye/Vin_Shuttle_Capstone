@@ -7,6 +7,7 @@ import { Routes } from '@/constants/routers'
 import { useDebouncedCallback } from '@/hooks/shared/useDebouncedCallback'
 import { loginCustomer, registerCustomer, verifyOTP } from '@/service/user.service'
 import { LoginCredentials, LoginResponse, RegisterCredentials, RegisterResponse, ApiError } from '@/interface/auth.interface'
+import { getErrorMessage } from '@/utils/index.utils'
 
 export const useAuth = ({
   onLoginSuccess,
@@ -59,7 +60,8 @@ export const useAuth = ({
     },
     onError: (error: unknown) => {
       const err = error as ApiError
-      const errorMessage = err?.response?.data?.vnMessage || err?.vnMessage || 'Có lỗi xảy ra. Vui lòng thử lại.'
+      console.log('err', err.response)
+      const errorMessage = getErrorMessage(error);
       errorMessageRef.current = {
         content: errorMessage,
         duration: 5,
@@ -126,5 +128,6 @@ export const useAuth = ({
     isRegisterPending,
     loginError,
     registerError,
+    errorMessageRef
   }
 }
