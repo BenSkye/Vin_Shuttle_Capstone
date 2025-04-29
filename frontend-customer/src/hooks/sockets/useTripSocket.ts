@@ -33,6 +33,19 @@ const useTripSocket = (id?: string) => {
       tripSocketService.disconnect()
     }
   }, [id, queryClient])
+
+  const refetch = () => {
+    if (id) {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.TRIPS.DETAIL(id)
+      })
+    } else {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.TRIPS.LIST()
+      })
+    }
+  }
+  return { refetch }
 }
 
 export default useTripSocket
