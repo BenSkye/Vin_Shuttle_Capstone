@@ -56,58 +56,58 @@ export default function Sidebar() {
   const menuItems = [
     ...(isLoggedIn
       ? [
-          {
-            key: "/",
-            icon: <AiOutlineUser />,
-            label: <Link href="/">Quản lý người dùng</Link>,
-          },
-          {
-            key: "/category",
-            icon: <AiOutlineUnorderedList />,
-            label: <Link href="/category">Quản lý danh mục xe</Link>,
-          },
-          {
-            key: "/vehicles",
-            icon: <AiOutlineCar />,
-            label: <Link href="/vehicles">Quản lý phương tiện</Link>,
-          },
-          {
-            key: "/profile",
-            icon: <AiOutlineUserSwitch />,
-            label: <Link href="/profile">Trang cá nhân</Link>,
-          },
-          {
-            key: "/router",
-            icon: <AiOutlineCompass />,
-            label: <Link href="/router">Quản lý tuyến đường</Link>,
-          },
-          {
-            key: "/busstop",
-            icon: <FaBus />,
-            label: <Link href="/busstop">Quản lý tuyến xe bus</Link>,
-          },
-          {
-            key: "/money",
-            icon: <AiOutlineDollar />,
-            label: <Link href="/money">Quản lý tiền</Link>,
-          },
-          {
-            key: "/cal",
-            icon: <AiOutlineCalculator />,
-            label: <Link href="/cal">Tính tiền</Link>,
-          },
-          {
-            key: "/trip",
-            icon: <AiOutlineBook />,
-            label: <Link href="/trip">Lịch sử cuốc xe</Link>,
-          },
-          {
-            key: "logout",
-            icon: <AiOutlineLogout />,
-            label: "Đăng xuất",
-            onClick: handleLogout,
-          },
-        ]
+        {
+          key: "/",
+          icon: <AiOutlineUser />,
+          label: <Link href="/">Quản lý người dùng</Link>,
+        },
+        {
+          key: "/category",
+          icon: <AiOutlineUnorderedList />,
+          label: <Link href="/category">Quản lý danh mục xe</Link>,
+        },
+        {
+          key: "/vehicles",
+          icon: <AiOutlineCar />,
+          label: <Link href="/vehicles">Quản lý phương tiện</Link>,
+        },
+        {
+          key: "/profile",
+          icon: <AiOutlineUserSwitch />,
+          label: <Link href="/profile">Trang cá nhân</Link>,
+        },
+        {
+          key: "/router",
+          icon: <AiOutlineCompass />,
+          label: <Link href="/router">Quản lý tuyến đường</Link>,
+        },
+        {
+          key: "/busstop",
+          icon: <FaBus />,
+          label: <Link href="/busstop">Quản lý tuyến xe bus</Link>,
+        },
+        {
+          key: "/money",
+          icon: <AiOutlineDollar />,
+          label: <Link href="/money">Quản lý tiền</Link>,
+        },
+        {
+          key: "/cal",
+          icon: <AiOutlineCalculator />,
+          label: <Link href="/cal">Tính tiền</Link>,
+        },
+        {
+          key: "/trip",
+          icon: <AiOutlineBook />,
+          label: <Link href="/trip">Quản lý cuốc xe</Link>,
+        },
+        {
+          key: "logout",
+          icon: <AiOutlineLogout />,
+          label: "Đăng xuất",
+          onClick: handleLogout,
+        },
+      ]
       : []),
   ];
 

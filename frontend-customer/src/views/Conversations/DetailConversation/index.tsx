@@ -114,8 +114,8 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             className="flex-1 rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type a message..."
-            aria-label="Type a message"
+            placeholder="Tin nhắn..."
+            aria-label="Tin nhắn"
           />
           <button
             onClick={handleSendMessage}

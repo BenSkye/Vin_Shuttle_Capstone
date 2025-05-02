@@ -4,13 +4,23 @@ import { ProcessedQueryParams, QueryOptions } from 'src/share/interface';
 export function processQueryParams<T>(
   query: T & QueryOptions,
   searchFields?: string[],
+  inFields?: string[]
 ): ProcessedQueryParams<T> {
   const filter: any = { ...query };
   const options: QueryOptions = {};
+
   if (searchFields) {
     searchFields.forEach(field => {
       if (filter[field]) {
         filter[field] = { $regex: filter[field], $options: 'i' };
+      }
+    });
+  }
+
+  if (inFields) {
+    inFields.forEach(field => {
+      if (filter[field] && Array.isArray(filter[field])) {
+        filter[field] = { $in: filter[field] };
       }
     });
   }

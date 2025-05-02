@@ -429,7 +429,7 @@ const HourlyBookingPage = () => {
                 aria-label="Chọn địa điểm"
                 tabIndex={0}
               >
-                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>

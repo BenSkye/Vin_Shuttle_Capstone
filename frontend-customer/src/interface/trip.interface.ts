@@ -41,7 +41,9 @@ export interface Trip {
   refundAmount?: number
   cancellationReason?: string
   cancellationTime?: number
-  cancelledBy?: TripCancelBy
+  cancelledBy?: TripCancelBy,
+  updatedAt: Date
+  createdAt: Date
 }
 
 export interface BookingHourPayloadDto {
