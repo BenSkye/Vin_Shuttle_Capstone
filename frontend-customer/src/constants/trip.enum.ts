@@ -37,3 +37,8 @@ export const tripCancelText: Record<TripCancelBy, string> = {
   [TripCancelBy.CUSTOMER]: 'Khách hàng hủy chuyến',
   [TripCancelBy.DRIVER]: 'Tài xế hủy chuyến',
 }
+
+export type TripStatusInfo = {
+  text: string
+  className: string
+}

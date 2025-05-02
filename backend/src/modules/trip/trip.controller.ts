@@ -258,11 +258,18 @@ export class TripController {
   @ApiBearerAuth(HEADER.AUTHORIZATION)
   @ApiBearerAuth(HEADER.CLIENT_ID)
   @ApiOperation({ summary: 'Get list of trips with filters' })
+  // @ApiQuery({
+  //   name: 'status',
+  //   required: false,
+  //   enum: TripStatus,
+  //   description: 'Filter by trip status',
+  // })
   @ApiQuery({
     name: 'status',
     required: false,
+    isArray: true,
     enum: TripStatus,
-    description: 'Filter by trip status',
+    description: 'Filter by multiple trip statuses (e.g. status[]=completed&status[]=dropped_off)',
   })
   @ApiQuery({
     name: "isPrepaid",

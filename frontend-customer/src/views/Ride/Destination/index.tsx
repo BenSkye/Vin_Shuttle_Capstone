@@ -392,10 +392,10 @@ const DestinationBookingPage = () => {
                 onClick={handleNextStep}
                 disabled={!startPoint.address || !endPoint.address || loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
-                aria-label="Tìm xe"
+                aria-label="Chọn loại xe"
                 tabIndex={0}
               >
-                {loading ? 'Đang xử lý...' : 'Tìm xe'}
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>
@@ -423,10 +423,10 @@ const DestinationBookingPage = () => {
                 onClick={handleNextStep}
                 disabled={selectedVehicles.length === 0 || loading}
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
-                aria-label="Xác nhận đặt xe"
+                aria-label="Chọn địa điểm"
                 tabIndex={0}
               >
-                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+                {loading ? 'Đang xử lý...' : 'Tiếp tục'}
               </button>
             </div>
           </div>
@@ -588,7 +588,7 @@ const DestinationBookingPage = () => {
                 aria-label="Xác nhận đặt xe"
                 tabIndex={0}
               >
-                {loading ? 'Đang xử lý...' : 'Xác nhận'}
+                {loading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
               </button>
             </div>
           </div>

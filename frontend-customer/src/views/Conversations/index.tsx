@@ -165,7 +165,7 @@ const ConversationListPage = () => {
   if (listLoading) {
     return (
       <div className="flex h-[calc(100vh-64px)] items-center justify-center">
-        Loading conversations...
+        Đang tải danh sách cuộc trò chuyện...
       </div>
     )
   }
@@ -197,7 +197,7 @@ const ConversationListPage = () => {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gray-100 md:flex-row">
+    <div className="flex h-[calc(100vh-72px)] flex-col bg-gray-100 md:flex-row">
       {/* Mobile Toggle Button */}
       <button
         className="fixed left-0 top-1/2 z-50 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-r-lg bg-blue-500 text-white shadow-lg md:hidden"
@@ -234,7 +234,7 @@ const ConversationListPage = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
-          <h1 className="text-xl font-semibold">Conversations</h1>
+          <h1 className="text-xl font-semibold">Tin nhắn</h1>
           <div className="flex space-x-2">
             <button className="rounded-full p-2 hover:bg-gray-200" aria-label="New conversation">
               <svg
@@ -282,7 +282,7 @@ const ConversationListPage = () => {
         <div className="p-4">
           <input
             type="text"
-            placeholder="Search conversations"
+            placeholder="Tìm cuộc trò chuyện..."
             className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Search conversations"
           />
@@ -371,7 +371,7 @@ const ConversationListPage = () => {
                   ></path>
                 </svg>
               </div>
-              <p className="text-lg text-gray-600">Select a conversation to start messaging</p>
+              <p className="text-lg text-gray-600">Chọn cuộc trò chuyện để trao đổi thông tin với tài xế</p>
             </div>
           </div>
         )}

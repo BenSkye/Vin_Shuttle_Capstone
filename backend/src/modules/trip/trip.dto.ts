@@ -101,7 +101,7 @@ export interface tripParams extends QueryOptions {
   customerPhone?: string;
   driverName?: string;
   vehicleName?: string;
-  status?: TripStatus;
+  status?: TripStatus | TripStatus[];
   serviceType?: ServiceType;
   code?: string;
   isPrepaid?: boolean;

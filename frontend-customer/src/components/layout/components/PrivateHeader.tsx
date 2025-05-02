@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import {
   FiBell,
   FiChevronDown,
-  FiClock,
   FiCreditCard,
   FiLogOut,
   FiMenu,
@@ -23,6 +22,7 @@ import { UserDropdown } from '@/components/common/UserDropdown'
 import { Logo } from '@/components/icons/Logo'
 
 import { INotification } from '@/interface/notification'
+import { IoCarOutline } from 'react-icons/io5'
 
 interface PrivateHeaderProps {
   userName: string
@@ -50,7 +50,7 @@ const privateNavItems = [
 
 const userMenuItems = [
   { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
-  { label: 'Lịch sử cuốc xe', href: Routes.TRIPS, icon: FiClock },
+  { label: 'Cuốc xe', href: Routes.TRIPS, icon: IoCarOutline },
   { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
   { label: 'Cuộc trò chuyện', href: Routes.CHAT, icon: FiMessageSquare },
 ]

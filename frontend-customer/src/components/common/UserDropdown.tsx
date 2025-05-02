@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import {
-  FiClock,
   FiCreditCard,
   FiLogOut,
   FiMessageSquare,
@@ -9,6 +8,7 @@ import {
 } from 'react-icons/fi'
 
 import { Routes } from '@/constants/routers'
+import { IoCarOutline } from 'react-icons/io5'
 
 interface UserDropdownProps {
   userName: string
@@ -53,8 +53,9 @@ export function UserDropdown({
             href={Routes.TRIPS}
             className="flex items-center gap-3 px-4 py-3 transition hover:bg-green-50"
           >
-            <FiClock className="text-green-500" />
-            <span>Lịch sử cuốc xe</span>
+            {/* <FiClock className="text-green-500" /> */}
+            <IoCarOutline className="text-green-500" />
+            <span>Cuốc xe</span>
           </Link>
           <Link
             href={Routes.BOOKING.ROOT}

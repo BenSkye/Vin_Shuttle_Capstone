@@ -311,7 +311,7 @@ export class TripService implements ITripService {
     console.log('customerId', customerId);
     filterProcessed.customerId = customerId;
     console.log('filterProcessed', filterProcessed);
-    const { filter, options } = processQueryParams(filterProcessed, []);
+    const { filter, options } = processQueryParams(filterProcessed, [], ['status']);
     console.log('filter', filter);
     return await this.tripRepository.find(filter, [], options);
   }
@@ -378,7 +378,7 @@ export class TripService implements ITripService {
     console.log('driverId', driverId);
     filterProcessed.driverId = driverId;
     console.log('filterProcessed', filterProcessed);
-    const { filter, options } = processQueryParams(filterProcessed, []);
+    const { filter, options } = processQueryParams(filterProcessed, [], ['status']);
     console.log('filter', filter);
     return await this.tripRepository.find(filter, [], options);
   }
@@ -760,7 +760,7 @@ export class TripService implements ITripService {
       delete filterProcessed.vehicleName;
     }
     console.log('filterProcessed', filterProcessed);
-    const { filter, options } = processQueryParams(filterProcessed, []);
+    const { filter, options } = processQueryParams(filterProcessed, [], ['status']);
     return await this.tripRepository.find(filter, [], options);
   }
 
