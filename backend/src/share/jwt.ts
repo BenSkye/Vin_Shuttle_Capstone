@@ -8,10 +8,16 @@ import { HttpStatusCustom } from 'src/share/enums/HttpStatusCustom.enum';
 export class JwtTokenService implements ITokenProvider {
   private readonly expiresInAccessToken: string | number;
   private readonly expiresInRefreshToken: string | number;
+  private readonly expiresInResetPasswordToken: string | number;
 
-  constructor(expiresInAccessToken: string | number, expiresInRefreshToken: string | number) {
+  constructor(
+    expiresInAccessToken: string | number,
+    expiresInRefreshToken: string | number,
+    expiresInResetPasswordToken: string | number
+  ) {
     this.expiresInAccessToken = expiresInAccessToken;
     this.expiresInRefreshToken = expiresInRefreshToken;
+    this.expiresInResetPasswordToken = expiresInResetPasswordToken;
   }
 
   async generateTokenPair(
@@ -130,6 +136,44 @@ export class JwtTokenService implements ITokenProvider {
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+
+  async generateResetPasswordToken(
+    payload: TokenPayload,
+    privateKey: string,
+  ): Promise<string> {
+    try {
+      const resetToken = jwt.sign(payload, privateKey, {
+        expiresIn: this.expiresInResetPasswordToken,
+        algorithm: 'RS256', // Sử dụng RS256 như hệ thống chính
+      });
+
+      console.log('Reset password token generated:', resetToken);
+      return resetToken;
+    } catch (error) {
+      console.error('Error generating reset password token:', error);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to generate reset password token',
+          vnMessage: 'Lỗi khi tạo token đặt lại mật khẩu',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async verifyResetToken(
+    token: string,
+    publicKey: string
+  ): Promise<TokenPayload> {
+    try {
+      return await this.verifyToken(token, publicKey);
+    } catch (error) {
+      console.error('Error verifying reset token:', error);
+      throw error; // Giữ nguyên các error đã được xử lý trong verifyToken
     }
   }
 }

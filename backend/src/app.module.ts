@@ -30,6 +30,9 @@ import { BusScheduleModule } from './modules/bus-schedule/bus-schedule.module';
 import { DriverBusScheduleModule } from './modules/driver-bus-schedule/driver-bus-schedule.module';
 import { TicketModule } from './modules/ticket/ticket.module';
 import { BusTrackingModule } from './modules/bus-tracking/bus-tracking.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -43,6 +46,29 @@ import { BusTrackingModule } from './modules/bus-tracking/bus-tracking.module';
         dbName: configService.get<string>('mongodb.database'),
       }),
       inject: [ConfigService],
+    }),
+    MailerModule.forRootAsync({
+      useFactory: () => ({
+        transport: {
+          host: process.env.MAIL_HOST,
+          port: parseInt(process.env.MAIL_PORT),
+          secure: process.env.MAIL_SECURE === 'true',
+          auth: {
+            user: process.env.MAIL_USER,
+            pass: process.env.MAIL_PASSWORD,
+          },
+        },
+        defaults: {
+          from: `"No Reply" <${process.env.MAIL_FROM}>`,
+        },
+        template: {
+          dir: join(__dirname, 'templates'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
     }),
     ScheduleModule.forRoot(),
     VehicleCategoryModule,

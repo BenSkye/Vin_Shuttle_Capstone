@@ -17,7 +17,7 @@ export default function ClientLayout({
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('accessToken');
-      if (!token && pathname !== '/login') {
+      if (!token && pathname !== '/login' && pathname !== '/forgot-password') {
         router.push('/login');
       }
       setIsLoading(false);

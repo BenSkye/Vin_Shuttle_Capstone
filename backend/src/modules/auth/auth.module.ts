@@ -59,4 +59,4 @@ const dependencies: Provider[] = [
   providers: [...dependencies],
   exports: [AUTH_GUARD, AUTH_SERVICE, WS_AUTH_GUARD],
 })
-export class AuthModule {}
+export class AuthModule { }

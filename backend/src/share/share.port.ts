@@ -9,6 +9,14 @@ export interface ITokenProvider {
   ): Promise<tokenDTO>;
   verifyToken(token: string, key: string): Promise<TokenPayload | null>;
   decodeToken(token: string): Promise<any>;
+  generateResetPasswordToken(
+    payload: TokenPayload,
+    privateKey: string,
+  ): Promise<string>;
+  verifyResetToken(
+    token: string,
+    publicKey: string
+  ): Promise<TokenPayload>;
 }
 
 export interface ISMSProvider {

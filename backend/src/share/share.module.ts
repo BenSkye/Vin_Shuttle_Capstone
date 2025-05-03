@@ -15,7 +15,7 @@ import { Redis } from 'ioredis';
 import { HttpModule } from '@nestjs/axios';
 import { MomoService } from 'src/share/momo';
 
-export const tokenJWTProvider = new JwtTokenService('2d', '7d'); //set accesstoken 2 minutes and refreshtoken 7 days
+export const tokenJWTProvider = new JwtTokenService('2d', '7d', '1h'); //set accesstoken 2 minutes and refreshtoken 7 days
 const tokenProvider: Provider = { provide: TOKEN_PROVIDER, useValue: tokenJWTProvider };
 
 const dependencies = [
@@ -68,4 +68,4 @@ const dependencies = [
   exports: [...dependencies],
   imports: [HttpModule],
 })
-export class ShareModule {}
+export class ShareModule { }

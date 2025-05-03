@@ -14,7 +14,7 @@ export class KeyTokenService implements IKeyTokenService {
   constructor(
     @InjectModel(KeyToken.name) private readonly keyTokenModel: Model<KeyToken>,
     @Inject(TOKEN_PROVIDER) private readonly tokenProvider: ITokenProvider,
-  ) {}
+  ) { }
 
   async createKeyToken(data: KeyTokenCreateDTO): Promise<object> {
     try {
@@ -55,6 +55,57 @@ export class KeyTokenService implements IKeyTokenService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async createKeyTokenResetPassword(data: KeyTokenCreateDTO): Promise<string | null> {
+    try {
+      const payload = {
+        _id: data.userId.toString(),
+      };
+      const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 4096,
+        publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+      });
+      console.log('publicKey', publicKey.toString());
+      const token = await this.tokenProvider.generateResetPasswordToken(
+        payload,
+        privateKey.toString(),
+      )
+      const update = {
+        resetPublicKey: publicKey,
+        resetPrivateKey: privateKey,
+      };
+      const tokens = await this.keyTokenModel.findOneAndUpdate({ user: data.userId }, update, {
+        new: true,
+        upsert: true,
+      });
+      return tokens ? token : null;
+    } catch (err) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Internal server error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async handleClearPasswordToken(userId: string): Promise<object> {
+    const keyToken = await this.findByUserId(userId);
+    if (!keyToken) {
+      return null;
+    }
+    const update = {
+      resetPublicKey: null,
+      resetPrivateKey: null,
+    };
+    const tokens = await this.keyTokenModel.findOneAndUpdate({ user: keyToken.user }, update, {
+      new: true,
+      upsert: true,
+    });
+    return tokens ? tokens : null;
   }
 
   async handleRefreshToken(userId: string, refreshToken: string): Promise<object> {

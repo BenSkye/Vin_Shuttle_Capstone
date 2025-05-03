@@ -19,6 +19,12 @@ export class KeyToken {
 
   @Prop({ required: true })
   refreshToken: string;
+
+  @Prop()
+  resetPublicKey?: string;
+
+  @Prop()
+  resetPrivateKey?: string;
 }
 
 export const KeyTokenSchema = SchemaFactory.createForClass(KeyToken);

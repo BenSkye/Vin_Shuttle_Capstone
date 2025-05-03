@@ -50,4 +50,34 @@ export const authService = {
       return false;
     }
   },
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await apiClient.post(
+        `/auth/forgot-password`,
+        { email }
+      );
+      return response.data;
+    } catch (error) {
+      console.log("error", error);
+      throw error;
+    }
+  },
+
+  async resetForgotPassword(token: string, newPassword: string) {
+    try {
+      const response = await apiClient.post(
+        `/auth/reset-forgot-password`,
+        {
+          token,
+          newPassword,
+        }
+      );
+      console.log("response", response);
+      return response.data;
+    } catch (error) {
+      console.log("error", error);
+      throw error;
+    }
+  }
 };
