@@ -32,8 +32,7 @@ export default function Home() {
                         <div className="flex gap-4 justify-between flex-wrap">
                             <UserCard type="Khách hàng" />
                             <UserCard type="Tài xế" />
-                            <UserCard type="Xe" />
-                            <UserCard type="Tuyến đường" />
+
                         </div>
 
                         {/* MIDDLE CHART */}
