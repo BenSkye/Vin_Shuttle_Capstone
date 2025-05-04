@@ -5,7 +5,7 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 
 import Image from "next/image";
-import Link from "next/link";
+
 import { Column } from '@/interfaces/index';
 import { Customer } from "@/interfaces/index";
 import { getCustomer } from "@/services/api/user";

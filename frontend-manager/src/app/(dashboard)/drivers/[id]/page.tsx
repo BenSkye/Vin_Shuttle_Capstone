@@ -224,7 +224,7 @@ const DriverSinglePage = () => {
                     scheduleDate = new Date(); // Use today as fallback
                 }
             } catch (e) {
-                // Keep default date on error
+                console.log(e)
             }
 
             const shift = schedule.shift;

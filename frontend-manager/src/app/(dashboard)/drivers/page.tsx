@@ -325,16 +325,29 @@ const DriverPage = () => {
                 imageFile || "",
                 "driver"
             );
-
+            console.log("Response:", response);
             // Refresh the drivers list to get the latest data
             fetchDrivers(filterParams);
             handleCloseModal();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error adding driver:", error);
             // Handle API errors
-            const errorMessage = error.response?.data?.message ||
-                error.response?.data?.vnMessage ||
-                'Đã xảy ra lỗi khi thêm tài xế';
+            let errorMessage = 'Đã xảy ra lỗi khi thêm tài xế';
+
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as {
+                    response?: {
+                        data?: {
+                            message?: string;
+                            vnMessage?: string;
+                        }
+                    }
+                };
+                errorMessage = axiosError.response?.data?.vnMessage ||
+                    axiosError.response?.data?.message ||
+                    'Đã xảy ra lỗi khi thêm tài xế';
+            }
+
             setFormErrors(prev => ({
                 ...prev,
                 general: errorMessage
