@@ -30,7 +30,7 @@ const columns: Column<Driver>[] = [
 ];
 
 const DriverPage = () => {
-    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [filteredDrivers, setFilteredDrivers] = useState<Driver[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -61,7 +61,7 @@ const DriverPage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const itemsPerPage = 5;
 
-    const totalPages = Math.ceil(drivers.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage);
 
     useEffect(() => {
         fetchDrivers();
@@ -75,7 +75,8 @@ const DriverPage = () => {
 
             // Sort drivers according to the specified sort order
             const sortedDrivers = sortDriversByDate(response, filters.sortOrder);
-            setDrivers(sortedDrivers);
+            setFilteredDrivers(sortedDrivers);
+            setCurrentPage(1); // Reset to first page when applying new filters
         } catch (error) {
             console.error("Error fetching drivers:", error);
         }
@@ -96,7 +97,7 @@ const DriverPage = () => {
         setCurrentPage(page);
     };
 
-    const paginatedDrivers = drivers.slice(
+    const paginatedDrivers = filteredDrivers.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -143,9 +144,8 @@ const DriverPage = () => {
 
     const handleApplyFilter = () => {
         console.log("Applying filters with params:", filterParams);
-        fetchDrivers(filterParams);
+        fetchDrivers(filterParams); // This will reset the page to 1 and update filteredDrivers
         handleCloseFilterModal();
-        setCurrentPage(1); // Reset to first page when applying filters
     };
 
     const handleResetFilter = () => {
@@ -159,9 +159,8 @@ const DriverPage = () => {
         };
         console.log("Resetting filters to defaults:", defaultFilters);
         setFilterParams(defaultFilters);
-        fetchDrivers(defaultFilters);
+        fetchDrivers(defaultFilters); // This will reset the page to 1 and update filteredDrivers
         handleCloseFilterModal();
-        setCurrentPage(1);
     };
 
     const handleSearch = (query: string) => {
@@ -179,7 +178,7 @@ const DriverPage = () => {
             console.log("Cleared search, using filters:", name, restFilters);
             fetchDrivers(restFilters);
         }
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset to first page when searching
     };
 
     const handleSortOrderChange = () => {
@@ -745,6 +744,12 @@ const DriverPage = () => {
                     </div>
                 </div>
             )}
+
+            <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                Hiển thị {filteredDrivers.length > 0 ?
+                    `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredDrivers.length)} trong số ${filteredDrivers.length}` :
+                    '0'} tài xế
+            </div>
         </div>
     );
 };

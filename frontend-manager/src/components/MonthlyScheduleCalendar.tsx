@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, isSameDay, isSameMonth, startOfWeek, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
@@ -11,13 +11,28 @@ import { DriverSchedulesStatus } from '@/interfaces/driver-schedules.enum';
 interface MonthlyScheduleCalendarProps {
     activities: Activity[];
     onActivityClick?: (activity: Activity) => void;
+    currentDate?: Date;
+    onMonthChange?: (month: Date) => void;
 }
 
 export const MonthlyScheduleCalendar: React.FC<MonthlyScheduleCalendarProps> = ({
     activities = [],
     onActivityClick,
+    currentDate: externalCurrentDate,
+    onMonthChange,
 }) => {
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [internalCurrentDate, setInternalCurrentDate] = useState(
+        externalCurrentDate || new Date()
+    );
+
+    const currentDate = externalCurrentDate || internalCurrentDate;
+
+    // Update internal state when external state changes
+    useEffect(() => {
+        if (externalCurrentDate) {
+            setInternalCurrentDate(externalCurrentDate);
+        }
+    }, [externalCurrentDate]);
 
     // Get all days in current month
     // const daysInMonth = eachDayOfInterval({
@@ -58,23 +73,29 @@ export const MonthlyScheduleCalendar: React.FC<MonthlyScheduleCalendarProps> = (
 
     // Navigation functions for month
     const prevMonth = () => {
-        setCurrentDate(date => {
-            const newDate = new Date(date);
-            newDate.setMonth(date.getMonth() - 1);
-            return newDate;
-        });
+        const newDate = new Date(currentDate);
+        newDate.setMonth(currentDate.getMonth() - 1);
+        setInternalCurrentDate(newDate);
+        if (onMonthChange) {
+            onMonthChange(newDate);
+        }
     };
 
     const nextMonth = () => {
-        setCurrentDate(date => {
-            const newDate = new Date(date);
-            newDate.setMonth(date.getMonth() + 1);
-            return newDate;
-        });
+        const newDate = new Date(currentDate);
+        newDate.setMonth(currentDate.getMonth() + 1);
+        setInternalCurrentDate(newDate);
+        if (onMonthChange) {
+            onMonthChange(newDate);
+        }
     };
 
     const today = () => {
-        setCurrentDate(new Date());
+        const newDate = new Date();
+        setInternalCurrentDate(newDate);
+        if (onMonthChange) {
+            onMonthChange(newDate);
+        }
     };
 
     // Get status color based on activity status
