@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 // import Announcements from "@/components/Announcements";
 import { ScheduleCalendar } from "@/components/ScheduleCalendar";
 import { MonthlyScheduleCalendar } from "@/components/MonthlyScheduleCalendar";
 // import Performance from "@/components/Performance";
 import Image from "next/image";
 import { Tabs } from "antd";
+import { isSameWeek, isSameMonth, startOfWeek } from "date-fns";
 
 import { useParams } from "next/navigation";
 import { getPersonalDriver } from "@/services/api/driver";
@@ -49,9 +50,13 @@ const DriverSinglePage = () => {
     const [driver, setDriver] = useState<Driver | null>(null);
     const [schedules, setSchedules] = useState<DriverSchedule[]>([]);
     const [workingHours, setWorkingHours] = useState({ total: 0, actual: 0 });
+    const [selectedPeriodHours, setSelectedPeriodHours] = useState({ total: 0, actual: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("weekly");
+    const [currentWeek, setCurrentWeek] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+    const weeklyCalendarRef = useRef<{ getCurrentWeek: () => Date }>(null);
 
     useEffect(() => {
         const fetchDriverData = async () => {
@@ -208,9 +213,79 @@ const DriverSinglePage = () => {
         }, 0);
     };
 
+    // Calculate hours for selected week
+    const calculateWeeklyHours = useCallback((week: Date) => {
+        const weeklySchedules = schedules.filter(schedule => {
+            try {
+                const scheduleDate = new Date(schedule.date);
+                return isSameWeek(scheduleDate, week, { weekStartsOn: 1 });
+            } catch (error) {
+                console.error("Error parsing date:", error, schedule.date);
+                return false;
+            }
+        });
+
+        const totalWeeklyHours = weeklySchedules.reduce((sum, schedule) => sum + (schedule.totalWorkingHours || 0), 0);
+        const actualWeeklyHours = weeklySchedules.reduce((sum, schedule) => sum + (schedule.actualWorkingHours || 0), 0);
+
+        setSelectedPeriodHours({
+            total: totalWeeklyHours,
+            actual: actualWeeklyHours
+        });
+    }, [schedules]);
+
+    // Calculate hours for selected month
+    const calculateMonthlyHours = useCallback((month: Date) => {
+        const monthlySchedules = schedules.filter(schedule => {
+            try {
+                const scheduleDate = new Date(schedule.date);
+                return isSameMonth(scheduleDate, month);
+            } catch (error) {
+                console.error("Error parsing date:", error, schedule.date);
+                return false;
+            }
+        });
+
+        const totalMonthlyHours = monthlySchedules.reduce((sum, schedule) => sum + (schedule.totalWorkingHours || 0), 0);
+        const actualMonthlyHours = monthlySchedules.reduce((sum, schedule) => sum + (schedule.actualWorkingHours || 0), 0);
+
+        setSelectedPeriodHours({
+            total: totalMonthlyHours,
+            actual: actualMonthlyHours
+        });
+    }, [schedules]);
+
+    // Handle week change
+    const handleWeekChange = useCallback((week: Date) => {
+        setCurrentWeek(week);
+        calculateWeeklyHours(week);
+    }, [calculateWeeklyHours]);
+
+    // Handle month change
+    const handleMonthChange = useCallback((month: Date) => {
+        setCurrentMonth(month);
+        calculateMonthlyHours(month);
+    }, [calculateMonthlyHours]);
+
+    // Initialize calculations when schedules are loaded
+    useEffect(() => {
+        if (activeTab === "weekly") {
+            calculateWeeklyHours(currentWeek);
+        } else {
+            calculateMonthlyHours(currentMonth);
+        }
+    }, [schedules, activeTab, calculateWeeklyHours, calculateMonthlyHours, currentWeek, currentMonth]);
+
     // Handle tab change
     const handleTabChange = (key: string) => {
         setActiveTab(key);
+
+        if (key === "weekly") {
+            const week = weeklyCalendarRef.current?.getCurrentWeek() || currentWeek;
+            calculateWeeklyHours(week);
+        } else {
+            calculateMonthlyHours(currentMonth);
+        }
     };
 
     // Memoize calendar activities to avoid recomputation on re-renders
@@ -291,12 +366,21 @@ const DriverSinglePage = () => {
         {
             key: 'weekly',
             label: 'Lịch hàng tuần',
-            children: <ScheduleCalendar activities={calendarActivities} />
+            children: <ScheduleCalendar
+                activities={calendarActivities}
+                ref={weeklyCalendarRef}
+                currentWeek={currentWeek}
+                onWeekChange={handleWeekChange}
+            />
         },
         {
             key: 'monthly',
             label: 'Lịch tháng',
-            children: <MonthlyScheduleCalendar activities={calendarActivities} />
+            children: <MonthlyScheduleCalendar
+                activities={calendarActivities}
+                currentDate={currentMonth}
+                onMonthChange={handleMonthChange}
+            />
         }
     ];
 
@@ -379,7 +463,7 @@ const DriverSinglePage = () => {
                                 <span className="text-sm text-gray-400">Lịch trình</span>
                             </div>
                         </div>
-                        {/* CARD */}
+                        {/* CARD - Selected Period Total Hours */}
                         <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
                             <Image
                                 src="/icons/singleLesson.png"
@@ -390,10 +474,12 @@ const DriverSinglePage = () => {
                             />
                             <div>
                                 <h1 className="text-xl font-semibold">{workingHours.total}</h1>
-                                <span className="text-sm text-gray-400">Tổng giờ làm</span>
+                                <span className="text-sm text-gray-400">
+                                    Tổng giờ làm
+                                </span>
                             </div>
                         </div>
-                        {/* CARD */}
+                        {/* CARD - Selected Period Actual Hours */}
                         <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
                             <Image
                                 src="/icons/singleClass.png"
@@ -404,7 +490,9 @@ const DriverSinglePage = () => {
                             />
                             <div>
                                 <h1 className="text-xl font-semibold">{workingHours.actual.toFixed(2)}</h1>
-                                <span className="text-sm text-gray-400">Giờ làm thực tế</span>
+                                <span className="text-sm text-gray-400">
+                                    Giờ làm thực tế
+                                </span>
                             </div>
                         </div>
                         {/* CARD */}
@@ -435,10 +523,52 @@ const DriverSinglePage = () => {
                                 <span className="text-sm text-gray-400">Về sớm</span>
                             </div>
                         </div>
+
+                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
+                            <Image
+                                src="/icons/singleClass.png"
+                                alt="Ca hoàn thành"
+                                width={24}
+                                height={24}
+                                className="w-6 h-6"
+                            />
+                            <div>
+                                <h1 className="text-xl font-semibold">{completedSchedules.length}</h1>
+                                <span className="text-sm text-gray-400">Ca hoàn thành</span>
+                            </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
+                            <Image
+                                src="/icons/singleClass.png"
+                                alt="Tạm dừng ca"
+                                width={24}
+                                height={24}
+                                className="w-6 h-6"
+                            />
+                            <div>
+                                <h1 className="text-xl font-semibold">{avgBreakTimePerDay} phút</h1>
+                                <span className="text-sm text-gray-400">Tạm dừng ca</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {/* BOTTOM */}
                 <div className="mt-4 bg-white rounded-md p-4 h-[800px]">
+                    <div className="flex items-center justify-between mb-4 border-b pb-2">
+                        <h2 className="text-lg font-semibold">
+                            {activeTab === 'weekly' ? 'Lịch tuần' : 'Lịch tháng'}
+                        </h2>
+                        <div className="flex items-center gap-4 text-sm">
+                            <div className="flex flex-col">
+                                <span className="text-gray-500">Tổng giờ:</span>
+                                <span className="font-medium">{selectedPeriodHours.total.toFixed(2)} giờ</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-gray-500">Giờ thực tế:</span>
+                                <span className="font-medium">{selectedPeriodHours.actual.toFixed(2)} giờ</span>
+                            </div>
+                        </div>
+                    </div>
                     <Tabs
                         items={tabItems}
                         activeKey={activeTab}
@@ -517,7 +647,7 @@ const DriverSinglePage = () => {
                         )}
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-md">
+                {/* <div className="bg-white p-4 rounded-md">
                     <h1 className="text-xl font-semibold">Tổng kết hiệu suất</h1>
                     <div className="mt-4 grid grid-cols-2 gap-4">
                         <div className="bg-gray-50 p-3 rounded-md">
@@ -537,7 +667,7 @@ const DriverSinglePage = () => {
                             <p className="text-xl mt-1">{avgBreakTimePerDay} phút</p>
                         </div>
                     </div>
-                </div>
+                </div> */}
                 {/* <Performance />
                 <Announcements /> */}
             </div>
