@@ -7,9 +7,9 @@ export interface tokenDTO {
 
 export interface TokenPayload {
   _id: string;
-  name: string;
-  role: string;
-  phone: string;
+  name?: string;
+  role?: string;
+  phone?: string;
 }
 
 export interface Position {

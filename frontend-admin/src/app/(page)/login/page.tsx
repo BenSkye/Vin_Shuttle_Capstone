@@ -1,12 +1,13 @@
 'use client';
 
-import { Form, Input, Button, Card, Layout, notification } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Layout, notification, Modal } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '../../services/authServices';
 import { AxiosError } from 'axios';
 import axios from 'axios';
+
 interface LoginFormValues {
   email: string;
   password: string;
@@ -19,6 +20,9 @@ interface ErrorResponse {
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +39,6 @@ export default function Login() {
 
       const accessToken = response.token.accessToken;
 
-      // Kiểm tra role từ token
       if (!authService.isAdmin(accessToken)) {
         notification.error({
           message: 'Không có quyền truy cập',
@@ -45,12 +48,10 @@ export default function Login() {
         return;
       }
 
-      // Người dùng là admin, lưu token
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', response.token.refreshToken);
       localStorage.setItem('userId', response.userId);
 
-      // Có thể lưu thêm role nếu cần
       const decodedToken = authService.decodeAccessToken(accessToken);
       localStorage.setItem('userRole', decodedToken.role);
 
@@ -71,12 +72,63 @@ export default function Login() {
       } else {
         notification.error({
           message: 'Đăng nhập thất bại',
-          description: (error as AxiosError<ErrorResponse>).response?.data?.message || 'Vui lòng thử lại sau.',
+          description: 'Vui lòng thử lại sau.',
           duration: 5,
         });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    setForgotPasswordVisible(true);
+  };
+
+  const handleForgotPasswordCancel = () => {
+    setForgotPasswordVisible(false);
+    setForgotPasswordEmail('');
+  };
+
+  const handleForgotPasswordSubmit = async () => {
+    if (!forgotPasswordEmail) {
+      notification.error({
+        message: 'Lỗi',
+        description: 'Vui lòng nhập địa chỉ email',
+        duration: 5,
+      });
+      return;
+    }
+
+    try {
+      setForgotPasswordLoading(true);
+      const response = await authService.forgotPassword(forgotPasswordEmail);
+      if (response === true) {
+        notification.success({
+          message: 'Thành công',
+          description: 'Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.',
+          duration: 5,
+        });
+        setForgotPasswordVisible(false);
+        setForgotPasswordEmail('');
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        notification.error({
+          message: 'Lỗi',
+          description: axiosError.response?.data?.message || 'Gửi email thất bại. Vui lòng thử lại sau.',
+          duration: 5,
+        });
+      } else {
+        notification.error({
+          message: 'Lỗi',
+          description: 'Gửi email thất bại. Vui lòng thử lại sau.',
+          duration: 5,
+        });
+      }
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
@@ -128,7 +180,37 @@ export default function Login() {
             </Button>
           </Form.Item>
         </Form>
+
+        <div className="text-center mt-4">
+          <Button
+            type="link"
+            onClick={handleForgotPassword}
+            className="text-blue-500 hover:underline"
+          >
+            Quên mật khẩu?
+          </Button>
+        </div>
       </Card>
+
+      {/* Modal quên mật khẩu */}
+      <Modal
+        title="Quên mật khẩu"
+        visible={forgotPasswordVisible}
+        onOk={handleForgotPasswordSubmit}
+        onCancel={handleForgotPasswordCancel}
+        confirmLoading={forgotPasswordLoading}
+        okText="Gửi yêu cầu"
+        cancelText="Hủy bỏ"
+      >
+        <p>Vui lòng nhập địa chỉ email để nhận liên kết đặt lại mật khẩu:</p>
+        <Input
+          prefix={<MailOutlined />}
+          placeholder="Email đăng nhập"
+          value={forgotPasswordEmail}
+          onChange={(e) => setForgotPasswordEmail(e.target.value)}
+          className="mt-4"
+        />
+      </Modal>
     </Layout>
   );
 }

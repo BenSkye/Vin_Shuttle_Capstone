@@ -205,4 +205,42 @@ export class AuthController {
       req.headers[HEADER.REFRESH_TOKEN],
     );
   }
+
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Forgot password' })
+  @ApiBody({
+    type: 'forgotPassword',
+    description: 'Forgot password',
+    examples: {
+      'Forgot Password': {
+        value: {
+          email: 'quangtran214203@gmail.com'
+        },
+      },
+    },
+  })
+  async resetPassword(@Body() data: { email: string }) {
+    return this.authService.createResetPasswordToken(data.email);
+  }
+
+  @Post('reset-forgot-password')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Reset password' })
+  @ApiBody({
+    type: 'resetPassword',
+    description: 'Reset password',
+    examples: {
+      'Reset Password': {
+        value: {
+          token: '',
+          newPassword: '12345678'
+        },
+      },
+    },
+  })
+  async resetForgotPassword(@Body() data: { token: string; newPassword: string }) {
+    return this.authService.resetPassword(data.token, data.newPassword);
+  }
 }
