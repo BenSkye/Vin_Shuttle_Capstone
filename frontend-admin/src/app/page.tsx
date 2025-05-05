@@ -59,10 +59,10 @@ export default function Home() {
       usersCache = formattedUsers;
       setUsers(formattedUsers);
     } catch (error: unknown) {
-      const apiError = error as ApiError;
+      console.log(error);
       notification.error({
         message: 'Lỗi',
-        description: apiError.message || 'Không thể tải danh sách người dùng',
+        description:'Không thể tải danh sách người dùng',
       });
     } finally {
       setLoading(false);
