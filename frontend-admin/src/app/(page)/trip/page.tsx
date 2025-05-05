@@ -11,7 +11,6 @@ import {
   App,
   Spin,
   Tag,
-  Typography,
   Card,
   Statistic,
 } from "antd";
@@ -26,7 +25,6 @@ import Sidebar from "../../_components/common/Sidebar";
 const { Header, Content } = Layout;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-const { Title } = Typography;
 
 export default function TripHistoryPage() {
   const [loading, setLoading] = useState(true);
@@ -190,11 +188,11 @@ export default function TripHistoryPage() {
   const columns: ColumnsType<Trip> = [
     {
       title: "Mã chuyến xe",
-      dataIndex: "_id",
-      key: "_id",
+      dataIndex: "code",
+      key: "code",
       width: 100,
       ellipsis: true,
-      render: (id) => <span className="text-xs">{id}</span>,
+      render: (code) => <span className="text-xs">{code}</span>,
     },
     {
       title: "Khách hàng",
@@ -242,14 +240,14 @@ export default function TripHistoryPage() {
         return serviceType === "booking_hour"
           ? "Đặt theo giờ"
           : serviceType === "booking_destination"
-            ? "Đặt xe theo điểm đến"
-            : serviceType === "booking_share"
-              ? "Đặt xe chia sẻ"
-              : serviceType === "booking_scenic_route"
-                ? "Đặt xe lộ trình tham quan"
-                : serviceType === "booking_bus_route"
-                  ? "Đặt xe theo tuyến xe buýt"
-                  : "N/A";
+          ? "Đặt xe theo điểm đến"
+          : serviceType === "booking_share"
+          ? "Đặt xe chia sẻ"
+          : serviceType === "booking_scenic_route"
+          ? "Đặt xe lộ trình tham quan"
+          : serviceType === "booking_bus_route"
+          ? "Đặt xe theo tuyến xe buýt"
+          : "N/A";
       },
     },
     {
@@ -326,7 +324,7 @@ export default function TripHistoryPage() {
         const refundA = a.refundAmount || 0;
         const refundB = b.refundAmount || 0;
         return refundA - refundB;
-      }
+      },
     },
   ];
 
@@ -336,9 +334,9 @@ export default function TripHistoryPage() {
         <Sidebar />
         <Layout>
           <Header className="bg-white p-4 flex items-center justify-between">
-            <Title level={2} className="m-0 ml-7">
+            <h2 className="text-xl font-semibold ml-7">
               Quản lý lịch sử đặt xe
-            </Title>
+            </h2>
             <Input
               placeholder="Tìm kiếm"
               prefix={<SearchOutlined />}
