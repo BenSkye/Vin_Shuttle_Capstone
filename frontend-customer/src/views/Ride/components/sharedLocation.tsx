@@ -5,9 +5,10 @@ import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
 import { useMap } from 'react-leaflet'
 
-import '@/styles/locationselection.css'
 import { BOOKING_SHARED_SEAT } from '@/constants/booking.constants'
 import { AVAILABLE_ADDRESS, ERROR_LOG } from '@/constants/map'
+
+import '@/styles/locationselection.css'
 
 // Dynamic imports
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
@@ -40,8 +41,16 @@ interface SharedLocationProps {
     position: { lat: number; lng: number }
     address: string
   }
-  onStartLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
-  onEndLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
+  onStartLocationChange: (
+    position: { lat: number; lng: number },
+    address: string,
+    hasError?: boolean
+  ) => void
+  onEndLocationChange: (
+    position: { lat: number; lng: number },
+    address: string,
+    hasError?: boolean
+  ) => void
   detectUserLocation: () => void
   loading: boolean
   numberOfSeats: number
@@ -127,9 +136,9 @@ const RouteDisplay = ({
           const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos((startPoint.position.lat * Math.PI) / 180) *
-            Math.cos((endPoint.position.lat * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2)
+              Math.cos((endPoint.position.lat * Math.PI) / 180) *
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2)
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
           const distance = R * c
 
@@ -156,9 +165,9 @@ const RouteDisplay = ({
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos((startPoint.position.lat * Math.PI) / 180) *
-          Math.cos((endPoint.position.lat * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2)
+            Math.cos((endPoint.position.lat * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2)
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const distance = R * c
 
@@ -300,7 +309,7 @@ const CurrentLocationMarker = ({ position }: { position: L.LatLng }) => {
 
 // Function to validate if address is in Vinhomes Grand Park
 const isInVinhomesGrandPark = (address: string): boolean => {
-  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase());
+  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase())
 }
 
 const SharedLocation = ({
@@ -363,20 +372,23 @@ const SharedLocation = ({
   }, [endPoint.address])
 
   // Function to validate location and update error state
-  const validateAndUpdateLocation = useCallback((position: { lat: number; lng: number }, address: string, isStartPoint: boolean) => {
-    const isValid = isInVinhomesGrandPark(address);
-    const errorMessage = isValid ? null : ERROR_LOG.ERROR;
+  const validateAndUpdateLocation = useCallback(
+    (position: { lat: number; lng: number }, address: string, isStartPoint: boolean) => {
+      const isValid = isInVinhomesGrandPark(address)
+      const errorMessage = isValid ? null : ERROR_LOG.ERROR
 
-    setLocationError(errorMessage);
+      setLocationError(errorMessage)
 
-    if (isStartPoint) {
-      onStartLocationChange(position, address, !isValid);
-    } else {
-      onEndLocationChange(position, address, !isValid);
-    }
+      if (isStartPoint) {
+        onStartLocationChange(position, address, !isValid)
+      } else {
+        onEndLocationChange(position, address, !isValid)
+      }
 
-    return isValid;
-  }, [onStartLocationChange, onEndLocationChange]);
+      return isValid
+    },
+    [onStartLocationChange, onEndLocationChange]
+  )
 
   // Update the handleStartSearch function
   const handleStartSearch = useCallback(
@@ -389,11 +401,11 @@ const SharedLocation = ({
         const [newLat, newLng] = await geocode(startSearchQuery)
 
         // Get the full address to validate
-        const address = await reverseGeocodeOSM(newLat, newLng);
+        const address = await reverseGeocodeOSM(newLat, newLng)
 
         // Validate and update
-        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, true);
-        setStartSearchQuery(address);
+        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, true)
+        setStartSearchQuery(address)
       } catch (error) {
         console.error('Start search error:', error)
         setLocationError('Không thể tìm địa chỉ')
@@ -415,11 +427,11 @@ const SharedLocation = ({
         const [newLat, newLng] = await geocode(endSearchQuery)
 
         // Get the full address to validate
-        const address = await reverseGeocodeOSM(newLat, newLng);
+        const address = await reverseGeocodeOSM(newLat, newLng)
 
         // Validate and update
-        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, false);
-        setEndSearchQuery(address);
+        validateAndUpdateLocation({ lat: newLat, lng: newLng }, address, false)
+        setEndSearchQuery(address)
       } catch (error) {
         console.error('End search error:', error)
         setLocationError('Không thể tìm địa chỉ')
@@ -439,12 +451,12 @@ const SharedLocation = ({
 
         if (activePoint === 'start') {
           // Validate and update start location
-          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, true);
-          setStartSearchQuery(address);
+          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, true)
+          setStartSearchQuery(address)
         } else {
           // Validate and update end location
-          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, false);
-          setEndSearchQuery(address);
+          validateAndUpdateLocation({ lat: latlng.lat, lng: latlng.lng }, address, false)
+          setEndSearchQuery(address)
         }
       } catch (error) {
         console.error('Map click error:', error)
@@ -524,8 +536,9 @@ const SharedLocation = ({
     <div className="w-full space-y-4">
       <div
         ref={mapContainerRef}
-        className={`map-container relative overflow-hidden rounded-lg border border-gray-200 shadow-md ${isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen rounded-none' : 'h-[400px]'
-          }`}
+        className={`map-container relative overflow-hidden rounded-lg border border-gray-200 shadow-md ${
+          isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen rounded-none' : 'h-[400px]'
+        }`}
       >
         <MapContainer
           id="map"
@@ -640,8 +653,9 @@ const SharedLocation = ({
 
         {/* Overlay Control Panel */}
         <div
-          className={`absolute left-12 right-4 top-4 transform rounded-lg bg-white p-3 shadow-lg transition-all duration-300 ${isMenuVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-            }`}
+          className={`absolute left-12 right-4 top-4 transform rounded-lg bg-white p-3 shadow-lg transition-all duration-300 ${
+            isMenuVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+          }`}
         >
           <div className="flex flex-col gap-3">
             {/* Start Point Selection */}
@@ -655,10 +669,11 @@ const SharedLocation = ({
               <form onSubmit={handleStartSearch} className="flex gap-2">
                 <input
                   type="text"
-                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'start'
-                    ? 'border-blue-500 ring-2 ring-blue-200'
-                    : 'border-gray-300'
-                    }`}
+                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${
+                    activePoint === 'start'
+                      ? 'border-blue-500 ring-2 ring-blue-200'
+                      : 'border-gray-300'
+                  }`}
                   placeholder="Nhập địa điểm đón"
                   value={startSearchQuery}
                   onChange={(e) => setStartSearchQuery(e.target.value)}
@@ -691,8 +706,9 @@ const SharedLocation = ({
               <form onSubmit={handleEndSearch} className="flex gap-2">
                 <input
                   type="text"
-                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${activePoint === 'end' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                    }`}
+                  className={`w-full rounded-lg border p-2 text-sm shadow-sm focus:outline-none focus:ring-2 ${
+                    activePoint === 'end' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                  }`}
                   placeholder="Nhập địa điểm đến"
                   value={endSearchQuery}
                   onChange={(e) => setEndSearchQuery(e.target.value)}
@@ -717,8 +733,9 @@ const SharedLocation = ({
         {/* Map Control Buttons */}
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform gap-2 sm:gap-4">
           <button
-            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
-              }`}
+            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${
+              activePoint === 'start' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'
+            }`}
             onClick={() => setActivePoint('start')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đón trên bản đồ"
@@ -727,8 +744,9 @@ const SharedLocation = ({
             Điểm đón
           </button>
           <button
-            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
-              }`}
+            className={`flex-shrink-0 whitespace-nowrap rounded-lg px-2 py-2.5 text-sm text-white shadow-md transition-all sm:px-4 sm:text-base ${
+              activePoint === 'end' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400'
+            }`}
             onClick={() => setActivePoint('end')}
             disabled={isFetching || loading}
             aria-label="Chọn điểm đến trên bản đồ"
@@ -741,11 +759,7 @@ const SharedLocation = ({
 
       {/* Seat Selection */}
       <div className="space-y-2">
-
-        <div className="flex items-center gap-4">
-
-
-        </div>
+        <div className="flex items-center gap-4"></div>
       </div>
 
       {/* Trip Information */}
@@ -785,7 +799,6 @@ const SharedLocation = ({
               </svg>
               <span className="font-medium text-gray-700">Khoảng {routeInfo.duration} phút</span>
             </div>
-
           </div>
         </div>
       )}

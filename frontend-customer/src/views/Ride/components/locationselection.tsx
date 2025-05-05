@@ -1,14 +1,15 @@
-import React, { memo, useCallback, useEffect, useState, useRef } from 'react'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
-import { useMap } from 'react-leaflet'
 import Image from 'next/image'
+import { useMap } from 'react-leaflet'
 
-import '@/styles/locationselection.css'
 import { AVAILABLE_ADDRESS, ERROR_LOG } from '@/constants/map'
+
 import { LocationPoint } from '@/interface/map.interface'
+import '@/styles/locationselection.css'
 import { isEqual } from '@/utils/index.utils'
 
 // Dynamic imports
@@ -37,7 +38,11 @@ interface LocationSelectionProps {
     position: { lat: number; lng: number }
     address: string
   }
-  onLocationChange: (position: { lat: number; lng: number }, address: string, hasError?: boolean) => void
+  onLocationChange: (
+    position: { lat: number; lng: number },
+    address: string,
+    hasError?: boolean
+  ) => void
   detectUserLocation: () => void
   loading: boolean
 }
@@ -146,10 +151,10 @@ const useDebounce = <T,>(value: T, delay: number): T => {
 // Centered marker component that remains fixed in the center while map moves
 const CenteredMarker = ({
   onMapMoveEnd,
-  position
+  position,
 }: {
-  onMapMoveEnd: (center: L.LatLng) => void;
-  position?: { lat: number; lng: number } | null;
+  onMapMoveEnd: (center: L.LatLng) => void
+  position?: { lat: number; lng: number } | null
 }) => {
   const map = useMap()
   const [centerPosition, setCenterPosition] = useState<L.LatLng>(map.getCenter())
@@ -158,10 +163,10 @@ const CenteredMarker = ({
 
   useEffect(() => {
     if (position && map.getCenter().distanceTo(L.latLng(position)) > 10) {
-      const latLng = L.latLng(position.lat, position.lng);
-      map.flyTo(latLng, map.getZoom(), { duration: 1 });
+      const latLng = L.latLng(position.lat, position.lng)
+      map.flyTo(latLng, map.getZoom(), { duration: 1 })
     }
-  }, [position]);
+  }, [position])
 
   useEffect(() => {
     if (!map) return
@@ -307,7 +312,7 @@ const reverseGeocodeOSM = async (lat: number, lon: number): Promise<string> => {
 
 // Function to validate if address is in Vinhomes Grand Park
 const isInVinhomesGrandPark = (address: string): boolean => {
-  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase());
+  return address.toLowerCase().includes(AVAILABLE_ADDRESS.NAME_OF_ADDRESS.toLowerCase())
 }
 
 const LocationSelection = memo(
@@ -318,8 +323,8 @@ const LocationSelection = memo(
     const [isDragging, setIsDragging] = useState(false)
     const [markerAnimation, setMarkerAnimation] = useState<string>('animate-marker-hover')
     const [locationError, setLocationError] = useState<string | null>(null)
-    const [internalPosition, setInternalPosition] = useState(startPoint.position);
-    const isProgrammaticUpdate = useRef(false);
+    const [internalPosition, setInternalPosition] = useState(startPoint.position)
+    const isProgrammaticUpdate = useRef(false)
 
     const {
       position: currentPosition,
@@ -354,12 +359,10 @@ const LocationSelection = memo(
 
     useEffect(() => {
       if (!isEqual(startPoint.position, internalPosition)) {
-        isProgrammaticUpdate.current = true;
-        setInternalPosition(startPoint.position);
+        isProgrammaticUpdate.current = true
+        setInternalPosition(startPoint.position)
       }
     }, [startPoint.position])
-
-
 
     // Handle map interaction states
     const handleMapInteractionStart = useCallback(() => {
@@ -377,17 +380,20 @@ const LocationSelection = memo(
       }, 600)
     }, [])
 
-    const validateAndUpdateLocation = useCallback((position: { lat: number; lng: number }, address: string) => {
-      if (isInVinhomesGrandPark(address)) {
-        setLocationError(null)
-        onLocationChange(position, address, false)
-        return true;
-      } else {
-        setLocationError(ERROR_LOG.ERROR)
-        onLocationChange(position, address, true)
-        return false;
-      }
-    }, [onLocationChange])
+    const validateAndUpdateLocation = useCallback(
+      (position: { lat: number; lng: number }, address: string) => {
+        if (isInVinhomesGrandPark(address)) {
+          setLocationError(null)
+          onLocationChange(position, address, false)
+          return true
+        } else {
+          setLocationError(ERROR_LOG.ERROR)
+          onLocationChange(position, address, true)
+          return false
+        }
+      },
+      [onLocationChange]
+    )
 
     const handleSearch = useCallback(
       async (e?: React.FormEvent) => {
@@ -448,7 +454,9 @@ const LocationSelection = memo(
             setIsFetching(false)
           }
         }
-      }, [validateAndUpdateLocation, handleMapInteractionEnd])
+      },
+      [validateAndUpdateLocation, handleMapInteractionEnd]
+    )
 
     const handleDetectLocation = useCallback(async () => {
       try {
@@ -540,14 +548,11 @@ const LocationSelection = memo(
 
             {currentPosition && <CurrentLocationMarker position={currentPosition} />}
 
-            <CenteredMarker
-              onMapMoveEnd={handleMapMoveEnd}
-              position={internalPosition}
-            />
+            <CenteredMarker onMapMoveEnd={handleMapMoveEnd} position={internalPosition} />
           </MapContainer>
 
           {/* Fixed center marker */}
-          <div className="absolute left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-full pointer-events-none marker-wrapper">
+          <div className="marker-wrapper pointer-events-none absolute left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-full">
             <Image
               src="/images/location.png"
               alt="Location marker"
@@ -560,10 +565,26 @@ const LocationSelection = memo(
 
           {/* Loading indicator */}
           {isFetching && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white bg-opacity-90 px-4 py-2 rounded-full shadow-md text-sm font-medium flex items-center space-x-2 animate-fade-in">
-              <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 animate-fade-in items-center space-x-2 rounded-full bg-white bg-opacity-90 px-4 py-2 text-sm font-medium shadow-md">
+              <svg
+                className="h-4 w-4 animate-spin text-blue-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               <span>Đang tìm địa chỉ...</span>
             </div>
@@ -571,7 +592,9 @@ const LocationSelection = memo(
         </div>
 
         {geolocationError && (
-          <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">{geolocationError}</div>
+          <div className="mt-2 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+            {geolocationError}
+          </div>
         )}
       </div>
     )

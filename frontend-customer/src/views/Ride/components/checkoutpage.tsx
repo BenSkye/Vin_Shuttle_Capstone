@@ -14,8 +14,8 @@ import {
   BookingSharePayloadDto,
   Trip,
 } from '@/interface/trip.interface'
-import { getPersonalTripById } from '@/service/trip.service'
 import { routeService } from '@/service/mapScenic'
+import { getPersonalTripById } from '@/service/trip.service'
 
 // Dynamic import for ScenicRouteMiniMap
 const ScenicRouteMiniMap = dynamic(() => import('@/views/Trips/components/ScenicRouteMiniMap'), {
@@ -86,7 +86,8 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
 
           // Collect route IDs for scenic routes
           if (trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE) {
-            const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+            const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
+              .routeId
             if (routeId) {
               routeIds.push(routeId)
             }
@@ -156,15 +157,15 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
           </div>
         )
       case ServiceType.BOOKING_SCENIC_ROUTE:
-        const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
+        const routeId = (trip.servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute
+          .routeId
         const routeName = routeNames[routeId] || 'Đang tải tên tuyến...'
 
         return (
           <div className="mb-4 rounded-lg border p-4">
             <h3 className="mb-2 text-lg font-semibold">Tour tham quan</h3>
             <p className="text-sm md:text-base">
-              <span className="font-semibold">Tuyến đường:</span>{' '}
-              {routeName}
+              <span className="font-semibold">Tuyến đường:</span> {routeName}
             </p>
             <p className="text-sm md:text-base">
               <span className="font-semibold">Khoảng cách:</span>{' '}
@@ -263,9 +264,7 @@ const CheckoutPage = ({ bookingResponse }: { bookingResponse: BookingResponse })
         </div>
 
         <div className="mb-4 md:mb-6">
-          <h4 className="mb-2 text-base font-semibold md:mb-4 md:text-lg">
-            Chi tiết các cuốc xe
-          </h4>
+          <h4 className="mb-2 text-base font-semibold md:mb-4 md:text-lg">Chi tiết các cuốc xe</h4>
           <div className="space-y-3">
             {trips?.map((trip) => <div key={trip._id}>{renderTripDetails(trip)}</div>)}
           </div>

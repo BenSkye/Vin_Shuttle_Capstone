@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, useEffect } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek, isBefore, startOfDay } from 'date-fns';
 import { Button } from 'antd';
 import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
@@ -28,11 +28,13 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     );
 
     const currentWeek = externalCurrentWeek || internalCurrentWeek;
-    console.log('Current Week:', currentWeek);
-    const setCurrentWeek = (week: Date) => {
-        setInternalCurrentWeek(week);
-        onWeekChange?.(week);
-    };
+
+    // Update internal state when external state changes
+    useEffect(() => {
+        if (externalCurrentWeek) {
+            setInternalCurrentWeek(externalCurrentWeek);
+        }
+    }, [externalCurrentWeek]);
 
     // Expose current week through ref
     React.useImperativeHandle(ref, () => ({
@@ -49,16 +51,32 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
         D: '15:00 - 23:00',
     };
 
-
-
     // Tạo các ngày trong tuần hiện tại
     const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
 
-    console.log('Days in Current Week:', days.map(day => format(day, 'yyyy-MM-dd')));
+    const prevWeek = () => {
+        const newWeek = subWeeks(currentWeek, 1);
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
 
-    const prevWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
-    const nextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
-    const today = () => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const nextWeek = () => {
+        const newWeek = addWeeks(currentWeek, 1);
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
+
+    const today = () => {
+        const newWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
 
     // Kiểm tra nếu ngày đã qua
     const isDateInPast = (date: Date) => {
@@ -102,11 +120,9 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
 
             // Kiểm tra nếu ngày đã qua
             if (isDateInPast(actualDate)) {
-                console.log(`Không thể đặt lịch cho ngày đã qua: ${format(actualDate, 'yyyy-MM-dd')}`);
                 return; // Không cho phép đặt lịch cho ngày đã qua
             }
 
-            console.log(`Đã nhấp vào: ${format(actualDate, 'yyyy-MM-dd')} - Ca ${time}`);
             onSlotClick(time, dayIndex, actualDate);
         }
     };

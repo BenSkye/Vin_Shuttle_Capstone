@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Form, Button, Select, message, Alert, } from 'antd';
 import { Activity, VehiclePopulateCategory } from '@/interfaces/index';
-import EventCalendar from '@/components/EventCalendar';
+
 
 
 import { Driver } from '@/interfaces/index';
@@ -776,9 +776,9 @@ const SchedulePage = () => {
                 <div className="p-4 border-t mt-4">
                     <div className="flex gap-4" >
                         <h4 className="font-medium mb-2">Tổng số giờ làm việc:</h4>
-                        <p>{totalWorkingHours} giờ</p>
+                        <p>{Math.round(totalWorkingHours)} giờ</p>
                         <h4 className="font-medium mb-2">Số giờ làm việc thực tế:</h4>
-                        <p>{actualWorkingHours} giờ</p>
+                        <p>{Math.round(actualWorkingHours)} giờ</p>
                     </div>
                 </div>
 
@@ -801,10 +801,10 @@ const SchedulePage = () => {
                     {renderModalContent()}
                 </Modal>
             </div>
-            <div className="w-full lg:w-1/3 flex flex-col gap-8">
-                <EventCalendar />
 
-            </div>
+            {/* <EventCalendar /> */}
+
+
         </div>
     );
 };

@@ -40,4 +40,4 @@ export interface ApiError {
 
 export interface UseAuthProps {
   onLoginSuccess?: (data: LoginResponse) => void
-} 
+}

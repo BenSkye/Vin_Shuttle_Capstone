@@ -15,7 +15,6 @@ export interface LocationPoint {
   address: string
 }
 
-
 export interface MapState {
   pickupLocation: L.LatLng | null
 
