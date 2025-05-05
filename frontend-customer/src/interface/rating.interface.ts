@@ -9,14 +9,13 @@ export interface Rating {
 }
 
 export interface RatingQuery {
-  sortOrder?: 'asc' | 'desc';
-  orderBy?: string;
-  skip?: number;
-  limit?: number;
-  serviceType?: string;
-  feedback?: string;
-  rate?: number;
-  driverId?: string;
-  customerId?: string;
+  sortOrder?: 'asc' | 'desc'
+  orderBy?: string
+  skip?: number
+  limit?: number
+  serviceType?: string
+  feedback?: string
+  rate?: number
+  driverId?: string
+  customerId?: string
 }
-

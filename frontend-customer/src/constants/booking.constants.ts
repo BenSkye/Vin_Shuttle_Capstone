@@ -23,7 +23,7 @@ export const BookingHourDuration = {
 export const SystemOperatingHours = {
   START: 7,
   END: 23,
-};
+}
 
 export const BOOKING_BUFFER_MINUTES = 5 as const
 

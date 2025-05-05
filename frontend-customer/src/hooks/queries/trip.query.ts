@@ -18,7 +18,6 @@ export const useTripDetailQuery = (tripId: string) => {
   })
 }
 
-
 export const useCancelTripMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
@@ -39,5 +38,3 @@ export const useCancelTripMutation = () => {
     },
   })
 }
-
-

@@ -110,7 +110,9 @@ export default function SignupPage() {
                 animate={{ opacity: 1 }}
                 className="text-center text-sm font-medium text-red-400 drop-shadow-md"
               >
-                {registerError instanceof Error ? registerError.message : 'Có lỗi xảy ra. Vui lòng thử lại.'}
+                {registerError instanceof Error
+                  ? registerError.message
+                  : 'Có lỗi xảy ra. Vui lòng thử lại.'}
               </motion.p>
             )}
 

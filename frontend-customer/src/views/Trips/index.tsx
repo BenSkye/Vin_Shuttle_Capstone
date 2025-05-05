@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Spin, notification, Tabs } from 'antd'
+
+import { Spin, Tabs, notification } from 'antd'
 
 import { TripStatus, TripStatusInfo } from '@/constants/trip.enum'
 import { useTripQuery } from '@/hooks/queries/trip.query'
 import useTripSocket from '@/hooks/sockets/useTripSocket'
-import { Trip } from '@/interface/trip.interface'
+
 import NoTrips from '@/views/Trips/components/NoTrips'
 import TripCard from '@/views/Trips/components/TripCard'
+
+import { Trip } from '@/interface/trip.interface'
 
 const TripListPage = () => {
   const { data: trips, isLoading, error } = useTripQuery()
@@ -53,18 +56,19 @@ const TripListPage = () => {
 
     if (activeTab === 'active') {
       return tripList
-        .filter(trip =>
-          trip.status === TripStatus.BOOKING ||
-          trip.status === TripStatus.CONFIRMED ||
-          trip.status === TripStatus.PICKUP ||
-          trip.status === TripStatus.IN_PROGRESS
+        .filter(
+          (trip) =>
+            trip.status === TripStatus.BOOKING ||
+            trip.status === TripStatus.CONFIRMED ||
+            trip.status === TripStatus.PICKUP ||
+            trip.status === TripStatus.IN_PROGRESS
         )
         .sort((a, b) => {
           const statusOrder = {
             [TripStatus.IN_PROGRESS]: 4,
             [TripStatus.PICKUP]: 3,
             [TripStatus.CONFIRMED]: 2,
-            [TripStatus.BOOKING]: 1
+            [TripStatus.BOOKING]: 1,
           }
 
           if (statusOrder[a.status] !== statusOrder[b.status]) {
@@ -75,10 +79,11 @@ const TripListPage = () => {
         })
     } else {
       return tripList
-        .filter(trip =>
-          trip.status === TripStatus.COMPLETED ||
-          trip.status === TripStatus.CANCELLED ||
-          trip.status === TripStatus.DROPPED_OFF
+        .filter(
+          (trip) =>
+            trip.status === TripStatus.COMPLETED ||
+            trip.status === TripStatus.CANCELLED ||
+            trip.status === TripStatus.DROPPED_OFF
         )
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     }
@@ -108,39 +113,41 @@ const TripListPage = () => {
           {
             key: 'active',
             label: 'Hoạt động',
-            children: filteredTrips.length === 0 ? (
-              <NoTrips isActiveTab />
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredTrips.map((trip, index) => (
-                  <TripCard
-                    key={trip._id}
-                    trip={trip}
-                    index={index}
-                    getStatusInfo={getStatusInfo}
-                  />
-                ))}
-              </div>
-            )
+            children:
+              filteredTrips.length === 0 ? (
+                <NoTrips isActiveTab />
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredTrips.map((trip, index) => (
+                    <TripCard
+                      key={trip._id}
+                      trip={trip}
+                      index={index}
+                      getStatusInfo={getStatusInfo}
+                    />
+                  ))}
+                </div>
+              ),
           },
           {
             key: 'history',
             label: 'Lịch sử',
-            children: filteredTrips.length === 0 ? (
-              <NoTrips isActiveTab={false} />
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredTrips.map((trip, index) => (
-                  <TripCard
-                    key={trip._id}
-                    trip={trip}
-                    index={index}
-                    getStatusInfo={getStatusInfo}
-                  />
-                ))}
-              </div>
-            )
-          }
+            children:
+              filteredTrips.length === 0 ? (
+                <NoTrips isActiveTab={false} />
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredTrips.map((trip, index) => (
+                    <TripCard
+                      key={trip._id}
+                      trip={trip}
+                      index={index}
+                      getStatusInfo={getStatusInfo}
+                    />
+                  ))}
+                </div>
+              ),
+          },
         ]}
       />
     </div>

@@ -1,7 +1,7 @@
-import { QueryOptions } from "@/interface/index.interface";
+import { QueryOptions } from '@/interface/index.interface'
 
 export interface ScenicRouteQuery extends QueryOptions {
-    totalDistance?: number;
-    status?: string;
-    name?: string;
+  totalDistance?: number
+  status?: string
+  name?: string
 }

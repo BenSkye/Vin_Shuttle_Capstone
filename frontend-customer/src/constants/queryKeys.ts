@@ -9,5 +9,5 @@ export const QUERY_KEYS = {
   SCENIC_ROUTE: {
     LIST: () => ['scenicRoute'] as const,
     DETAIL: (id: string) => ['scenicRoute', id] as const,
-  }
+  },
 }

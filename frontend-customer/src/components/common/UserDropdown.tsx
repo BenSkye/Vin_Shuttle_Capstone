@@ -1,14 +1,8 @@
 import Link from 'next/link'
-import {
-  FiCreditCard,
-  FiLogOut,
-  FiMessageSquare,
-  FiUser,
-  FiUserCheck,
-} from 'react-icons/fi'
+import { FiCreditCard, FiLogOut, FiMessageSquare, FiUser, FiUserCheck } from 'react-icons/fi'
+import { IoCarOutline } from 'react-icons/io5'
 
 import { Routes } from '@/constants/routers'
-import { IoCarOutline } from 'react-icons/io5'
 
 interface UserDropdownProps {
   userName: string

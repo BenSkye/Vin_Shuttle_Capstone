@@ -52,9 +52,9 @@ const EditProfilePage = () => {
     const { name, value } = e.target
 
     // Clear previous error for this field
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [name]: ''
+      [name]: '',
     }))
 
     // Special validation for phone number
@@ -63,20 +63,20 @@ const EditProfilePage = () => {
       const digitsOnly = value.replace(/\D/g, '')
 
       // Update with digits only
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: digitsOnly
+        [name]: digitsOnly,
       }))
 
       // Validate if the field is not empty
       if (digitsOnly && !validatePhoneNumber(digitsOnly)) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          phone: 'Số điện thoại không hợp lệ'
+          phone: 'Số điện thoại không hợp lệ',
         }))
       }
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
       }))

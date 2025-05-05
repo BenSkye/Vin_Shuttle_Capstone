@@ -2,15 +2,14 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { Radio, Space, Typography, message, notification, Steps } from 'antd'
-
+import { Radio, Space, Steps, Typography, message, notification } from 'antd'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 
 import { PaymentMethod } from '@/constants/payment.enum'
 
 import CheckoutPage from '@/views/Ride/components/checkoutpage'
 import SharedLocation from '@/views/Ride/components/sharedLocation'
-import Image from 'next/image';
 
 import {
   AvailableVehicle,
@@ -28,9 +27,9 @@ const VehicleSelection = dynamic(() => import('@/views/Ride/components/vehiclese
 //yessir
 
 const DestinationBookingPage = () => {
-  const [currentStep, setCurrentStep] = useState<'location' | 'vehicle' | 'payment' | 'confirmation' | 'checkout'>(
-    'location'
-  )
+  const [currentStep, setCurrentStep] = useState<
+    'location' | 'vehicle' | 'payment' | 'confirmation' | 'checkout'
+  >('location')
   const [passengerCount, setPassengerCount] = useState(1)
   const [startPoint, setStartPoint] = useState<{
     position: { lat: number; lng: number }
@@ -85,7 +84,7 @@ const DestinationBookingPage = () => {
         address: newAddress,
       })
       // Track if there's a location error
-      setStartLocationHasError(hasError || false);
+      setStartLocationHasError(hasError || false)
     },
     []
   )
@@ -97,7 +96,7 @@ const DestinationBookingPage = () => {
         address: newAddress,
       })
       // Track if there's a location error
-      setEndLocationHasError(hasError || false);
+      setEndLocationHasError(hasError || false)
     },
     []
   )
@@ -307,7 +306,13 @@ const DestinationBookingPage = () => {
   }, [prepareBookingPayload])
 
   const handleNextStep = useCallback(() => {
-    if (currentStep === 'location' && startPoint.address && endPoint.address && !startLocationHasError && !endLocationHasError) {
+    if (
+      currentStep === 'location' &&
+      startPoint.address &&
+      endPoint.address &&
+      !startLocationHasError &&
+      !endLocationHasError
+    ) {
       fetchAvailableVehicles()
     } else if (currentStep === 'vehicle' && selectedVehicles.length > 0) {
       setCurrentStep('payment')
@@ -455,7 +460,6 @@ const DestinationBookingPage = () => {
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-
               </Space>
             </Radio.Group>
 
@@ -490,8 +494,17 @@ const DestinationBookingPage = () => {
               <div className="mb-6 space-y-4">
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -502,8 +515,17 @@ const DestinationBookingPage = () => {
 
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -514,7 +536,12 @@ const DestinationBookingPage = () => {
 
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                       <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h-3a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                     </svg>
@@ -522,16 +549,27 @@ const DestinationBookingPage = () => {
                   <div>
                     <h3 className="font-medium text-gray-900">Loại xe</h3>
                     <p className="text-gray-600">
-                      {selectedVehicles.map(vehicle => `${vehicle.name} (${vehicle.quantity})`).join(', ')}
+                      {selectedVehicles
+                        .map((vehicle) => `${vehicle.name} (${vehicle.quantity})`)
+                        .join(', ')}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -548,8 +586,17 @@ const DestinationBookingPage = () => {
 
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -560,8 +607,17 @@ const DestinationBookingPage = () => {
 
                 <div className="flex items-start">
                   <div className="mr-4 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -650,7 +706,7 @@ const DestinationBookingPage = () => {
           items={items}
           responsive
           direction="horizontal"
-          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+          className="custom-steps [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!text-blue-500 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-title]:!text-xs [&_.ant-steps-item-title]:!font-medium sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2"
         />
       </div>
 
