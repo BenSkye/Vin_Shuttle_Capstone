@@ -55,11 +55,14 @@ const VehicleSelection: React.FC<VehicleSelectionProps> = ({
             return (
               <Card
                 key={vehicle.vehicleCategory._id}
-                className={`transform transition-all duration-200 hover:shadow-lg ${isSelected ? 'border-2 border-blue-500 bg-blue-50' : 'border border-gray-200'
-                  }`}
+                className={`transform transition-all duration-200 hover:shadow-lg ${
+                  isSelected ? 'border-2 border-blue-500 bg-blue-50' : 'border border-gray-200'
+                }`}
                 styles={{ body: { padding: '1.5rem' } }}
               >
-                <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">Chọn xe</h2>
+                <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">
+                  Chọn xe
+                </h2>
                 <div className="mb-4 flex items-center gap-4">
                   <div className="rounded-full bg-blue-100 p-3">
                     <FaCar className="text-2xl text-blue-500" />

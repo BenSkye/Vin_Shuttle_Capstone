@@ -37,11 +37,11 @@ const useTripSocket = (id?: string) => {
   const refetch = () => {
     if (id) {
       queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.TRIPS.DETAIL(id)
+        queryKey: QUERY_KEYS.TRIPS.DETAIL(id),
       })
     } else {
       queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.TRIPS.LIST()
+        queryKey: QUERY_KEYS.TRIPS.LIST(),
       })
     }
   }

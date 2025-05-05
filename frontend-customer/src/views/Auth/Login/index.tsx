@@ -8,8 +8,9 @@ import Link from 'next/link'
 import { FiPhone } from 'react-icons/fi'
 
 import { Routes } from '@/constants/routers'
-import { useAuth as useAuthContext } from '@/context/AuthContext'
 import { useAuth as useAuthHook } from '@/hooks/useAuth'
+
+import { useAuth as useAuthContext } from '@/context/AuthContext'
 import { ApiError } from '@/interface/auth.interface'
 import { getErrorMessage } from '@/utils/index.utils'
 
@@ -58,7 +59,7 @@ export default function LoginPage() {
       console.log(err)
       const error = err as ApiError
       // Check for 404 error specifically
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error)
       setError(errorMessage)
       // console.log('Error response:', error.response)
       // if (error.status === 404) {
@@ -151,7 +152,10 @@ export default function LoginPage() {
                   animate={{ opacity: 1 }}
                   className="text-center text-sm font-medium text-red-400 drop-shadow-md"
                 >
-                  {error || (loginError instanceof Error ? loginError.message : 'Có lỗi xảy ra. Vui lòng thử lại.')}
+                  {error ||
+                    (loginError instanceof Error
+                      ? loginError.message
+                      : 'Có lỗi xảy ra. Vui lòng thử lại.')}
                 </motion.p>
               )}
 

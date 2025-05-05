@@ -5,12 +5,16 @@ import { useEffect, useState } from 'react'
 import { Button, Input, Modal, Rate, Spin, notification } from 'antd'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import { BsChatDots } from 'react-icons/bs'
 import { FaChevronDown, FaChevronUp, FaClock, FaMap, FaMapMarkerAlt } from 'react-icons/fa'
 import { IoCarSport } from 'react-icons/io5'
 
 import { ServiceType, serviceTypeText } from '@/constants/service-type.enum'
 import { TripStatus } from '@/constants/trip.enum'
+import { useScenicRouteDetailQuery } from '@/hooks/queries/scenicRoute.query'
+import { useCancelTripMutation, useTripDetailQuery } from '@/hooks/queries/trip.query'
+import useTripSocket from '@/hooks/sockets/useTripSocket'
 
 import DesRealTimeTripMap from '@/views/Trips/components/DesRealTimeTripMap'
 import HourRealTimeTripMap from '@/views/Trips/components/HourRealTimeTripMap'
@@ -26,14 +30,10 @@ import {
   BookingSharePayloadDto,
   Trip,
 } from '@/interface/trip.interface'
+import { getErrorMessage } from '@/utils/index.utils'
 
 // import useTripSocket from '../../../hooks/useTripSocket'
 import { cancelTrip } from '../../../service/trip.service'
-import { useCancelTripMutation, useTripDetailQuery } from '@/hooks/queries/trip.query'
-import toast from 'react-hot-toast'
-import { getErrorMessage } from '@/utils/index.utils'
-import { useScenicRouteDetailQuery } from '@/hooks/queries/scenicRoute.query'
-import useTripSocket from '@/hooks/sockets/useTripSocket'
 
 export default function DetailTripPage({ id }: { id: string }) {
   const { data, isLoading, error } = useTripDetailQuery(id)
@@ -45,18 +45,15 @@ export default function DetailTripPage({ id }: { id: string }) {
   // const [isCanceling, setIsCanceling] = useState(false)
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
   const { mutate: cancelTrip, isPending: isCanceling } = useCancelTripMutation()
-  const [scenicRouteDetail, setScenicRouteDetail] = useState(false);
+  const [scenicRouteDetail, setScenicRouteDetail] = useState(false)
   const { data: scenicRouteData } = useScenicRouteDetailQuery(
     (data as Trip)?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE
       ? ((data as Trip).servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
       : ''
-  );
+  )
   const handleCancelTrip = async () => {
     if (!cancelReason.trim()) {
-      toast.error(
-        'Vui lòng nhập lý do hủy cuốc xe',
-        { position: 'top-center' }
-      )
+      toast.error('Vui lòng nhập lý do hủy cuốc xe', { position: 'top-center' })
       return
     }
 
@@ -70,10 +67,7 @@ export default function DetailTripPage({ id }: { id: string }) {
         },
         onError: (error) => {
           const message = getErrorMessage(error)
-          toast.error(
-            message,
-            { position: 'top-center' }
-          )
+          toast.error(message, { position: 'top-center' })
         },
       }
     )
@@ -170,10 +164,10 @@ export default function DetailTripPage({ id }: { id: string }) {
                   <p className={`${valueStyle} sm:ml-auto`}>
                     {trip.timeStartEstimate
                       ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
-                        timeZone: 'Asia/Ho_Chi_Minh',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
+                          timeZone: 'Asia/Ho_Chi_Minh',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
                       : 'Chưa xác định'}
                   </p>
                 </div>
@@ -251,12 +245,18 @@ export default function DetailTripPage({ id }: { id: string }) {
                   <>
                     <button
                       onClick={() => setScenicRouteDetail(!scenicRouteDetail)}
-                      className="flex items-center gap-1.5 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600 transition-colors duration-200"
-                      aria-label={scenicRouteDetail ? 'Ẩn thông tin lộ trình' : 'Thông tin lộ trình ngắm cảnh'}
+                      className="flex items-center gap-1.5 rounded-md bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-colors duration-200 hover:bg-blue-600"
+                      aria-label={
+                        scenicRouteDetail ? 'Ẩn thông tin lộ trình' : 'Thông tin lộ trình ngắm cảnh'
+                      }
                     >
                       <FaMap className="h-3 w-3" />
                       {scenicRouteDetail ? 'Ẩn thông tin lộ trình' : 'Thông tin lộ trình ngắm cảnh'}
-                      {scenicRouteDetail ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
+                      {scenicRouteDetail ? (
+                        <FaChevronUp className="h-3 w-3" />
+                      ) : (
+                        <FaChevronDown className="h-3 w-3" />
+                      )}
                     </button>
                     {scenicRouteDetail && (
                       <motion.div
@@ -268,7 +268,6 @@ export default function DetailTripPage({ id }: { id: string }) {
                       >
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                           <div className="flex items-center gap-2">
-
                             <p className={labelStyle}>Tên lộ trình</p>
                           </div>
                           <p className={`${valueStyle} sm:ml-auto`}>{scenicRouteData.name}</p>
@@ -304,9 +303,11 @@ export default function DetailTripPage({ id }: { id: string }) {
                               {scenicRouteData.waypoints.map((waypoint, index) => (
                                 <div
                                   key={waypoint.id}
-                                  className="flex items-center gap-2 rounded-md bg-gray-50 p-2 border border-gray-200"
+                                  className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-2"
                                 >
-                                  <span className="font-medium text-xs text-gray-700">{index + 1}.</span>
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {index + 1}.
+                                  </span>
                                   <span className="text-xs text-gray-600">{waypoint.name}</span>
                                 </div>
                               ))}
@@ -582,12 +583,10 @@ export default function DetailTripPage({ id }: { id: string }) {
           <div className="mb-6 flex flex-col items-start gap-4 sm:mb-8 sm:flex-row sm:items-center">
             <IoCarSport className="text-3xl text-blue-500 sm:text-4xl" />
             <div className="space-y-2">
-              <div >
+              <div>
                 <span className="text-xs font-medium text-gray-500">Mã cuốc xe</span>
                 <div className="flex items-baseline space-x-2">
-                  <h4 className="text-2xl font-bold text-black sm:text-3xl">
-                    {trip.code}
-                  </h4>
+                  <h4 className="text-2xl font-bold text-black sm:text-3xl">{trip.code}</h4>
                   <p className="mt-1 text-sm font-medium text-blue-600">
                     {serviceTypeText[trip.serviceType]}
                   </p>

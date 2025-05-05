@@ -14,6 +14,7 @@ import {
   FiUserCheck,
   FiX,
 } from 'react-icons/fi'
+import { IoCarOutline } from 'react-icons/io5'
 
 import { Routes } from '@/constants/routers'
 
@@ -22,7 +23,6 @@ import { UserDropdown } from '@/components/common/UserDropdown'
 import { Logo } from '@/components/icons/Logo'
 
 import { INotification } from '@/interface/notification'
-import { IoCarOutline } from 'react-icons/io5'
 
 interface PrivateHeaderProps {
   userName: string
@@ -259,8 +259,9 @@ export function PrivateHeader({
                           >
                             <span>{item.label}</span>
                             <FiChevronDown
-                              className={`h-5 w-5 transition-transform ${expandedSections.includes(item.label) ? 'rotate-180' : ''
-                                }`}
+                              className={`h-5 w-5 transition-transform ${
+                                expandedSections.includes(item.label) ? 'rotate-180' : ''
+                              }`}
                             />
                           </button>
                           <AnimatePresence>
@@ -311,8 +312,9 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Thông báo</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${expandedSections.includes('notifications') ? 'rotate-180' : ''
-                      }`}
+                    className={`h-5 w-5 transition-transform ${
+                      expandedSections.includes('notifications') ? 'rotate-180' : ''
+                    }`}
                   />
                 </button>
                 <AnimatePresence>
@@ -374,8 +376,9 @@ export function PrivateHeader({
                     <span className="text-lg font-medium text-content-secondary">Tài khoản</span>
                   </div>
                   <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${expandedSections.includes('userActions') ? 'rotate-180' : ''
-                      }`}
+                    className={`h-5 w-5 transition-transform ${
+                      expandedSections.includes('userActions') ? 'rotate-180' : ''
+                    }`}
                   />
                 </button>
                 <AnimatePresence>
