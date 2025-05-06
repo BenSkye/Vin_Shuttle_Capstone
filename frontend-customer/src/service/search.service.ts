@@ -56,9 +56,14 @@ export const vehicleSearchRoute = async (
     const response = await apiClient.get(
       `/search/available-vehicle-search-scenic-route/${date}/${startTime}/${scenicRouteId}`
     )
+    console.log('bookingsearchroute', response)
     return Array.isArray(response.data) ? response.data : []
   } catch (error) {
-    console.error('Error in vehicleSearchRoute:', error)
-    return []
+    console.error('Error in vehicleSearchRoute:', error.response?.data?.vnMessage || error.message)
+    if (error instanceof AxiosError && error.response?.data) {
+      const serverError = error.response.data
+      throw new Error(serverError.vnMessage || serverError.message || 'Không thể tìm thấy phương tiện phù hợp')
+    }
+    throw new Error('Lỗi kết nối máy chủ khi tìm kiếm phương tiện')
   }
 }

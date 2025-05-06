@@ -377,14 +377,25 @@ const RatingPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-6 overflow-x-auto">
-                    {loading ? (
-                        <div className="px-4 py-16 text-center text-gray-500">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-600 mb-2"></div>
-                            <p>Đang tải dữ liệu...</p>
+
+
+                {loading ? (
+                    <div className="px-4 py-16 text-center text-gray-500">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-600 mb-2"></div>
+                        <p>Đang tải dữ liệu...</p>
+                    </div>
+                ) : filteredRatings.length > 0 ? (
+                    <>
+                        {/* Table Header */}
+                        <div className="grid grid-cols-1 sm:grid-cols-5 items-center px-4 py-3 border-t bg-gray-50 text-sm font-medium text-gray-700">
+                            <div className="col-span-2">Đánh giá</div>
+                            <div>Ngày đánh giá</div>
+                            <div>ID Khách hàng</div>
+                            <div>ID Tài xế</div>
                         </div>
-                    ) : filteredRatings.length > 0 ? (
-                        currentItems.map((review) => (
+
+                        {/* Table Rows */}
+                        {currentItems.map((review) => (
                             <div
                                 key={review._id}
                                 className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center px-4 py-3 border-t text-sm gap-2 sm:gap-0"
@@ -402,13 +413,15 @@ const RatingPage: React.FC = () => {
                                 <div className="text-gray-600 truncate">{review.customerId}</div>
                                 <div className="text-gray-600 truncate">{review.driverId}</div>
                             </div>
-                        ))
-                    ) : (
-                        <div className="px-4 py-6 text-center text-gray-500">
-                            Không tìm thấy đánh giá nào
-                        </div>
-                    )}
-                </div>
+                        ))}
+                    </>
+                ) : (
+                    <div className="px-4 py-6 text-center text-gray-500">
+                        Không tìm thấy đánh giá nào
+                    </div>
+                )}
+
+
 
                 {/* Pagination controls */}
                 {!loading && filteredRatings.length > 0 && <PaginationControls />}
