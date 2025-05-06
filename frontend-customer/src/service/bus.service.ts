@@ -1,4 +1,5 @@
 import axios from 'axios'
+
 import apiClient from './apiClient'
 
 export interface Position {
@@ -95,12 +96,15 @@ export const getAllBusRoutes = async (): Promise<BusRoute[]> => {
   }
 }
 
-export const getBusScheduleByRoute = async (routeId: string, date?: string): Promise<BusSchedule[]> => {
+export const getBusScheduleByRoute = async (
+  routeId: string,
+  date?: string
+): Promise<BusSchedule[]> => {
   try {
-    const url = date 
+    const url = date
       ? `/bus-schedules/route/${routeId}?date=${date}`
       : `/bus-schedules/route/${routeId}`
-    
+
     const response = await apiClient.get(url)
     return response.data
   } catch (error) {
@@ -108,11 +112,12 @@ export const getBusScheduleByRoute = async (routeId: string, date?: string): Pro
       console.error('API Error Response:', error.response.data)
       const serverError = error.response.data
       return {
-        error: serverError.vnMessage || serverError.message || 'Không tìm thấy lịch trình cho tuyến này'
+        error:
+          serverError.vnMessage || serverError.message || 'Không tìm thấy lịch trình cho tuyến này',
       } as unknown as BusSchedule[]
     }
     return {
-      error: 'Lỗi không xác định khi tải lịch trình'
+      error: 'Lỗi không xác định khi tải lịch trình',
     } as unknown as BusSchedule[]
   }
 }
@@ -125,7 +130,9 @@ export const getAllBusStops = async (): Promise<BusStop[]> => {
     if (axios.isAxiosError(error) && error.response) {
       console.error('API Error Response:', error.response.data)
       const serverError = error.response.data
-      throw new Error(serverError.vnMessage || serverError.message || 'Lỗi khi tải danh sách trạm dừng')
+      throw new Error(
+        serverError.vnMessage || serverError.message || 'Lỗi khi tải danh sách trạm dừng'
+      )
     }
     throw error
   }

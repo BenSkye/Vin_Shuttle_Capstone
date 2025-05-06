@@ -1,7 +1,6 @@
 import { Rating } from '@/interface/rating.interface'
 import apiClient from '@/service/apiClient'
 
-
 export const RatingApiService = {
   getRateTrip: async (tripId: string): Promise<Rating> => {
     const response = await apiClient.get(`/rating/get-rating-by-trip-id/${tripId}`)
@@ -16,5 +15,4 @@ export const RatingApiService = {
     })
     return response.data
   },
-
 }

@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+
 import { useSearchParams } from 'next/navigation'
 
 import useConversationSocket from '@/hooks/useConversationSocket'
 
 import { useAuth } from '@/context/AuthContext'
 import { IConversation, IMessage } from '@/interface/conversation.interface'
+
 import ConversationDetail from './DetailConversation'
 
 const ConversationListPage = () => {
@@ -47,93 +49,100 @@ const ConversationListPage = () => {
 
   // Find conversation by tripId and set it as selected
   useEffect(() => {
-    console.log('TripId from URL:', tripId, 'Type:', typeof tripId);
+    console.log('TripId from URL:', tripId, 'Type:', typeof tripId)
 
-    if (!tripId) return;
+    if (!tripId) return
 
     if (conversations) {
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
 
       if (conversationsArray.length === 0) {
-        console.log('No conversations available yet');
-        return;
+        console.log('No conversations available yet')
+        return
       }
 
-      console.log('Searching for conversation with tripId:', tripId);
+      console.log('Searching for conversation with tripId:', tripId)
 
       // Debug: Log all tripIds to see what's available
-      conversationsArray.forEach(conv => {
-        const tripIdObj = conv.tripId as any;
+      conversationsArray.forEach((conv) => {
+        const tripIdObj = conv.tripId as any
         console.log(
-          'Conv ID:', conv._id,
-          'TripId:', tripIdObj?._id,
-          'TripId type:', typeof conv.tripId,
-          'Matches?', tripIdObj?._id && tripIdObj?._id === tripId
-        );
-      });
+          'Conv ID:',
+          conv._id,
+          'TripId:',
+          tripIdObj?._id,
+          'TripId type:',
+          typeof conv.tripId,
+          'Matches?',
+          tripIdObj?._id && tripIdObj?._id === tripId
+        )
+      })
 
       // Find conversation where tripId._id matches the tripId from URL
-      let foundConversation = conversationsArray.find(conv => {
-        const tripIdObj = conv.tripId as any;
-        return tripIdObj?._id === tripId;
-      });
+      let foundConversation = conversationsArray.find((conv) => {
+        const tripIdObj = conv.tripId as any
+        return tripIdObj?._id === tripId
+      })
 
-      console.log('Found conversation:', foundConversation);
+      console.log('Found conversation:', foundConversation)
 
       if (foundConversation) {
-        console.log('Setting selected conversation to:', foundConversation._id);
-        setSelectedConversationId(foundConversation._id);
+        console.log('Setting selected conversation to:', foundConversation._id)
+        setSelectedConversationId(foundConversation._id)
 
         // Immediately show the conversation detail view (hide the list on mobile)
         if (isMobile) {
-          setShowConversationList(false);
-          setShowSearchSidebar(false);
+          setShowConversationList(false)
+          setShowSearchSidebar(false)
         }
       } else {
-        console.log('Could not find a conversation matching tripId:', tripId);
+        console.log('Could not find a conversation matching tripId:', tripId)
         // Log all tripIds to help debug
-        console.log('Available tripIds:', conversationsArray.map(c => (c.tripId as any)?._id).join(', '));
+        console.log(
+          'Available tripIds:',
+          conversationsArray.map((c) => (c.tripId as any)?._id).join(', ')
+        )
       }
     } else {
-      console.log('Conversations data not yet loaded');
+      console.log('Conversations data not yet loaded')
     }
-  }, [tripId, conversations, isMobile]);
+  }, [tripId, conversations, isMobile])
 
   // Additional effect to ensure we have conversation selected when data is available
   useEffect(() => {
     const selectConversationFromTripId = () => {
-      if (!tripId || !conversations || selectedConversationId) return;
+      if (!tripId || !conversations || selectedConversationId) return
 
-      console.log('Running additional selection logic');
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      console.log('Running additional selection logic')
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
 
       for (const conv of conversationsArray) {
         // Check if tripId._id matches the URL tripId
-        const tripIdObj = conv.tripId as any;
+        const tripIdObj = conv.tripId as any
         if (tripIdObj?._id === tripId) {
-          console.log('Found match in additional check, selecting:', conv._id);
-          setSelectedConversationId(conv._id);
+          console.log('Found match in additional check, selecting:', conv._id)
+          setSelectedConversationId(conv._id)
           if (isMobile) {
-            setShowConversationList(false);
-            setShowSearchSidebar(false);
+            setShowConversationList(false)
+            setShowSearchSidebar(false)
           }
-          break;
+          break
         }
       }
-    };
+    }
 
-    selectConversationFromTripId();
-  }, [tripId, conversations, selectedConversationId, isMobile]);
+    selectConversationFromTripId()
+  }, [tripId, conversations, selectedConversationId, isMobile])
 
   // Console log conversation data
   useEffect(() => {
     if (conversations) {
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
       if (conversationsArray.length > 0) {
-        console.log('All conversations:', conversationsArray[0].tripId);
+        console.log('All conversations:', conversationsArray[0].tripId)
       }
     }
-  }, [conversations]);
+  }, [conversations])
 
   // useEffect(() => {
   //   console.log('Selected conversation:', conversation)
@@ -284,17 +293,17 @@ const ConversationListPage = () => {
                 {/* Conversation Info */}
                 <div className="ml-4 flex-1 overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-medium truncate">{conv.driverId?.name}</h2>
+                    <h2 className="truncate text-lg font-medium">{conv.driverId?.name}</h2>
                   </div>
                   <p className="text-sm text-gray-500">Cuốc xe {conv.tripCode}</p>
-                  <div className="flex items-center text-sm text-gray-600 space-x-2">
-                    <p className="truncate flex-1">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <p className="flex-1 truncate">
                       {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
                     </p>
                     {conv.lastMessage?.timestamp && (
                       <>
                         <span className="text-gray-400">|</span>
-                        <span className="text-gray-500 whitespace-nowrap">
+                        <span className="whitespace-nowrap text-gray-500">
                           {getTimeString(conv.lastMessage?.timestamp)}
                         </span>
                       </>
@@ -314,10 +323,7 @@ const ConversationListPage = () => {
       {/* Main Conversation Area */}
       <div className="flex h-full flex-1 flex-col bg-gray-100">
         {selectedConversationId ? (
-          <ConversationDetail
-            id={selectedConversationId}
-            onBackClick={handleBackToList}
-          />
+          <ConversationDetail id={selectedConversationId} onBackClick={handleBackToList} />
         ) : (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
@@ -337,7 +343,9 @@ const ConversationListPage = () => {
                   ></path>
                 </svg>
               </div>
-              <p className="text-lg text-gray-600">Chọn cuộc trò chuyện để trao đổi thông tin với tài xế</p>
+              <p className="text-lg text-gray-600">
+                Chọn cuộc trò chuyện để trao đổi thông tin với tài xế
+              </p>
             </div>
           </div>
         )}

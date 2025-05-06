@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { Alert, Card, Radio, Space, Typography, notification, Steps } from 'antd'
+import { Alert, Card, Radio, Space, Steps, Typography, notification } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -19,8 +19,8 @@ import {
   BookingResponse,
 } from '@/interface/booking.interface'
 import { bookingHour } from '@/service/booking.service'
-import { vehicleSearchHour } from '@/service/search.service'
 import { cancelBooking } from '@/service/booking.service'
+import { vehicleSearchHour } from '@/service/search.service'
 
 const LocationSelection = dynamic(() => import('@/views/Ride/components/locationselection'), {
   ssr: false,
@@ -100,13 +100,13 @@ const HourlyBookingPage = () => {
         )?.vehicleCategory
         return quantity > 0
           ? [
-            ...prev,
-            {
-              categoryVehicleId: categoryId,
-              quantity,
-              name: vehicleCategory?.name || '',
-            },
-          ]
+              ...prev,
+              {
+                categoryVehicleId: categoryId,
+                quantity,
+                name: vehicleCategory?.name || '',
+              },
+            ]
           : prev
       })
     },
@@ -126,7 +126,7 @@ const HourlyBookingPage = () => {
       })
 
       // Track if there's a location error
-      setLocationHasError(hasError || false);
+      setLocationHasError(hasError || false)
     },
     []
   )
@@ -213,7 +213,7 @@ const HourlyBookingPage = () => {
       console.log('Searching for vehicles with date/time:', {
         date,
         startTime: startTimeString,
-        duration
+        duration,
       })
 
       const response = await vehicleSearchHour(date, startTimeString, duration)
@@ -365,10 +365,10 @@ const HourlyBookingPage = () => {
       durationMinutes: duration,
       vehicleCategories: selectedVehicles,
       paymentMethod: paymentMethod,
-    };
+    }
 
-    setBooking(updatedBooking);
-    console.log('Booking updated:', updatedBooking);
+    setBooking(updatedBooking)
+    console.log('Booking updated:', updatedBooking)
   }, [selectedDate, startTime, duration, selectedVehicles, startPoint, paymentMethod])
 
   // Render the content based on the current step
@@ -490,7 +490,6 @@ const HourlyBookingPage = () => {
                     <span>Ví điện tử Momo</span>
                   </div>
                 </Radio>
-
               </Space>
             </Radio.Group>
 
@@ -526,21 +525,36 @@ const HourlyBookingPage = () => {
               <div className="mb-6 space-y-4">
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-medium">Thời gian</h3>
                     <p className="text-gray-600">
-                      {selectedDate?.format('DD/MM/YYYY')} - {startTime?.format('HH:mm')} ({duration} phút)
+                      {selectedDate?.format('DD/MM/YYYY')} - {startTime?.format('HH:mm')} (
+                      {duration} phút)
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                       <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h-3a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                     </svg>
@@ -559,8 +573,17 @@ const HourlyBookingPage = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -571,15 +594,26 @@ const HourlyBookingPage = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-medium">Phương thức thanh toán</h3>
                     <p className="text-gray-600">
-                      {paymentMethod === PaymentMethod.PAY_OS ? 'Thanh toán qua PayOS' : 'Ví điện tử Momo'}
+                      {paymentMethod === PaymentMethod.PAY_OS
+                        ? 'Thanh toán qua PayOS'
+                        : 'Ví điện tử Momo'}
                     </p>
                   </div>
                 </div>
@@ -589,7 +623,6 @@ const HourlyBookingPage = () => {
             <div className="mt-6 flex justify-between">
               <button
                 onClick={handleBackStep}
-
                 className="rounded-lg bg-gray-500 px-6 py-2 text-white transition-colors hover:bg-gray-600"
                 aria-label="Quay lại chọn phương thức thanh toán"
                 tabIndex={0}
@@ -651,7 +684,7 @@ const HourlyBookingPage = () => {
           ]}
           responsive
           direction="horizontal"
-          className="custom-steps [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!text-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-title]:!text-xs sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item-title]:!font-medium [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500"
+          className="custom-steps [&_.ant-steps-item-finish_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-finish_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-finish_.ant-steps-item-tail::after]:!bg-blue-500 [&_.ant-steps-item-icon]:!flex [&_.ant-steps-item-icon]:!h-7 [&_.ant-steps-item-icon]:!w-7 [&_.ant-steps-item-icon]:!items-center [&_.ant-steps-item-icon]:!justify-center [&_.ant-steps-item-icon]:!border-[1.5px] [&_.ant-steps-item-icon]:!border-blue-500 [&_.ant-steps-item-icon]:!bg-white [&_.ant-steps-item-icon]:!text-blue-500 sm:[&_.ant-steps-item-icon]:!h-8 sm:[&_.ant-steps-item-icon]:!w-8 [&_.ant-steps-item-process_.ant-steps-item-icon]:!bg-blue-500 [&_.ant-steps-item-process_.ant-steps-item-icon]:!text-white [&_.ant-steps-item-tail::after]:!h-[1.5px] [&_.ant-steps-item-tail::after]:!bg-gray-200 [&_.ant-steps-item-tail]:!top-3.5 sm:[&_.ant-steps-item-tail]:!top-4 [&_.ant-steps-item-title]:!text-xs [&_.ant-steps-item-title]:!font-medium sm:[&_.ant-steps-item-title]:!text-sm [&_.ant-steps-item]:!px-0 sm:[&_.ant-steps-item]:!px-2"
         />
       </div>
 

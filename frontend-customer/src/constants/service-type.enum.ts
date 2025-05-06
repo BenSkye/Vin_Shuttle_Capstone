@@ -12,4 +12,4 @@ export const serviceTypeText: Record<ServiceType, string> = {
   [ServiceType.BOOKING_SHARE]: 'Đặt chia sẻ',
   [ServiceType.BOOKING_DESTINATION]: 'Đặt điểm đến',
   [ServiceType.BOOKING_BUS_ROUTE]: 'Đặt xe buýt',
-};
+}

@@ -496,8 +496,6 @@ const RealTimeTripMap = memo(
               <Popup>📍 Điểm đón của bạn</Popup>
             </Marker>
 
-
-
             {/* Vị trí xe */}
             {vehicleMarkerComponent}
           </MapBoundsController>

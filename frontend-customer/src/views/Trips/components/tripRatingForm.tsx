@@ -4,11 +4,12 @@ import { useState } from 'react'
 
 import { Button, Input, Rate, Typography } from 'antd'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { FaStar } from 'react-icons/fa'
 import Swal from 'sweetalert2'
 
 import { useCreateRatingMutation } from '@/hooks/queries/rating.query'
-import toast from 'react-hot-toast'
+
 import { getErrorMessage } from '@/utils/index.utils'
 
 const { TextArea } = Input
@@ -41,10 +42,7 @@ export default function TripRatingForm({ tripId, onSuccess }: TripRatingFormProp
         },
         onError: (error) => {
           const message = getErrorMessage(error)
-          toast.error(
-            message,
-            { position: 'top-center' }
-          )
+          toast.error(message, { position: 'top-center' })
         },
       }
     )
