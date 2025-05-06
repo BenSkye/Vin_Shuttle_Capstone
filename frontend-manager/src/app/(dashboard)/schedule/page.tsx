@@ -186,13 +186,13 @@ const SchedulePage = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-green-100 hover:bg-green-200';
+                return 'bg-green-100 hover:bg-green-200 border border-green-200';
             case 'in_progress':
-                return 'bg-blue-100 hover:bg-blue-200';
+                return 'bg-blue-100 hover:bg-blue-200 border border-blue-200';
             case 'not_started':
-                return 'bg-yellow-100 hover:bg-yellow-200';
+                return 'bg-yellow-100 hover:bg-yellow-200 border border-yellow-200';
             default:
-                return 'bg-gray-100 hover:bg-gray-200';
+                return 'bg-gray-100 hover:bg-gray-200 border border-gray-200';
         }
     };
 

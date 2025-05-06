@@ -155,7 +155,7 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                 <div className="grid grid-cols-8 bg-gray-100 text-gray-700">
                     <div className="p-3 border font-medium">Ca</div>
                     {days.map((day, i) => (
-                        <div key={i} className={`p-3 border text-center font-medium ${isDateInPast(day) ? 'bg-gray-200' : ''}`}>
+                        <div key={i} className="p-3 border text-center font-medium">
                             <div>{format(day, 'EEEE')}</div>
                             <div className="text-xs text-gray-500">{format(day, 'MMM d')}</div>
                         </div>
@@ -175,7 +175,7 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                             return (
                                 <div
                                     key={`${time}-${dayIndex}`}
-                                    className={`relative p-2 border ${isPastDate ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} min-h-[120px]`}
+                                    className={`relative p-2 border ${isPastDate ? 'cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} min-h-[120px]`}
                                     onClick={() => !isPastDate && handleSlotClick(time, dayIndex)}
                                 >
                                     {isLoading ? (
@@ -189,26 +189,29 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                                             </div>
                                         </div>
                                     ) : (
-                                        dayActivities.map(activity => (
-                                            <div
-                                                key={activity.id}
-                                                className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
-                                                onClick={(e) => handleActivityClick(e, activity)}
-                                            >
-                                                <div className="font-medium truncate">{activity.title}</div>
-                                                <div className="text-xs truncate text-gray-600">{activity.description}</div>
-                                                {activity.status === 'completed' && activity.checkinTime && activity.checkoutTime && (
-                                                    <div className="mt-1 text-xs text-gray-700">
-                                                        <div>
-                                                            <span className="font-medium">Check-in:</span> {new Date(activity.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        dayActivities.map(activity => {
+                                            const isPastActivity = isDateInPast(activity.originalDate || (activity.date ? new Date(activity.date) : new Date()));
+                                            return (
+                                                <div
+                                                    key={activity.id}
+                                                    className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
+                                                    onClick={(e) => handleActivityClick(e, activity)}
+                                                >
+                                                    <div className={`font-medium truncate ${isPastActivity ? 'text-gray-500' : ''}`}>{activity.title}</div>
+                                                    <div className={`text-xs truncate ${isPastActivity ? 'text-gray-400' : 'text-gray-600'}`}>{activity.description}</div>
+                                                    {activity.status === 'completed' && activity.checkinTime && activity.checkoutTime && (
+                                                        <div className="mt-1 text-xs text-gray-700">
+                                                            <div>
+                                                                <span className="font-medium">Check-in:</span> {new Date(activity.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-medium">Check-out:</span> {new Date(activity.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <span className="font-medium">Check-out:</span> {new Date(activity.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))
+                                                    )}
+                                                </div>
+                                            );
+                                        })
                                     )}
 
 
