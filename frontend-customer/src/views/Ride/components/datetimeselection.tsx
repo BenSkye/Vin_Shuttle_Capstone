@@ -252,32 +252,8 @@ const DateTimeSelection = ({
             addonAfter="phút" // Hiển thị đơn vị "phút"
           />
 
-          {/* Time Summary with responsive text */}
-          {selectedDate && startTime && (
-            <div className="mt-3 rounded-lg bg-blue-50 p-3 sm:p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-700 sm:text-sm">
-                Thông tin cuốc xe:
-              </h4>
-              <div className="space-y-1 text-xs text-gray-600 sm:space-y-2 sm:text-sm">
-                <p className="flex justify-between">
-                  <span className="font-medium">Ngày đặt:</span>
-                  <span>{selectedDate.format('DD/MM/YYYY')}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Giờ bắt đầu:</span>
-                  <span>{startTime.format('HH:mm')}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Thời gian thuê:</span>
-                  <span>{(duration / 60).toFixed(2)} giờ</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Giờ kết thúc:</span>
-                  <span>{startTime.add(duration, 'minute').format('HH:mm')}</span>
-                </p>
-              </div>
-            </div>
-          )}
+
+
         </div>
       </Card>
     </div>

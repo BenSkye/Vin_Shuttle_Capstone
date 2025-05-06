@@ -136,7 +136,15 @@ const RoutesBooking = () => {
 
     try {
       if (!navigator.geolocation) {
-        throw new Error('Trình duyệt của bạn không hỗ trợ định vị')
+        const errorMsg = 'Trình duyệt của bạn không hỗ trợ định vị'
+        setError(errorMsg)
+        notification.error({
+          message: 'Không hỗ trợ định vị',
+          description: errorMsg,
+          placement: 'topRight',
+          duration: 4
+        })
+        throw new Error(errorMsg)
       }
 
       // Get position from geolocation API
@@ -158,6 +166,13 @@ const RoutesBooking = () => {
         position: { lat: latitude, lng: longitude },
         address: address || 'Vị trí hiện tại của bạn',
       })
+
+      notification.success({
+        message: 'Đã xác định vị trí',
+        description: 'Đã xác định được vị trí hiện tại của bạn',
+        placement: 'topRight',
+        duration: 3
+      })
     } catch (error) {
       console.error('Error getting location:', error)
       let errorMessage = 'Không thể lấy vị trí của bạn'
@@ -177,6 +192,12 @@ const RoutesBooking = () => {
       }
 
       setError(errorMessage)
+      notification.error({
+        message: 'Lỗi xác định vị trí',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
     } finally {
       setLoading(false)
     }
@@ -219,7 +240,17 @@ const RoutesBooking = () => {
       return true
     } catch (error) {
       console.error('Error fetching available vehicles:', error)
-      setError(error instanceof Error ? error.message : 'Không thể tìm thấy phương tiện phù hợp')
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Không thể tìm thấy phương tiện phù hợp'
+
+      setError(errorMessage)
+      notification.error({
+        message: 'Lỗi tìm kiếm phương tiện',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
       return false
     } finally {
       setLoading(false)
@@ -236,6 +267,12 @@ const RoutesBooking = () => {
       selectedVehicles.length === 0
     ) {
       setError('Vui lòng điền đầy đủ thông tin đặt xe')
+      notification.warning({
+        message: 'Thiếu thông tin',
+        description: 'Vui lòng điền đầy đủ thông tin đặt xe',
+        placement: 'topRight',
+        duration: 4
+      })
       return
     }
 
@@ -261,11 +298,26 @@ const RoutesBooking = () => {
       console.log('Booking response:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
+
+      notification.success({
+        message: 'Đặt xe thành công',
+        description: 'Đơn đặt xe của bạn đã được ghi nhận. Vui lòng thanh toán để hoàn tất.',
+        placement: 'topRight',
+        duration: 4
+      })
     } catch (error) {
       console.error('Error booking route:', error)
-      setError(
-        error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.'
-      )
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.'
+
+      setError(errorMessage)
+      notification.error({
+        message: 'Lỗi đặt xe',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
     } finally {
       setLoading(false)
     }
@@ -276,6 +328,12 @@ const RoutesBooking = () => {
     if (currentStep === 'datetime') {
       if (!selectedDate || !startTime) {
         setError('Vui lòng chọn ngày và giờ')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn ngày và giờ',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -283,6 +341,12 @@ const RoutesBooking = () => {
     } else if (currentStep === 'route') {
       if (!selectedRoute) {
         setError('Vui lòng chọn lộ trình')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn lộ trình',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -290,6 +354,12 @@ const RoutesBooking = () => {
     } else if (currentStep === 'vehicle') {
       if (selectedVehicles.length === 0) {
         setError('Vui lòng chọn loại xe')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn loại xe',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -297,6 +367,22 @@ const RoutesBooking = () => {
     } else if (currentStep === 'location') {
       if (!startPoint.address) {
         setError('Vui lòng chọn địa điểm đón')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn địa điểm đón',
+          placement: 'topRight',
+          duration: 3
+        })
+        return
+      }
+      if (locationHasError) {
+        setError('Địa điểm đón không hợp lệ')
+        notification.warning({
+          message: 'Địa điểm không hợp lệ',
+          description: 'Vui lòng chọn địa điểm đón hợp lệ',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -315,6 +401,7 @@ const RoutesBooking = () => {
     selectedRoute,
     selectedVehicles,
     startPoint.address,
+    locationHasError,
     fetchAvailableVehicles,
     handleConfirmBooking,
   ])
@@ -335,6 +422,12 @@ const RoutesBooking = () => {
       if (bookingResponse && bookingResponse.newBooking._id) {
         // Cancel the booking when returning from checkout
         setLoading(true)
+        notification.info({
+          message: 'Đang hủy đặt xe',
+          description: 'Đang tiến hành hủy đơn đặt xe của bạn...',
+          placement: 'topRight',
+          duration: 2
+        })
         cancelBooking(bookingResponse.newBooking._id)
           .then(() => {
             notification.success({

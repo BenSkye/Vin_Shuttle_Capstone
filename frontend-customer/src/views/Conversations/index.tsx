@@ -18,15 +18,32 @@ const ConversationListPage = () => {
   const [showConversationList, setShowConversationList] = useState(true)
   const [showSearchSidebar, setShowSearchSidebar] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const { data: conversations, isLoading: listLoading, error: listError } = useConversationSocket()
 
-  // const {
-  //   data: conversation,
-  //   isLoading: conversationLoading,
-  //   error: conversationError,
-  //   sendMessage,
-  // } = useConversationSocket(selectedConversationId || undefined)
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+
+    if (isLeftSwipe) {
+      setShowSearchSidebar(false)
+    }
+  }
 
   // Find conversation by tripId and set it as selected
   useEffect(() => {
@@ -222,70 +239,19 @@ const ConversationListPage = () => {
 
       {/* Sidebar (Conversation List) */}
       <div
-        className={`fixed inset-0 z-50 flex w-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out md:relative md:inset-auto md:w-80 ${
-          // On mobile
-          isMobile
-            ? showSearchSidebar
-              ? 'translate-x-0'
-              : '-translate-x-full'
-            : // On desktop
-            'translate-x-0'
+        className={`fixed inset-0 z-50 flex w-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out md:relative md:inset-auto md:w-80 ${isMobile
+          ? showSearchSidebar
+            ? 'translate-x-0'
+            : '-translate-x-full'
+          : 'translate-x-0'
           }`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
           <h1 className="text-xl font-semibold">Tin nhắn</h1>
-          <div className="flex space-x-2">
-            <button className="rounded-full p-2 hover:bg-gray-200" aria-label="New conversation">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 4v16m8-8H4"
-                ></path>
-              </svg>
-            </button>
-            {/* Close button for mobile */}
-            {isMobile && (
-              <button
-                className="rounded-full p-2 hover:bg-gray-200"
-                onClick={() => setShowSearchSidebar(false)}
-                aria-label="Close sidebar"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="p-4">
-          <input
-            type="text"
-            placeholder="Tìm cuộc trò chuyện..."
-            className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Search conversations"
-          />
         </div>
 
         {/* Conversation List */}
