@@ -28,7 +28,7 @@ import BusRouteForm from "./components/BusRoute/BusRouteForm";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
-import "./busMap.css";
+
 const { TabPane } = Tabs;
 
 export interface BusStopWithColor extends BusStop {
@@ -96,10 +96,10 @@ export const createBusStopIcon = ({ color }: { color: string }) =>
                 </div>
             </div>
         </div>`,
-        className: 'bus-stop-icon',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
+    className: "bus-stop-icon",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
   });
 
 export const getAddressFromCoordinates = async (
@@ -483,6 +483,33 @@ export default function BusMap() {
     [selectedBusStop]
   );
 
+  const handleDeleteBusRoute = useCallback(
+    async (busRoute: BusRouteWithStops) => {
+      if (!busRoute._id) return;
+      setIsLoading(true);
+      try {
+        await busRouteService.deleteBusRoute(busRoute._id);
+        setBusRoutes((prev) =>
+          prev.filter((route) => route._id !== busRoute._id)
+        );
+        if (selectedBusRoute?._id === busRoute._id) setSelectedBusRoute(null);
+        notification.success({
+          message: "Xóa thành công",
+          description: `Tuyến "${busRoute.name}" đã được xóa.`,
+        });
+      } catch (error) {
+        notification.error({
+          message: "Lỗi",
+          description: "Không thể xóa tuyến xe bus.",
+        });
+        console.error("Error deleting bus route:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [selectedBusRoute]
+  );
+
   const handleSelectBusRoute = useCallback((route: BusRouteWithStops) => {
     setSelectedBusRoute(route);
     setSelectedBusStop(null);
@@ -651,6 +678,15 @@ export default function BusMap() {
               busRoutes={busRoutes}
               isLoading={isLoading}
               onSelectBusRoute={handleSelectBusRoute}
+              onDeleteBusRoute={(busRoute) =>
+                confirmAction(
+                  "Xác nhận xóa",
+                  `Bạn có chắc chắn muốn xóa tuyến "${busRoute.name}" không?`,
+                  () => handleDeleteBusRoute(busRoute),
+                  "Xóa",
+                  "danger"
+                )
+              }
             />
           </>
         )}
