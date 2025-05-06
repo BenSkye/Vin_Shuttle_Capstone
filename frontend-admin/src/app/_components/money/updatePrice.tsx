@@ -1,3 +1,4 @@
+'use client'
 import { Modal, Form, Select, InputNumber, Button, Space } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { PricingConfig } from '../../services/interface';
@@ -42,7 +43,7 @@ export default function UpdatePrice({
           rules={[{ required: true, message: 'Vui lòng chọn danh mục xe' }]}
         >
           <Select
-          disabled
+            disabled
             placeholder="Chọn danh mục xe"
             options={Object.entries(categories).map(([id, name]) => ({
               value: id,
@@ -57,7 +58,7 @@ export default function UpdatePrice({
           rules={[{ required: true, message: 'Vui lòng chọn loại dịch vụ' }]}
         >
           <Select
-          disabled
+            disabled
             placeholder="Chọn loại dịch vụ"
             options={serviceConfigs.map(config => ({
               value: config._id,
@@ -66,17 +67,36 @@ export default function UpdatePrice({
           />
         </Form.Item>
 
-        <Form.List name="tiered_pricing">
+        <Form.List 
+          name="tiered_pricing"
+          rules={[
+            {
+              validator: async (_, tiers) => {
+                if (!tiers || tiers.length < 1) {
+                  return Promise.reject(new Error('Vui lòng giữ ít nhất một khoảng giá'));
+                }
+                if (tiers[0]?.range !== 0) {
+                  return Promise.reject(new Error('Khoảng giá đầu tiên phải là 0'));
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
+        >
           {(fields, { add, remove }) => (
             <>
-              {fields.map(({ key, name, ...restField }) => (
+              {fields.map(({ key, name, ...restField }, index) => (
                 <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
                   <Form.Item
                     {...restField}
                     name={[name, 'range']}
                     rules={[{ required: true, message: 'Nhập khoảng' }]}
                   >
-                    <InputNumber placeholder="Khoảng" min={0} />
+                    <InputNumber 
+                      placeholder="Khoảng" 
+                      min={0} 
+                      disabled={index === 0} // Vô hiệu hóa khoảng đầu tiên
+                    />
                   </Form.Item>
                   <Form.Item
                     {...restField}
@@ -90,7 +110,9 @@ export default function UpdatePrice({
                       style={{ width: '200px' }}
                     />
                   </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
+                  {index !== 0 && (
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  )}
                 </Space>
               ))}
               <Form.Item>

@@ -11,7 +11,7 @@ import { priceManagementServices } from "../../services/priceConfigServices";
 import { categoryService } from "../../services/categoryServices";
 import { PricingConfig, PriceManagement } from "../../services/interface";
 import AddPrice from "../../_components/money/addPrice";
-
+import { AxiosError } from 'axios';
 const { Header, Content } = Layout;
 
 // Map cho loại dịch vụ
@@ -124,10 +124,12 @@ export default function Money() {
       setEditPriceModalVisible(false);
       fetchData();
     } catch (error: unknown) {
+      // Kiểm tra xem lỗi có phản hồi từ API không
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Có lỗi xảy ra khi cập nhật giá";
+        error instanceof AxiosError && error.response?.data?.vnMessage || // Ưu tiên vnMessage (tiếng Việt)
+        error instanceof AxiosError && error.response?.data?.message || // Nếu không có vnMessage, dùng message
+        error instanceof Error && error.message || // Nếu không có message, dùng error.message
+        "Có lỗi xảy ra khi cập nhật giá"; // Thông báo mặc định
       message.error(errorMessage);
     }
   };
