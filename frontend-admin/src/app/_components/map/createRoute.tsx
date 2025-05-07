@@ -1,17 +1,28 @@
-'use client';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-routing-machine';
-import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
-import 'leaflet-control-geocoder';
-import './map.css';
-import { routeService, RouteRequest, RouteResponse } from '../../services/routeService';
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-import Sidebar from '../common/Sidebar';
+"use client";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  useMapEvents,
+  Popup,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-routing-machine";
+import "leaflet-control-geocoder/dist/Control.Geocoder.css";
+import "leaflet-control-geocoder";
+import "./map.css";
+import {
+  routeService,
+  RouteRequest,
+  RouteResponse,
+} from "../../services/routeService";
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
+import Sidebar from "../common/Sidebar";
 
 interface BusStop {
   id: number;
@@ -20,7 +31,16 @@ interface BusStop {
   color: string;
 }
 
-const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6', '#3498db', '#e67e22', '#1abc9c', '#34495e'];
+const COLORS = [
+  "#2ecc71",
+  "#e74c3c",
+  "#f1c40f",
+  "#9b59b6",
+  "#3498db",
+  "#e67e22",
+  "#1abc9c",
+  "#34495e",
+];
 
 const createCustomIcon = (color: string) => {
   return L.divIcon({
@@ -39,7 +59,7 @@ const createCustomIcon = (color: string) => {
           </div>
         </div>
       </div>`,
-    className: 'bus-stop-icon',
+    className: "bus-stop-icon",
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
@@ -58,9 +78,9 @@ L.Marker.prototype.options.icon = L.icon({
 });
 
 const STATUS_OPTIONS = [
-  { value: 'draft', label: 'Bản nháp' },
-  { value: 'active', label: 'Đang hoạt động' },
-  { value: 'inactive', label: 'Ngừng hoạt động' },
+  { value: "draft", label: "Bản nháp" },
+  { value: "active", label: "Đang hoạt động" },
+  { value: "inactive", label: "Ngừng hoạt động" },
 ];
 
 function RoutingMachine({
@@ -68,7 +88,11 @@ function RoutingMachine({
   onRouteFound,
 }: {
   stops: BusStop[];
-  onRouteFound: (coordinates: L.LatLng[], estimatedDuration: number, totalDistance: number) => void;
+  onRouteFound: (
+    coordinates: L.LatLng[],
+    estimatedDuration: number,
+    totalDistance: number
+  ) => void;
   isEditing: boolean;
 }) {
   const map = useMap();
@@ -87,14 +111,16 @@ function RoutingMachine({
     const waypoints = stops.map((stop) => stop.position);
     routingControlRef.current = L.Routing.control({
       waypoints,
-      router: L.routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+      router: L.routing.osrmv1({
+        serviceUrl: "https://router.project-osrm.org/route/v1",
+      }),
       routeWhileDragging: true,
       addWaypoints: true,
       fitSelectedRoutes: true,
       showAlternatives: false,
       show: false,
       lineOptions: {
-        styles: [{ color: '#3498db', weight: 2, opacity: 0.9 }],
+        styles: [{ color: "#3498db", weight: 2, opacity: 0.9 }],
         extendToWaypoints: true,
         missingRouteTolerance: 5,
       },
@@ -104,7 +130,7 @@ function RoutingMachine({
     }).addTo(map);
 
     // Lắng nghe sự kiện routesfound
-    routingControlRef.current.on('routesfound', (e) => {
+    routingControlRef.current.on("routesfound", (e) => {
       const route = e.routes[0];
       onRouteFound(
         route.coordinates,
@@ -129,7 +155,11 @@ function SavedRouteDisplay({ coordinates }: { coordinates: L.LatLng[] }) {
 
   useEffect(() => {
     if (!map) return;
-    const polyline = L.polyline(coordinates, { color: '#3498db', weight: 6, opacity: 0.9 }).addTo(map);
+    const polyline = L.polyline(coordinates, {
+      color: "#3498db",
+      weight: 6,
+      opacity: 0.9,
+    }).addTo(map);
     map.fitBounds(polyline.getBounds());
     return () => {
       void map.removeLayer(polyline);
@@ -144,22 +174,33 @@ const getStreetName = async (latlng: L.LatLng) => {
     `https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`
   );
   const data = await response.json();
-  return data.display_name?.split(',').slice(0, 2).join(', ') || 'Tên đường không tìm thấy';
+  return (
+    data.display_name?.split(",").slice(0, 2).join(", ") ||
+    "Tên đường không tìm thấy"
+  );
 };
 
 export default function CreateRoute() {
   const [stops, setStops] = useState<BusStop[]>([]);
   const [routeCoordinates, setRouteCoordinates] = useState<L.LatLng[]>([]);
   const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([]);
-  const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(
+    null
+  );
   const [isCreatingRoute, setIsCreatingRoute] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedDuration, setEstimatedDuration] = useState(0);
   const [totalDistance, setTotalDistance] = useState(0);
-  const [routeName, setRouteName] = useState('');
-  const [routeDescription, setRouteDescription] = useState('');
+  const [routeName, setRouteName] = useState("");
+  const [routeDescription, setRouteDescription] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [routeStatus, setRouteStatus] = useState<'draft' | 'active' | 'inactive'>('draft');
+  const [routeStatus, setRouteStatus] = useState<
+    "draft" | "active" | "inactive"
+  >("draft");
+
+  // Thêm state mới để theo dõi điểm dừng đang được chỉnh sửa
+  const [editingStopId, setEditingStopId] = useState<number | null>(null);
+  const [editingStopName, setEditingStopName] = useState<string>("");
 
   useEffect(() => {
     routeService.getAllRoutes().then(setSavedRoutes).catch(console.error);
@@ -183,11 +224,19 @@ export default function CreateRoute() {
     const name = await getStreetName(latlng);
     setStops((prev) => [
       ...prev,
-      { id: prev.length, position: latlng, name, color: COLORS[prev.length % COLORS.length] },
+      {
+        id: prev.length,
+        position: latlng,
+        name,
+        color: COLORS[prev.length % COLORS.length],
+      },
     ]);
   }, []);
 
-  const removeStop = useCallback((id: number) => setStops((prev) => prev.filter((stop) => stop.id !== id)), []);
+  const removeStop = useCallback(
+    (id: number) => setStops((prev) => prev.filter((stop) => stop.id !== id)),
+    []
+  );
 
   const handleEditRoute = useCallback((route: RouteResponse) => {
     setIsEditing(true);
@@ -205,63 +254,89 @@ export default function CreateRoute() {
       }))
     );
     // Khởi tạo routeCoordinates từ scenicRouteCoordinates, nhưng sẽ được cập nhật bởi RoutingMachine
-    setRouteCoordinates(route.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng)));
+    setRouteCoordinates(
+      route.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng))
+    );
   }, []);
 
-  const prepareRouteData = useCallback((): RouteRequest => ({
-    name: routeName,
-    description: routeDescription,
-    waypoints: stops.map((stop) => ({
-      id: stop.id,
-      name: stop.name,
-      position: { lat: stop.position.lat, lng: stop.position.lng },
-    })),
-    scenicRouteCoordinates: routeCoordinates.map((coord) => ({ lat: coord.lat, lng: coord.lng })),
-    estimatedDuration,
-    totalDistance,
-    status: routeStatus,
-  }), [routeName, routeDescription, stops, routeCoordinates, estimatedDuration, totalDistance, routeStatus]);
+  const prepareRouteData = useCallback(
+    (): RouteRequest => ({
+      name: routeName,
+      description: routeDescription,
+      waypoints: stops.map((stop) => ({
+        id: stop.id,
+        name: stop.name,
+        position: { lat: stop.position.lat, lng: stop.position.lng },
+      })),
+      scenicRouteCoordinates: routeCoordinates.map((coord) => ({
+        lat: coord.lat,
+        lng: coord.lng,
+      })),
+      estimatedDuration,
+      totalDistance,
+      status: routeStatus,
+    }),
+    [
+      routeName,
+      routeDescription,
+      stops,
+      routeCoordinates,
+      estimatedDuration,
+      totalDistance,
+      routeStatus,
+    ]
+  );
 
   const saveRoute = useCallback(async () => {
     if (!routeName.trim()) {
-      alert('Tên lộ trình không được để trống!');
+      alert("Tên lộ trình không được để trống!");
       return;
     }
     if (routeCoordinates.length === 0 || stops.length < 2) {
-      alert('Cần ít nhất 2 điểm dừng và lộ trình hợp lệ!');
+      alert("Cần ít nhất 2 mốc lộ trình và lộ trình hợp lệ!");
       return;
     }
     setIsLoading(true);
     try {
       const routeData = prepareRouteData();
-      const route = isEditing && selectedRoute?._id
-        ? await routeService.editRoute(selectedRoute._id, routeData)
-        : await routeService.createRoute(routeData);
+      const route =
+        isEditing && selectedRoute?._id
+          ? await routeService.editRoute(selectedRoute._id, routeData)
+          : await routeService.createRoute(routeData);
       setSavedRoutes((prev) =>
-        isEditing ? prev.map((r) => (r._id === route._id ? route : r)) : [...prev, route]
+        isEditing
+          ? prev.map((r) => (r._id === route._id ? route : r))
+          : [...prev, route]
       );
       setSelectedRoute(route);
       setIsCreatingRoute(false);
       setIsEditing(false);
-      alert(isEditing ? 'Đã cập nhật lộ trình!' : 'Đã lưu lộ trình!');
+      alert(isEditing ? "Đã cập nhật lộ trình!" : "Đã lưu lộ trình!");
     } catch (error) {
-      console.error('Lỗi lưu lộ trình:', error);
-      alert('Không thể lưu lộ trình!');
+      console.error("Lỗi lưu lộ trình:", error);
+      alert("Không thể lưu lộ trình!");
     } finally {
       setIsLoading(false);
     }
-  }, [isEditing, selectedRoute, routeCoordinates, stops, prepareRouteData, routeName]);
+  }, [
+    isEditing,
+    selectedRoute,
+    routeCoordinates,
+    stops,
+    prepareRouteData,
+    routeName,
+  ]);
 
   const selectRoute = useCallback((route: RouteResponse) => {
     setSelectedRoute(route);
     setIsCreatingRoute(false);
   }, []);
 
-  const renderStatusBadge = (status: 'draft' | 'active' | 'inactive') => {
+  const renderStatusBadge = (status: "draft" | "active" | "inactive") => {
     const config = {
-      draft: 'bg-gray-200 text-gray-800',
-      active: 'bg-green-200 text-green-800',
-      inactive: 'bg-red-200 text-red-800',
+      draft: "bg-gray-200 text-gray-800",
+      active: "bg-green-200 text-green-800",
+      inactive: "bg-red-200 text-red-800",
     }[status];
     return (
       <span className={`px-2 py-1 rounded-full text-sm ${config}`}>
@@ -270,13 +345,45 @@ export default function CreateRoute() {
     );
   };
 
+  // Thêm hàm để bắt đầu chỉnh sửa điểm dừng
+  const startEditingStop = (stop: BusStop) => {
+    setEditingStopId(stop.id);
+    setEditingStopName(stop.name);
+  };
+
+  // Thêm hàm để lưu tên điểm dừng sau khi chỉnh sửa
+  const saveStopName = () => {
+    if (editingStopId === null) return;
+
+    setStops((prev) =>
+      prev.map((stop) =>
+        stop.id === editingStopId
+          ? { ...stop, name: editingStopName }
+          : stop
+      )
+    );
+
+    setEditingStopId(null);
+    setEditingStopName("");
+  };
+
+  // Thêm hàm để hủy chỉnh sửa
+  const cancelEditingStop = () => {
+    setEditingStopId(null);
+    setEditingStopName("");
+  };
+
   return (
     <div className="h-screen flex">
       <Sidebar />
       <div className="w-80 bg-white shadow-lg p-4 overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-black">
-            {isEditing ? 'Chỉnh sửa lộ trình' : isCreatingRoute ? 'Tạo lộ trình mới' : 'Danh sách lộ trình'}
+            {isEditing
+              ? "Chỉnh sửa lộ trình"
+              : isCreatingRoute
+              ? "Tạo lộ trình mới"
+              : "Danh sách lộ trình"}
           </h2>
           <button
             onClick={() => {
@@ -285,12 +392,12 @@ export default function CreateRoute() {
               setStops([]);
               setRouteCoordinates([]);
               setIsEditing(false);
-              setRouteName('');
-              setRouteDescription('');
+              setRouteName("");
+              setRouteDescription("");
             }}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            {isCreatingRoute ? 'Xem danh sách' : 'Tạo mới'}
+            {isCreatingRoute ? "Xem danh sách" : "Tạo mới"}
           </button>
         </div>
 
@@ -300,9 +407,22 @@ export default function CreateRoute() {
               savedRoutes.map((route) => (
                 <div key={route._id} className="p-3 rounded-lg bg-gray-50">
                   <div className="flex justify-between items-center">
-                    <div className="flex-grow cursor-pointer" onClick={() => selectRoute(route)}>
-                      <div className="font-medium text-black">{route.name}</div>
-                      <div className="text-sm text-gray-600">{new Date(route.createdAt).toLocaleDateString()}</div>
+                    <div
+                      className="flex-grow cursor-pointer"
+                      onClick={() => selectRoute(route)}
+                    >
+                      <div className="items-center justify-between mb-5">
+                        <div className="font-medium text-black">
+                          {route.name}
+                        </div>
+                        {renderStatusBadge(route.status)}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {route.description || "Không có mô tả"}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(route.createdAt).toLocaleDateString()}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleEditRoute(route)}
@@ -341,18 +461,30 @@ export default function CreateRoute() {
                   Quay lại
                 </button>
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h3 className="text-xl font-bold text-black mb-2">{selectedRoute.name}</h3>
-                  <p className="text-gray-600 mb-4">{selectedRoute.description || 'Không có mô tả'}</p>
+                  <h3 className="text-xl font-bold text-black mb-2">
+                    {selectedRoute.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {selectedRoute.description || "Không có mô tả"}
+                  </p>
                   <div className="mb-4">
-                    <h4 className="font-medium text-gray-700 mb-2">Các điểm dừng:</h4>
+                    <h4 className="font-medium text-gray-700 mb-2">
+                      Các mốc lộ trình:
+                    </h4>
                     <div className="space-y-2">
                       {selectedRoute.waypoints.map((waypoint, index) => (
                         <div
                           key={waypoint.id}
                           className="flex items-center gap-2 p-2 rounded-md bg-gray-50"
-                          style={{ borderLeft: `4px solid ${COLORS[index % COLORS.length]}` }}
+                          style={{
+                            borderLeft: `4px solid ${
+                              COLORS[index % COLORS.length]
+                            }`,
+                          }}
                         >
-                          <span className="font-medium text-gray-700">{index + 1}.</span>
+                          <span className="font-medium text-gray-700">
+                            {index + 1}.
+                          </span>
                           <span className="text-gray-600">{waypoint.name}</span>
                         </div>
                       ))}
@@ -372,7 +504,7 @@ export default function CreateRoute() {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span>{selectedRoute.waypoints.length} điểm dừng</span>
+                      <span>{selectedRoute.waypoints.length} Mốc lộ trình</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <svg
@@ -387,7 +519,9 @@ export default function CreateRoute() {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span>Thời gian: {selectedRoute.estimatedDuration} phút</span>
+                      <span>
+                        Thời gian: {selectedRoute.estimatedDuration} phút
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <svg
@@ -412,13 +546,18 @@ export default function CreateRoute() {
                 </div>
               </div>
             )}
-            {!savedRoutes.length && <p className="text-gray-500 text-center">Chưa có lộ trình</p>}
+            {!savedRoutes.length && (
+              <p className="text-gray-500 text-center">Chưa có lộ trình</p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
             <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
               <div>
-                <label htmlFor="routeName" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="routeName"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Tên lộ trình <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -431,7 +570,10 @@ export default function CreateRoute() {
                 />
               </div>
               <div>
-                <label htmlFor="routeDescription" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="routeDescription"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Mô tả
                 </label>
                 <textarea
@@ -442,13 +584,20 @@ export default function CreateRoute() {
                 />
               </div>
               <div>
-                <label htmlFor="routeStatus" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="routeStatus"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Trạng thái
                 </label>
                 <select
                   id="routeStatus"
                   value={routeStatus}
-                  onChange={(e) => setRouteStatus(e.target.value as 'draft' | 'active' | 'inactive')}
+                  onChange={(e) =>
+                    setRouteStatus(
+                      e.target.value as "draft" | "active" | "inactive"
+                    )
+                  }
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   {STATUS_OPTIONS.map((option) => (
@@ -466,19 +615,65 @@ export default function CreateRoute() {
                   className="flex items-center justify-between p-3 mb-2 rounded-lg"
                   style={{ backgroundColor: `${stop.color}20` }}
                 >
-                  <div className="font-semibold" style={{ color: stop.color }}>
-                    Điểm dừng {index + 1}: {stop.name}
-                  </div>
+                  {editingStopId === stop.id ? (
+                    // UI chỉnh sửa tên điểm dừng
+                    <div className="flex-grow flex items-center gap-2 bg-red-100">
+                      <span className="font-semibold" style={{ color: stop.color }}>
+                      Mốc lộ trình {index + 1}:
+                      </span>
+                      <input
+                        type="text"
+                        value={editingStopName}
+                        onChange={(e) => setEditingStopName(e.target.value)}
+                        className="flex-grow p-1 border border-gray-300 rounded text-black"
+                        autoFocus
+                      />
+                      <button
+                        onClick={saveStopName}
+                        className="text-green-500 hover:text-green-700 px-2"
+                        title="Lưu"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={cancelEditingStop}
+                        className="text-red-500 hover:text-red-700 px-2"
+                        title="Hủy"
+                      >
+                        ✗
+                      </button>
+                    </div>
+                  ) : (
+                    // UI hiển thị thông thường
+                    <div className="flex-grow flex items-center gap-2">
+                      <span className="font-semibold" style={{ color: stop.color }}>
+                      Mốc lộ trình {index + 1}:
+                      </span>
+                      <span className="text-black">{stop.name}</span>
+                      <button
+                        onClick={() => startEditingStop(stop)}
+                        className="text-blue-500 hover:text-blue-700 ml-2"
+                        title="Chỉnh sửa tên"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                   <button
                     onClick={() => removeStop(stop.id)}
                     className="text-red-500 hover:text-red-700"
+                    title="Xóa mốc lộ trình"
                   >
                     ×
                   </button>
                 </div>
               ))}
               {!stops.length && (
-                <p className="text-gray-500 text-center">Nhấp vào bản đồ để thêm điểm dừng</p>
+                <p className="text-gray-500 text-center">
+                  Nhấp vào bản đồ để thêm mốc lộ trình
+                </p>
               )}
             </div>
             {stops.length >= 2 && routeCoordinates.length > 0 && (
@@ -519,10 +714,12 @@ export default function CreateRoute() {
                   onClick={saveRoute}
                   disabled={isLoading}
                   className={`w-full mt-4 py-2 px-4 rounded text-white ${
-                    isLoading ? 'bg-green-300 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+                    isLoading
+                      ? "bg-green-300 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600"
                   }`}
                 >
-                  {isLoading ? 'Đang lưu...' : 'Lưu lộ trình'}
+                  {isLoading ? "Đang lưu..." : "Lưu lộ trình"}
                 </button>
               </>
             )}
@@ -533,10 +730,10 @@ export default function CreateRoute() {
         <MapContainer
           center={[10.840405, 106.843424]}
           zoom={15.5}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: "100%", width: "100%" }}
           maxBounds={[
-            [10.830000, 106.830000],
-            [10.850000, 106.860000],
+            [10.83, 106.83],
+            [10.85, 106.86],
           ]}
           maxBoundsViscosity={1.0}
           minZoom={15}
@@ -549,7 +746,11 @@ export default function CreateRoute() {
           {isCreatingRoute ? (
             <>
               {stops.map((stop) => (
-                <Marker key={stop.id} position={stop.position} icon={createCustomIcon(stop.color)}>
+                <Marker
+                  key={stop.id}
+                  position={stop.position}
+                  icon={createCustomIcon(stop.color)}
+                >
                   <Popup>{stop.name}</Popup>
                 </Marker>
               ))}
@@ -566,12 +767,17 @@ export default function CreateRoute() {
             selectedRoute && (
               <>
                 <SavedRouteDisplay
-                  coordinates={selectedRoute.scenicRouteCoordinates.map((c) => L.latLng(c.lat, c.lng))}
+                  coordinates={selectedRoute.scenicRouteCoordinates.map((c) =>
+                    L.latLng(c.lat, c.lng)
+                  )}
                 />
                 {selectedRoute.waypoints.map((waypoint, index) => (
                   <Marker
                     key={waypoint.id}
-                    position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                    position={L.latLng(
+                      waypoint.position.lat,
+                      waypoint.position.lng
+                    )}
                     icon={createCustomIcon(COLORS[index % COLORS.length])}
                   >
                     <Popup>{waypoint.name}</Popup>
@@ -586,7 +792,11 @@ export default function CreateRoute() {
   );
 }
 
-function MapClickHandler({ onMapClick }: { onMapClick: (latlng: L.LatLng) => void }) {
+function MapClickHandler({
+  onMapClick,
+}: {
+  onMapClick: (latlng: L.LatLng) => void;
+}) {
   useMapEvents({ click: (e) => onMapClick(e.latlng) });
   return null;
 }
