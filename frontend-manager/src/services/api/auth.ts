@@ -25,5 +25,36 @@ export const authService = {
         // Clear local storage or any stored tokens
         localStorage.removeItem('token');
     },
+
+
+    async forgotPassword(email: string) {
+        try {
+            const response = await axios.post(
+                `/auth/forgot-password`,
+                { email }
+            );
+            return response.data;
+        } catch (error) {
+            console.log("error", error);
+            throw error;
+        }
+    },
+
+    async resetForgotPassword(token: string, newPassword: string) {
+        try {
+            const response = await axios.post(
+                `/auth/reset-forgot-password`,
+                {
+                    token,
+                    newPassword,
+                }
+            );
+            console.log("response", response);
+            return response.data;
+        } catch (error) {
+            console.log("error", error);
+            throw error;
+        }
+    }
 };
 

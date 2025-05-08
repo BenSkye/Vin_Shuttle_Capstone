@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Card, Layout } from 'antd';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Layout, Modal, message } from 'antd';
+import { LockOutlined, UserOutlined, MailOutlined } from '@ant-design/icons';
 import { loginUser } from '@/services/api/user';
 import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/api/auth';
 
 interface CustomError {
     isCustomError: boolean;
@@ -15,6 +16,9 @@ interface CustomError {
 export default function LoginPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+    const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
     const { login } = useAuth();
@@ -49,13 +53,39 @@ export default function LoginPage() {
         }
     };
 
+    const handleForgotPassword = () => {
+        setForgotPasswordVisible(true);
+    };
+
+    const handleForgotPasswordCancel = () => {
+        setForgotPasswordVisible(false);
+        setForgotPasswordEmail('');
+    };
+
+    const handleForgotPasswordSubmit = async () => {
+        if (!forgotPasswordEmail) {
+            message.error('Vui lòng nhập địa chỉ email');
+            return;
+        }
+
+        try {
+            setForgotPasswordLoading(true);
+            await authService.forgotPassword(forgotPasswordEmail);
+
+            message.success('Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
+            setForgotPasswordVisible(false);
+            setForgotPasswordEmail('');
+        } catch (error) {
+            message.error('Gửi email thất bại. Vui lòng thử lại sau.');
+        } finally {
+            setForgotPasswordLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-24 px-8 sm:px-12 lg:px-16">
             <div className="max-w-lg w-full space-y-10">
-
-
                 <Layout className="min-h-screen flex items-center justify-center bg-gray-100">
-
                     <Card
                         className="w-[420px] shadow-lg"
                         bodyStyle={{ padding: '30px' }}
@@ -116,8 +146,38 @@ export default function LoginPage() {
                                 </Button>
                             </Form.Item>
                         </Form>
+
+                        <div className="text-center mt-4">
+                            <Button
+                                type="link"
+                                onClick={handleForgotPassword}
+                                className="text-gray-600 hover:text-gray-800 text-sm"
+                            >
+                                Quên mật khẩu?
+                            </Button>
+                        </div>
                     </Card>
                 </Layout>
+
+                {/* Modal quên mật khẩu */}
+                <Modal
+                    title="Quên mật khẩu"
+                    open={forgotPasswordVisible}
+                    onOk={handleForgotPasswordSubmit}
+                    onCancel={handleForgotPasswordCancel}
+                    confirmLoading={forgotPasswordLoading}
+                    okText="Gửi yêu cầu"
+                    cancelText="Hủy bỏ"
+                >
+                    <p className="mb-4">Nhập địa chỉ email để nhận liên kết đặt lại mật khẩu:</p>
+                    <Input
+                        prefix={<MailOutlined className="text-gray-400" />}
+                        placeholder="Email đăng nhập"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        size="large"
+                    />
+                </Modal>
             </div>
         </div>
     );

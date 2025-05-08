@@ -215,7 +215,7 @@ export class AuthService implements IAuthService {
     if (!user) {
       return;
     }
-
+    console.log('user', user);
     // Tạo cặp key mới cho reset password
 
     const resetToken = await this.keyTokenService.createKeyTokenResetPassword({
@@ -235,7 +235,7 @@ export class AuthService implements IAuthService {
       resetUrl = `${process.env.FRONTEND_URL_DRIVER}/forgot-password?token=${resetToken}`;
     }
 
-
+    console.log('resetUrl', resetUrl);
     const result = await this.mailerService.sendMail({
       to: email,
       subject: 'Yêu cầu đặt lại mật khẩu',
