@@ -1,28 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LockOutlined } from '@ant-design/icons';
-
 import { Card, Form, Input, Layout, message, Button } from 'antd';
 import { authService } from '@/services/api/auth';
 
-export default function ResetPasswordForm() {
-    const [isClient, setIsClient] = useState(false);
+function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-
     const [form] = Form.useForm();
-
-
     const [loading, setLoading] = useState(false);
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    if (!isClient) {
-        return null;
-    }
 
     const token = searchParams.get('token');
 
@@ -34,16 +22,13 @@ export default function ResetPasswordForm() {
 
         try {
             setLoading(true);
-
-            // Gọi API reset password
             if (!token) {
                 message.error('Liên kết không hợp lệ!');
                 return;
             }
             const response = await authService.resetForgotPassword(token, values.newPassword);
-
             const data = await response;
-            console.log('data', data);
+
             if (data === true) {
                 message.success('Cập nhật mật khẩu thành công!');
                 router.push('/login');
@@ -70,6 +55,7 @@ export default function ResetPasswordForm() {
             </Layout>
         );
     }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-24 px-8 sm:px-12 lg:px-16">
             <div className="max-w-lg w-full space-y-10">
@@ -140,4 +126,10 @@ export default function ResetPasswordForm() {
     );
 }
 
-
+export default function ResetPasswordForm() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ResetPasswordContent />
+        </Suspense>
+    );
+}

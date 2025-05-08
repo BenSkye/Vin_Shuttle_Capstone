@@ -142,7 +142,7 @@ export default function LoginPage() {
                     </Form.Item>
 
                     <div className="flex justify-end mb-2" onClick={handleForgotPassword}>
-                        <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                        <a className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                             Quên mật khẩu?
                         </a>
                     </div>
