@@ -46,11 +46,79 @@ export default function DetailTripPage({ id }: { id: string }) {
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
   const { mutate: cancelTrip, isPending: isCanceling } = useCancelTripMutation()
   const [scenicRouteDetail, setScenicRouteDetail] = useState(false)
+  const [remainingTime, setRemainingTime] = useState<number>(0); // Initialize with 0
+
   const { data: scenicRouteData } = useScenicRouteDetailQuery(
     (data as Trip)?.serviceType === ServiceType.BOOKING_SCENIC_ROUTE
       ? ((data as Trip).servicePayload as BookingScenicRoutePayloadDto).bookingScenicRoute.routeId
       : ''
   )
+
+  // Format time function for countdown timer
+  const formatTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours > 0 ? `${hours}h ` : ''}${minutes}m ${seconds}s`;
+  };
+
+  // Calculate remaining time based on trip start time and total time
+  const calculateRemainingTime = (trip: Trip) => {
+    if (trip.serviceType !== ServiceType.BOOKING_HOUR || trip.status !== TripStatus.IN_PROGRESS) {
+      return 0;
+    }
+
+    const hourPayload = trip.servicePayload as BookingHourPayloadDto;
+    const totalTimeInSeconds = hourPayload.bookingHour.totalTime * 60;
+
+    // Use the actual trip start time if available
+    if (trip.timeStart) {
+      const startTime = new Date(trip.timeStart).getTime();
+      const currentTime = new Date().getTime();
+      const elapsedTimeInSeconds = Math.floor((currentTime - startTime) / 1000);
+
+      // Return remaining time, making sure it's not negative
+      return Math.max(0, totalTimeInSeconds - elapsedTimeInSeconds);
+    }
+
+    return totalTimeInSeconds; // Default to total time if no start time available
+  };
+
+  // Setup countdown timer for hour booking
+  useEffect(() => {
+    if (!data) return;
+
+    const trip = data as Trip;
+
+    // Only initialize timer if it's a BOOKING_HOUR service and trip is in progress
+    if (trip.serviceType === ServiceType.BOOKING_HOUR && trip.status === TripStatus.IN_PROGRESS) {
+      // Initial calculation of remaining time
+      const initialRemainingTime = calculateRemainingTime(trip);
+      setRemainingTime(initialRemainingTime);
+
+      const timer = setInterval(() => {
+        setRemainingTime(prevTime => {
+          if (prevTime <= 0) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [data]);
+
+  // Handle timer recalculation when refetching data
+  useEffect(() => {
+    if (data && (data as Trip).serviceType === ServiceType.BOOKING_HOUR && (data as Trip).status === TripStatus.IN_PROGRESS) {
+      const recalculatedTime = calculateRemainingTime(data as Trip);
+      setRemainingTime(recalculatedTime);
+    }
+  }, [data]);
+
   const handleCancelTrip = async () => {
     if (!cancelReason.trim()) {
       toast.error('Vui lòng nhập lý do hủy cuốc xe', { position: 'top-center' })
@@ -101,6 +169,15 @@ export default function DetailTripPage({ id }: { id: string }) {
     setCancelReason('')
   }
 
+  // Handle reload button for timer
+  const handleReloadTimer = () => {
+    if (data && (data as Trip).serviceType === ServiceType.BOOKING_HOUR && (data as Trip).status === TripStatus.IN_PROGRESS) {
+      const recalculatedTime = calculateRemainingTime(data as Trip);
+      setRemainingTime(recalculatedTime);
+      toast.success('Đồng hồ đếm ngược đã được cập nhật!', { position: 'top-center' });
+    }
+  };
+
   if (isLoading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -139,6 +216,7 @@ export default function DetailTripPage({ id }: { id: string }) {
     switch (trip.serviceType) {
       case ServiceType.BOOKING_HOUR:
         const hourPayload = trip.servicePayload as BookingHourPayloadDto
+
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -162,13 +240,19 @@ export default function DetailTripPage({ id }: { id: string }) {
                     <p className={labelStyle}>Thời gian bắt đầu</p>
                   </div>
                   <p className={`${valueStyle} sm:ml-auto`}>
-                    {trip.timeStartEstimate
-                      ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
+                    {trip.timeStart
+                      ? new Date(trip.timeStart).toLocaleString('vi-VN', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                      : trip.timeStartEstimate
+                        ? new Date(trip.timeStartEstimate).toLocaleString('vi-VN', {
                           timeZone: 'Asia/Ho_Chi_Minh',
                           hour: '2-digit',
                           minute: '2-digit',
                         })
-                      : 'Chưa xác định'}
+                        : 'Chưa xác định'}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -180,6 +264,32 @@ export default function DetailTripPage({ id }: { id: string }) {
                     {hourPayload.bookingHour.totalTime} phút
                   </p>
                 </div>
+
+                {trip.status === TripStatus.IN_PROGRESS && (
+                  <div className="mt-2 rounded-lg bg-blue-50 p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <div className="flex items-center gap-2">
+                        <FaClock className="flex-shrink-0 text-lg text-blue-600 sm:text-xl animate-pulse" />
+                        <p className={`${labelStyle} text-blue-700`}>Thời gian còn lại</p>
+                      </div>
+                      <div className="sm:ml-auto flex items-center gap-2">
+                        <p className="text-xl font-bold text-blue-700">
+                          {formatTime(remainingTime)}
+                        </p>
+                        <button
+                          onClick={handleReloadTimer}
+                          className="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                          aria-label="Cập nhật thời gian"
+                          title="Cập nhật thời gian"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -647,6 +757,57 @@ export default function DetailTripPage({ id }: { id: string }) {
                   <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
                   <span className="text-sm text-gray-600">Cập nhật thời gian thực</span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cancellation Information */}
+          {trip.status === TripStatus.CANCELLED && (
+            <div className="mb-6 rounded-lg bg-red-50 p-4 sm:mb-8 sm:rounded-xl sm:p-6">
+              <h2 className="mb-3 text-xl font-bold text-gray-800 sm:text-2xl">
+                Thông tin hủy chuyến
+              </h2>
+              <div className="space-y-3">
+                {trip.cancelledBy && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-gray-600">Người hủy:</span>
+                    <p className="text-base font-medium text-red-600">
+                      {trip.cancelledBy === 'customer' ? 'Khách hàng hủy chuyến' : 'Tài xế hủy chuyến'}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-gray-600">Lý do hủy:</span>
+                  <p className="text-base text-gray-800">
+                    {trip.cancellationReason || 'Không có lý do được cung cấp'}
+                  </p>
+                </div>
+
+                {trip.cancellationTime && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-gray-600">Thời gian hủy:</span>
+                    <p className="text-base text-gray-800">
+                      {new Date(trip.cancellationTime).toLocaleString('vi-VN', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                )}
+
+                {trip.refundAmount !== undefined && trip.refundAmount > 0 && (
+                  <div className="mt-4 flex flex-col gap-1">
+                    <span className="text-sm font-medium text-gray-600">Số tiền hoàn trả:</span>
+                    <p className="text-lg font-semibold text-green-600">
+                      {trip.refundAmount.toLocaleString('vi-VN')} VNĐ
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

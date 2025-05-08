@@ -8,6 +8,7 @@ import { loginUser } from '@/services/api/user';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api/auth';
 
+
 interface CustomError {
     isCustomError: boolean;
     message: string;
@@ -83,102 +84,85 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-24 px-8 sm:px-12 lg:px-16">
-            <div className="max-w-lg w-full space-y-10">
-                <Layout className="min-h-screen flex items-center justify-center bg-gray-100">
-                    <Card
-                        className="w-[420px] shadow-lg"
-                        bodyStyle={{ padding: '30px' }}
-                        style={{ margin: 'auto' }}
-                    >
-                        <div className="text-center mb-4">
-                            <h1 className="text-3xl font-bold">Đăng nhập Manager</h1>
-                            {error && (
-                                <p className="mt-2 text-center text-sm text-red-600">
-                                    {error}
-                                </p>
-                            )}
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+            <Card
+                className="w-full max-w-md shadow-xl border-0 rounded-xl overflow-hidden"
+                bodyStyle={{ padding: '40px' }}
+            >
+                <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
+                        {/* Replace with your actual logo */}
+                        <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+                            <span className="text-white text-2xl font-bold">VS</span>
                         </div>
-                        <Form
-                            form={form}
-                            name="login"
-                            initialValues={{ remember: true }}
-                            onFinish={handleSubmit}
-                            layout="vertical"
-                            size="small"
-                        >
-                            <Form.Item
-                                name="email"
-                                rules={[
-                                    { required: true, message: 'Vui lòng nhập email!' },
-                                    { type: 'email', message: 'Email không hợp lệ!' }
-                                ]}
-                            >
-                                <Input
-                                    prefix={<UserOutlined className="text-gray-400" />}
-                                    placeholder="Email"
-                                    size="large"
-                                    className="text-sm"
-                                />
-                            </Form.Item>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-800">Đăng nhập Manager</h1>
+                    <p className="text-gray-500 mt-2">Đăng nhập để truy cập hệ thống quản lý</p>
 
-                            <Form.Item
-                                name="password"
-                                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
-                            >
-                                <Input.Password
-                                    prefix={<LockOutlined className="text-gray-400" />}
-                                    placeholder="Mật khẩu"
-                                    size="large"
-                                    className="text-sm"
-                                />
-                            </Form.Item>
-
-                            <Form.Item className="mb-0">
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    className="w-full text-sm h-10"
-                                    loading={loading}
-                                    style={{ backgroundColor: '#000000', borderColor: '#000000' }}
-                                >
-                                    Đăng nhập
-                                </Button>
-                            </Form.Item>
-                        </Form>
-
-                        <div className="text-center mt-4">
-                            <Button
-                                type="link"
-                                onClick={handleForgotPassword}
-                                className="text-gray-600 hover:text-gray-800 text-sm"
-                            >
-                                Quên mật khẩu?
-                            </Button>
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
+                            <p>{error}</p>
                         </div>
-                    </Card>
-                </Layout>
+                    )}
+                </div>
 
-                {/* Modal quên mật khẩu */}
-                <Modal
-                    title="Quên mật khẩu"
-                    open={forgotPasswordVisible}
-                    onOk={handleForgotPasswordSubmit}
-                    onCancel={handleForgotPasswordCancel}
-                    confirmLoading={forgotPasswordLoading}
-                    okText="Gửi yêu cầu"
-                    cancelText="Hủy bỏ"
+                <Form
+                    form={form}
+                    name="login"
+                    initialValues={{ remember: true }}
+                    onFinish={handleSubmit}
+                    layout="vertical"
+                    size="middle"
+                    className="space-y-4"
                 >
-                    <p className="mb-4">Nhập địa chỉ email để nhận liên kết đặt lại mật khẩu:</p>
-                    <Input
-                        prefix={<MailOutlined className="text-gray-400" />}
-                        placeholder="Email đăng nhập"
-                        value={forgotPasswordEmail}
-                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                        size="large"
-                    />
-                </Modal>
-            </div>
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                        className=''
+                    >
+                        <Input
+                            prefix={<UserOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Email"
+                            style={{ height: '48px' }}
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Mật khẩu"
+                            className="rounded-lg py-1.5"
+                        />
+                    </Form.Item>
+                    {/* 
+                    <div className="flex justify-end mb-2">
+                        <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                            Quên mật khẩu?
+                        </a>
+                    </div> */}
+
+                    <Form.Item className="mb-0">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full h-12 text-base font-medium rounded-lg"
+                            loading={loading}
+                            style={{
+                                background: 'linear-gradient(to right, #3b82f6, #4f46e5)',
+                                borderColor: 'transparent'
+                            }}
+                        >
+                            Đăng nhập
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
         </div>
     );
 }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 import { serviceTypeText } from '@/constants/service-type.enum'
-import { TripStatusInfo } from '@/constants/trip.enum'
+import { TripCancelBy, TripStatusInfo, tripCancelText } from '@/constants/trip.enum'
 
 import { Trip } from '@/interface/trip.interface'
 
@@ -37,6 +37,14 @@ const TripCard = ({ trip, index, getStatusInfo }: TripCardProps) => {
         <TripTimeInfo timeStart={trip.timeStart} timeStartEstimate={trip.timeStartEstimate} />
 
         {trip.vehicleId && <TripVehicleInfo vehicle={trip.vehicleId} />}
+
+        {trip.status === 'cancelled' && (
+          <TripCancellationInfo
+            cancelledBy={trip.cancelledBy}
+            cancellationReason={trip.cancellationReason}
+            refundAmount={trip.refundAmount}
+          />
+        )}
 
         {trip.status === 'completed' && trip.isRating && <TripRatingBadge />}
 
@@ -82,6 +90,63 @@ const TripDriverInfo = ({ driver }: { driver: Trip['driverId'] }) => (
     <div>
       <h3 className="font-medium text-gray-700">Tài xế</h3>
       <p className="text-gray-900">{driver?.name || 'Chưa có tài xế'}</p>
+    </div>
+  </div>
+)
+
+const RefundInfo = ({ refundAmount }: { refundAmount?: number }) => {
+  if (!refundAmount) return null;
+
+  return (
+    <div className="mt-2 flex items-center">
+      <svg className="mr-1.5 h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+          d="M3 10h18M7 15h.01M11 15h.01M15 15h.01M19 15h.01M7 19h.01M11 19h.01M15 19h.01M19 19h.01"
+        />
+      </svg>
+      <span className="font-medium text-green-600">
+        Hoàn tiền: {refundAmount.toLocaleString('vi-VN')} VNĐ
+      </span>
+    </div>
+  );
+};
+
+const TripCancellationInfo = ({
+  cancelledBy,
+  cancellationReason,
+  refundAmount
+}: {
+  cancelledBy?: TripCancelBy
+  cancellationReason?: string
+  refundAmount?: number
+}) => (
+  <div className="flex items-start space-x-3">
+    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+      <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </div>
+    <div>
+      <h3 className="font-medium text-gray-700">Lý do hủy</h3>
+      {cancelledBy && (
+        <p className="text-sm font-medium text-red-600">
+          {tripCancelText[cancelledBy]}
+        </p>
+      )}
+      {cancellationReason ? (
+        <p className="text-gray-900">{cancellationReason}</p>
+      ) : (
+        <p className="text-gray-500 italic">Không có lý do được cung cấp</p>
+      )}
+      {refundAmount !== undefined && <RefundInfo refundAmount={refundAmount} />}
     </div>
   </div>
 )

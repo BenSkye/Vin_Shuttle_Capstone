@@ -35,11 +35,18 @@ const COLORS = [
   '#34495e', // xám đen
 ]
 
-const createCustomIcon = ({ color }: { color: string }) => {
+const createCustomIcon = ({ color, label }: { color: string; label: string }) => {
   return L.divIcon({
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-6">
-            <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z" clip-rule="evenodd" />
-        </svg>`,
+    html: `
+      <div class="relative">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" class="size-6">
+          <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742Z" clip-rule="evenodd" />
+        </svg>
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-white px-1.5 py-0.5 text-xs font-medium text-gray-800 shadow-sm">
+          ${label}
+        </div>
+      </div>
+    `,
     className: '',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
@@ -298,7 +305,7 @@ function RouteListControl({
                               style={{ borderLeft: `3px solid ${COLORS[index % COLORS.length]}` }}
                             >
                               <span className="text-xs font-medium text-gray-700">
-                                {index + 1}.
+                                {index === 0 ? 'Bắt đầu' : index === selectedRoute.waypoints.length - 1 ? 'Kết thúc' : `${index + 1}.`}
                               </span>
                               <span className="text-xs text-gray-600">{waypoint.name}</span>
                             </div>
@@ -461,15 +468,30 @@ export default function CreateRoute({
               L.latLng(coord.lat, coord.lng)
             )}
           />
-          {selectedRoute.waypoints.map((waypoint, index) => (
-            <Marker
-              key={waypoint.id}
-              position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
-              icon={createCustomIcon({ color: COLORS[index % COLORS.length] })}
-            >
-              <Popup>{waypoint.name}</Popup>
-            </Marker>
-          ))}
+          {selectedRoute.waypoints.map((waypoint, index) => {
+            // Only show markers for start and end points
+            if (index !== 0 && index !== selectedRoute.waypoints.length - 1) return null;
+
+            return (
+              <Marker
+                key={waypoint.id}
+                position={L.latLng(waypoint.position.lat, waypoint.position.lng)}
+                icon={createCustomIcon({
+                  color: index === 0 ? COLORS[0] : COLORS[1],
+                  label: index === 0 ? 'Bắt đầu' : 'Kết thúc'
+                })}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <div className="font-medium text-gray-800">
+                      {index === 0 ? 'Bắt đầu' : 'Kết thúc'}
+                    </div>
+                    <div className="text-sm text-gray-600">{waypoint.name}</div>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </>
       )}
     </MapContainer>
