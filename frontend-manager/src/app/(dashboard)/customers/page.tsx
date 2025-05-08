@@ -5,6 +5,7 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 
+
 import Image from "next/image";
 
 import { Column } from '@/interfaces/index';
@@ -96,39 +97,45 @@ const CustomerPage = () => {
     );
 
     return (
-        <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-            {/* TOP */}
-            <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">Danh Sách Khách Hàng</h1>
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <TableSearch onSearch={handleSearch} />
-                    <div className="flex items-center gap-4 self-end">
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/icons/filter.svg" alt="" width={14} height={14} />
-                        </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/icons/sort.svg" alt="" width={14} height={14} />
-                        </button>
+        <div className="flex flex-col gap-4">
+            {/* Chart Section */}
+
+
+            {/* Table Section */}
+            <div className="bg-white p-4 rounded-md flex-1">
+                {/* TOP */}
+                <div className="flex items-center justify-between">
+                    <h1 className="hidden md:block text-lg font-semibold">Danh Sách Khách Hàng</h1>
+                    <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                        <TableSearch onSearch={handleSearch} />
+                        <div className="flex items-center gap-4 self-end">
+                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+                                <Image src="/icons/filter.svg" alt="" width={14} height={14} />
+                            </button>
+                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
+                                <Image src="/icons/sort.svg" alt="" width={14} height={14} />
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* TABLE */}
-            <Table columns={columns} renderRow={renderRow} data={paginatedCustomers} />
+                {/* TABLE */}
+                <Table columns={columns} renderRow={renderRow} data={paginatedCustomers} />
 
-            {/* PAGINATION */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-            />
+                {/* PAGINATION */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                />
 
-            {/* Filter status indicator */}
-            <div className="px-4 py-2 text-sm text-gray-500 text-center">
-                Hiển thị {filteredCustomers.length > 0 ?
-                    `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredCustomers.length)} trong số ${filteredCustomers.length}` :
-                    '0'}
-                {customers.length !== filteredCustomers.length && ` (đã lọc từ ${customers.length} khách hàng)`} khách hàng
+                {/* Filter status indicator */}
+                <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                    Hiển thị {filteredCustomers.length > 0 ?
+                        `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredCustomers.length)} trong số ${filteredCustomers.length}` :
+                        '0'}
+                    {customers.length !== filteredCustomers.length && ` (đã lọc từ ${customers.length} khách hàng)`} khách hàng
+                </div>
             </div>
         </div>
     );
