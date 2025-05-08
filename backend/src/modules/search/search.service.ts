@@ -305,7 +305,14 @@ export class SearchService implements ISearchService {
           {
             date: DateUtils.toUTCDate(date).toDate(),
             shift: shift,
-            status: { $nin: [DriverSchedulesStatus.COMPLETED] },
+            status: {
+              $nin: [
+                DriverSchedulesStatus.COMPLETED,
+                DriverSchedulesStatus.CANCELED,
+                DriverSchedulesStatus.DROPPED_OFF,
+                // DriverSchedulesStatus.IS_PAUSED,
+              ]
+            },
           },
           [],
         ),

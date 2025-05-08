@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Card } from 'antd';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Modal, message } from 'antd';
+import { LockOutlined, UserOutlined, MailOutlined } from '@ant-design/icons';
 import { loginUser } from '@/services/api/user';
 import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/api/auth';
 
 
 interface CustomError {
@@ -16,6 +17,9 @@ interface CustomError {
 export default function LoginPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+    const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
     const { login } = useAuth();
@@ -47,6 +51,36 @@ export default function LoginPage() {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleForgotPassword = () => {
+        setForgotPasswordVisible(true);
+    };
+
+    const handleForgotPasswordCancel = () => {
+        setForgotPasswordVisible(false);
+        setForgotPasswordEmail('');
+    };
+
+    const handleForgotPasswordSubmit = async () => {
+        if (!forgotPasswordEmail) {
+            message.error('Vui lòng nhập địa chỉ email');
+            return;
+        }
+
+        try {
+            setForgotPasswordLoading(true);
+            await authService.forgotPassword(forgotPasswordEmail);
+
+            message.success('Email đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
+            setForgotPasswordVisible(false);
+            setForgotPasswordEmail('');
+        } catch (error) {
+            message.error('Gửi email thất bại. Vui lòng thử lại sau.');
+            console.log(error);
+        } finally {
+            setForgotPasswordLoading(false);
         }
     };
 
@@ -88,11 +122,11 @@ export default function LoginPage() {
                             { required: true, message: 'Vui lòng nhập email!' },
                             { type: 'email', message: 'Email không hợp lệ!' }
                         ]}
+                        className=''
                     >
                         <Input
                             prefix={<UserOutlined className="text-gray-400 mr-2" />}
                             placeholder="Email"
-                            className="rounded-lg py-1.5"
                         />
                     </Form.Item>
 
@@ -106,12 +140,12 @@ export default function LoginPage() {
                             className="rounded-lg py-1.5"
                         />
                     </Form.Item>
-                    {/* 
-                    <div className="flex justify-end mb-2">
-                        <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+
+                    <div className="flex justify-end mb-2" onClick={handleForgotPassword}>
+                        <a className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                             Quên mật khẩu?
                         </a>
-                    </div> */}
+                    </div>
 
                     <Form.Item className="mb-0">
                         <Button
@@ -129,6 +163,52 @@ export default function LoginPage() {
                     </Form.Item>
                 </Form>
             </Card>
+            <Modal
+                title="Đặt lại mật khẩu"
+                visible={forgotPasswordVisible}
+                onCancel={handleForgotPasswordCancel}
+                footer={null}
+            >
+                <Form
+                    name="forgot-password"
+                    initialValues={{ remember: true }}
+                    onFinish={handleForgotPasswordSubmit}
+                    layout="vertical"
+                    size="middle"
+                    className="space-y-4"
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input
+                            prefix={<MailOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Email"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        />
+                    </Form.Item>
+
+                    <Form.Item className="mb-0">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full h-12 text-base font-medium rounded-lg"
+                            loading={forgotPasswordLoading}
+                            style={{
+                                background: 'linear-gradient(to right, #3b82f6, #4f46e5)',
+                                borderColor: 'transparent'
+                            }}
+                        >
+                            Gửi email đặt lại mật khẩu
+                        </Button>
+                    </Form.Item>
+                </Form>
+
+            </Modal>
         </div>
     );
 }

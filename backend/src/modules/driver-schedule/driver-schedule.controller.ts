@@ -274,6 +274,26 @@ export class DriverScheduleController {
     );
   }
 
+  @Put('cancel-driver-schedule/:driverScheduleId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.MANAGER)
+  @ApiBearerAuth(HEADER.AUTHORIZATION)
+  @ApiBearerAuth(HEADER.CLIENT_ID)
+  @ApiOperation({ summary: 'Cancel driver schedule' })
+  @ApiParam({
+    name: 'driverScheduleId',
+    description: 'Driver Schedule Id',
+    example: '',
+  })
+  async cancelDriverSchedule(
+    @Param('driverScheduleId') driverScheduleId: string
+  ) {
+    return await this.driverScheduleService.cancelDriverSchedule(
+      driverScheduleId,
+    );
+  }
+
   @Get('driver-checkin/:driverScheduleId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard, RolesGuard)

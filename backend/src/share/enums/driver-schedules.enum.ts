@@ -4,6 +4,7 @@ export enum DriverSchedulesStatus {
   IS_PAUSED = 'is_paused',
   COMPLETED = 'completed',
   DROPPED_OFF = 'dropped_off',
+  CANCELED = 'canceled',
 }
 
 export enum Shift {

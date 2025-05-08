@@ -9,7 +9,7 @@ import { Activity, VehiclePopulateCategory } from '@/interfaces/index';
 
 import { Driver } from '@/interfaces/index';
 import { getAvailableDrivers } from '@/services/api/driver';
-import { DriverSchedule, getDriverScheduleByQuery, updateDriverSchedule } from '@/services/api/schedule';
+import { cancelDriverSchedule, DriverSchedule, getDriverScheduleByQuery, updateDriverSchedule } from '@/services/api/schedule';
 import { endOfWeek, format, isBefore, startOfDay, startOfWeek } from 'date-fns';
 
 import { getAvailableVehicles } from '../../../services/api/vehicles';
@@ -40,6 +40,7 @@ const SchedulePage = () => {
     const [actualWorkingHours, setActualWorkingHours] = useState<number>(0); // Số giờ làm việc thực tế
     const [isLoading, setIsLoading] = useState(false); // Trạng thái tải dữ liệu
 
+    const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false); // Trạng thái modal xác nhận
 
     // Form riêng biệt cho thao tác gán và cập nhật
     const [assignForm] = Form.useForm();
@@ -191,6 +192,8 @@ const SchedulePage = () => {
                 return 'bg-blue-100 hover:bg-blue-200 border border-blue-200';
             case 'not_started':
                 return 'bg-yellow-100 hover:bg-yellow-200 border border-yellow-200';
+            case 'canceled':
+                return 'bg-red-100 hover:bg-red-200 border border-red-200';
             default:
                 return 'bg-gray-100 hover:bg-gray-200 border border-gray-200';
         }
@@ -201,8 +204,8 @@ const SchedulePage = () => {
         setError(null);
 
         // Check if the activity date is in the past or status is completed
-        if ((activity.date && isDateInPast(activity.date)) || activity.status === 'completed') {
-            message.warning(activity.status === 'completed' ? "Không thể chỉnh sửa ca đã kết thúc" : "Không thể chỉnh sửa lịch trình trong quá khứ");
+        if ((activity.date && isDateInPast(activity.date)) || (activity.status && ['completed', 'canceled'].includes(activity.status))) {
+            message.warning((activity.status && ['completed', 'canceled'].includes(activity.status)) ? "Không thể chỉnh sửa ca đã kết thúc" : "Không thể chỉnh sửa lịch trình trong quá khứ");
             setModalType('view');
             setSelectedActivity(activity);
             setIsModalOpen(true);
@@ -376,11 +379,55 @@ const SchedulePage = () => {
         }
     };
 
+
+    const handleCancelSchedule = async () => {
+        if (!selectedActivity) return;
+
+        try {
+            setError(null);
+            setLoading(true);
+
+            // Check if the date is in the past
+            if (isDateInPast(selectedDate)) {
+                const errorMessage = "Không thể hủy lịch trình trong quá khứ";
+                setError(errorMessage);
+                message.error(errorMessage);
+                return;
+            }
+
+            await cancelDriverSchedule(selectedActivity.id);
+
+            message.success("Hủy lịch trình thành công");
+            setIsModalOpen(false);
+            setIsOpenConfirmModal(false);
+            if (startDate && endDate) {
+                fetchDriverSchedules(startDate, endDate); // Refresh the schedule display
+            }
+        } catch (error) {
+            let errorMessage = error instanceof Error ? error.message : "Không thể hủy lịch trình";
+            if (error instanceof AxiosError) {
+                console.error("Lỗi khi hủy lịch trình:", error?.response?.data.vnMessage);
+                errorMessage = error?.response?.data.vnMessage
+            }
+            console.log("Error332:", errorMessage);
+            setError(errorMessage);
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+
+    }
+
     const handleModalClose = () => {
         setIsModalOpen(false);
         setModalType('none');
         setError(null);
     };
+
+    const handleModalConfirmCancleClose = () => {
+        setIsOpenConfirmModal(false);
+        setError(null);
+    }
 
     const switchToUpdateMode = () => {
         // Check if the date is in the past
@@ -437,7 +484,7 @@ const SchedulePage = () => {
                         })}</p>
                     </div>
                 )}
-                {selectedActivity.date && !isDateInPast(selectedActivity.date) && selectedActivity.status !== 'completed' && (
+                {selectedActivity.date && !isDateInPast(selectedActivity.date) && !(selectedActivity.status && ['completed', 'canceled'].includes(selectedActivity.status)) && (
                     <Button
                         type="primary"
                         onClick={switchToUpdateMode}
@@ -459,6 +506,15 @@ const SchedulePage = () => {
                     <Alert
                         message="Không thể chỉnh sửa"
                         description="Ca đã kết thúc không thể được chỉnh sửa"
+                        type="warning"
+                        showIcon
+                        className="mt-4"
+                    />
+                )}
+                {selectedActivity.status === 'canceled' && (
+                    <Alert
+                        message="Không thể chỉnh sửa"
+                        description="Không thể chỉnh sửa lịch trình đã bị hủy"
                         type="warning"
                         showIcon
                         className="mt-4"
@@ -632,14 +688,26 @@ const SchedulePage = () => {
             );
         } else if (modalType === 'update') {
             buttons.push(
-                <Button
-                    key="update"
-                    type="primary"
-                    onClick={handleUpdateSchedule}
-                    loading={loading}
-                >
-                    Cập Nhật
-                </Button>
+                <>
+                    <Button
+                        key="update"
+                        type="primary"
+                        onClick={handleUpdateSchedule}
+                        loading={loading}
+                    >
+                        Cập Nhật
+                    </Button>
+                    <Button
+                        key="delete"
+                        type="default"
+                        danger
+                        style={{ backgroundColor: 'red', color: 'white' }}
+                        className="hover:!bg-red-400 hover:!text-white hover:!border-red-500"
+                        onClick={() => setIsOpenConfirmModal(true)}
+                    >
+                        Hủy Lịch Trình
+                    </Button>
+                </>
             );
         }
 
@@ -768,7 +836,10 @@ const SchedulePage = () => {
                         <div className='flex items-center'>
                             <span className="w-4 h-4 bg-gray-500 inline-block mr-2"></span>
                             <span>Không đi làm</span>
-
+                        </div>
+                        <div className='flex items-center'>
+                            <span className="w-4 h-4 bg-red-500 inline-block mr-2"></span>
+                            <span>Đã hủy</span>
                         </div>
                     </div>
                 </div>
@@ -799,6 +870,30 @@ const SchedulePage = () => {
                     footer={renderModalFooter()}
                 >
                     {renderModalContent()}
+                </Modal>
+
+                <Modal
+                    title="Xác Nhận Hủy Lịch Trình"
+                    open={isOpenConfirmModal}
+                    onCancel={handleModalConfirmCancleClose}
+                    footer={[
+                        <Button key="cancel" onClick={handleModalConfirmCancleClose}>
+                            Hủy
+                        </Button>,
+                        <Button
+                            key="confirm"
+                            type="primary"
+                            danger
+                            onClick={handleCancelSchedule}
+                            loading={loading}
+                        >
+                            Xác Nhận Hủy
+                        </Button>
+                    ]}
+                >
+                    <div>
+                        Xác nhận hủy lịch trình tài xế <strong>{selectedActivity?.title}</strong> vào ngày <strong>{selectedActivity?.date}</strong>?
+                    </div>
                 </Modal>
             </div>
 
