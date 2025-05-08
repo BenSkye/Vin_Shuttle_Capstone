@@ -78,6 +78,7 @@ export default function LoginPage() {
             setForgotPasswordEmail('');
         } catch (error) {
             message.error('Gửi email thất bại. Vui lòng thử lại sau.');
+            console.log(error);
         } finally {
             setForgotPasswordLoading(false);
         }
