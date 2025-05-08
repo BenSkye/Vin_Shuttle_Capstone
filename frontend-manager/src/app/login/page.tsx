@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Card, Layout } from 'antd';
+import { Form, Input, Button, Card } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { loginUser } from '@/services/api/user';
 import { useAuth } from '@/contexts/AuthContext';
+
 
 interface CustomError {
     isCustomError: boolean;
@@ -50,75 +51,84 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-24 px-8 sm:px-12 lg:px-16">
-            <div className="max-w-lg w-full space-y-10">
-
-
-                <Layout className="min-h-screen flex items-center justify-center bg-gray-100">
-
-                    <Card
-                        className="w-[420px] shadow-lg"
-                        bodyStyle={{ padding: '30px' }}
-                        style={{ margin: 'auto' }}
-                    >
-                        <div className="text-center mb-4">
-                            <h1 className="text-3xl font-bold">Đăng nhập Manager</h1>
-                            {error && (
-                                <p className="mt-2 text-center text-sm text-red-600">
-                                    {error}
-                                </p>
-                            )}
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+            <Card
+                className="w-full max-w-md shadow-xl border-0 rounded-xl overflow-hidden"
+                bodyStyle={{ padding: '40px' }}
+            >
+                <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
+                        {/* Replace with your actual logo */}
+                        <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+                            <span className="text-white text-2xl font-bold">VS</span>
                         </div>
-                        <Form
-                            form={form}
-                            name="login"
-                            initialValues={{ remember: true }}
-                            onFinish={handleSubmit}
-                            layout="vertical"
-                            size="small"
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-800">Đăng nhập Manager</h1>
+                    <p className="text-gray-500 mt-2">Đăng nhập để truy cập hệ thống quản lý</p>
+
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
+                            <p>{error}</p>
+                        </div>
+                    )}
+                </div>
+
+                <Form
+                    form={form}
+                    name="login"
+                    initialValues={{ remember: true }}
+                    onFinish={handleSubmit}
+                    layout="vertical"
+                    size="middle"
+                    className="space-y-4"
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input
+                            prefix={<UserOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Email"
+                            className="rounded-lg py-1.5"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Mật khẩu"
+                            className="rounded-lg py-1.5"
+                        />
+                    </Form.Item>
+                    {/* 
+                    <div className="flex justify-end mb-2">
+                        <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                            Quên mật khẩu?
+                        </a>
+                    </div> */}
+
+                    <Form.Item className="mb-0">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full h-12 text-base font-medium rounded-lg"
+                            loading={loading}
+                            style={{
+                                background: 'linear-gradient(to right, #3b82f6, #4f46e5)',
+                                borderColor: 'transparent'
+                            }}
                         >
-                            <Form.Item
-                                name="email"
-                                rules={[
-                                    { required: true, message: 'Vui lòng nhập email!' },
-                                    { type: 'email', message: 'Email không hợp lệ!' }
-                                ]}
-                            >
-                                <Input
-                                    prefix={<UserOutlined className="text-gray-400" />}
-                                    placeholder="Email"
-                                    size="large"
-                                    className="text-sm"
-                                />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="password"
-                                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
-                            >
-                                <Input.Password
-                                    prefix={<LockOutlined className="text-gray-400" />}
-                                    placeholder="Mật khẩu"
-                                    size="large"
-                                    className="text-sm"
-                                />
-                            </Form.Item>
-
-                            <Form.Item className="mb-0">
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    className="w-full text-sm h-10"
-                                    loading={loading}
-                                    style={{ backgroundColor: '#000000', borderColor: '#000000' }}
-                                >
-                                    Đăng nhập
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-                </Layout>
-            </div>
+                            Đăng nhập
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
         </div>
     );
 }
