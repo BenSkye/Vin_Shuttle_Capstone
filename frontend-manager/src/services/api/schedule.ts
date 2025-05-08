@@ -86,6 +86,24 @@ export const updateDriverSchedule = async (
     }
 }
 
+export const cancelDriverSchedule = async (driverScheduleID: string) => {
+    try {
+        const response = await axiosInstance.put(`/driver-schedules/cancel-driver-schedule/${driverScheduleID}`);
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            console.log("Error37:", error?.response?.data.vnMessage);
+            throw error;
+        } else if (typeof error === "object" && error !== null && "response" in error) {
+            const err = error as { response?: { data?: { vnMessage?: string, message?: string } } };
+            const errorMessage = err.response?.data?.vnMessage || err.response?.data?.message || "Failed to cancel schedule";
+            throw new Error(errorMessage);
+        } else {
+            throw new Error("Failed to cancel schedule");
+        }
+    }
+}
+
 export const getPersonalDriverSchedule = async () => {
     const startDate = '2024-01-01';
     const endDate = '2030-01-01';

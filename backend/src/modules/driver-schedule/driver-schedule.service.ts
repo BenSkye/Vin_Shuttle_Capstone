@@ -7,8 +7,8 @@ import { IDriverScheduleRepository, IDriverScheduleService } from "src/modules/d
 import { DriverScheduleDocument } from "src/modules/driver-schedule/driver-schedule.schema";
 import { TRACKING_SERVICE } from "src/modules/tracking/tracking.di-token";
 import { ITrackingService } from "src/modules/tracking/tracking.port";
-import { TRIP_REPOSITORY } from "src/modules/trip/trip.di-token";
-import { ITripRepository } from "src/modules/trip/trip.port";
+import { TRIP_REPOSITORY, TRIP_SERVICE } from "src/modules/trip/trip.di-token";
+import { ITripRepository, ITripService } from "src/modules/trip/trip.port";
 import { USER_REPOSITORY } from "src/modules/users/users.di-token";
 import { IUserRepository } from "src/modules/users/users.port";
 import { UserDocument } from "src/modules/users/users.schema";
@@ -38,6 +38,8 @@ export class DriverScheduleService implements IDriverScheduleService {
     private readonly trackingService: ITrackingService,
     @Inject(TRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
+    @Inject(TRIP_SERVICE)
+    private readonly tripService: ITripService,
     @Inject(VEHICLE_CATEGORY_REPOSITORY)
     private readonly vehicleCategoryRepository: IVehicleCategoryRepository,
   ) { }
@@ -338,6 +340,65 @@ export class DriverScheduleService implements IDriverScheduleService {
     return updatedDriverSchedule;
   }
 
+  async cancelDriverSchedule(id: string): Promise<DriverScheduleDocument> {
+    const driverSchedule = await this.driverScheduleRepository.getDriverScheduleById(id);
+    if (!driverSchedule) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Driver Schedule not found',
+          vnMessage: `Không tìm thấy lịch`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (driverSchedule.status !== DriverSchedulesStatus.NOT_STARTED) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Cannot cancel schedule that has started',
+          vnMessage: 'Không thể hủy lịch đã chấm công',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const currentDate = DateUtils.toUTCDate(new Date())
+      .utc() // Ensure we're in UTC mode
+      .startOf('day')
+      .toDate();
+    if (driverSchedule.date < currentDate) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Cannot cancel schedule with past date',
+          vnMessage: 'Không thể hủy lịch với ngày trong quá khứ',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const tripUseDriverSchedule = await this.tripRepository.findWithNotPopulate(
+      {
+        scheduleId: id,
+        status: TripStatus.CONFIRMED,
+      },
+      ['vehicleId', 'scheduleId', 'driverId'],
+    )
+    //Tạm thời cancel các cuốc xe đang sử dụng lịch này
+    const reason = 'Lịch của tài xế chở bạn đã bị hủy do trục trặc kỹ thuật.';
+    for (const trip of tripUseDriverSchedule) {
+      await this.tripService.cancelTrip(
+        trip.driverId.toString(),
+        trip._id.toString(),
+        reason,
+      )
+    }
+    const updatedDriverSchedule = await this.driverScheduleRepository.updateDriverSchedule(
+      id,
+      { status: DriverSchedulesStatus.CANCELED },
+    );
+    return updatedDriverSchedule;
+  }
+
   async getDriverNotScheduledInDate(date: Date): Promise<UserDocument[]> {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(
       {
@@ -361,6 +422,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(
       {
         date: date,
+        status: { $nin: [DriverSchedulesStatus.CANCELED] },
       },
       ['vehicle'],
     );
@@ -867,7 +929,7 @@ export class DriverScheduleService implements IDriverScheduleService {
       }
     }
 
-    //Lấy tất cả các ca đang ở trạng tháiNOT_STARTED trong và trước ngày hôm nay
+    //Lấy tất cả các ca đang ở trạng thái NOT_STARTED trong và trước ngày hôm nay
     const notStartedSchedules = await this.driverScheduleRepository.getDriverSchedules(
       {
         status: DriverSchedulesStatus.NOT_STARTED,
