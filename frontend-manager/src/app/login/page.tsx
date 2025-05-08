@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Form, Input, Button, Card, Layout, Modal, message } from 'antd';
+import { Form, Input, Button, Card, Modal, message } from 'antd';
 import { LockOutlined, UserOutlined, MailOutlined } from '@ant-design/icons';
 import { loginUser } from '@/services/api/user';
 import { useAuth } from '@/contexts/AuthContext';
@@ -126,7 +126,6 @@ export default function LoginPage() {
                         <Input
                             prefix={<UserOutlined className="text-gray-400 mr-2" />}
                             placeholder="Email"
-                            style={{ height: '48px' }}
                         />
                     </Form.Item>
 
@@ -140,12 +139,12 @@ export default function LoginPage() {
                             className="rounded-lg py-1.5"
                         />
                     </Form.Item>
-                    {/* 
-                    <div className="flex justify-end mb-2">
+
+                    <div className="flex justify-end mb-2" onClick={handleForgotPassword}>
                         <a href="#" className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                             Quên mật khẩu?
                         </a>
-                    </div> */}
+                    </div>
 
                     <Form.Item className="mb-0">
                         <Button
@@ -163,6 +162,52 @@ export default function LoginPage() {
                     </Form.Item>
                 </Form>
             </Card>
+            <Modal
+                title="Đặt lại mật khẩu"
+                visible={forgotPasswordVisible}
+                onCancel={handleForgotPasswordCancel}
+                footer={null}
+            >
+                <Form
+                    name="forgot-password"
+                    initialValues={{ remember: true }}
+                    onFinish={handleForgotPasswordSubmit}
+                    layout="vertical"
+                    size="middle"
+                    className="space-y-4"
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input
+                            prefix={<MailOutlined className="text-gray-400 mr-2" />}
+                            placeholder="Email"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        />
+                    </Form.Item>
+
+                    <Form.Item className="mb-0">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="w-full h-12 text-base font-medium rounded-lg"
+                            loading={forgotPasswordLoading}
+                            style={{
+                                background: 'linear-gradient(to right, #3b82f6, #4f46e5)',
+                                borderColor: 'transparent'
+                            }}
+                        >
+                            Gửi email đặt lại mật khẩu
+                        </Button>
+                    </Form.Item>
+                </Form>
+
+            </Modal>
         </div>
     );
 }
