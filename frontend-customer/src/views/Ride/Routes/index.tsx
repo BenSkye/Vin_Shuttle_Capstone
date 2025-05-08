@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography, notification, Steps } from 'antd'
+import { Radio, Space, Steps, Typography, notification } from 'antd'
 import dayjs from 'dayjs'
 import dynamic from 'next/dynamic'
 
@@ -91,7 +91,7 @@ const RoutesBooking = () => {
       })
 
       // Track if there's a location error
-      setLocationHasError(hasError || false);
+      setLocationHasError(hasError || false)
     },
     []
   )
@@ -110,13 +110,13 @@ const RoutesBooking = () => {
         const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
         return quantity > 0
           ? [
-            ...prev,
-            {
-              categoryVehicleId: categoryId,
-              quantity,
-              name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-            },
-          ]
+              ...prev,
+              {
+                categoryVehicleId: categoryId,
+                quantity,
+                name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+              },
+            ]
           : prev
       })
     },
@@ -136,7 +136,15 @@ const RoutesBooking = () => {
 
     try {
       if (!navigator.geolocation) {
-        throw new Error('Trình duyệt của bạn không hỗ trợ định vị')
+        const errorMsg = 'Trình duyệt của bạn không hỗ trợ định vị'
+        setError(errorMsg)
+        notification.error({
+          message: 'Không hỗ trợ định vị',
+          description: errorMsg,
+          placement: 'topRight',
+          duration: 4
+        })
+        throw new Error(errorMsg)
       }
 
       // Get position from geolocation API
@@ -158,6 +166,13 @@ const RoutesBooking = () => {
         position: { lat: latitude, lng: longitude },
         address: address || 'Vị trí hiện tại của bạn',
       })
+
+      notification.success({
+        message: 'Đã xác định vị trí',
+        description: 'Đã xác định được vị trí hiện tại của bạn',
+        placement: 'topRight',
+        duration: 3
+      })
     } catch (error) {
       console.error('Error getting location:', error)
       let errorMessage = 'Không thể lấy vị trí của bạn'
@@ -177,6 +192,12 @@ const RoutesBooking = () => {
       }
 
       setError(errorMessage)
+      notification.error({
+        message: 'Lỗi xác định vị trí',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
     } finally {
       setLoading(false)
     }
@@ -219,7 +240,17 @@ const RoutesBooking = () => {
       return true
     } catch (error) {
       console.error('Error fetching available vehicles:', error)
-      setError(error instanceof Error ? error.message : 'Không thể tìm thấy phương tiện phù hợp')
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Không thể tìm thấy phương tiện phù hợp'
+
+      setError(errorMessage)
+      notification.error({
+        message: 'Lỗi tìm kiếm phương tiện',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
       return false
     } finally {
       setLoading(false)
@@ -236,6 +267,12 @@ const RoutesBooking = () => {
       selectedVehicles.length === 0
     ) {
       setError('Vui lòng điền đầy đủ thông tin đặt xe')
+      notification.warning({
+        message: 'Thiếu thông tin',
+        description: 'Vui lòng điền đầy đủ thông tin đặt xe',
+        placement: 'topRight',
+        duration: 4
+      })
       return
     }
 
@@ -261,11 +298,26 @@ const RoutesBooking = () => {
       console.log('Booking response:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
+
+      notification.success({
+        message: 'Đặt xe thành công',
+        description: 'Đơn đặt xe của bạn đã được ghi nhận. Vui lòng thanh toán để hoàn tất.',
+        placement: 'topRight',
+        duration: 4
+      })
     } catch (error) {
       console.error('Error booking route:', error)
-      setError(
-        error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.'
-      )
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.'
+
+      setError(errorMessage)
+      notification.error({
+        message: 'Lỗi đặt xe',
+        description: errorMessage,
+        placement: 'topRight',
+        duration: 4
+      })
     } finally {
       setLoading(false)
     }
@@ -276,6 +328,12 @@ const RoutesBooking = () => {
     if (currentStep === 'datetime') {
       if (!selectedDate || !startTime) {
         setError('Vui lòng chọn ngày và giờ')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn ngày và giờ',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -283,6 +341,12 @@ const RoutesBooking = () => {
     } else if (currentStep === 'route') {
       if (!selectedRoute) {
         setError('Vui lòng chọn lộ trình')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn lộ trình',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -290,6 +354,12 @@ const RoutesBooking = () => {
     } else if (currentStep === 'vehicle') {
       if (selectedVehicles.length === 0) {
         setError('Vui lòng chọn loại xe')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn loại xe',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -297,6 +367,22 @@ const RoutesBooking = () => {
     } else if (currentStep === 'location') {
       if (!startPoint.address) {
         setError('Vui lòng chọn địa điểm đón')
+        notification.warning({
+          message: 'Thiếu thông tin',
+          description: 'Vui lòng chọn địa điểm đón',
+          placement: 'topRight',
+          duration: 3
+        })
+        return
+      }
+      if (locationHasError) {
+        setError('Địa điểm đón không hợp lệ')
+        notification.warning({
+          message: 'Địa điểm không hợp lệ',
+          description: 'Vui lòng chọn địa điểm đón hợp lệ',
+          placement: 'topRight',
+          duration: 3
+        })
         return
       }
       setError(null)
@@ -315,6 +401,7 @@ const RoutesBooking = () => {
     selectedRoute,
     selectedVehicles,
     startPoint.address,
+    locationHasError,
     fetchAvailableVehicles,
     handleConfirmBooking,
   ])
@@ -335,6 +422,12 @@ const RoutesBooking = () => {
       if (bookingResponse && bookingResponse.newBooking._id) {
         // Cancel the booking when returning from checkout
         setLoading(true)
+        notification.info({
+          message: 'Đang hủy đặt xe',
+          description: 'Đang tiến hành hủy đơn đặt xe của bạn...',
+          placement: 'topRight',
+          duration: 2
+        })
         cancelBooking(bookingResponse.newBooking._id)
           .then(() => {
             notification.success({
@@ -446,7 +539,12 @@ const RoutesBooking = () => {
               </button>
               <button
                 onClick={handleNextStep}
-                disabled={selectedVehicles.length === 0 || loading || locationHasError || !startPoint.address}
+                disabled={
+                  selectedVehicles.length === 0 ||
+                  loading ||
+                  locationHasError ||
+                  !startPoint.address
+                }
                 className="rounded-lg bg-blue-500 px-6 py-2 text-white transition-colors hover:bg-blue-600 disabled:bg-gray-300"
               >
                 {loading ? 'Đang xử lý...' : 'Tiếp tục'}
@@ -512,8 +610,17 @@ const RoutesBooking = () => {
               <div className="mb-6 space-y-4">
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -526,8 +633,17 @@ const RoutesBooking = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -538,7 +654,12 @@ const RoutesBooking = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                       <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h-3a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                     </svg>
@@ -557,8 +678,17 @@ const RoutesBooking = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -569,9 +699,18 @@ const RoutesBooking = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -663,7 +802,15 @@ const RoutesBooking = () => {
   ]
 
   const getCurrentStep = () => {
-    const steps = ['datetime', 'route', 'vehicle', 'location', 'payment', 'confirmation', 'checkout']
+    const steps = [
+      'datetime',
+      'route',
+      'vehicle',
+      'location',
+      'payment',
+      'confirmation',
+      'checkout',
+    ]
     return steps.indexOf(currentStep)
   }
 

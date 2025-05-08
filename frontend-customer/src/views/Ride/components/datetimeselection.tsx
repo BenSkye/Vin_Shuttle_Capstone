@@ -1,11 +1,17 @@
-import { BOOKING_BUFFER_MINUTES, BookingHourDuration, SystemOperatingHours } from '@/constants/booking.constants'
+import { useEffect, useState } from 'react'
+
 import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { Card, DatePicker, Select, TimePicker, Switch } from 'antd'
+import { Card, DatePicker, Select, Switch, TimePicker } from 'antd'
 import { InputNumber } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
-import { useState, useEffect } from 'react'
+
+import {
+  BOOKING_BUFFER_MINUTES,
+  BookingHourDuration,
+  SystemOperatingHours,
+} from '@/constants/booking.constants'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { Option } = Select
@@ -43,7 +49,7 @@ const DateTimeSelection = ({
         console.log('Pickup Now - Before Operating Hours:', {
           date: now.format('YYYY-MM-DD'),
           time: systemStartTime.format('HH:mm'),
-          duration
+          duration,
         })
       } else if (currentHour >= SystemOperatingHours.END) {
         // If current time is after operating hours, set to next day's start time
@@ -53,7 +59,7 @@ const DateTimeSelection = ({
         console.log('Pickup Now - After Operating Hours:', {
           date: nextDay.format('YYYY-MM-DD'),
           time: nextDay.format('HH:mm'),
-          duration
+          duration,
         })
       } else {
         // Normal case: add buffer to current time
@@ -63,7 +69,7 @@ const DateTimeSelection = ({
         console.log('Pickup Now - Normal Hours:', {
           date: now.format('YYYY-MM-DD'),
           time: bufferedTime.format('HH:mm'),
-          duration
+          duration,
         })
       }
     }
@@ -76,49 +82,46 @@ const DateTimeSelection = ({
 
   // Disallow past times for today
   const disabledTime = () => {
-    const now = dayjs();
-    const currentHour = now.hour();
-    const currentMinute = now.minute();
+    const now = dayjs()
+    const currentHour = now.hour()
+    const currentMinute = now.minute()
 
     // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
     const defaultDisabledHours = () => {
-      const hours = [];
+      const hours = []
       // Vô hiệu hóa trước giờ START
-      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i);
+      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i)
       // Vô hiệu hóa sau giờ END
-      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
-      return hours;
-    };
+      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+      return hours
+    }
 
     // Nếu đã chọn ngày VÀ là ngày hiện tại
     if (selectedDate && selectedDate.isSame(now, 'day')) {
       return {
         disabledHours: () => {
-          const hours = [];
+          const hours = []
           // Vô hiệu hóa tất cả giờ trước giờ hiện tại
-          for (let i = 0; i < currentHour; i++) hours.push(i);
+          for (let i = 0; i < currentHour; i++) hours.push(i)
           // Vô hiệu hóa sau giờ END
-          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
-          return hours;
+          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+          return hours
         },
         disabledMinutes: (hour: number) => {
           if (hour === currentHour) {
-            return Array.from(
-              { length: currentMinute + BOOKING_BUFFER_MINUTES },
-              (_, i) => i
-            );
+            return Array.from({ length: currentMinute + BOOKING_BUFFER_MINUTES }, (_, i) => i)
           }
-          return [];
+          return []
         },
-      };
+      }
     }
 
     // Trường hợp chưa chọn ngày hoặc chọn ngày khác
     return {
       disabledHours: defaultDisabledHours,
       disabledMinutes: () => [],
-    };
-  };
+    }
+  }
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
@@ -149,7 +152,9 @@ const DateTimeSelection = ({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-      <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">Chọn ngày & giờ</h2>
+      <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">
+        Chọn ngày & giờ
+      </h2>
 
       {/* Pickup Now Option */}
       <Card
@@ -176,7 +181,6 @@ const DateTimeSelection = ({
 
       {/* Grid container with responsive columns */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-
         {/* Date Selection Card */}
         <Card
           className="shadow-sm transition-shadow duration-300 hover:shadow-md"
@@ -252,32 +256,8 @@ const DateTimeSelection = ({
             addonAfter="phút" // Hiển thị đơn vị "phút"
           />
 
-          {/* Time Summary with responsive text */}
-          {selectedDate && startTime && (
-            <div className="mt-3 rounded-lg bg-blue-50 p-3 sm:p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-700 sm:text-sm">
-                Thông tin cuốc xe:
-              </h4>
-              <div className="space-y-1 text-xs text-gray-600 sm:space-y-2 sm:text-sm">
-                <p className="flex justify-between">
-                  <span className="font-medium">Ngày đặt:</span>
-                  <span>{selectedDate.format('DD/MM/YYYY')}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Giờ bắt đầu:</span>
-                  <span>{startTime.format('HH:mm')}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Thời gian thuê:</span>
-                  <span>{(duration / 60).toFixed(2)} giờ</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="font-medium">Giờ kết thúc:</span>
-                  <span>{startTime.add(duration, 'minute').format('HH:mm')}</span>
-                </p>
-              </div>
-            </div>
-          )}
+
+
         </div>
       </Card>
     </div>

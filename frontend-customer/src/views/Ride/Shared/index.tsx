@@ -2,16 +2,14 @@
 
 import React, { useCallback, useState } from 'react'
 
-import { Radio, Space, Typography, notification, Steps } from 'antd'
-
-
-import { FaMapMarkerAlt, FaCheckCircle, FaCreditCard } from 'react-icons/fa'
+import { Radio, Space, Steps, Typography, notification } from 'antd'
+import { FaCheckCircle, FaCreditCard, FaMapMarkerAlt } from 'react-icons/fa'
 
 import { PaymentMethod } from '@/constants/payment.enum'
+
 import { BookingResponse, BookingSharedRequest } from '@/interface/booking.interface'
 
 import { bookingShared, cancelBooking } from '../../../service/booking.service'
-
 import CheckoutPage from '../components/checkoutpage'
 import SharedLocation from '../components/sharedLocation'
 
@@ -23,7 +21,9 @@ type LocationPoint = {
 }
 
 const SharedBookingFlow = () => {
-  const [currentStep, setCurrentStep] = useState<'location' | 'confirmation' | 'checkout'>('location')
+  const [currentStep, setCurrentStep] = useState<'location' | 'confirmation' | 'checkout'>(
+    'location'
+  )
   const [startPoint, setStartPoint] = useState<LocationPoint>({
     position: { lat: 10.840405, lng: 106.843424 },
     address: '',
@@ -40,21 +40,24 @@ const SharedBookingFlow = () => {
   const [numberOfSeats, setNumberOfSeats] = useState<number>(1)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
 
-  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
-    setPaymentMethod(method)
-    // Ensure distance and duration estimates are properly set
-    // This is to fix the issue where these values are not being passed correctly
-    // when the payment method is PayOS
-    if (method === PaymentMethod.PAY_OS) {
-      // Make sure we have valid values for distance and duration
-      if (estimatedDistance <= 0) {
-        setEstimatedDistance(2) // Default value if not set
+  const handlePaymentMethodChange = useCallback(
+    (method: PaymentMethod) => {
+      setPaymentMethod(method)
+      // Ensure distance and duration estimates are properly set
+      // This is to fix the issue where these values are not being passed correctly
+      // when the payment method is PayOS
+      if (method === PaymentMethod.PAY_OS) {
+        // Make sure we have valid values for distance and duration
+        if (estimatedDistance <= 0) {
+          setEstimatedDistance(2) // Default value if not set
+        }
+        if (estimatedDuration <= 0) {
+          setEstimatedDuration(5) // Default value if not set
+        }
       }
-      if (estimatedDuration <= 0) {
-        setEstimatedDuration(5) // Default value if not set
-      }
-    }
-  }, [estimatedDistance, estimatedDuration])
+    },
+    [estimatedDistance, estimatedDuration]
+  )
 
   const handleStartLocationChange = useCallback(
     (position: { lat: number; lng: number }, address: string) => {
@@ -62,7 +65,13 @@ const SharedBookingFlow = () => {
       setLoading(false)
 
       // If both start and end points are set, ensure we have valid distance and duration
-      if (endPoint.address && position.lat && position.lng && endPoint.position.lat && endPoint.position.lng) {
+      if (
+        endPoint.address &&
+        position.lat &&
+        position.lng &&
+        endPoint.position.lat &&
+        endPoint.position.lng
+      ) {
         // If the SharedLocation component doesn't update these values automatically,
         // we'll set default values to ensure they're not zero
         if (estimatedDistance <= 0) {
@@ -82,7 +91,13 @@ const SharedBookingFlow = () => {
       setLoading(false)
 
       // If both start and end points are set, ensure we have valid distance and duration
-      if (startPoint.address && position.lat && position.lng && startPoint.position.lat && startPoint.position.lng) {
+      if (
+        startPoint.address &&
+        position.lat &&
+        position.lng &&
+        startPoint.position.lat &&
+        startPoint.position.lng
+      ) {
         // If the SharedLocation component doesn't update these values automatically,
         // we'll set default values to ensure they're not zero
         if (estimatedDistance <= 0) {
@@ -241,7 +256,14 @@ const SharedBookingFlow = () => {
     } else if (currentStep === 'confirmation') {
       handleConfirmBooking()
     }
-  }, [currentStep, startPoint.address, endPoint.address, estimatedDistance, estimatedDuration, handleConfirmBooking])
+  }, [
+    currentStep,
+    startPoint.address,
+    endPoint.address,
+    estimatedDistance,
+    estimatedDuration,
+    handleConfirmBooking,
+  ])
 
   const handleBackStep = useCallback(() => {
     if (currentStep === 'confirmation') {
@@ -342,8 +364,17 @@ const SharedBookingFlow = () => {
               <div className="mb-6 space-y-4">
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -354,8 +385,17 @@ const SharedBookingFlow = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -366,8 +406,17 @@ const SharedBookingFlow = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -378,8 +427,17 @@ const SharedBookingFlow = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -392,9 +450,18 @@ const SharedBookingFlow = () => {
 
                 <div className="flex items-center">
                   <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -472,16 +539,16 @@ const SharedBookingFlow = () => {
   const steps = [
     {
       title: 'Chọn địa điểm',
-      icon: <FaMapMarkerAlt className="text-xl" />
+      icon: <FaMapMarkerAlt className="text-xl" />,
     },
     {
       title: 'Xác nhận',
-      icon: <FaCheckCircle className="text-xl" />
+      icon: <FaCheckCircle className="text-xl" />,
     },
     {
       title: 'Thanh toán',
-      icon: <FaCreditCard className="text-xl" />
-    }
+      icon: <FaCreditCard className="text-xl" />,
+    },
   ]
 
   return (
@@ -518,31 +585,31 @@ const SharedBookingFlow = () => {
           margin: 0 auto;
           max-width: 600px;
         }
-        
+
         .custom-steps .ant-steps-item-icon {
           background-color: #fff;
           border-color: #e5e7eb;
         }
-        
+
         .custom-steps .ant-steps-item-active .ant-steps-item-icon {
           background-color: #3b82f6;
           border-color: #3b82f6;
         }
-        
+
         .custom-steps .ant-steps-item-finish .ant-steps-item-icon {
           background-color: #3b82f6;
           border-color: #3b82f6;
         }
-        
+
         .custom-steps .ant-steps-item-title {
           font-size: 14px;
         }
-        
+
         @media (max-width: 640px) {
           .custom-steps .ant-steps-item-title {
             font-size: 12px;
           }
-          
+
           .custom-steps .ant-steps-item-icon {
             font-size: 12px;
             width: 24px;

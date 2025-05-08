@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+
 import { useSearchParams } from 'next/navigation'
 
 import useConversationSocket from '@/hooks/useConversationSocket'
 
 import { useAuth } from '@/context/AuthContext'
 import { IConversation, IMessage } from '@/interface/conversation.interface'
+
 import ConversationDetail from './DetailConversation'
 
 const ConversationListPage = () => {
@@ -18,105 +20,129 @@ const ConversationListPage = () => {
   const [showConversationList, setShowConversationList] = useState(true)
   const [showSearchSidebar, setShowSearchSidebar] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const messageContainerRef = useRef<HTMLDivElement>(null)
   const { data: conversations, isLoading: listLoading, error: listError } = useConversationSocket()
 
-  // const {
-  //   data: conversation,
-  //   isLoading: conversationLoading,
-  //   error: conversationError,
-  //   sendMessage,
-  // } = useConversationSocket(selectedConversationId || undefined)
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+
+    if (isLeftSwipe) {
+      setShowSearchSidebar(false)
+    }
+  }
 
   // Find conversation by tripId and set it as selected
   useEffect(() => {
-    console.log('TripId from URL:', tripId, 'Type:', typeof tripId);
+    console.log('TripId from URL:', tripId, 'Type:', typeof tripId)
 
-    if (!tripId) return;
+    if (!tripId) return
 
     if (conversations) {
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
 
       if (conversationsArray.length === 0) {
-        console.log('No conversations available yet');
-        return;
+        console.log('No conversations available yet')
+        return
       }
 
-      console.log('Searching for conversation with tripId:', tripId);
+      console.log('Searching for conversation with tripId:', tripId)
 
       // Debug: Log all tripIds to see what's available
-      conversationsArray.forEach(conv => {
-        const tripIdObj = conv.tripId as any;
+      conversationsArray.forEach((conv) => {
+        const tripIdObj = conv.tripId as any
         console.log(
-          'Conv ID:', conv._id,
-          'TripId:', tripIdObj?._id,
-          'TripId type:', typeof conv.tripId,
-          'Matches?', tripIdObj?._id && tripIdObj?._id === tripId
-        );
-      });
+          'Conv ID:',
+          conv._id,
+          'TripId:',
+          tripIdObj?._id,
+          'TripId type:',
+          typeof conv.tripId,
+          'Matches?',
+          tripIdObj?._id && tripIdObj?._id === tripId
+        )
+      })
 
       // Find conversation where tripId._id matches the tripId from URL
-      let foundConversation = conversationsArray.find(conv => {
-        const tripIdObj = conv.tripId as any;
-        return tripIdObj?._id === tripId;
-      });
+      let foundConversation = conversationsArray.find((conv) => {
+        const tripIdObj = conv.tripId as any
+        return tripIdObj?._id === tripId
+      })
 
-      console.log('Found conversation:', foundConversation);
+      console.log('Found conversation:', foundConversation)
 
       if (foundConversation) {
-        console.log('Setting selected conversation to:', foundConversation._id);
-        setSelectedConversationId(foundConversation._id);
+        console.log('Setting selected conversation to:', foundConversation._id)
+        setSelectedConversationId(foundConversation._id)
 
         // Immediately show the conversation detail view (hide the list on mobile)
         if (isMobile) {
-          setShowConversationList(false);
-          setShowSearchSidebar(false);
+          setShowConversationList(false)
+          setShowSearchSidebar(false)
         }
       } else {
-        console.log('Could not find a conversation matching tripId:', tripId);
+        console.log('Could not find a conversation matching tripId:', tripId)
         // Log all tripIds to help debug
-        console.log('Available tripIds:', conversationsArray.map(c => (c.tripId as any)?._id).join(', '));
+        console.log(
+          'Available tripIds:',
+          conversationsArray.map((c) => (c.tripId as any)?._id).join(', ')
+        )
       }
     } else {
-      console.log('Conversations data not yet loaded');
+      console.log('Conversations data not yet loaded')
     }
-  }, [tripId, conversations, isMobile]);
+  }, [tripId, conversations, isMobile])
 
   // Additional effect to ensure we have conversation selected when data is available
   useEffect(() => {
     const selectConversationFromTripId = () => {
-      if (!tripId || !conversations || selectedConversationId) return;
+      if (!tripId || !conversations || selectedConversationId) return
 
-      console.log('Running additional selection logic');
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      console.log('Running additional selection logic')
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
 
       for (const conv of conversationsArray) {
         // Check if tripId._id matches the URL tripId
-        const tripIdObj = conv.tripId as any;
+        const tripIdObj = conv.tripId as any
         if (tripIdObj?._id === tripId) {
-          console.log('Found match in additional check, selecting:', conv._id);
-          setSelectedConversationId(conv._id);
+          console.log('Found match in additional check, selecting:', conv._id)
+          setSelectedConversationId(conv._id)
           if (isMobile) {
-            setShowConversationList(false);
-            setShowSearchSidebar(false);
+            setShowConversationList(false)
+            setShowSearchSidebar(false)
           }
-          break;
+          break
         }
       }
-    };
+    }
 
-    selectConversationFromTripId();
-  }, [tripId, conversations, selectedConversationId, isMobile]);
+    selectConversationFromTripId()
+  }, [tripId, conversations, selectedConversationId, isMobile])
 
   // Console log conversation data
   useEffect(() => {
     if (conversations) {
-      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations];
+      const conversationsArray = Array.isArray(conversations) ? conversations : [conversations]
       if (conversationsArray.length > 0) {
-        console.log('All conversations:', conversationsArray[0].tripId);
+        console.log('All conversations:', conversationsArray[0].tripId)
       }
     }
-  }, [conversations]);
+  }, [conversations])
 
   // useEffect(() => {
   //   console.log('Selected conversation:', conversation)
@@ -222,70 +248,19 @@ const ConversationListPage = () => {
 
       {/* Sidebar (Conversation List) */}
       <div
-        className={`fixed inset-0 z-50 flex w-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out md:relative md:inset-auto md:w-80 ${
-          // On mobile
-          isMobile
-            ? showSearchSidebar
-              ? 'translate-x-0'
-              : '-translate-x-full'
-            : // On desktop
-            'translate-x-0'
+        className={`fixed inset-0 z-50 flex w-full transform flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out md:relative md:inset-auto md:w-80 ${isMobile
+          ? showSearchSidebar
+            ? 'translate-x-0'
+            : '-translate-x-full'
+          : 'translate-x-0'
           }`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
           <h1 className="text-xl font-semibold">Tin nhắn</h1>
-          <div className="flex space-x-2">
-            <button className="rounded-full p-2 hover:bg-gray-200" aria-label="New conversation">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 4v16m8-8H4"
-                ></path>
-              </svg>
-            </button>
-            {/* Close button for mobile */}
-            {isMobile && (
-              <button
-                className="rounded-full p-2 hover:bg-gray-200"
-                onClick={() => setShowSearchSidebar(false)}
-                aria-label="Close sidebar"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="p-4">
-          <input
-            type="text"
-            placeholder="Tìm cuộc trò chuyện..."
-            className="w-full rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Search conversations"
-          />
         </div>
 
         {/* Conversation List */}
@@ -318,17 +293,17 @@ const ConversationListPage = () => {
                 {/* Conversation Info */}
                 <div className="ml-4 flex-1 overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-medium truncate">{conv.driverId?.name}</h2>
+                    <h2 className="truncate text-lg font-medium">{conv.driverId?.name}</h2>
                   </div>
                   <p className="text-sm text-gray-500">Cuốc xe {conv.tripCode}</p>
-                  <div className="flex items-center text-sm text-gray-600 space-x-2">
-                    <p className="truncate flex-1">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <p className="flex-1 truncate">
                       {conv.lastMessage?.content || 'Bắt đầu nhắn tin với tài xế'}
                     </p>
                     {conv.lastMessage?.timestamp && (
                       <>
                         <span className="text-gray-400">|</span>
-                        <span className="text-gray-500 whitespace-nowrap">
+                        <span className="whitespace-nowrap text-gray-500">
                           {getTimeString(conv.lastMessage?.timestamp)}
                         </span>
                       </>
@@ -348,10 +323,7 @@ const ConversationListPage = () => {
       {/* Main Conversation Area */}
       <div className="flex h-full flex-1 flex-col bg-gray-100">
         {selectedConversationId ? (
-          <ConversationDetail
-            id={selectedConversationId}
-            onBackClick={handleBackToList}
-          />
+          <ConversationDetail id={selectedConversationId} onBackClick={handleBackToList} />
         ) : (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
@@ -371,7 +343,9 @@ const ConversationListPage = () => {
                   ></path>
                 </svg>
               </div>
-              <p className="text-lg text-gray-600">Chọn cuộc trò chuyện để trao đổi thông tin với tài xế</p>
+              <p className="text-lg text-gray-600">
+                Chọn cuộc trò chuyện để trao đổi thông tin với tài xế
+              </p>
             </div>
           </div>
         )}

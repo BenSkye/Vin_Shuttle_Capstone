@@ -1,10 +1,12 @@
-import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
+import { useEffect, useState } from 'react'
+
 import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { Card, DatePicker, TimePicker, Switch } from 'antd'
+import { Card, DatePicker, Switch, TimePicker } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
-import { useState, useEffect } from 'react'
+
+import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
 
 interface DateTimeSelectionProps {
   selectedDate: dayjs.Dayjs | null
@@ -54,49 +56,46 @@ const RouteDateTimeSelection = ({
 
   // Disallow times less than 2 minutes from current time
   const disabledTime = () => {
-    const now = dayjs();
-    const currentHour = now.hour();
-    const currentMinute = now.minute();
+    const now = dayjs()
+    const currentHour = now.hour()
+    const currentMinute = now.minute()
 
     // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
     const defaultDisabledHours = () => {
-      const hours = [];
+      const hours = []
       // Vô hiệu hóa trước giờ START
-      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i);
+      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i)
       // Vô hiệu hóa sau giờ END
-      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
-      return hours;
-    };
+      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+      return hours
+    }
 
     // Nếu đã chọn ngày VÀ là ngày hiện tại
     if (selectedDate && selectedDate.isSame(now, 'day')) {
       return {
         disabledHours: () => {
-          const hours = [];
+          const hours = []
           // Vô hiệu hóa tất cả giờ trước giờ hiện tại
-          for (let i = 0; i < currentHour; i++) hours.push(i);
+          for (let i = 0; i < currentHour; i++) hours.push(i)
           // Vô hiệu hóa sau giờ END
-          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i);
-          return hours;
+          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+          return hours
         },
         disabledMinutes: (hour: number) => {
           if (hour === currentHour) {
-            return Array.from(
-              { length: currentMinute + BOOKING_BUFFER_MINUTES },
-              (_, i) => i
-            );
+            return Array.from({ length: currentMinute + BOOKING_BUFFER_MINUTES }, (_, i) => i)
           }
-          return [];
+          return []
         },
-      };
+      }
     }
 
     // Trường hợp chưa chọn ngày hoặc chọn ngày khác
     return {
       disabledHours: defaultDisabledHours,
       disabledMinutes: () => [],
-    };
-  };
+    }
+  }
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)

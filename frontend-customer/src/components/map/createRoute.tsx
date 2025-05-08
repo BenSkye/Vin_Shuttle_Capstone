@@ -12,11 +12,12 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
+import { ScenicRouteStatus } from '@/constants/scenic-routes.enum'
+import { useScenicRouteQuery } from '@/hooks/queries/scenicRoute.query'
+
 import '@/styles/map.css'
 
 import { RouteResponse, routeService } from '../../service/mapScenic'
-import { useScenicRouteQuery } from '@/hooks/queries/scenicRoute.query'
-import { ScenicRouteStatus } from '@/constants/scenic-routes.enum'
 
 interface CreateRouteProps {
   onRouteSelect?: (route: RouteResponse) => void
@@ -90,7 +91,13 @@ const renderStatusBadge = (status: 'draft' | 'active' | 'inactive') => {
     inactive: { color: 'bg-red-200 text-red-800', text: 'Ngừng hoạt động' },
   }
   const config = statusConfig[status]
-  return <span className={`rounded-full px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs sm:text-sm ${config.color}`}>{config.text}</span>
+  return (
+    <span
+      className={`rounded-full px-1.5 py-0.5 text-xs sm:px-2 sm:py-1 sm:text-sm ${config.color}`}
+    >
+      {config.text}
+    </span>
+  )
 }
 
 // Custom control component to display routes inside the map
@@ -101,14 +108,14 @@ function RouteListControl({
   setSelectedRouteId,
   selectedRouteId,
   selectRoute,
-  isPending
+  isPending,
 }: {
   savedRoutes: RouteResponse[]
   selectedRoute: RouteResponse | null
   setSelectedRoute: (route: RouteResponse | null) => void
   setSelectedRouteId: (id: string | null) => void
   selectedRouteId: string | null
-  selectRoute: (route: RouteResponse) => void,
+  selectRoute: (route: RouteResponse) => void
   isPending: boolean
 }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -116,7 +123,8 @@ function RouteListControl({
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   const getRouteItemClasses = (routeId: string) => {
-    const baseClasses = 'p-2 rounded-md cursor-pointer transition-all duration-200 border break-words'
+    const baseClasses =
+      'p-2 rounded-md cursor-pointer transition-all duration-200 border break-words'
 
     if (selectedRouteId === routeId) {
       return `${baseClasses} bg-blue-50 border-blue-400 transform scale-[1.01] shadow-sm`
@@ -132,17 +140,17 @@ function RouteListControl({
     // Create a Leaflet control
     const Control = L.Control.extend({
       options: {
-        position: 'topright'
+        position: 'topright',
       },
 
       onAdd: function () {
         // Add margin to move control slightly to the right
         if (containerRef.current) {
-          containerRef.current.style.marginRight = '8px';
-          containerRef.current.style.marginTop = '8px';
+          containerRef.current.style.marginRight = '8px'
+          containerRef.current.style.marginTop = '8px'
         }
         return containerRef.current as HTMLElement
-      }
+      },
     })
 
     const control = new Control()
@@ -165,7 +173,10 @@ function RouteListControl({
     : 'leaflet-control route-control-expanded w-64 max-w-[250px]'
 
   return (
-    <div ref={containerRef} className={`${containerClasses} absolute right-2 top-2 z-[1000] max-h-[60vh] overflow-y-auto rounded-md bg-white shadow-md transition-all duration-200`}>
+    <div
+      ref={containerRef}
+      className={`${containerClasses} absolute right-2 top-2 z-[1000] max-h-[60vh] overflow-y-auto rounded-md bg-white shadow-md transition-all duration-200`}
+    >
       {collapsed ? (
         // Collapsed view - just a button to expand
         <button
@@ -173,13 +184,24 @@ function RouteListControl({
           className="flex h-8 w-8 items-center justify-center rounded-md bg-white p-1 text-gray-600 hover:bg-gray-100"
           aria-label="Hiển thị danh sách lộ trình"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
       ) : (
         // Expanded view
-        <div className=''>
+        <div className="">
           {/* Header with toggle button */}
           <div className="flex items-center justify-between border-b border-gray-200 bg-white p-2">
             <h2 className="text-base font-bold text-black">
@@ -190,146 +212,162 @@ function RouteListControl({
               className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
               aria-label="Thu gọn"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
 
           {/* Body content */}
           <div className="max-h-[50vh] overflow-y-auto p-2">
-            {isPending ? (<>
-
-            </>) : (<>
-              {!selectedRoute ? (
-                // Danh sách routes với hiệu ứng chọn
-                <div className="space-y-1">
-                  {savedRoutes.map((route, index) => (
-                    <div
-                      key={route._id || index}
-                      className={getRouteItemClasses(route._id)}
-                      onClick={() => selectRoute(route)}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`Chọn lộ trình ${route.name}`}
-                      onKeyDown={(e) => e.key === 'Enter' && selectRoute(route)}
-                    >
-                      <div className="font-medium text-black">{route.name}</div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(route.createdAt).toLocaleDateString()}
+            {isPending ? (
+              <></>
+            ) : (
+              <>
+                {!selectedRoute ? (
+                  // Danh sách routes với hiệu ứng chọn
+                  <div className="space-y-1">
+                    {savedRoutes.map((route, index) => (
+                      <div
+                        key={route._id || index}
+                        className={getRouteItemClasses(route._id)}
+                        onClick={() => selectRoute(route)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Chọn lộ trình ${route.name}`}
+                        onKeyDown={(e) => e.key === 'Enter' && selectRoute(route)}
+                      >
+                        <div className="font-medium text-black">{route.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {new Date(route.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="mt-1">{renderStatusBadge(route.status)}</div>
                       </div>
-                      <div className="mt-1">{renderStatusBadge(route.status)}</div>
-                    </div>
-                  ))}
-                  {savedRoutes.length === 0 && (
-                    <p className="text-center text-gray-500">Chưa có lộ trình nào được lưu</p>
-                  )}
-                </div>
-              ) : (
-                // Chi tiết route đã chọn
-                <div className="space-y-2">
-                  <button
-                    onClick={() => {
-                      setSelectedRoute(null)
-                      setSelectedRouteId(null)
-                    }}
-                    className="mb-1 flex items-center gap-1 text-blue-500 hover:text-blue-700 text-sm"
-                    aria-label="Quay lại danh sách"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                    ))}
+                    {savedRoutes.length === 0 && (
+                      <p className="text-center text-gray-500">Chưa có lộ trình nào được lưu</p>
+                    )}
+                  </div>
+                ) : (
+                  // Chi tiết route đã chọn
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        setSelectedRoute(null)
+                        setSelectedRouteId(null)
+                      }}
+                      className="mb-1 flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700"
+                      aria-label="Quay lại danh sách"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Quay lại danh sách
-                  </button>
-                  <div className="rounded-md border border-blue-400 bg-white p-2 shadow-sm">
-                    <h3 className="mb-1 text-base font-bold text-black">{selectedRoute.name}</h3>
-                    <p className="mb-2 text-xs text-gray-600">
-                      {selectedRoute.description || 'Không có mô tả'}
-                    </p>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Quay lại danh sách
+                    </button>
+                    <div className="rounded-md border border-blue-400 bg-white p-2 shadow-sm">
+                      <h3 className="mb-1 text-base font-bold text-black">{selectedRoute.name}</h3>
+                      <p className="mb-2 text-xs text-gray-600">
+                        {selectedRoute.description || 'Không có mô tả'}
+                      </p>
 
+                      <div className="mb-2">
+                        <h4 className="mb-1 text-sm font-medium text-gray-700">Lộ trình đi qua:</h4>
+                        <div className="space-y-1">
+                          {selectedRoute.waypoints.map((waypoint, index) => (
+                            <div
+                              key={waypoint.id}
+                              className="flex items-center gap-1 rounded-md bg-gray-50 p-1"
+                              style={{ borderLeft: `3px solid ${COLORS[index % COLORS.length]}` }}
+                            >
+                              <span className="text-xs font-medium text-gray-700">
+                                {index + 1}.
+                              </span>
+                              <span className="text-xs text-gray-600">{waypoint.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-                    <div className="mb-2">
-                      <h4 className="mb-1 font-medium text-sm text-gray-700">Lộ trình đi qua:</h4>
                       <div className="space-y-1">
-                        {selectedRoute.waypoints.map((waypoint, index) => (
-                          <div
-                            key={waypoint.id}
-                            className="flex items-center gap-1 rounded-md bg-gray-50 p-1"
-                            style={{ borderLeft: `3px solid ${COLORS[index % COLORS.length]}` }}
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
                           >
-                            <span className="font-medium text-xs text-gray-700">{index + 1}.</span>
-                            <span className="text-xs text-gray-600">{waypoint.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 sm:h-5 sm:w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-xs">{selectedRoute.waypoints.length} điểm dừng</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 sm:h-5 sm:w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-sm sm:text-base">Thời gian dự kiến: {selectedRoute.estimatedDuration} phút</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 sm:h-5 sm:w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-sm sm:text-base">Khoảng cách dự kiến: {selectedRoute.totalDistance} km</span>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
-                        <span className="text-sm sm:text-base font-medium">Trạng thái:</span>
-                        {renderStatusBadge(selectedRoute.status)}
+                            <path
+                              fillRule="evenodd"
+                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-xs">
+                            {selectedRoute.waypoints.length} điểm dừng
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm sm:text-base">
+                            Thời gian dự kiến: {selectedRoute.estimatedDuration} phút
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-sm sm:text-base">
+                            Khoảng cách dự kiến: {selectedRoute.totalDistance} km
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600 sm:gap-2">
+                          <span className="text-sm font-medium sm:text-base">Trạng thái:</span>
+                          {renderStatusBadge(selectedRoute.status)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </>
+                )}
+              </>
             )}
-
           </div>
         </div>
       )}
@@ -343,7 +381,9 @@ export default function CreateRoute({
 }: CreateRouteProps) {
   const [mapCenter] = useState<L.LatLngTuple>([10.840405, 106.843424])
   // const [savedRoutes, setSavedRoutes] = useState<RouteResponse[]>([])
-  const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(propSelectedRoute || null)
+  const [selectedRoute, setSelectedRoute] = useState<RouteResponse | null>(
+    propSelectedRoute || null
+  )
   const [localSelectedRoute, setLocalSelectedRoute] = useState<RouteResponse | null>(null)
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const { data: savedRoutes, isPending } = useScenicRouteQuery({ status: ScenicRouteStatus.ACTIVE }) // Assuming this is a custom hook to fetch scenic routes
@@ -435,4 +475,3 @@ export default function CreateRoute({
     </MapContainer>
   )
 }
-

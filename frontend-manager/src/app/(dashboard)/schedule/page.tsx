@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Modal, Form, Button, Select, message, Alert, } from 'antd';
 import { Activity, VehiclePopulateCategory } from '@/interfaces/index';
-import EventCalendar from '@/components/EventCalendar';
+
 
 
 import { Driver } from '@/interfaces/index';
@@ -186,13 +186,13 @@ const SchedulePage = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed':
-                return 'bg-green-100 hover:bg-green-200';
+                return 'bg-green-100 hover:bg-green-200 border border-green-200';
             case 'in_progress':
-                return 'bg-blue-100 hover:bg-blue-200';
+                return 'bg-blue-100 hover:bg-blue-200 border border-blue-200';
             case 'not_started':
-                return 'bg-yellow-100 hover:bg-yellow-200';
+                return 'bg-yellow-100 hover:bg-yellow-200 border border-yellow-200';
             default:
-                return 'bg-gray-100 hover:bg-gray-200';
+                return 'bg-gray-100 hover:bg-gray-200 border border-gray-200';
         }
     };
 
@@ -776,9 +776,9 @@ const SchedulePage = () => {
                 <div className="p-4 border-t mt-4">
                     <div className="flex gap-4" >
                         <h4 className="font-medium mb-2">Tổng số giờ làm việc:</h4>
-                        <p>{totalWorkingHours} giờ</p>
+                        <p>{Math.round(totalWorkingHours)} giờ</p>
                         <h4 className="font-medium mb-2">Số giờ làm việc thực tế:</h4>
-                        <p>{actualWorkingHours} giờ</p>
+                        <p>{Math.round(actualWorkingHours)} giờ</p>
                     </div>
                 </div>
 
@@ -801,10 +801,10 @@ const SchedulePage = () => {
                     {renderModalContent()}
                 </Modal>
             </div>
-            <div className="w-full lg:w-1/3 flex flex-col gap-8">
-                <EventCalendar />
 
-            </div>
+            {/* <EventCalendar /> */}
+
+
         </div>
     );
 };

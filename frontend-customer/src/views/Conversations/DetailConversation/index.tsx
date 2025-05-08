@@ -4,8 +4,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import useConversationSocket from '@/hooks/useConversationSocket'
+
 import { useAuth } from '@/context/AuthContext'
 import { IConversation, IMessage } from '@/interface/conversation.interface'
+
+// pages/conversations/[id].tsx
 
 // pages/conversations/[id].tsx
 
@@ -20,8 +23,6 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
   const { data: conversation, isLoading, error, sendMessage } = useConversationSocket(id)
   const [message, setMessage] = useState('')
   const messageContainerRef = useRef<HTMLDivElement>(null)
-
-
 
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -68,7 +69,6 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
     <div className="flex h-full flex-col bg-gray-100">
       {/* Conversation Header */}
       <div className="flex items-center border-b border-gray-200 bg-white p-4">
-
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-lg font-semibold text-white">
           {getInitial((conversation as IConversation)?.driverId?.name)}
         </div>
@@ -85,18 +85,14 @@ const ConversationDetail = ({ id, onBackClick }: { id: string; onBackClick?: () 
         {(conversation as IConversation)?.listMessage.map((msg, index) => {
           const isOutgoing = msg.senderId === authUser?.id
           return (
-            <div
-              key={index}
-              className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={index} className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-xs rounded-lg p-3 md:max-w-md ${isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
-                  }`}
+                className={`max-w-xs rounded-lg p-3 md:max-w-md ${
+                  isOutgoing ? 'bg-blue-500 text-white' : 'bg-white'
+                }`}
               >
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                <p
-                  className={`mt-1 text-xs ${isOutgoing ? 'text-blue-100' : 'text-gray-500'}`}
-                >
+                <p className={`mt-1 text-xs ${isOutgoing ? 'text-blue-100' : 'text-gray-500'}`}>
                   {getTimeString(msg.createdAt)}
                 </p>
               </div>

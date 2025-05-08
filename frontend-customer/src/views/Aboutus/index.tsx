@@ -1,5 +1,6 @@
 import Image from 'next/image'
-const currentYear = new Date().getFullYear();
+
+const currentYear = new Date().getFullYear()
 
 const AboutUsPage = () => {
   return (

@@ -7,7 +7,7 @@ export const TripApiService = {
       params: {
         orderBy: 'updatedAt',
         sortOrder: 'desc',
-      }
+      },
     })
     console.log(response.data)
     return response.data
@@ -24,5 +24,5 @@ export const TripApiService = {
       reason,
     })
     return response.data
-  }
+  },
 }

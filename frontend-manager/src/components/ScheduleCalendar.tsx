@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, useEffect } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isSameDay, isSameWeek, isBefore, startOfDay } from 'date-fns';
 import { Button } from 'antd';
 import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons';
@@ -28,11 +28,13 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
     );
 
     const currentWeek = externalCurrentWeek || internalCurrentWeek;
-    console.log('Current Week:', currentWeek);
-    const setCurrentWeek = (week: Date) => {
-        setInternalCurrentWeek(week);
-        onWeekChange?.(week);
-    };
+
+    // Update internal state when external state changes
+    useEffect(() => {
+        if (externalCurrentWeek) {
+            setInternalCurrentWeek(externalCurrentWeek);
+        }
+    }, [externalCurrentWeek]);
 
     // Expose current week through ref
     React.useImperativeHandle(ref, () => ({
@@ -49,16 +51,32 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
         D: '15:00 - 23:00',
     };
 
-
-
     // Tạo các ngày trong tuần hiện tại
     const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
 
-    console.log('Days in Current Week:', days.map(day => format(day, 'yyyy-MM-dd')));
+    const prevWeek = () => {
+        const newWeek = subWeeks(currentWeek, 1);
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
 
-    const prevWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
-    const nextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
-    const today = () => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const nextWeek = () => {
+        const newWeek = addWeeks(currentWeek, 1);
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
+
+    const today = () => {
+        const newWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+        setInternalCurrentWeek(newWeek);
+        if (onWeekChange) {
+            onWeekChange(newWeek);
+        }
+    };
 
     // Kiểm tra nếu ngày đã qua
     const isDateInPast = (date: Date) => {
@@ -102,11 +120,9 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
 
             // Kiểm tra nếu ngày đã qua
             if (isDateInPast(actualDate)) {
-                console.log(`Không thể đặt lịch cho ngày đã qua: ${format(actualDate, 'yyyy-MM-dd')}`);
                 return; // Không cho phép đặt lịch cho ngày đã qua
             }
 
-            console.log(`Đã nhấp vào: ${format(actualDate, 'yyyy-MM-dd')} - Ca ${time}`);
             onSlotClick(time, dayIndex, actualDate);
         }
     };
@@ -139,7 +155,7 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                 <div className="grid grid-cols-8 bg-gray-100 text-gray-700">
                     <div className="p-3 border font-medium">Ca</div>
                     {days.map((day, i) => (
-                        <div key={i} className={`p-3 border text-center font-medium ${isDateInPast(day) ? 'bg-gray-200' : ''}`}>
+                        <div key={i} className="p-3 border text-center font-medium">
                             <div>{format(day, 'EEEE')}</div>
                             <div className="text-xs text-gray-500">{format(day, 'MMM d')}</div>
                         </div>
@@ -159,7 +175,7 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                             return (
                                 <div
                                     key={`${time}-${dayIndex}`}
-                                    className={`relative p-2 border ${isPastDate ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} min-h-[120px]`}
+                                    className={`relative p-2 border ${isPastDate ? 'cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'} min-h-[120px]`}
                                     onClick={() => !isPastDate && handleSlotClick(time, dayIndex)}
                                 >
                                     {isLoading ? (
@@ -173,26 +189,29 @@ export const ScheduleCalendar = forwardRef<{ getCurrentWeek: () => Date }, Sched
                                             </div>
                                         </div>
                                     ) : (
-                                        dayActivities.map(activity => (
-                                            <div
-                                                key={activity.id}
-                                                className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
-                                                onClick={(e) => handleActivityClick(e, activity)}
-                                            >
-                                                <div className="font-medium truncate">{activity.title}</div>
-                                                <div className="text-xs truncate text-gray-600">{activity.description}</div>
-                                                {activity.status === 'completed' && activity.checkinTime && activity.checkoutTime && (
-                                                    <div className="mt-1 text-xs text-gray-700">
-                                                        <div>
-                                                            <span className="font-medium">Check-in:</span> {new Date(activity.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        dayActivities.map(activity => {
+                                            const isPastActivity = isDateInPast(activity.originalDate || (activity.date ? new Date(activity.date) : new Date()));
+                                            return (
+                                                <div
+                                                    key={activity.id}
+                                                    className={`p-2 rounded ${activity.color || 'bg-blue-100'} cursor-pointer text-sm mb-1`}
+                                                    onClick={(e) => handleActivityClick(e, activity)}
+                                                >
+                                                    <div className={`font-medium truncate ${isPastActivity ? 'text-gray-500' : ''}`}>{activity.title}</div>
+                                                    <div className={`text-xs truncate ${isPastActivity ? 'text-gray-400' : 'text-gray-600'}`}>{activity.description}</div>
+                                                    {activity.status === 'completed' && activity.checkinTime && activity.checkoutTime && (
+                                                        <div className="mt-1 text-xs text-gray-700">
+                                                            <div>
+                                                                <span className="font-medium">Check-in:</span> {new Date(activity.checkinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-medium">Check-out:</span> {new Date(activity.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <span className="font-medium">Check-out:</span> {new Date(activity.checkoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))
+                                                    )}
+                                                </div>
+                                            );
+                                        })
                                     )}
 
 
