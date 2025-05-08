@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-
-import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { Card, DatePicker, Select, Switch, TimePicker } from 'antd'
+import { Tooltip } from 'antd'
+import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { Card, DatePicker, Select, Switch, TimePicker, Button } from 'antd'
 import { InputNumber } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
@@ -40,70 +40,43 @@ const DateTimeSelection = ({
       const now = dayjs()
       const currentHour = now.hour()
 
-      // Check if current time is within system operating hours
       if (currentHour < SystemOperatingHours.START) {
-        // If current time is before operating hours, set to system start time
         const systemStartTime = now.hour(SystemOperatingHours.START).minute(0).second(0)
         onDateChange(now)
         onStartTimeChange(systemStartTime)
-        console.log('Pickup Now - Before Operating Hours:', {
-          date: now.format('YYYY-MM-DD'),
-          time: systemStartTime.format('HH:mm'),
-          duration,
-        })
       } else if (currentHour >= SystemOperatingHours.END) {
-        // If current time is after operating hours, set to next day's start time
         const nextDay = now.add(1, 'day').hour(SystemOperatingHours.START).minute(0).second(0)
         onDateChange(nextDay)
         onStartTimeChange(nextDay)
-        console.log('Pickup Now - After Operating Hours:', {
-          date: nextDay.format('YYYY-MM-DD'),
-          time: nextDay.format('HH:mm'),
-          duration,
-        })
       } else {
-        // Normal case: add buffer to current time
         const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
         onDateChange(now)
         onStartTimeChange(bufferedTime)
-        console.log('Pickup Now - Normal Hours:', {
-          date: now.format('YYYY-MM-DD'),
-          time: bufferedTime.format('HH:mm'),
-          duration,
-        })
       }
     }
-  }, [pickupNow, onDateChange, onStartTimeChange, duration])
+  }, [pickupNow, onDateChange, onStartTimeChange])
 
-  // Disallow past dates
   const disabledDate = (current: dayjs.Dayjs) => {
     return current && current < dayjs().startOf('day')
   }
 
-  // Disallow past times for today
   const disabledTime = () => {
     const now = dayjs()
     const currentHour = now.hour()
     const currentMinute = now.minute()
 
-    // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
     const defaultDisabledHours = () => {
       const hours = []
-      // Vô hiệu hóa trước giờ START
       for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i)
-      // Vô hiệu hóa sau giờ END
       for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
       return hours
     }
 
-    // Nếu đã chọn ngày VÀ là ngày hiện tại
     if (selectedDate && selectedDate.isSame(now, 'day')) {
       return {
         disabledHours: () => {
           const hours = []
-          // Vô hiệu hóa tất cả giờ trước giờ hiện tại
           for (let i = 0; i < currentHour; i++) hours.push(i)
-          // Vô hiệu hóa sau giờ END
           for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
           return hours
         },
@@ -116,7 +89,6 @@ const DateTimeSelection = ({
       }
     }
 
-    // Trường hợp chưa chọn ngày hoặc chọn ngày khác
     return {
       disabledHours: defaultDisabledHours,
       disabledMinutes: () => [],
@@ -125,139 +97,181 @@ const DateTimeSelection = ({
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
-    console.log('Pickup Now Toggle:', checked)
-
-    // If toggling off, reset date and time selections
     if (!checked) {
       onDateChange(null)
       onStartTimeChange(null)
     }
   }
 
-  const handleDateChange = (date: dayjs.Dayjs | null) => {
-    console.log('Date changed:', date ? date.format('YYYY-MM-DD') : 'null')
-    onDateChange(date)
+  const handleDateChange = (date: dayjs.Dayjs | null) => onDateChange(date)
+  const handleTimeChange = (time: dayjs.Dayjs | null) => onStartTimeChange(time)
+  const handleDurationChange = (value: number | null) => onDurationChange(value || 0)
+
+  const getEstimatedReturnTime = () => {
+    if (!startTime || duration <= 0) return null
+    return startTime.add(duration, 'minute').format('HH:mm')
   }
 
-  const handleTimeChange = (time: dayjs.Dayjs | null) => {
-    console.log('Time changed:', time ? time.format('HH:mm') : 'null')
-    onStartTimeChange(time)
-  }
-
-  const handleDurationChange = (value: number | null) => {
-    const newDuration = value || 0
-    console.log('Duration changed:', newDuration)
-    onDurationChange(newDuration)
-  }
+  const commonCardClasses = "overflow-hidden rounded-xl border-0 shadow-md transition-all hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-400"
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-      <h2 className="mb-4 text-center text-xl font-semibold text-gray-800 sm:text-2xl">
+    <div className="w-full max-w-6xl mx-auto space-y-6 px-4 sm:px-6">
+      <h2 className="text-center text-xl sm:text-2xl font-semibold text-gray-800 mb-6">
         Chọn ngày & giờ
       </h2>
 
       {/* Pickup Now Option */}
       <Card
-        className="mb-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+        className={commonCardClasses}
         title={
-          <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-            <ThunderboltOutlined className="text-yellow-500" />
-            <span>Đón ngay bây giờ</span>
+          <div className="flex items-center gap-3">
+            <ThunderboltOutlined className="text-xl sm:text-2xl text-yellow-500" />
+            <span className="text-base sm:text-lg font-medium">Đón ngay bây giờ</span>
           </div>
         }
-        styles={{ body: { padding: '12px' } }}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600 sm:text-base">Đặt xe ngay lập tức </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm sm:text-base text-gray-600">
+              Đặt xe ngay lập tức để được phục vụ sớm nhất
+            </span>
+            <Tooltip title="Hệ thống sẽ tự động chọn thời gian sớm nhất có thể">
+              <InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" />
+            </Tooltip>
+          </div>
           <Switch
             checked={pickupNow}
             onChange={handlePickupNowToggle}
-            className="bg-gray-300"
+            className={`${pickupNow ? 'bg-blue-500' : 'bg-gray-300'} transition-colors self-end sm:self-auto`}
             checkedChildren="Có"
             unCheckedChildren="Không"
+            aria-label="Chọn đón ngay"
           />
         </div>
       </Card>
 
       {/* Grid container with responsive columns */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Date Selection Card */}
         <Card
-          className="shadow-sm transition-shadow duration-300 hover:shadow-md"
+          className={commonCardClasses}
           title={
-            <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-              <CalendarOutlined className="text-blue-500" />
-              <span>Chọn ngày</span>
+            <div className="flex items-center gap-3">
+              <CalendarOutlined className="text-xl sm:text-2xl text-blue-500" />
+              <span className="text-base sm:text-lg font-medium">Chọn ngày</span>
             </div>
           }
-          styles={{ body: { padding: '12px' } }}
         >
-          <DatePicker
-            className="w-full"
-            format="DD/MM/YYYY"
-            disabledDate={disabledDate}
-            value={selectedDate}
-            onChange={handleDateChange}
-            placeholder="Chọn ngày đặt xe"
-            locale={locale}
-            showToday={false}
-            size="large"
-            disabled={pickupNow}
-          />
+          <div className="p-4">
+            <DatePicker
+              className="w-full transition-all hover:border-blue-400"
+              format="DD/MM/YYYY"
+              disabledDate={disabledDate}
+              value={selectedDate}
+              onChange={handleDateChange}
+              placeholder="Chọn ngày đặt xe"
+              locale={locale}
+              showToday={false}
+              size="large"
+              disabled={pickupNow}
+              aria-label="Chọn ngày đặt xe"
+            />
+          </div>
         </Card>
 
         {/* Time Selection Card */}
         <Card
-          className="shadow-sm transition-shadow duration-300 hover:shadow-md"
+          className={commonCardClasses}
           title={
-            <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-              <ClockCircleOutlined className="text-blue-500" />
-              <span>Chọn giờ</span>
+            <div className="flex items-center gap-3">
+              <ClockCircleOutlined className="text-xl sm:text-2xl text-blue-500" />
+              <span className="text-base sm:text-lg font-medium">Chọn giờ</span>
             </div>
           }
-          styles={{ body: { padding: '12px' } }}
         >
-          <TimePicker
-            className="w-full"
-            format="HH:mm"
-            value={startTime}
-            onChange={handleTimeChange}
-            placeholder="Chọn giờ đặt xe"
-            locale={locale}
-            disabledTime={disabledTime}
-            minuteStep={1}
-            size="large"
-            showNow={false}
-            disabled={pickupNow}
-          />
+          <div className="p-4">
+            <TimePicker
+              className="w-full transition-all hover:border-blue-400"
+              format="HH:mm"
+              value={startTime}
+              onChange={handleTimeChange}
+              placeholder="Chọn giờ đặt xe"
+              locale={locale}
+              disabledTime={disabledTime}
+              minuteStep={15}
+              size="large"
+              showNow={false}
+              disabled={pickupNow}
+              aria-label="Chọn giờ đặt xe"
+            />
+          </div>
         </Card>
       </div>
 
       {/* Duration Selection Card */}
       <Card
-        className="mt-4 shadow-sm transition-shadow duration-300 hover:shadow-md sm:mt-6"
+        className={commonCardClasses}
         title={
-          <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-            <ClockCircleOutlined className="text-blue-500" />
-            <span>Thời gian thuê xe</span>
+          <div className="flex items-center gap-3">
+            <ClockCircleOutlined className="text-xl sm:text-2xl text-blue-500" />
+            <span className="text-base sm:text-lg font-medium">Thời gian thuê xe</span>
           </div>
         }
-        styles={{ body: { padding: '12px' } }}
       >
-        <div className="flex flex-col gap-4">
-          <InputNumber
-            className="w-full"
-            value={duration}
-            onChange={handleDurationChange}
-            size="large"
-            min={BookingHourDuration.MIN} // Giá trị tối thiểu là 15 phút
-            max={BookingHourDuration.MAX} // Giá trị tối đa là 300 phút
-            step={15} // Bước nhảy 15 phút
-            addonAfter="phút" // Hiển thị đơn vị "phút"
-          />
+        <div className="space-y-6 p-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm sm:text-base text-gray-600">Chọn thời gian thuê xe</span>
+              <Tooltip title="Thời gian tối thiểu là 1 giờ và tối đa là 8 giờ">
+                <InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" />
+              </Tooltip>
+            </div>
 
+            <div className="flex flex-col gap-4">
+              <div className="w-full">
+                <InputNumber
+                  className="w-full"
+                  value={duration}
+                  onChange={handleDurationChange}
+                  size="large"
+                  min={BookingHourDuration.MIN}
+                  max={BookingHourDuration.MAX}
+                  step={15}
+                  addonAfter="phút"
+                  aria-label="Nhập thời gian thuê xe"
+                />
+              </div>
 
+              <div className="grid grid-cols-3 gap-2">
+                {[60, 120, 180].map((mins) => (
+                  <Button
+                    key={mins}
+                    size="large"
+                    type={duration === mins ? 'primary' : 'default'}
+                    onClick={() => handleDurationChange(mins)}
+                    className={`
+                      w-full transition-all text-sm sm:text-base
+                      ${duration === mins ? 'bg-blue-500 text-white hover:bg-blue-600' : 'hover:border-blue-400'}
+                    `}
+                    aria-label={`Chọn ${mins / 60} giờ`}
+                  >
+                    {mins / 60}h
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
 
+          {startTime && duration > 0 && (
+            <div className="rounded-lg bg-blue-50 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-600">Thời gian trả xe dự kiến:</span>
+                <span className="text-base sm:text-lg font-medium text-blue-600">
+                  {getEstimatedReturnTime()}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
     </div>
