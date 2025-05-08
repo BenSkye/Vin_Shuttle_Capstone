@@ -12,19 +12,16 @@ import {
   FaRoute,
   FaShieldAlt,
   FaUserTie,
+  FaUsers,
 } from 'react-icons/fa'
 
 import { Routes } from '@/constants/routers'
 
-import BookingForm from './components/BookingForm'
 import FeatureCard from './components/FeatureCard'
 import ServiceCard from './components/ServiceCard'
 
 const HomePage = () => {
-  const [selectedService, setSelectedService] = useState<'hour' | 'route' | 'destination'>('hour')
-  const [tripType, setTripType] = useState<'one-way' | 'roundtrip'>('one-way')
-  const [passengers, setPassengers] = useState(1)
-  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedService, setSelectedService] = useState<'hour' | 'route' | 'destination' | 'shared'>('hour')
 
   const services = [
     {
@@ -47,6 +44,13 @@ const HomePage = () => {
       description: 'Đặt xe đi đến điểm đến mong muốn',
       icon: <FaMapMarkedAlt className="h-8 w-8 text-green-500" />,
       href: Routes.RIDE.DESTINATION,
+    },
+    {
+      id: 'shared',
+      title: 'Đặt xe đi chung',
+      description: 'Chia sẻ chuyến đi, tiết kiệm chi phí',
+      icon: <FaUsers className="h-8 w-8 text-green-500" />,
+      href: Routes.RIDE.SHARED,
     },
   ]
 
@@ -105,17 +109,6 @@ const HomePage = () => {
                 <p className="mb-8 text-xl md:text-2xl">An toàn - Tiện lợi - Chuyên nghiệp</p>
               </div>
 
-              {/* Right side - Booking form */}
-              {/* <div className="w-full max-w-md mx-auto">
-                                <BookingForm
-                                    tripType={tripType}
-                                    setTripType={setTripType}
-                                    passengers={passengers}
-                                    setPassengers={setPassengers}
-                                    selectedDate={selectedDate}
-                                    setSelectedDate={setSelectedDate}
-                                />
-                            </div> */}
             </div>
           </div>
         </div>
@@ -124,13 +117,13 @@ const HomePage = () => {
       {/* Services Section */}
       <div className="container mx-auto px-4 py-16">
         <h2 className="mb-12 text-center text-3xl font-bold">Các dịch vụ của chúng tôi</h2>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service) => (
             <ServiceCard
               key={service.id}
               {...service}
               isSelected={selectedService === service.id}
-              onSelect={() => setSelectedService(service.id as 'hour' | 'route' | 'destination')}
+              onSelect={() => setSelectedService(service.id as 'hour' | 'route' | 'destination' | 'shared')}
             />
           ))}
         </div>
