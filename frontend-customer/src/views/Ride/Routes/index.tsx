@@ -110,13 +110,13 @@ const RoutesBooking = () => {
         const vehicle = availableVehicles.find((v) => v.vehicleCategory._id === categoryId)
         return quantity > 0
           ? [
-              ...prev,
-              {
-                categoryVehicleId: categoryId,
-                quantity,
-                name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
-              },
-            ]
+            ...prev,
+            {
+              categoryVehicleId: categoryId,
+              quantity,
+              name: vehicle?.vehicleCategory.name || 'Unknown Vehicle',
+            },
+          ]
           : prev
       })
     },

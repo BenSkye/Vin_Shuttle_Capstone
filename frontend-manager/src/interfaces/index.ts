@@ -59,6 +59,7 @@ export interface Customer {
     name: string;
     phone: string;
     email: string;
+    createdAt: string;
 }
 
 export interface Vehicle {
