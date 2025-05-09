@@ -403,6 +403,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(
       {
         date: date,
+        // status: { $nin: [DriverSchedulesStatus.CANCELED] },
       },
       ['driver'],
     );
@@ -422,7 +423,7 @@ export class DriverScheduleService implements IDriverScheduleService {
     const driverSchedules = await this.driverScheduleRepository.getDriverSchedules(
       {
         date: date,
-        status: { $nin: [DriverSchedulesStatus.CANCELED] },
+        // status: { $nin: [DriverSchedulesStatus.CANCELED] },
       },
       ['vehicle'],
     );
