@@ -31,6 +31,8 @@ const HourlyBookingPage = () => {
   const [numberOfVehicles, setNumberOfVehicles] = useState<{ [key: string]: number }>({})
   const [pickup, setPickup] = useState<string>('')
 
+  const [startTimeIsNow, setStartTimeIsNow] = useState(false)
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean
     message: string
@@ -128,6 +130,7 @@ const HourlyBookingPage = () => {
             selectedTime={selectedTime}
             onDateChange={setSelectedDate}
             onTimeChange={setSelectedTime}
+            setStartTimeIsNow={setStartTimeIsNow}
           />
         )
       case 1:

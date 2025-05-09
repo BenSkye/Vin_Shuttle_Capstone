@@ -16,6 +16,7 @@ interface DateTimeSelectionProps {
   startTime: dayjs.Dayjs | null
   onDateChange: (date: dayjs.Dayjs | null) => void
   onStartTimeChange: (time: dayjs.Dayjs | null) => void
+  setStartTimeIsNow?: (isNow: boolean) => void
 }
 
 const RouteDateTimeSelection = ({
@@ -23,6 +24,7 @@ const RouteDateTimeSelection = ({
   startTime,
   onDateChange,
   onStartTimeChange,
+  setStartTimeIsNow,
 }: DateTimeSelectionProps) => {
   const [pickupNow, setPickupNow] = useState(false)
 
@@ -85,6 +87,7 @@ const RouteDateTimeSelection = ({
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
+    setStartTimeIsNow?.(checked)
     if (!checked) {
       onDateChange(null)
       onStartTimeChange(null)
