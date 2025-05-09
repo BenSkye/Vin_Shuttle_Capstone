@@ -96,6 +96,10 @@ export default function ScheduleScreen() {
         return '#f97316'; // orange
       case 'completed':
         return '#22c55e'; // green
+      case 'dropped_off':
+        return '#6b7280'; // gray
+      case 'canceled':
+        return '#ef4444'; // red
       default:
         return '#6b7280'; // gray
     }
@@ -111,6 +115,10 @@ export default function ScheduleScreen() {
         return 'Đang tạm dừng';
       case 'completed':
         return 'Đã hoàn thành';
+      case 'dropped_off':
+        return 'Không làm việc';
+      case 'canceled':
+        return 'Đã bị hủy';
       default:
         return 'Không xác định';
     }

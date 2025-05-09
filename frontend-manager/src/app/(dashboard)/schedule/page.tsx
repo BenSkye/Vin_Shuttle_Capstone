@@ -15,6 +15,7 @@ import { endOfWeek, format, isBefore, startOfDay, startOfWeek } from 'date-fns';
 import { getAvailableVehicles } from '../../../services/api/vehicles';
 import { AxiosError } from 'axios';
 import { DriverBackupNumber } from '@/interfaces/driver-schedules.enum';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 // Định nghĩa các loại modal để rõ ràng
 type ModalType = 'view' | 'assign' | 'update' | 'none';
@@ -873,11 +874,17 @@ const SchedulePage = () => {
                 </Modal>
 
                 <Modal
-                    title="Xác Nhận Hủy Lịch Trình"
+                    title={<span style={{ fontSize: '18px', fontWeight: '600' }}>Xác Nhận Hủy Lịch Trình</span>}
                     open={isOpenConfirmModal}
                     onCancel={handleModalConfirmCancleClose}
+                    centered
+                    width={600}
                     footer={[
-                        <Button key="cancel" onClick={handleModalConfirmCancleClose}>
+                        <Button
+                            key="cancel"
+                            onClick={handleModalConfirmCancleClose}
+                            style={{ minWidth: '100px' }}
+                        >
                             Hủy
                         </Button>,
                         <Button
@@ -886,14 +893,56 @@ const SchedulePage = () => {
                             danger
                             onClick={handleCancelSchedule}
                             loading={loading}
+                            style={{ minWidth: '120px' }}
                         >
                             Xác Nhận Hủy
                         </Button>
                     ]}
                 >
-                    <div>
-                        Xác nhận hủy lịch trình tài xế <strong>{selectedActivity?.title}</strong> vào ngày <strong>{selectedActivity?.date}</strong>?
+                    <div style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+                        <div style={{ marginBottom: '8px' }}>
+                            Bạn có chắc chắn muốn hủy lịch trình:
+                        </div>
+                        <div style={{
+                            background: '#fff2f0',
+                            padding: '12px',
+                            borderRadius: '4px',
+                            borderLeft: '3px solid #ff4d4f',
+                            marginBottom: '12px'
+                        }}>
+                            <div>
+                                <strong>Tài xế:</strong> {selectedActivity?.title}
+                            </div>
+                            <div>
+                                <strong>Xe:</strong> {selectedActivity?.vehicleName}
+                            </div>
+                            <div>
+                                <strong>Ngày:</strong> {selectedActivity?.date}
+                            </div>
+                        </div>
                     </div>
+
+                    <div style={{
+                        color: '#ff4d4f',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <ExclamationCircleOutlined />
+                        <span>Lưu ý quan trọng:</span>
+                    </div>
+
+                    <ul style={{
+                        color: '#595959',
+                        paddingLeft: '20px',
+                        marginBottom: '0',
+                        lineHeight: '1.6'
+                    }}>
+                        <li>Tài xế và xe bị hủy sẽ không thể phân lịch lại trong ngày</li>
+                        <li>Hủy lịch trình sẽ hủy tất cả các cuốc xe đã lên lịch</li>
+                        <li>Thao tác này không thể hoàn tác</li>
+                    </ul>
                 </Modal>
             </div>
 
