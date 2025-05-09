@@ -7,7 +7,8 @@ import { format } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TripStatus, tripStatusColor, tripStatusText } from '~/constants/trip.enum';
 import { ServiceType } from '~/constants/service-type.enum';
-import { BookingDestinationPayloadDto, BookingHourPayloadDto, Rating, Trip } from '~/interface/trip';
+import { BookingDestinationPayloadDto, BookingHourPayloadDto, BookingScenicRoutePayloadDto, BookingSharePayloadDto, Rating, Trip } from '~/interface/trip';
+import { se } from 'date-fns/locale';
 
 interface TripDetailsModalProps {
     visible: boolean;
@@ -117,7 +118,11 @@ export const TripDetailsModal = ({
                                         ? 'Đặt theo giờ'
                                         : trip.serviceType === ServiceType.BOOKING_DESTINATION
                                             ? 'Đặt theo điểm đến'
-                                            : 'Khác'
+                                            : trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE
+                                                ? 'Đặt theo tuyến đường'
+                                                : trip.serviceType === ServiceType.BOOKING_SHARE
+                                                    ? 'Đặt xe ghép'
+                                                    : 'N/A'
                                 }
                             />
 
@@ -136,7 +141,13 @@ export const TripDetailsModal = ({
                                         : trip.serviceType === ServiceType.BOOKING_DESTINATION
                                             ? (trip.servicePayload as BookingDestinationPayloadDto)
                                                 .bookingDestination.startPoint.address
-                                            : 'N/A'
+                                            : trip.serviceType === ServiceType.BOOKING_SCENIC_ROUTE
+                                                ? (trip.servicePayload as BookingScenicRoutePayloadDto)
+                                                    .bookingScenicRoute.startPoint.address
+                                                : trip.serviceType === ServiceType.BOOKING_SHARE
+                                                    ? (trip.servicePayload as BookingSharePayloadDto)
+                                                        .bookingShare.startPoint.address
+                                                    : 'N/A'
                                 }
                             />
 
