@@ -22,7 +22,13 @@ export default function TripRatingView({ tripId }: TripRatingViewProps) {
       <div className="mb-3 flex items-center gap-2">
         <FaStar className="text-yellow-500" />
         <span className="font-medium text-gray-700">Số sao:</span>
-        <Rate disabled value={rating.rate} character={<FaStar className="text-yellow-400" />} />
+        <Rate
+          disabled
+          value={Number(rating.rate)}
+          count={5}
+          className="text-lg text-yellow-400"
+        />
+
         <span className="ml-2 text-gray-700">({rating.rate}/5)</span>
       </div>
 
