@@ -18,6 +18,7 @@ import {
 } from '@/interface/booking.interface'
 import { bookingDestination, cancelBooking } from '@/service/booking.service'
 import { vehicleSearchDestination } from '@/service/search.service'
+import { Wallet } from 'lucide-react'
 
 // Dynamic import components outside the component to prevent reloading
 const { Title } = Typography
@@ -458,6 +459,12 @@ const DestinationBookingPage = () => {
                   <div className="flex items-center">
                     <img src="/images/logo_momo.png" alt="Momo" className="mr-3 h-8" />
                     <span>Ví điện tử Momo</span>
+                  </div>
+                </Radio>
+                <Radio value={PaymentMethod.CASH} className="w-full rounded-lg border p-4">
+                  <div className="flex items-center">
+                    <Wallet className="mr-3 h-4 w-4" />
+                    <span>Tiền mặt</span>
                   </div>
                 </Radio>
               </Space>

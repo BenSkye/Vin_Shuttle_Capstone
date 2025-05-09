@@ -55,6 +55,7 @@ const HourlyBookingPage = () => {
     address: '',
   })
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PAY_OS)
+  const [startTimeIsNow, setStartTimeIsNow] = useState(false)
   const [booking, setBooking] = useState<BookingHourRequest>({
     startPoint: { position: { lat: 0, lng: 0 }, address: '' },
     date: '',
@@ -100,13 +101,13 @@ const HourlyBookingPage = () => {
         )?.vehicleCategory
         return quantity > 0
           ? [
-              ...prev,
-              {
-                categoryVehicleId: categoryId,
-                quantity,
-                name: vehicleCategory?.name || '',
-              },
-            ]
+            ...prev,
+            {
+              categoryVehicleId: categoryId,
+              quantity,
+              name: vehicleCategory?.name || '',
+            },
+          ]
           : prev
       })
     },
@@ -248,7 +249,12 @@ const HourlyBookingPage = () => {
 
     try {
       console.log('Booking data being submitted:', booking)
-      const response = await bookingHour(booking)
+      const startTimeBooking = startTimeIsNow ? dayjs().add(5, 'minute') : startTime
+      const newBooking: BookingHourRequest = {
+        ...booking,
+        startTime: startTimeBooking?.format('HH:mm') || '',
+      }
+      const response = await bookingHour(newBooking)
       console.log('Booking response received:', response)
       setBookingResponse(response)
       setCurrentStep('checkout')
@@ -358,10 +364,11 @@ const HourlyBookingPage = () => {
 
   // Update booking state whenever dependencies change
   useEffect(() => {
+    const startTimeTrip = startTimeIsNow ? dayjs().add(5, 'minute') : startTime
     const updatedBooking = {
       startPoint: startPoint,
       date: selectedDate?.format('YYYY-MM-DD') || '',
-      startTime: startTime?.format('HH:mm') || '',
+      startTime: startTimeTrip?.format('HH:mm') || '',
       durationMinutes: duration,
       vehicleCategories: selectedVehicles,
       paymentMethod: paymentMethod,
@@ -384,6 +391,7 @@ const HourlyBookingPage = () => {
               onDateChange={handleDateChange}
               onStartTimeChange={handleStartTimeChange}
               onDurationChange={handleDurationChange}
+              setStartTimeIsNow={setStartTimeIsNow}
             />
             <div className="flex justify-end">
               <button

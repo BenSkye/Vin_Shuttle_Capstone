@@ -45,6 +45,8 @@ const RoutesBooking = () => {
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null)
 
+  const [startTimeIsNow, setStartTimeIsNow] = useState(false)
+
   // State for vehicle selection
   const [availableVehicles, setAvailableVehicles] = useState<AvailableVehicle[]>([])
   const [selectedVehicles, setSelectedVehicles] = useState<BookingHourRequest['vehicleCategories']>(
@@ -228,9 +230,10 @@ const RoutesBooking = () => {
     setError(null)
 
     try {
+      const startTimeBooking = startTimeIsNow ? dayjs().add(5, 'minute') : startTime
       const response = await vehicleSearchRoute(
         selectedDate.format('YYYY-MM-DD'),
-        startTime.format('HH:mm'),
+        startTimeBooking.format('HH:mm'),
         selectedRoute._id
       )
 
@@ -280,9 +283,10 @@ const RoutesBooking = () => {
     setError(null)
 
     try {
+      const startTimeBooking = startTimeIsNow ? dayjs().add(5, 'minute') : startTime
       const response = await bookingRoute({
         date: selectedDate.format('YYYY-MM-DD'),
-        startTime: startTime.format('HH:mm'),
+        startTime: startTimeBooking.format('HH:mm'),
         scenicRouteId: selectedRoute._id,
         startPoint: {
           position: {
@@ -463,6 +467,7 @@ const RoutesBooking = () => {
               startTime={startTime}
               onDateChange={handleDateChange}
               onStartTimeChange={handleStartTimeChange}
+              setStartTimeIsNow={setStartTimeIsNow}
             />
             <div className="flex justify-end">
               <button

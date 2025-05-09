@@ -22,6 +22,7 @@ interface DateTimeSelectionProps {
   onDateChange: (date: dayjs.Dayjs | null) => void
   onStartTimeChange: (time: dayjs.Dayjs | null) => void
   onDurationChange: (duration: number) => void
+  setStartTimeIsNow?: (isNow: boolean) => void
 }
 
 const DateTimeSelection = ({
@@ -31,6 +32,7 @@ const DateTimeSelection = ({
   onDateChange,
   onStartTimeChange,
   onDurationChange,
+  setStartTimeIsNow
 }: DateTimeSelectionProps) => {
   const [pickupNow, setPickupNow] = useState(false)
 
@@ -97,6 +99,7 @@ const DateTimeSelection = ({
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
+    setStartTimeIsNow(checked)
     if (!checked) {
       onDateChange(null)
       onStartTimeChange(null)
