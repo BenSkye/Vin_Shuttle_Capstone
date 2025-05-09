@@ -11,7 +11,6 @@ import {
   App,
   Spin,
   Tag,
-  
   Card,
   Statistic,
 } from "antd";
@@ -295,17 +294,17 @@ export default function TripHistoryPage() {
       sorter: (a, b) => a.amount - b.amount,
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
-      sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
-    },
-    {
-      title: "Ngày cập nhật",
-      dataIndex: "updatedAt",
-      key: "updatedAt",
-      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
+      title: "Lý do hủy",
+      dataIndex: "cancellationReason",
+      key: "cancellationReason",
+
+      render: (cancellationReason) => {
+        return cancellationReason ? (
+          <span className="text-red-500">{cancellationReason}</span>
+        ) : (
+          "Không có"
+        );
+      },
     },
     {
       title: "Hoàn tiền",
@@ -326,6 +325,19 @@ export default function TripHistoryPage() {
         const refundB = b.refundAmount || 0;
         return refundA - refundB;
       },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
+      sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
+    },
+    {
+      title: "Ngày cập nhật",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
     },
   ];
 
