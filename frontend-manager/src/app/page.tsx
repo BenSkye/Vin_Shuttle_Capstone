@@ -6,7 +6,7 @@ import Image from 'next/image'
 import NavBar from '@/components/NavBar'
 // import CountChart from '@/components/CountChart'
 import AttendanceChart from '@/components/AttendanceChart'
-import FinanceChart from '@/components/FinanceChart'
+// import FinanceChart from '@/components/FinanceChart'
 
 export default function Home() {
     return (
@@ -41,7 +41,7 @@ export default function Home() {
 
                         {/* Bottom Section */}
                         <div className="w-full h-[500px]">
-                            <FinanceChart />
+                            {/* <FinanceChart /> */}
                         </div>
                     </div>
                 </div>
