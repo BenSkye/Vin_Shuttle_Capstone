@@ -764,6 +764,12 @@ export class TripService implements ITripService {
     return await this.tripRepository.find(filter, [], options);
   }
 
+  /**
+   * @param userId - The ID of the user requesting the cancellation is DriverID or CustomerID.
+   * @param id - The ID of the trip to be cancelled.
+   * @param reason - The reason for cancellation.
+   * @returns {Promise<TripDocument>} - The updated trip document after cancellation.
+   */
   async cancelTrip(userId: string, id: string, reason: string): Promise<TripDocument> {
     const trip = await this.tripRepository.findOne({ _id: id }, []);
     if (!trip || ![trip.customerId._id.toString(), trip.driverId._id.toString()].includes(userId)) {

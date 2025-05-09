@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
-
-import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { Card, DatePicker, Switch, TimePicker } from 'antd'
+import { Tooltip } from 'antd'
+import { CalendarOutlined, ClockCircleOutlined, ThunderboltOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { Card, DatePicker, TimePicker, Switch } from 'antd'
 import locale from 'antd/es/date-picker/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
 
-import { BOOKING_BUFFER_MINUTES, SystemOperatingHours } from '@/constants/booking.constants'
+import {
+  BOOKING_BUFFER_MINUTES,
+  SystemOperatingHours,
+} from '@/constants/booking.constants'
 
 interface DateTimeSelectionProps {
   selectedDate: dayjs.Dayjs | null
   startTime: dayjs.Dayjs | null
   onDateChange: (date: dayjs.Dayjs | null) => void
   onStartTimeChange: (time: dayjs.Dayjs | null) => void
+  setStartTimeIsNow?: (isNow: boolean) => void
 }
 
 const RouteDateTimeSelection = ({
@@ -20,77 +24,61 @@ const RouteDateTimeSelection = ({
   startTime,
   onDateChange,
   onStartTimeChange,
+  setStartTimeIsNow,
 }: DateTimeSelectionProps) => {
   const [pickupNow, setPickupNow] = useState(false)
 
-  // Set current date and time with buffer when "pickup now" is selected
   useEffect(() => {
     if (pickupNow) {
       const now = dayjs()
-      const currentHour = now.hour()
-
-      // Check if current time is within system operating hours
-      if (currentHour < SystemOperatingHours.START) {
-        // If current time is before operating hours, set to system start time
-        const systemStartTime = now.hour(SystemOperatingHours.START).minute(0).second(0)
-        onDateChange(now)
-        onStartTimeChange(systemStartTime)
-      } else if (currentHour >= SystemOperatingHours.END) {
-        // If current time is after operating hours, set to next day's start time
-        const nextDay = now.add(1, 'day').hour(SystemOperatingHours.START).minute(0).second(0)
-        onDateChange(nextDay)
-        onStartTimeChange(nextDay)
-      } else {
-        // Normal case: add buffer to current time
-        const bufferedTime = now.add(BOOKING_BUFFER_MINUTES, 'minute')
-        onDateChange(now)
-        onStartTimeChange(bufferedTime)
-      }
+      onDateChange(now)
+      onStartTimeChange(now)
     }
-  }, [pickupNow, onDateChange, onStartTimeChange])
+  }, [pickupNow])
 
-  // Disallow past dates
   const disabledDate = (current: dayjs.Dayjs) => {
     return current && current < dayjs().startOf('day')
   }
 
-  // Disallow times less than 2 minutes from current time
   const disabledTime = () => {
     const now = dayjs()
-    const currentHour = now.hour()
-    const currentMinute = now.minute()
+    const selectedDay = selectedDate || now
 
-    // Luôn áp dụng khung giờ hệ thống (7h-23h) khi chưa chọn ngày hoặc chọn ngày không phải hôm nay
     const defaultDisabledHours = () => {
       const hours = []
-      // Vô hiệu hóa trước giờ START
-      for (let i = 0; i < SystemOperatingHours.START; i++) hours.push(i)
-      // Vô hiệu hóa sau giờ END
-      for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+      for (let i = 0; i < 24; i++) {
+        if (i < SystemOperatingHours.START || i > SystemOperatingHours.END) {
+          hours.push(i)
+        }
+      }
       return hours
     }
 
-    // Nếu đã chọn ngày VÀ là ngày hiện tại
-    if (selectedDate && selectedDate.isSame(now, 'day')) {
+    if (selectedDay.isSame(now, 'day')) {
+      const currentHour = now.hour()
+      const currentMinute = now.minute()
+
       return {
         disabledHours: () => {
-          const hours = []
-          // Vô hiệu hóa tất cả giờ trước giờ hiện tại
-          for (let i = 0; i < currentHour; i++) hours.push(i)
-          // Vô hiệu hóa sau giờ END
-          for (let i = SystemOperatingHours.END; i < 24; i++) hours.push(i)
+          const hours = defaultDisabledHours()
+          for (let i = 0; i < currentHour + 1; i++) {
+            hours.push(i)
+          }
           return hours
         },
         disabledMinutes: (hour: number) => {
           if (hour === currentHour) {
-            return Array.from({ length: currentMinute + BOOKING_BUFFER_MINUTES }, (_, i) => i)
+            const minutes = []
+            for (let i = 0; i <= currentMinute + BOOKING_BUFFER_MINUTES; i++) {
+              minutes.push(i)
+            }
+            return minutes
           }
           return []
         },
       }
     }
 
-    // Trường hợp chưa chọn ngày hoặc chọn ngày khác
     return {
       disabledHours: defaultDisabledHours,
       disabledMinutes: () => [],
@@ -99,8 +87,7 @@ const RouteDateTimeSelection = ({
 
   const handlePickupNowToggle = (checked: boolean) => {
     setPickupNow(checked)
-
-    // If toggling off, reset date and time selections
+    setStartTimeIsNow?.(checked)
     if (!checked) {
       onDateChange(null)
       onStartTimeChange(null)
@@ -108,80 +95,84 @@ const RouteDateTimeSelection = ({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl space-y-4 px-4 sm:px-6">
       {/* Pickup Now Option */}
       <Card
-        className="mb-4 shadow-sm transition-shadow duration-300 hover:shadow-md"
+        className="transform transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
+        bodyStyle={{ padding: '16px' }}
         title={
-          <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-            <ThunderboltOutlined className="text-yellow-500" />
+          <div className="flex items-center gap-3 text-base font-medium text-gray-800">
+            <ThunderboltOutlined className="text-xl text-yellow-500" />
             <span>Đón ngay bây giờ</span>
           </div>
         }
-        styles={{ body: { padding: '12px' } }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600 sm:text-base">Đặt xe ngay lập tức</span>
+          <div className="flex items-center gap-2">
+            <span className="text-base text-gray-600">Đặt xe ngay lập tức</span>
+            <Tooltip title="Xe sẽ đến đón bạn trong vòng 15-20 phút">
+              <InfoCircleOutlined className="text-blue-500 hover:text-blue-600" />
+            </Tooltip>
+          </div>
           <Switch
             checked={pickupNow}
             onChange={handlePickupNowToggle}
-            className="bg-gray-300"
+            className={`${pickupNow ? 'bg-blue-500' : 'bg-gray-300'} transition-colors duration-300`}
             checkedChildren="Có"
             unCheckedChildren="Không"
           />
         </div>
       </Card>
 
-      {/* Grid container with responsive columns */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-        {/* Date Selection Card */}
+      {/* Date & Time Selection */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Date Selection */}
         <Card
-          className="shadow-sm transition-shadow duration-300 hover:shadow-md"
+          className="transform transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
+          bodyStyle={{ padding: '16px' }}
           title={
-            <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-              <CalendarOutlined className="text-blue-500" />
+            <div className="flex items-center gap-3 text-base font-medium text-gray-800">
+              <CalendarOutlined className="text-xl text-blue-500" />
               <span>Chọn ngày</span>
             </div>
           }
-          styles={{ body: { padding: '12px' } }}
         >
           <DatePicker
-            className="w-full"
-            format="DD/MM/YYYY"
-            disabledDate={disabledDate}
+            className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 transition-all duration-300 hover:border-blue-400 focus:border-blue-500 focus:outline-none"
+            locale={locale}
             value={selectedDate}
             onChange={onDateChange}
-            placeholder="Chọn ngày đặt xe"
-            locale={locale}
-            showToday={false}
-            size="large"
+            disabledDate={disabledDate}
+            format="DD/MM/YYYY"
+            placeholder="Chọn ngày đón"
             disabled={pickupNow}
+            showToday={false}
           />
         </Card>
 
-        {/* Time Selection Card */}
+        {/* Time Selection */}
         <Card
-          className="shadow-sm transition-shadow duration-300 hover:shadow-md"
+          className="transform transition-all duration-300 hover:scale-[1.01] hover:shadow-lg"
+          bodyStyle={{ padding: '16px' }}
           title={
-            <div className="flex items-center gap-2 text-sm text-gray-700 sm:text-base">
-              <ClockCircleOutlined className="text-blue-500" />
+            <div className="flex items-center gap-3 text-base font-medium text-gray-800">
+              <ClockCircleOutlined className="text-xl text-green-500" />
               <span>Chọn giờ</span>
             </div>
           }
-          styles={{ body: { padding: '12px' } }}
         >
           <TimePicker
-            className="w-full"
-            format="HH:mm"
+            className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 transition-all duration-300 hover:border-green-400 focus:border-green-500 focus:outline-none"
+            locale={locale}
             value={startTime}
             onChange={onStartTimeChange}
-            placeholder="Chọn giờ đặt xe"
-            locale={locale}
+            format="HH:mm"
+            minuteStep={15}
+            hideDisabledOptions
             disabledTime={disabledTime}
-            minuteStep={1}
-            size="large"
-            showNow={false}
+            placeholder="Chọn giờ đón"
             disabled={pickupNow}
+            showNow={false}
           />
         </Card>
       </div>

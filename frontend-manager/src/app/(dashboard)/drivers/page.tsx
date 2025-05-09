@@ -63,6 +63,7 @@ const DriverPage = () => {
 
     const totalPages = Math.ceil(filteredDrivers.length / itemsPerPage);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchDrivers();
     }, []);
