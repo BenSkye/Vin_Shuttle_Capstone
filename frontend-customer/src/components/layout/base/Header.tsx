@@ -36,16 +36,17 @@ export default function Header() {
 
   if (isLoggedIn) {
     return (
-      <PrivateHeader
-        userName={userName}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onLogout={handleLogout}
-        markAsRead={markAsRead}
-        markAllAsRead={markAllAsRead}
-      />
+      // <PublicHeader isOpen={isOpen} toggleMenu={toggleMenu} />
+      <div></div>
     )
   }
 
-  return <PublicHeader isOpen={isOpen} toggleMenu={toggleMenu} />
+  return <PrivateHeader
+
+
+
+
+
+
+  />
 }

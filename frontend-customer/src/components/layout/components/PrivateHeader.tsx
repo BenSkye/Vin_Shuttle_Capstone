@@ -1,37 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
-  FiBell,
   FiChevronDown,
-  FiCreditCard,
-  FiLogOut,
   FiMenu,
-  FiMessageSquare,
-  FiUser,
-  FiUserCheck,
   FiX,
 } from 'react-icons/fi'
-import { IoCarOutline } from 'react-icons/io5'
 
 import { Routes } from '@/constants/routers'
 
-import { NotificationDropdown } from '@/components/common/NotificationDropdown'
-import { UserDropdown } from '@/components/common/UserDropdown'
 import { Logo } from '@/components/icons/Logo'
 
-import { INotification } from '@/interface/notification'
-
-interface PrivateHeaderProps {
-  userName: string
-  notifications: INotification[]
-  unreadCount: number
-  onLogout: () => void
-  markAsRead: (id: string) => Promise<void>
-  markAllAsRead: () => Promise<void>
-}
+interface PrivateHeaderProps { }
 
 const privateNavItems = [
   { label: 'Trang Chủ', href: Routes.HOME },
@@ -48,29 +29,9 @@ const privateNavItems = [
   { label: 'Giới thiệu', href: Routes.ABOUT },
 ]
 
-const userMenuItems = [
-  { label: 'Thông tin cá nhân', href: Routes.PROFILE, icon: FiUserCheck },
-  { label: 'Cuốc xe', href: Routes.TRIPS, icon: IoCarOutline },
-  { label: 'Lịch sử thanh toán', href: Routes.BOOKING.ROOT, icon: FiCreditCard },
-  { label: 'Cuộc trò chuyện', href: Routes.CHAT, icon: FiMessageSquare },
-]
-
-export function PrivateHeader({
-  userName,
-  notifications,
-  unreadCount,
-  onLogout,
-  markAsRead,
-  markAllAsRead,
-}: PrivateHeaderProps) {
+export function PrivateHeader({ }: PrivateHeaderProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>([])
-  const router = useRouter()
-
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const notificationRef = useRef<HTMLDivElement>(null)
 
   // Add padding to body to account for fixed header
   useEffect(() => {
@@ -94,25 +55,11 @@ export function PrivateHeader({
   }, [isOpen])
 
   const toggleMenu = () => setIsOpen(!isOpen)
-  const toggleDropdown = () => setShowDropdown(!showDropdown)
-  const toggleNotifications = () => setShowNotifications(!showNotifications)
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
       prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
     )
-  }
-
-  const handleMobileNotificationClick = async (notificationId: string, redirectUrl?: string) => {
-    try {
-      await markAsRead(notificationId)
-      if (redirectUrl) {
-        router.push(redirectUrl)
-      }
-      setIsOpen(false)
-    } catch (error) {
-      console.error('Error marking notification as read:', error)
-    }
   }
 
   return (
@@ -173,36 +120,7 @@ export function PrivateHeader({
 
           {/* Right Section - Actions */}
           <div className="relative hidden w-[280px] items-center justify-end space-x-2 md:flex">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-              className="rounded-lg p-2.5 transition-all duration-200 hover:bg-surface-secondary"
-            >
-              <NotificationDropdown
-                notifications={notifications}
-                unreadCount={unreadCount}
-                showNotifications={showNotifications}
-                notificationRef={notificationRef}
-                toggleNotifications={toggleNotifications}
-                markAsRead={markAsRead}
-                markAllAsRead={markAllAsRead}
-              />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-              className="rounded-lg transition-colors hover:bg-surface-secondary"
-            >
-              <UserDropdown
-                userName={userName}
-                showDropdown={showDropdown}
-                dropdownRef={dropdownRef}
-                toggleDropdown={toggleDropdown}
-                onLogout={onLogout}
-              />
-            </motion.div>
+            {/* No authentication required - simplified header */}
           </div>
 
           {/* Mobile Menu Button */}
@@ -236,17 +154,6 @@ export function PrivateHeader({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col p-4 pb-20">
-                {/* User Profile Section */}
-                <div className="mb-4 flex items-center space-x-3 border-b border-divider pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500">
-                    <FiUser className="text-xl text-content-inverse" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-content">{userName}</p>
-                    <p className="text-xs text-content-tertiary">Tài khoản của bạn</p>
-                  </div>
-                </div>
-
                 {/* Navigation Links */}
                 <div className="space-y-2">
                   {privateNavItems.map((item) => (
@@ -259,9 +166,8 @@ export function PrivateHeader({
                           >
                             <span>{item.label}</span>
                             <FiChevronDown
-                              className={`h-5 w-5 transition-transform ${
-                                expandedSections.includes(item.label) ? 'rotate-180' : ''
-                              }`}
+                              className={`h-5 w-5 transition-transform ${expandedSections.includes(item.label) ? 'rotate-180' : ''
+                                }`}
                             />
                           </button>
                           <AnimatePresence>
@@ -301,121 +207,6 @@ export function PrivateHeader({
                     </div>
                   ))}
                 </div>
-
-                {/* Notifications Section */}
-                <button
-                  onClick={() => toggleSection('notifications')}
-                  className="mt-4 flex w-full items-center justify-between border-b border-divider py-3"
-                >
-                  <div className="flex items-center">
-                    <FiBell className="mr-2 text-primary-500" />
-                    <span className="text-lg font-medium text-content-secondary">Thông báo</span>
-                  </div>
-                  <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('notifications') ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                <AnimatePresence>
-                  {expandedSections.includes('notifications') && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-2 py-3">
-                        {unreadCount > 0 && (
-                          <button className="text-xs text-accent-500" onClick={markAllAsRead}>
-                            Đánh dấu tất cả đã đọc
-                          </button>
-                        )}
-                        {notifications.length === 0 ? (
-                          <p className="py-2 text-center text-sm text-content-tertiary">
-                            Không có thông báo
-                          </p>
-                        ) : (
-                          <div className="space-y-2">
-                            {notifications.slice(0, 5).map((notif) => (
-                              <div
-                                key={notif._id}
-                                className={`rounded p-3 text-sm ${!notif.isRead ? 'bg-accent-50' : 'bg-surface-secondary'}`}
-                                onClick={() =>
-                                  handleMobileNotificationClick(notif._id, notif.redirectUrl)
-                                }
-                              >
-                                <div className="mb-1 flex items-start justify-between">
-                                  <p
-                                    className={`font-medium ${!notif.isRead ? 'text-accent-700' : 'text-content'}`}
-                                  >
-                                    {notif.title}
-                                  </p>
-                                  <span className="text-xs text-content-tertiary">
-                                    {new Date(notif.createdAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <p className="text-content-secondary">{notif.body}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* User Actions */}
-                <button
-                  onClick={() => toggleSection('userActions')}
-                  className="mt-2 flex w-full items-center justify-between border-b border-divider py-3"
-                >
-                  <div className="flex items-center">
-                    <FiUser className="mr-2 text-primary-500" />
-                    <span className="text-lg font-medium text-content-secondary">Tài khoản</span>
-                  </div>
-                  <FiChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      expandedSections.includes('userActions') ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                <AnimatePresence>
-                  {expandedSections.includes('userActions') && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-3 py-3">
-                        {userMenuItems.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className="flex items-center gap-3 py-2 text-content-secondary"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            <item.icon className="text-primary-500" />
-                            <span>{item.label}</span>
-                          </Link>
-                        ))}
-                        <button
-                          onClick={() => {
-                            setIsOpen(false)
-                            onLogout()
-                          }}
-                          className="flex w-full items-center gap-3 py-2 text-error"
-                        >
-                          <FiLogOut className="text-error" />
-                          <span>Đăng xuất</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </motion.div>
           </motion.div>
